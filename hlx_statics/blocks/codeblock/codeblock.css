@@ -1,0 +1,77 @@
+@import url('../../styles/prism.css');
+
+pre[class*=language-] {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+
+main div.codeblock {
+    /* background-color: lightblue; */
+    /* border: 2px solid pink; */
+    border-radius: 4px;
+    background-color: rgb(0, 0, 0);
+}
+
+/* copied from https://raw.githubusercontent.com/adobe/aem-block-collection/main/blocks/tabs/tabs.css */
+
+.codeblock .tabs-list {
+    display: flex;
+    gap: 16px;
+    /* gap: 100px; */
+    max-width: 100%;
+    overflow-x: auto;
+    /* background-color: rgb(0, 0, 0); */
+    /* color: rgb(255, 255, 255); */
+    /* padding: 16px; */
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  
+  .codeblock .tabs-list button {
+    flex: 0 0 max-content;
+    /* margin: 0; */
+    border: 0px;
+    border-radius: 0;
+    padding: 0;
+    font-family: inherit;
+    color: rgb(209, 209, 209);
+    font-size: inherit;
+    /* font-weight: bold; */
+    line-height: unset;
+    text-align: initial;
+    text-overflow: unset;
+    overflow: unset;
+    white-space: unset;
+    /* transition: background-color 0.2s; */
+    cursor: pointer;
+    background-color: initial;
+    border-bottom: 3px solid transparent;
+    padding-top:16px;
+    padding-bottom:16px;
+  }
+
+  .codeblock .tabs-list button:hover {
+    color: rgb(255, 255, 255);
+  }
+  
+  .codeblock .tabs-list button p {
+    margin: 0;
+  }
+  
+  
+  .codeblock .tabs-list button[aria-selected='true'] {
+    border-bottom: 3px solid white;
+    
+    
+  }
+  
+  .codeblock .tabs-panel {
+    margin-top: -1px;
+    /* padding: 24px; */
+    overflow: auto;
+  }
+  
+  .codeblock .tabs-panel[aria-hidden='true'] {
+    display: none;
+  }

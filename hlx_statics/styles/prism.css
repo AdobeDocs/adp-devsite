@@ -95,22 +95,6 @@ pre[class*=language-] {
   color: rgb(75, 156, 245) !important;
 }
 
-.token.important,
-.token.bold {
-  font-weight: bold !important;
-}
-.token.italic {
-  font-style: italic !important;
-}
-
-.token.entity {
-  cursor: help !important;
-}
-
-.token.inserted {
-  color: rgb(57, 185, 144) !important;
-}
-
 pre[class*=language-].line-numbers {
     position: relative;
     padding-left: 3.8em;
