@@ -1,5 +1,5 @@
 mountpoints:
   /:
-    url: https://53444-842orangechinchilla.adobeioruntime.net/api/v1/web/md2markup/main/AdobeDocs/commerce-webapi?root=/src/pages/rest
+    url: https://53444-842orangechinchilla.adobeioruntime.net/api/v1/web/md2markup/main/
     type: markup
     suffix: '.md'
