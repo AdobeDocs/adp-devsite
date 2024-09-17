@@ -96,18 +96,11 @@ function globalNavLinkItemDropdown(id, name, links) {
 function globalNavLinkItemDropdownItem(url, name) {
   return `
       <li class="spectrum-Menu-item">
-        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links">${name} daa-ll="${name}"</a></span>
+        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
       </li>
     `;
 }
 
-function globalNavLinkItem(url, name) {
-  return `
-    <li class="spectrum-Menu-item">
-      <a href="${url}" class="nav-dropdown-links"daa-ll="${name}">${name}</a>
-    </li>
-  `;
-}
 const globalNavSearchDropDown = () => createTag('div', { class: 'nav-console-search-frame' });
 
 const setSearchFrameSource = () => {
@@ -388,52 +381,27 @@ export default async function decorate(block) {
           // most annoying issue - can't select just the first level of li's? wtf
           // have to strip out all the p's
           navigationLinks.innerHTML += topMenuItems.innerHTML.replaceAll('<p>', '').replaceAll('</p>','');
-
-          // topMenuItems.forEach((menuItem) => {
-          //   
-          //   console.log(menuItem.parentElement)
-          //   console.log(menuItem)
-          //   if(menuItem.parentElement.nodeName === 'UL') {
-
-          //   } else {
-          //     let theItem = menuItem.querySelector('a');
-          //     console.log(theItem)
-          //     navigationLinks.innerHTML += globalNavLinkItem(theItem.href, theItem.innerText);
-          //   }
-          //   //let menuItem = createTag('a', {href = })
-          // });
-          
-          
-          // <li><a href="http://developer.adobe.com/app-builder" 
-          // daa-ll="Adobe Developer App Builder">Adobe Developer App Builder</a>
-          // <div class="nav-link-active" style="width: 190px; transform:translate(12px,0); bottom: 0.5px"></div></li>
-
-
-          //navigationLinks.append(topMenuItems);
-
-          
-          // theItem.querySelectorAll('li > ul').forEach((dropDownList, index) => {
-          //   let dropdownLinkDropdownHTML = '';
-          //   let dropdownLinksHTML = '';
-      
-          //   dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
-          //     dropdownLinksHTML
-          //       += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
-          //   });
-      
-          //   dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
-          //     index,
-          //     dropDownList.parentElement.firstChild.textContent.trim(),
-          //     dropdownLinksHTML,
-          //   );
-          //   dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
-          // });
-      
-          // addCheckmarkSvg(ul);
         }
       });
     
-    //header.append(navigationLinks);
+      navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
+        let dropdownLinkDropdownHTML = '';
+        let dropdownLinksHTML = '';
+
+        dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
+          dropdownLinksHTML
+            += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+        });
+
+        dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
+          index,
+          dropDownList.parentElement.firstChild.textContent.trim(),
+          dropdownLinksHTML,
+        );
+        dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
+      });
+
+      addCheckmarkSvg(navigationLinks);
 
     let buttonDiv;
     if (window.location.pathname.includes('/developer-distribution')) {
