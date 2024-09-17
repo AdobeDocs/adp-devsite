@@ -96,11 +96,18 @@ function globalNavLinkItemDropdown(id, name, links) {
 function globalNavLinkItemDropdownItem(url, name) {
   return `
       <li class="spectrum-Menu-item">
-        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links">${name}</a></span>
+        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links">${name} daa-ll="${name}"</a></span>
       </li>
     `;
 }
 
+function globalNavLinkItem(url, name) {
+  return `
+    <li class="spectrum-Menu-item">
+      <a href="${url}" class="nav-dropdown-links"daa-ll="${name}">${name}</a>
+    </li>
+  `;
+}
 const globalNavSearchDropDown = () => createTag('div', { class: 'nav-console-search-frame' });
 
 const setSearchFrameSource = () => {
@@ -313,6 +320,9 @@ export default async function decorate(block) {
   // Might be better to hard code the default so we don't have
   // to rely on a chain of failing 404's to finally get a nav
   // strip out trailing slash if any
+  // 
+  // Also might want to think about setting meta data on existing google drive 
+  // to denote path prefix instead of trying to figure out where the nav is
 
   let navPath;
   let pathPrefix;
@@ -324,6 +334,8 @@ export default async function decorate(block) {
   }
   
   const resp = await fetch(`${navPath}.plain.html`);
+
+  // TODO can be smarter on when to grab the nav 
   if (resp.ok) {
     const html = await resp.text();
     // block.innerHTML = html;
@@ -366,17 +378,40 @@ export default async function decorate(block) {
     }
 
       // get all the top level links
+      // TODO get versions selector working
+      const parser = new DOMParser();
+      const htmlDocument = parser.parseFromString(html, "text/html");
 
-      console.log(html);
-      [...html.querySelectorAll("p")].forEach((item) => {
+      [...htmlDocument.querySelectorAll("p")].forEach((item) => {
         if(item.innerText === 'pages:') {
-          let theItem;
-          theItem = item.querySelector('ul');
-          theItem.setAttribute('id', 'navigation-links');
-          theItem.setAttribute('class', 'menu');
-          theItem.style.listStyleType = 'none';
+          let topMenuItems = item.parentElement.querySelector('ul');
+          // most annoying issue - can't select just the first level of li's? wtf
+          // have to strip out all the p's
+          navigationLinks.innerHTML += topMenuItems.innerHTML.replaceAll('<p>', '').replaceAll('</p>','');
 
-          navigationLinks.append(theItem);
+          // topMenuItems.forEach((menuItem) => {
+          //   
+          //   console.log(menuItem.parentElement)
+          //   console.log(menuItem)
+          //   if(menuItem.parentElement.nodeName === 'UL') {
+
+          //   } else {
+          //     let theItem = menuItem.querySelector('a');
+          //     console.log(theItem)
+          //     navigationLinks.innerHTML += globalNavLinkItem(theItem.href, theItem.innerText);
+          //   }
+          //   //let menuItem = createTag('a', {href = })
+          // });
+          
+          
+          // <li><a href="http://developer.adobe.com/app-builder" 
+          // daa-ll="Adobe Developer App Builder">Adobe Developer App Builder</a>
+          // <div class="nav-link-active" style="width: 190px; transform:translate(12px,0); bottom: 0.5px"></div></li>
+
+
+          //navigationLinks.append(topMenuItems);
+
+          
           // theItem.querySelectorAll('li > ul').forEach((dropDownList, index) => {
           //   let dropdownLinkDropdownHTML = '';
           //   let dropdownLinksHTML = '';
