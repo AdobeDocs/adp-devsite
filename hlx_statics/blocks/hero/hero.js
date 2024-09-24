@@ -1,9 +1,9 @@
 import {
+  createTag,
   decorateButtons,
   applyAnalyticHeaderOverride,
 } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
-
 /**
  * Rearranges the links into a hero-button-container div
  * @param {*} block The hero block element
