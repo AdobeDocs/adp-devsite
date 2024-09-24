@@ -52,7 +52,6 @@ footer .footer-links-container-inner {
   grid-template-areas: "apis blogs support developer";
   grid-template-columns: 30% 22% 19%;
   gap: 32px;
-  padding: 16px;
 }
 
 @media screen and (max-width: 320px) {
