@@ -1,5 +1,4 @@
 main div.herosimple-wrapper {
-
   width: 100%;
 }
 main div.herosimple {
@@ -7,16 +6,13 @@ main div.herosimple {
   height: 272px;
   overflow: hidden;
   color: rgb(255, 255, 255);
-  display: flex;
   position: relative;
-  flex-direction: row;
-  align-items: center;
-
 }
 
 main div.herosimple > div {
   max-width: 1280px;
   margin: 0 auto;
+  margin-top: 40px;
 }
 
 main div.herosimple > div > div{
@@ -54,7 +50,7 @@ main div.herosimple-container {
 
 
 main .herosimple p.spectrum-Body--sizeL {
-  margin-top: 0 !important;
+  margin-top: -20px;
   font-size: 20px;
 }
 

@@ -839,3 +839,15 @@ main .heading6 h6 {
 .spectrum-Link--secondary{
   color: inherit !important;
 }
+
+main .default-content-wrapper {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+
+
+main .default-content-wrapper > p{
+
+}
