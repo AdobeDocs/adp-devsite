@@ -20,8 +20,9 @@ import {
 import {
   buildCodes,
   buildEmbeds,
+  buildGrid,
   buildHeadings,
-  createTag,
+  buildSideNav,
   toggleScale,
   decorateAnchorLink,
   decorateInlineCodes,
@@ -144,14 +145,8 @@ async function loadEager(doc) {
   }
 
   if (getMetadata('template') === 'documentation') {
-    main.style.display = 'grid';
-    main.style.gridTemplateAreas = '"sidenav main" "sidenav footer"';
-    let sideNavDiv = createTag ('div', {class: 'section side-nav-container', style: 'grid-area: sidenav'});
-    let sideNavWrapper = createTag('div', {class: 'side-nav-wrapper'});
-    let sideNavBlock = createTag('div', {class: 'side-nav block', 'data-block-name': 'side-nav'});
-    sideNavWrapper.append(sideNavBlock);
-    sideNavDiv.append(sideNavWrapper);
-    main.prepend(sideNavDiv);
+    buildGrid(main);
+    buildSideNav(main);
   }
 }
 

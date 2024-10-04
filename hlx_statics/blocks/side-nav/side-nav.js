@@ -19,9 +19,4 @@ export default async function decorate(block) {
     const html = await resp.text();
     block.innerHTML = html;
   }
-
-  let sideNavContainer = document.querySelector('.side-nav-container');
-  if(sideNavContainer) {
-    sideNavContainer.style.gridArea = 'sidenav';
-  }
 }
