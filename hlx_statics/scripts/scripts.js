@@ -18,6 +18,7 @@ import {
 } from './lib-helix.js';
 
 import {
+  buildBreadcrumbs,
   buildCodes,
   buildEmbeds,
   buildGrid,
@@ -146,6 +147,7 @@ async function loadEager(doc) {
 
   if (getMetadata('template') === 'documentation') {
     buildGrid(main);
+    buildBreadcrumbs(main);
     buildSideNav(main);
   }
 }
@@ -342,12 +344,6 @@ async function loadLazy(doc) {
   loadFooter(doc.querySelector('footer'));
 
   if (getMetadata('template') === 'documentation') {
-    const sidenav = main.querySelector('.side-nav-container');
-    if (sidenav) {
-      // set whatever is the next section next to sidenav to be the documentation main content area
-      sidenav.nextElementSibling.style.gridArea = 'main';
-    }
-
     // rearrange footer and append to main when in doc mode
     const footer = doc.querySelector('footer');
     main.append(footer);

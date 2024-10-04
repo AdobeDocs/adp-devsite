@@ -263,6 +263,21 @@ export function buildGrid(main) {
 }
 
 /**
+ * Builds the breadcrumbs
+ * @param {*} main The grid container
+ */
+export function buildBreadcrumbs(main) {
+  const gridAreaMain = main.querySelector(".section");
+  gridAreaMain.style.gridArea = 'main';
+  let breadcrumbsDiv = createTag ('div', {class: 'section breadcrumbs-container'});
+  let breadcrumbsWrapper = createTag('div', {class: 'breadcrumbs-wrapper'});
+  let breadcrumbsBlock = createTag('div', {class: 'breadcrumbs block', 'data-block-name': 'breadcrumbs'});
+  breadcrumbsWrapper.append(breadcrumbsBlock);
+  breadcrumbsDiv.append(breadcrumbsWrapper);
+  gridAreaMain.prepend(breadcrumbsDiv)
+}
+
+/**
  * Builds the side nav
  * @param {*} main The grid container
  */
