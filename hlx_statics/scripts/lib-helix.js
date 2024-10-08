@@ -106,6 +106,24 @@ export function getMetadata(name) {
 }
 
 /**
+ * Retrieves the navigation config in HTML format.
+ * @returns {string} The navigation config in HTML format
+ */
+export async function fetchNavHtml() {
+  let pathPrefix;
+  let navPath;
+  // TODO: make only one call to the config
+  if(getMetadata('source') === 'github') {
+    pathPrefix = getMetadata('pathprefix').replace('/', '');
+    navPath = `${window.location.origin}/${pathPrefix}/config`;
+  }
+
+  const resp = await fetch(`${navPath}.plain.html`);
+  const html = await resp.text();
+  return resp.ok ? html : Promise.reject(html);
+}
+
+/**
  * Adds one or more URLs to the dependencies for publishing.
  * @param {string|[string]} url The URL(s) to add as dependencies
  */
