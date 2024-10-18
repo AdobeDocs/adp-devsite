@@ -49,6 +49,7 @@ function getVariant(classList) {
  * @param {Element} block The columns block element
  */
 export default async function decorate(block) {
+    console.log('~~ hello from InlineAlert');
     const container = getBlockSectionContainer(block);
 
     block.querySelectorAll('.inlinealert > div').forEach((inlineAlert) => {

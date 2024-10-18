@@ -1,5 +1,4 @@
 
 export default function decorate(block) {
-    console.log('~~ hello');
-  }
-  
+    console.log('~~ hello from RedoclyAPIBlock');
+}
