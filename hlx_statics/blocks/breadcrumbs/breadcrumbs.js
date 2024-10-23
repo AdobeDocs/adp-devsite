@@ -1,4 +1,6 @@
-import { getMetadata, fetchNavHtml } from '../../scripts/lib-helix.js';
+import { getMetadata, 
+  // fetchNavHtml 
+} from '../../scripts/lib-helix.js';
 
 export default async function decorate(block) {
   const icon = `
@@ -22,9 +24,9 @@ export default async function decorate(block) {
   const pathPrefix = getMetadata('pathprefix');
   console.log('~~ location', window.location.pathname, pathPrefix);
 
-  const html = await fetchNavHtml();  
-  var doc = new DOMParser().parseFromString(html, "text/xml");
-  console.log('~~ document', doc);
+  // const html = await fetchNavHtml();  
+  // var doc = new DOMParser().parseFromString(html, "text/xml");
+  // console.log('~~ document', doc);
 
   const showBreadcrumbs = getMetadata('hideBreadcrumbNav') !== 'true'; // TODO
   if(showBreadcrumbs) {
