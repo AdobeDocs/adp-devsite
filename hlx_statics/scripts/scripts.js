@@ -66,6 +66,14 @@ window.addEventListener('error', (event) => {
 
 window.addEventListener('resize', toggleScale);
 
+const downIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
+<rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" /><path class="fill" d="M4,7.01a1,1,0,0,1,1.7055-.7055l3.289,3.286,3.289-3.286a1,1,0,0,1,1.437,1.3865l-.0245.0245L9.7,11.7075a1,1,0,0,1-1.4125,0L4.293,7.716A.9945.9945,0,0,1,4,7.01Z" />
+</svg>`;
+
+const rightIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
+<rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" /><path class="fill" d="M12,9a.994.994,0,0,1-.2925.7045l-3.9915,3.99a1,1,0,1,1-1.4355-1.386l.0245-.0245L9.5905,9,6.3045,5.715A1,1,0,0,1,7.691,4.28l.0245.0245,3.9915,3.99A.994.994,0,0,1,12,9Z" />
+</svg>`
+
 function loadHeader(header) {
   const headerBlock = buildBlock('header', '');
   header.append(headerBlock);
@@ -92,20 +100,145 @@ async function loadConfig() {
     if (resp.ok) {
       const html = await resp.text();
 
+      const updatedData = html.replace(/href="([^"]+)"/g, (match, url) => {
+
+        // Avoid updating URLs that already contain the pathPrefix
+        if (!url.startsWith(pathPrefix)) {
+          if (url.endsWith('index.md')) {
+            return `href="/${pathPrefix}/${url.replaceAll('index.md', '')}"`;
+          }
+          else if (url.endsWith('.md')) {
+            return `href="/${pathPrefix}/${url.replaceAll('.md', '')}"`;
+          }
+          else {
+            return `href="/${pathPrefix}/${url}"`;
+          }
+        }
+        return match;
+      });
+
+
       const parser = new DOMParser();
-      const htmlDocument = parser.parseFromString(html, "text/html");
+      const htmlDocument = parser.parseFromString(updatedData, "text/html");
       let topNavItems, sideNavItems;
 
       // TODO: normalise paths
       [...htmlDocument.querySelectorAll("p")].forEach((item) => {
-        if(item.innerText === 'pages:') {
+        if (item.innerText === 'pages:') {
           topNavItems = item.parentElement.querySelector('ul');
-          topNavItems.innerHTML = topNavItems.innerHTML.replaceAll('<p>', '').replaceAll('</p>','');
+          topNavItems.innerHTML = topNavItems.innerHTML.replaceAll('<p>', '').replaceAll('</p>', '');
         }
 
-        if(item.innerText === 'subPages:') {
+        if (item.innerText === 'subPages:') {
           sideNavItems = item.parentElement.querySelector('ul');
-          sideNavItems.innerHTML = sideNavItems.innerHTML.replaceAll('<p>', '').replaceAll('</p>','');
+
+          sideNavItems.innerHTML = sideNavItems.innerHTML.replaceAll('<p>', '').replaceAll('</p>', '');
+
+          function assignLayerNumbers(ul, layer = 1) {
+            const listItems = ul.children;
+
+            for (let i = 0; i < listItems.length; i++) {
+              const li = listItems[i];
+
+              if (layer === 1) {
+                li.classList.add('header');
+              }
+
+              const getAnchorTag = li.querySelector('a');
+              const childUl = li.querySelector('ul');
+
+              li.setAttribute("role", "treeitem");
+              li.setAttribute("aria-level", layer);
+
+              if (getAnchorTag) {
+                getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
+
+                getAnchorTag.onclick = (e) => {
+                  console.log('e', e)
+                  localStorage.setItem('e','test')
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const isExpanded = li.getAttribute('aria-expanded') === 'true';
+                
+                  if (isExpanded) {
+                    li.setAttribute('aria-expanded', false);
+                    li.classList.remove('is-expanded', 'is-selected');
+                    if (childUl) {
+                      childUl.style.display = 'none';
+                    }
+                  } else {
+                    li.setAttribute('aria-expanded', true);
+                    li.classList.add('is-expanded');
+                    if (childUl) {
+                      childUl.style.display = 'block';
+                    }
+                    if (window.location.href === getAnchorTag.href) {
+                      getAnchorTag.setAttribute("aria-current", "page");
+                      li.classList.add('is-selected');
+                      toggleParent(li, true);
+                    }     
+                  }
+                  return false;
+                };
+
+                if (window.location.href === getAnchorTag.href) {
+                  li.setAttribute('aria-expanded', true);
+                  getAnchorTag.setAttribute("aria-current", "page");
+                  li.classList.add('is-expanded', 'is-selected');
+                  toggleParent(li, true);
+                } else {
+                  updateState(li, childUl);
+                }
+
+                if (childUl) {
+                  childUl.setAttribute('role', 'group');
+                  childUl.classList.add('spectrum-SideNav');
+                  assignLayerNumbers(childUl, layer + 1);
+                  updateIcon(getAnchorTag, li.classList.contains('is-expanded'));
+                }
+              }
+            }
+          }
+
+          function toggleParent(li, isExpanded) {
+            let parentLi = li.parentElement.closest('li');
+            while (parentLi) {
+              parentLi.classList.toggle('is-expanded', isExpanded);
+              parentLi.setAttribute('aria-expanded', isExpanded);
+              const parentUl = parentLi.querySelector('ul');
+              if (parentUl) {
+                parentUl.style.display = isExpanded ? 'block' : 'none';
+              }
+              parentLi = parentLi.parentElement.closest('li');
+            }
+            return false
+          }
+
+          function updateState(li, childUl) {
+            if (childUl && childUl.querySelector('.is-expanded')) {
+              li.setAttribute('aria-expanded', true);
+              li.classList.add('is-expanded');
+              childUl.style.display = 'block';
+            } else {
+              li.setAttribute('aria-expanded', false);
+              li.querySelector('a').removeAttribute("aria-current");
+              li.classList.remove('is-expanded', 'is-selected');
+              if (childUl) childUl.style.display = 'none';
+            }
+          }
+
+          function updateIcon(anchorTag, isExpanded) {
+            const icon = isExpanded ? downIcon : rightIcon;
+            if (!anchorTag.classList.contains('icon-added')) {
+              anchorTag.innerHTML += icon;
+              anchorTag.classList.add('icon-added');
+            } else {
+              anchorTag.innerHTML = anchorTag.innerHTML.replace(isExpanded ? rightIcon : downIcon, icon);
+            }
+          }
+
+          assignLayerNumbers(sideNavItems);
+
         }
       });
 
@@ -183,9 +316,10 @@ async function loadEager(doc) {
   if (getMetadata('template') === 'documentation') {
     main.style.display = 'grid';
     main.style.gridTemplateAreas = '"sidenav main" "sidenav footer"';
-    let sideNavDiv = createTag ('div', {class: 'section side-nav-container', style: 'grid-area: sidenav'});
-    let sideNavWrapper = createTag('div', {class: 'side-nav-wrapper'});
-    let sideNavBlock = createTag('div', {class: 'side-nav block', 'data-block-name': 'side-nav'});
+    main.style.gridTemplateColumns = '256px auto';
+    let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav' });
+    let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
+    let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
     sideNavWrapper.append(sideNavBlock);
     sideNavDiv.append(sideNavWrapper);
     main.prepend(sideNavDiv);
