@@ -301,6 +301,27 @@ export async function fetchPlaceholders(prefix = 'default') {
  * @param {Element} block The block element
  */
 export function decorateBlock(block) {
+  getMarkdownContent()
+    .then((mdContent) => {
+      if (mdContent) {
+        const extractedBlocks = extractBlocks(mdContent);
+        const shortBlockName = block.classList[0];
+        if (shortBlockName) {
+          const matchingBlock = extractedBlocks.find(b => b.name === shortBlockName);
+          if (matchingBlock) {
+            Object.entries(matchingBlock.attributes).forEach(([key, value]) => {
+              block.setAttribute(`data-${key}`, value);
+            });
+          }
+        }
+      } else {
+        console.error('Markdown content is empty or not available.');
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching markdown content:', error);
+    });
+
   const shortBlockName = block.classList[0];
   if (shortBlockName) {
     block.classList.add('block');
@@ -311,6 +332,48 @@ export function decorateBlock(block) {
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
   }
+}
+
+/**
+ * Fetch markdown content
+ */
+export async function getMarkdownContent() {
+  let baseUrl = getMetadata('githubblobpath');
+  const rawUrl = baseUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob', '');
+  try {
+    const response = await fetch(rawUrl);
+    if (!response.ok) {
+      throw new Error('Failed to fetch the markdown file');
+    }
+    return await response.text();
+  } catch (error) {
+    console.error('Error fetching markdown file:', error);
+    return null;
+  }
+}
+
+/**
+ * extract blocks from md
+ */
+
+export function extractBlocks(md) {
+  const blockPattern = /<\s*([a-zA-Z0-9_-]+)([^>]*?)\s*\/>/g;
+  const blocks = [];
+  let match;
+
+  while ((match = blockPattern.exec(md)) !== null) {
+    const blockName = match[1].toLowerCase();
+    const attributes = {};
+    const attrPattern = /(\w+)=["']([^"']+)["']/g;
+    let attrMatch;
+    while ((attrMatch = attrPattern.exec(match[2])) !== null) {
+      const [_, key, value] = attrMatch;
+      attributes[key] = value;
+    }
+    blocks.push({ name: blockName, attributes });
+  }
+
+  return blocks;
 }
 
 /**
