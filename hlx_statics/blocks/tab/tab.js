@@ -11,9 +11,7 @@ export default async function decorate(block) {
   applyBkgColorOverride(block);
   let fontcolor = block?.parentElement?.parentElement?.getAttribute('data-fontcolor');
   fontcolor = fontcolor ? fontcolor : "rgb(209, 209, 209)";
-  const orientation = block?.parentElement?.parentElement?.getAttribute('data-orientation');
   const backgroundColor = block?.parentElement?.parentElement?.getAttribute('data-backgroundcolor');
-  block.classList.add(`${orientation}-tab`);
   let codeBackgroundColor = block?.parentElement?.parentElement?.getAttribute('data-codebackgroundcolor');
   codeBackgroundColor = codeBackgroundColor ? codeBackgroundColor : "rgb(0,0,0)"
 
@@ -24,9 +22,9 @@ export default async function decorate(block) {
 
   const innerTab = document.createElement('div');
 
-  if (backgroundColor === "navy") {
-    innerTab.classList.add('navy');
-  }
+  // if (backgroundColor === "navy") { removed this to add highlight to normal grey background
+  innerTab.classList.add('navy');
+  // }
 
   innerTab.classList.add('innerTab');
 
