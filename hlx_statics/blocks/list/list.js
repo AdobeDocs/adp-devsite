@@ -1,4 +1,4 @@
-import { applyWidthOverride, applyBkgColorOverride } from '../../scripts/lib-adobeio.js';
+import {  applyBkgColorOverride } from '../../scripts/lib-adobeio.js';
 
 /**
  * decorates the list
@@ -32,5 +32,5 @@ export default async function decorate(block) {
   });
   applyBkgColorOverride(block);
   applyBkgColorOverride(block);
-  applyWidthOverride(block);
+  
 }
