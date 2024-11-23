@@ -49,17 +49,6 @@ export function createTag(name, attrs) {
   }
   return el;
 }
-/**
- * Sets-up Adobe Analytics attributes for click tracking
- * @param {*} domObj The DOM object to inspect, the whole document by default
- */
-export function setAnalyticsAttributes(domObj = document) {
-  domObj.querySelectorAll('a').forEach((a) => {
-    if (a.innerText.length > 0) {
-      a.setAttribute('daa-ll', a.innerText);
-    }
-  });
-}
 
 /**
  * Sets-up event listeners to handle focus and blur for the elements of a DOM object
@@ -656,21 +645,6 @@ export function applyBkgColorOverride(block) {
     block.parentElement.parentElement.style.backgroundColor = 'white';
   }
 }
-
-/**
- * Set the title of a block from Section Metadata.
- * @param {Element} The element to add the title to.
- */
-export function applySectionTitle(block) {
-  const title = block?.parentElement?.parentElement?.getAttribute('data-title');
-  if (title) {
-    const titleElement = document.createElement('h2');
-    titleElement.innerHTML = title;
-    titleElement.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'section-title');
-    block?.parentElement?.parentElement?.prepend(titleElement);
-  }
-}
-
 
 export async function loadCustomAnalytic(domObj, path) {
   const resp = await fetch(`${path}.json`);
