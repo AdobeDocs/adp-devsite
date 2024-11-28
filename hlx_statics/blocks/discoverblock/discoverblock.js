@@ -1,4 +1,4 @@
-import { applyBkgColorOverride, applyWidthOverride } from '../../scripts/lib-adobeio.js';
+import { applyBkgColorOverride, applyWidthOverride, createTag } from '../../scripts/lib-adobeio.js';
 
 /**
  * decorates the title
@@ -22,26 +22,34 @@ export default async function decorate(block) {
   const mainContainer = document.querySelector('section');
   const discoverWrappers = document.querySelectorAll('.discoverblock-wrapper');
   
-  const allDiscoverblock = document.createElement('div');
-  allDiscoverblock.classList.add('all-discoverblock');
-  
-  discoverWrappers.forEach(wrapper => {
-    allDiscoverblock.appendChild(wrapper);
-  });
-  
-  const firstHeading2Wrapper = document.querySelector('.heading2-wrapper');
-  if (firstHeading2Wrapper) {
-    firstHeading2Wrapper.insertAdjacentElement('afterend', allDiscoverblock);
-  } else {
-    mainContainer.appendChild(allDiscoverblock);
-  }
-  const existingAllDiscoverblocks = document.querySelectorAll('.all-discoverblock');
-  
-  existingAllDiscoverblocks.forEach((block, index) => {
-    if (index > 0) {
-      block.remove();
+  const arrange = block?.getAttribute('data-arrange');
+  console.log('arrange: ', arrange);
+  if(arrange === 'column'){
+    block.classList.add('discoverblock-column');
+  }else{
+    const allDiscoverblock = createTag('div',{class:'all-discoverblock'});
+    discoverWrappers.forEach(wrapper => {
+      allDiscoverblock.appendChild(wrapper);
+    });
+    
+    const firstHeading2Wrapper = document.querySelector('.heading2-wrapper');
+    if (firstHeading2Wrapper) {
+      firstHeading2Wrapper.insertAdjacentElement('afterend', allDiscoverblock);
+    } else {
+      mainContainer.appendChild(allDiscoverblock);
     }
-  });
+    const existingAllDiscoverblocks = document.querySelectorAll('.all-discoverblock');
+    
+    existingAllDiscoverblocks.forEach((block, index) => {
+      if (index > 0) {
+        block.remove();
+      }
+    });  
+    discoverWrappers.forEach(wrapper => {
+      wrapper.style.setProperty('width', '280px', 'important');
+    });
+  }
+
   applyBkgColorOverride(block);
   applyWidthOverride(block);
 

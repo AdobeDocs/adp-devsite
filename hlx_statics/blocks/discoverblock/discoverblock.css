@@ -1,9 +1,15 @@
-.discover {
+main .discoverblock {
     display: flex;
     flex-wrap: wrap;
 }
-.discoverblock{
+main .discoverblock{
     width: 100%;
+}
+main .discoverblock-column{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 25px;
 }
 main .all-discoverblock .discover-nonheading-child-container  div.button-container {
     padding-top: 23.4px;
@@ -84,9 +90,9 @@ main .all-discoverblock{
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 }
- .discoverblock-wrapper{
+ /* .discoverblock-wrapper{
     max-width: 280px;
- }
+ } */
  @media screen and (max-width : 1024px) {
     .all-discoverblock {
         grid-template-columns: 1fr;

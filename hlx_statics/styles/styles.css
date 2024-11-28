@@ -953,6 +953,7 @@ main .github-actions-wrapper{
 main .github-actions-block{
   display: flex;
   gap: 20px;
+  width: max-content;
 }
 
 main .action-buttons{

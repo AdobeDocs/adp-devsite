@@ -466,6 +466,7 @@ export function buildBlock(blockName, content) {
  * @param {Element} block The block element
  */
 export async function loadBlock(block, eager = false) {
+  addBlockAttributes();
   if (!(block.getAttribute('data-block-status') === 'loading' || block.getAttribute('data-block-status') === 'loaded')) {
     block.setAttribute('data-block-status', 'loading');
     const blockName = block.getAttribute('data-block-name');
@@ -728,6 +729,44 @@ export async function loadSection(section, loadCallback) {
     section.dataset.sectionStatus = 'loaded';
     section.style.display = null;
   }
+}
+
+/**
+ *  Add block attributes from MD to the respective block.
+ */
+
+function addBlockAttributes(){
+  const allBlocks = document.querySelectorAll('.block');
+  allBlocks.forEach(block => {
+    const strongTags = block.querySelectorAll('strong');
+    strongTags.forEach(strongTag => {
+      const dataContent = strongTag.textContent.trim();
+      if (dataContent.startsWith('data-')) {
+        const keyValuePairs = [];
+        let currentPair = '';
+        let insideParentheses = false;
+        for (let i = 0; i < dataContent.length; i++) {
+          const char = dataContent[i];
+          if (char === '(') insideParentheses = true;
+          else if (char === ')') insideParentheses = false;
+          if (!insideParentheses && char === ',') {
+            keyValuePairs.push(currentPair.trim());
+            currentPair = '';
+          } else {
+            currentPair += char;
+          }
+        }
+        if (currentPair.trim()) keyValuePairs.push(currentPair.trim());
+        keyValuePairs.forEach(pair => {
+          const [key, value] = pair?.split('=').map(str => str.trim());
+          if (key && value) {
+            block.setAttribute(key, value);
+          }
+        });
+        strongTag.closest('div').parentElement.remove();
+      }
+    });
+  });
 }
 
 /**
