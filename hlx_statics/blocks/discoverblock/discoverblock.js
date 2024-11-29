@@ -23,7 +23,6 @@ export default async function decorate(block) {
   const discoverWrappers = document.querySelectorAll('.discoverblock-wrapper');
   
   const arrange = block?.getAttribute('data-arrange');
-  console.log('arrange: ', arrange);
   if(arrange === 'column'){
     block.classList.add('discoverblock-column');
   }else{
@@ -45,9 +44,6 @@ export default async function decorate(block) {
         block.remove();
       }
     });  
-    discoverWrappers.forEach(wrapper => {
-      wrapper.style.setProperty('width', '280px', 'important');
-    });
   }
 
   applyBkgColorOverride(block);

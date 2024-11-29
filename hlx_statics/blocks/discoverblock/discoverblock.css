@@ -90,9 +90,9 @@ main .all-discoverblock{
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 }
- /* .discoverblock-wrapper{
+ main .discoverblock-wrapper:not(.discoverblock-column) {
     max-width: 280px;
- } */
+}
  @media screen and (max-width : 1024px) {
     .all-discoverblock {
         grid-template-columns: 1fr;
