@@ -1,6 +1,6 @@
 
 import { decorateActionButton } from '../../components/actionButton.js';
-import { decorateButtons, removeEmptyPTags, applyBkgColorOverride } from '../../scripts/lib-adobeio.js';
+import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
 
 /**
  * @param {Element} block
@@ -71,5 +71,4 @@ export default async function decorate(block) {
   removeEmptyPTags(block);
   rearrangeLinks(block, isActionButton);
   setBackgroundImage(block);
-  applyBkgColorOverride(block);
 }
