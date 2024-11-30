@@ -1,53 +1,75 @@
-import { decorateButtons, removeEmptyPTags, applyWidthOverride, applyBkgColorOverride } from '../../scripts/lib-adobeio.js';
 
-function calculateOverlapping(block) {
-  var myImg = block.querySelector('picture img');
-  if (myImg !== null) {
-    let marginToAdd = myImg.height - 200;
-    const firstDivAfterVideo = block.parentElement.parentElement.nextElementSibling;
+import { decorateActionButton } from '../../components/actionButton.js';
+import { decorateButtons, removeEmptyPTags, applyBkgColorOverride } from '../../scripts/lib-adobeio.js';
 
-    const ro = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        var actualWidth = window.innerWidth;
-        if (actualWidth < 1280)
-          marginToAdd = 0;
-        else
-          marginToAdd = myImg.height - 200;
-        entry.target.style.margin = marginToAdd + "px 0 0";
-      }
+/**
+ * @param {Element} block
+ */
+function rearrangeLinks(block, isActionButton) {
+  const leftDiv = block.firstElementChild.firstElementChild;
+  const announcementblockButton = document.createElement('div');
+  announcementblockButton.classList.add('announcement-button-container');
+
+  const buttons = leftDiv.querySelectorAll('p.button-container');
+  buttons.forEach((p) => {
+    if (isActionButton)
+      decorateActionButton({ actionButton: p, size: 'M' })
+    announcementblockButton.append(p);
+  });
+  leftDiv.append(announcementblockButton);
+}
+
+/**
+ * @param {Element} block
+ */
+function setBackgroundImage(block) {
+  const img = block.querySelector('picture img');
+
+  if (img) {
+    const announcementContainer = block.closest('.announcement-container');
+    const imgParent = img.closest('picture').parentElement;
+    Object.assign(announcementContainer.style, {
+      backgroundImage: `url('${img.src}')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      padding: '4% 0%'
     });
-    ro.observe(firstDivAfterVideo);
-
-    var actualWidth = window.innerWidth;
-    if (actualWidth < 1280)
-      marginToAdd = 0;
-    firstDivAfterVideo.style.margin = marginToAdd + "px 0 0"
+    imgParent.style.display = 'none';
   }
 }
 
 /**
- * decorates the announcement
- * @param {Element} block The announcement block element
+ * @param {Element} block
  */
 export default async function decorate(block) {
-  decorateButtons(block);
-  removeEmptyPTags(block);
+  const parent = block?.parentElement?.parentElement;
+  let position = parent?.getAttribute('data-position') || "center";
+  const button = parent?.getAttribute('data-Button');
+  const isActionButton = parent?.getAttribute('data-isactionbutton');
+
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announce-heading');
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
+    h.style.wordBreak = "break-all";
+    h.style.whiteSpace = "normal";
   });
   block.querySelectorAll('p').forEach((p) => {
     p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
+    p.style.wordBreak = "break-all";
+    p.style.whiteSpace = "normal";
   });
-  block.querySelectorAll('p').forEach((paragraph) => {
-    paragraph.classList.add('spectrum-Body');
-    paragraph.classList.add('spectrum-Body--sizeL');
-  });
-  block.querySelectorAll('p a').forEach((link) => {
-    link.parentElement.classList.add('announce-link');
-  });
-  applyBkgColorOverride(block);
-  // applyWidthOverride(block);
-  calculateOverlapping(block);
-}
 
+  if (button === "PrimaryButton") {
+    block.querySelectorAll('a').forEach((a) => {
+      a.className = "spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM";
+    });
+  }
+
+  if (!isActionButton) {
+    decorateButtons(block);
+  }
+  removeEmptyPTags(block);
+  rearrangeLinks(block, isActionButton);
+  setBackgroundImage(block);
+  applyBkgColorOverride(block);
+}
