@@ -135,12 +135,12 @@ async function fetchNavHtml(name) {
 
   let navItems;
   fragment.querySelectorAll("p").forEach((item) => {
-    if(item.innerText === name) {
+    if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
       navItems.querySelectorAll('li').forEach((liItems) => {
         let p = liItems.querySelector('p');
-        if(p) {
+        if (p) {
           p.replaceWith(p.firstChild);
         }
         let a = liItems.querySelector('a');
@@ -391,7 +391,7 @@ export function decorateSections(main) {
             }
           });
         } else {
-            section.dataset[toCamelCase(key)] = meta[key];
+          section.dataset[toCamelCase(key)] = meta[key];
         }
       });
       sectionMeta.parentNode.remove();
@@ -735,32 +735,19 @@ export async function loadSection(section, loadCallback) {
  *  Add block attributes from MD to the respective block.
  */
 
-function addBlockAttributes(){
+function addBlockAttributes() {
   const allBlocks = document.querySelectorAll('.block');
   allBlocks.forEach(block => {
     const strongTags = block.querySelectorAll('strong');
     strongTags.forEach(strongTag => {
       const dataContent = strongTag.textContent.trim();
       if (dataContent.startsWith('data-')) {
-        const keyValuePairs = [];
-        let currentPair = '';
-        let insideParentheses = false;
-        for (let i = 0; i < dataContent.length; i++) {
-          const char = dataContent[i];
-          if (char === '(') insideParentheses = true;
-          else if (char === ')') insideParentheses = false;
-          if (!insideParentheses && char === ',') {
-            keyValuePairs.push(currentPair.trim());
-            currentPair = '';
-          } else {
-            currentPair += char;
-          }
-        }
-        if (currentPair.trim()) keyValuePairs.push(currentPair.trim());
-        keyValuePairs.forEach(pair => {
-          const [key, value] = pair?.split('=').map(str => str.trim());
+        const segments = dataContent.split(/data-/).filter(segment => segment.trim() !== '');
+        segments.forEach(segment => {
+          const [key, value] = segment.split('=').map(str => str.trim());
           if (key && value) {
-            block.setAttribute(key, value);
+            const cleanedValue = value.replace(/,$/, '').trim();
+            block.setAttribute(`data-${key}`, cleanedValue);
           }
         });
         strongTag.closest('div').parentElement.remove();
@@ -768,6 +755,7 @@ function addBlockAttributes(){
     });
   });
 }
+
 
 /**
  * Loads all sections.

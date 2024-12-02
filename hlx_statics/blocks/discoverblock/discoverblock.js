@@ -21,9 +21,8 @@ export default async function decorate(block) {
   // }
   const mainContainer = document.querySelector('section');
   const discoverWrappers = document.querySelectorAll('.discoverblock-wrapper');
-  
-  const arrange = block?.getAttribute('data-arrange');
-  if(arrange === 'column'){
+  const width = block?.getAttribute('data-width');
+  if(width === '100%'){
     block.classList.add('discoverblock-column');
   }else{
     const allDiscoverblock = createTag('div',{class:'all-discoverblock'});

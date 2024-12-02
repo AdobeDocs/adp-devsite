@@ -6,6 +6,7 @@ main .discoverblock{
     width: 100%;
 }
 main .discoverblock-column{
+    width: max-content;
     display: flex;
     flex-direction: column;
     gap: 10px;
