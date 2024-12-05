@@ -1,6 +1,5 @@
-import {
-  buildBlock, decorateBlock, getMetadata,
-} from './lib-helix.js';
+import { buildBlock, getMetadata } from './lib-helix.js';
+import decoratePreformattedCode, { getLanguageDecorateCode } from '../components/code.js';
 
 /**
  * Breakpoints
