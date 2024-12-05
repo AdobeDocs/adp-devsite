@@ -1,6 +1,7 @@
 import {
-  buildBlock, decorateBlock,
+  buildBlock
 } from './lib-helix.js';
+import decoratePreformattedCode, { getLanguageDecorateCode } from '../components/code.js';
 
 /**
  * Breakpoints
@@ -193,35 +194,32 @@ export function decorateInlineCodes(element) {
  * Builds all code blocks inside a container
  * @param {*} container The container to inspect
  */
-export function buildCodes(container) {
-  const codes = [...container.querySelectorAll('main > div pre')];
-
+ export function buildCodes(container) {
+  const codes = [...container.querySelectorAll('main > div pre > code')];
   codes.forEach((code) => {
-
-    const parentDiv = code.closest('div');
-    parentDiv.classList.add('code-container');
     const block = buildBlock('code', code.outerHTML);
+    block.classList.add('block');
+    const parentContainer = code.parentElement.parentElement;
+    const pre = parentContainer.querySelector('pre');
+    pre.replaceWith(block);
 
-    if (code) {
-      const wrapperDiv = document.createElement('div');
-      const blockDiv = document.createElement('div');
+    if (pre.tagName === 'PRE') {
+      const code_wrapper = document.createElement('div');
+      code_wrapper.style.margin = "1em 0";
+      code_wrapper.classList.add('code', 'block');
+      code_wrapper.setAttribute('data-block-name', 'code');
 
-      wrapperDiv.style.margin = "1em 0";
+      code_wrapper.appendChild(pre);
+      const code = parentContainer.querySelector('code');
       code.style.whiteSpace = "pre-wrap";
+      code.replaceWith(code_wrapper);
 
-      code.parentNode.insertBefore(wrapperDiv, code);
-
-      wrapperDiv.classList.add('code-wrapper')
-      blockDiv.classList.add('code', 'block');
-
-      blockDiv.appendChild(code);
-      wrapperDiv.appendChild(blockDiv);
-
-      decorateBlock(blockDiv);
-      block.replaceWith(wrapperDiv);
+      const language = getLanguageDecorateCode({ code });
+      decoratePreformattedCode({ block: code_wrapper, language });
     }
   });
 }
+
 
 /**
  * Builds all hr blocks inside a container
