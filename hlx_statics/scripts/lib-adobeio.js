@@ -678,3 +678,43 @@ export function applyAnalyticHeaderOverride(block) {
     block.setAttribute('daa-lh', heading);
   }
 }
+
+/**
+ * Redirect url to non trailing slash url based on redirections.json
+ * @param {Element} The element to set the analytic heading attribute.
+ */
+export async function applyTrailingSlashRedirects() {
+  let pathPrefix = getMetadata('pathprefix').replace('/', '');
+  let redirectPath = `${window.location.origin}/${pathPrefix}/config`;
+  const fragment = await loadFragment(navPath);
+
+}
+
+// how to get the path prefix of where i am?!
+
+
+
+// let navItems;
+// fragment.querySelectorAll("p").forEach((item) => {
+//   if(item.innerText === name) {
+//     navItems = item.parentElement.querySelector('ul');
+//     // relace annoying p tags
+//     navItems.querySelectorAll('li').forEach((liItems) => {
+//       let p = liItems.querySelector('p');
+//       if(p) {
+//         p.replaceWith(p.firstChild);
+//       }
+//       let a = liItems.querySelector('a');
+//       a = normalizePaths(a, pathPrefix);
+//       // if (!a.getAttribute('href').startsWith(pathPrefix)) {
+//       //   if (a.getAttribute('href').endsWith('index.md')) {
+//       //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('index.md', '')}`
+//       //   } else if (a.getAttribute('href').endsWith('.md')) {
+//       //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('.md', '')}`
+//       //   } else {
+//       //     a.href = `/${pathPrefix}/${a.getAttribute('href')}`;
+//       //   }
+//       // }
+//     });
+//   }
+// });
