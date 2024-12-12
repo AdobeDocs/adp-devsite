@@ -39,7 +39,7 @@ function parseOptions(block) {
         value = true;
       }
       
-      options[name] = value;
+      // options[name] = value;
 
       // remove attribute row since already been parsed
       blockChildrenToRemove.push(code.parentElement.parentElement.parentElement);
