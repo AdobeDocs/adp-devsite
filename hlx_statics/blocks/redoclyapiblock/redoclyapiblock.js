@@ -104,6 +104,7 @@ export default function decorate(block) {
           licenseKey: '${REDOCLY_LICENSE_KEY}',
           disableSidebar: ${disableSidebar}, 
           disableSearch: ${disableSearch},
+          ctrlFHijack: false,
           hideTryItPanel: ${hideTryItPanel},
           scrollYOffset: ${scrollYOffset},
           sortOperationsAlphabetically: ${sortOperationsAlphabetically},
