@@ -141,3 +141,9 @@ main .inlinealert a {
     color: rgb(0, 84, 182);
     text-decoration: unset;
 }
+
+main .inlinealert img {
+    margin-top: 10px;
+    width: 100%;
+    height: 100%;
+}

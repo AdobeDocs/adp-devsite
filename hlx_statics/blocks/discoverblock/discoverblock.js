@@ -1,3 +1,5 @@
+import { createTag } from "../../scripts/lib-adobeio.js";
+
 /**
  * decorates the title
  * @param {Element} block The title block element {Parameter Type} Name of the Parameter
@@ -17,35 +19,34 @@ export default async function decorate(block) {
   //   const discoverPosition = document.querySelector('.discover-wrapper');
   //   discoverPosition.style.justifyContent = position;   
   // }
-  const mainContainer = document.querySelector('section');
-  const discoverWrappers = document.querySelectorAll('.discoverblock-wrapper');
-  
-  const allDiscoverblock = document.createElement('div');
-  allDiscoverblock.classList.add('all-discoverblock');
-  
-  discoverWrappers.forEach(wrapper => {
-    allDiscoverblock.appendChild(wrapper);
-  });
-  
-  const firstHeading2Wrapper = document.querySelector('.heading2-wrapper');
-  if (firstHeading2Wrapper) {
-    firstHeading2Wrapper.insertAdjacentElement('afterend', allDiscoverblock);
-  } else {
-    mainContainer.appendChild(allDiscoverblock);
-  }
-  const existingAllDiscoverblocks = document.querySelectorAll('.all-discoverblock');
-  
-  existingAllDiscoverblocks.forEach((block, index) => {
-    if (index > 0) {
-      block.remove();
+
+  const width = block.getAttribute('data-width')
+  if(width === '100%'){
+    block.classList.add('discoverblock-column');
+  }else{
+    const discoverBlocks = document.querySelectorAll('.discoverblock-wrapper');
+    if (discoverBlocks.length > 0) {
+      const parentElement = discoverBlocks[0].parentNode;
+      let existingWrapper = document.querySelector('.discoverblock-container-wrapper');
+      if (!existingWrapper) {
+        existingWrapper = createTag('div', { class: 'discoverblock-container-wrapper' });
+        parentElement.insertBefore(existingWrapper, discoverBlocks[0]);
+      }
+      discoverBlocks.forEach(block => {
+        existingWrapper.appendChild(block);
+      });
     }
-  });  
+    if (discoverBlocks.length === 4) {
+      discoverBlocks.forEach(block => {
+        block.style.setProperty('max-width', '310px', 'important');
+      });
+    }
+  }
 
   Array.from(block.children).forEach(div => {
     const containsHeading = div.querySelector('h1, h2, h3, h4, h5, h6') !== null;
     if (containsHeading) {
-      var breakDiv = document.createElement('div');
-      breakDiv.classList.add('break');
+      var breakDiv = createTag('div', { class: 'break' });
 
       block.insertBefore(breakDiv, div);
     }
