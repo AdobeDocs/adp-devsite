@@ -9,7 +9,7 @@ const DEFAULT_OPTIONS = {
   typography: 'fontFamily: `adobe-clean, "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif`',
   codeBlock: 'tokens: { punctuation: { color: "white" }}',
   disableSidebar: false,
-  disableSearch: false,
+  disableSearch: true, // disables all search - whether redocly or default browser
   hideTryItPanel: false,
   scrollYOffset: 0,
   sortOperationsAlphabetically: false,
