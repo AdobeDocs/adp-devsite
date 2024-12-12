@@ -9,13 +9,13 @@ main div.discover-container:has(.discover.background-color-white) {
 .discoverblock{
     width: 100%;
 }
-main .all-discoverblock .discover-nonheading-child-container  div.button-container {
+/* main .discover-nonheading-child-container  div.button-container {
     padding-top: 23.4px;
-}
+} */
 
-main .all-discoverblock .discover-nonheading-child-container  div{
+/* main .discover-nonheading-child-container  div{
     padding-top: 5px;
-}
+} */
 
 .discover-child-container {
     /* width: 25%; */
@@ -49,12 +49,6 @@ main .all-discoverblock .discover-nonheading-child-container  div{
     width: 50%;
 }
 
-main .all-discoverblock{
-    width: 1280px;
-    margin: auto;
-    font-size: 16px;
-}
-
 @media screen and (max-width : 1300px) {
     .discover {
         width: 768px !important;
@@ -84,15 +78,23 @@ main .all-discoverblock{
         width: 100%;
     }
 }
-.all-discoverblock{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-}
- .discoverblock-wrapper{
-    max-width: 280px;
+main .discoverblock-wrapper{
+    max-width: 290px;
  }
- @media screen and (max-width : 1024px) {
-    .all-discoverblock {
-        grid-template-columns: 1fr;
-    }
+main .discoverblock-container-wrapper{
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 50px;
+    margin-top: 20px;
+    row-gap: 40px;
 }
+main .discoverblock-column{
+    width: 650px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+.discover-nonheading-child-container.discover-child-container {
+    font-size: 16px; 
+  }

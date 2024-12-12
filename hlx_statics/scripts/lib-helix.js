@@ -466,6 +466,7 @@ export function buildBlock(blockName, content) {
  * @param {Element} block The block element
  */
 export async function loadBlock(block, eager = false) {
+  parseAttribute(block);
   if (!(block.getAttribute('data-block-status') === 'loading' || block.getAttribute('data-block-status') === 'loaded')) {
     block.setAttribute('data-block-status', 'loading');
     const blockName = block.getAttribute('data-block-name');
@@ -710,6 +711,45 @@ export function githubActionsBlock(doc) {
     contentHeader?.append(newContent);
   }
 };
+
+/**
+ * parse attributes from row and added to particular blcok
+ */
+
+function parseAttribute(block){
+  const removeEmptyDivs = (element) => {
+    const divs = element.querySelectorAll('div');
+    divs.forEach(div => {
+      if (!div.innerHTML.trim()) {
+        div.remove();
+        removeEmptyDivs(element);
+      }
+    });
+  };
+  const codeTags = block.querySelectorAll('code');
+  let dataFound = false;
+  codeTags.forEach(codeTag => {
+    const dataContent = codeTag.textContent.trim();
+    if (dataContent.startsWith('data-')) {
+      dataFound = true;
+      const attributes = dataContent.split(/data-/).filter(segment => segment.trim() !== '');
+      attributes.forEach(attribute => {
+        const [key, value] = attribute.split('=').map(part => part.trim());
+        if (key && value) {
+          block.setAttribute(`data-${key}`, value);
+        }
+      });
+      let parentDiv = codeTag.closest('div');
+      if (parentDiv) {
+        parentDiv.remove();
+      }
+    }
+  });
+  if (dataFound) {
+    removeEmptyDivs(block);
+  }
+}
+
 
 /**
  * Loads all blocks in a section.
