@@ -724,22 +724,11 @@ export function githubActionsBlock(doc) {
  * parse attributes from row and added to particular blcok
  */
 
-function parseAttribute(block){
-  const removeEmptyDivs = (element) => {
-    const divs = element.querySelectorAll('div');
-    divs.forEach(div => {
-      if (!div.innerHTML.trim()) {
-        div.remove();
-        removeEmptyDivs(element);
-      }
-    });
-  };
+function parseAttribute(block) {
   const codeTags = block.querySelectorAll('code');
-  let dataFound = false;
   codeTags.forEach(codeTag => {
-    const dataContent = codeTag.textContent.trim();
+    const dataContent = codeTag?.textContent?.trim();
     if (dataContent.startsWith('data-')) {
-      dataFound = true;
       const attributes = dataContent.split(/data-/).filter(segment => segment.trim() !== '');
       attributes.forEach(attribute => {
         const [key, value] = attribute.split('=').map(part => part.trim());
@@ -749,13 +738,13 @@ function parseAttribute(block){
       });
       let parentDiv = codeTag.closest('div');
       if (parentDiv) {
-        parentDiv.remove();
+        let grandparentDiv = parentDiv.parentElement;
+        if (grandparentDiv) {
+          grandparentDiv.remove();
+        }
       }
     }
   });
-  if (dataFound) {
-    removeEmptyDivs(block);
-  }
 }
 
 

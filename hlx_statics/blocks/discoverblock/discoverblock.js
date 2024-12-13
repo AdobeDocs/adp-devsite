@@ -56,7 +56,7 @@ export default async function decorate(block) {
 
     div.classList.add('discover-child-container')
 
-    if (div.firstElementChild.firstElementChild.querySelector('img')) {
+    if (div?.firstElementChild?.firstElementChild?.querySelector('img')) {
       const newDiv = document.createElement('div');
 
       Array.from(div.firstElementChild.children).forEach((ele, index) => {
