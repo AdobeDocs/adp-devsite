@@ -198,7 +198,7 @@ export function decorateNestedCodes(element) {
     const container = code.parentElement.parentElement;
     decoratePreformattedCode(container);
   });
-  
+
 }
 
 /**
@@ -397,7 +397,7 @@ export function isTopLevelNav(urlPathname) {
  * @param {*} host The host
  * @returns True if the current URL is a dev environment, false otherwise
  */
-export function isDevEnvironment(host) {
+export function isLocalHostEnvironment(host) {
   return host.indexOf('localhost') >= 0;
 }
 
@@ -411,6 +411,14 @@ export function isStageEnvironment(host) {
     || host.indexOf('developer-stage') >= 0;
 }
 
+/**
+ * Checks whether the current URL is a dev environment based on host value
+ * @param {*} host The host
+ * @returns True if the current URL is a dev environment, false otherwise
+ */
+export function isDevEnvironment(host) {
+  return host.indexOf('developer-dev') >= 0;
+}
 /**
  * Checks whether the current URL is a Franklin website based on host value
  * @param {*} host The host
@@ -445,10 +453,10 @@ export function getResourceUrl(path) {
 
   // check pre-conditions
 
-  const isValidRelativePath = 
+  const isValidRelativePath =
     blobPath.startsWith(githubPath)
     && blobIndex < srcPagesIndex
-    && path.startsWith(pathPrefix); 
+    && path.startsWith(pathPrefix);
 
   if(!isValidRelativePath) {
     // eslint-disable-next-line no-console
@@ -456,7 +464,7 @@ export function getResourceUrl(path) {
   }
 
   // build raw git URL
-  
+
   const basePath = blobPath
     .substring(0, blobIndex)
     .replace(githubPath, 'https://raw.githubusercontent.com');
@@ -474,7 +482,7 @@ export function getResourceUrl(path) {
  * @returns The expected origin
  */
 export const setExpectedOrigin = (host, suffix = '') => {
-  if (isDevEnvironment(host)) {
+  if (isLocalHostEnvironment(host)) {
     return `http://localhost:3000${suffix}`;
   }
   if (isStageEnvironment(host)) {
@@ -482,6 +490,9 @@ export const setExpectedOrigin = (host, suffix = '') => {
   }
   if (isHlxPath(host)) {
     return `${window.location.origin}${suffix}`;
+  }
+  if (isDevEnvironment(host)) {
+    return `https://developer-dev.adobe.com${suffix}`;
   }
   return `https://developer.adobe.com${suffix}`;
 };
@@ -493,11 +504,14 @@ export const setExpectedOrigin = (host, suffix = '') => {
  * @returns The expected origin
  */
 export const setSearchFrameOrigin = (host, suffix = '') => {
-  if (isDevEnvironment(host)) {
+  if (isLocalHostEnvironment(host)) {
     return 'http://localhost:8000';
   }
   if (isStageEnvironment(host) || isHlxPath(host)) {
     return `https://developer-stage.adobe.com${suffix}`;
+  }
+  if (isDevEnvironment(host)) {
+    return `https://developer-dev.adobe.com${suffix}`;
   }
   return `https://developer.adobe.com${suffix}`;
 };
@@ -522,7 +536,7 @@ export const getClosestFranklinSubfolder = (host, suffix = '', defaultNav = fals
     if (subfolderPath.charAt(0) === '/') subfolderPath = subfolderPath.substring(1);
   }
 
-  if (isDevEnvironment(host)) {
+  if (isLocalHostEnvironment(host)) {
     return `http://localhost:3000/${subfolderPath}/${suffix}`;
   }
   if (isStageEnvironment(host)) {
@@ -530,6 +544,9 @@ export const getClosestFranklinSubfolder = (host, suffix = '', defaultNav = fals
   }
   if (isHlxPath(host)) {
     return `${window.location.origin}/${subfolderPath}/${suffix}`;
+  }
+  if (isDevEnvironment(host)) {
+    return `https://developer-dev.adobe.com/${subfolderPath}/${suffix}`;
   }
   return `https://developer.adobe.com/${subfolderPath}/${suffix}`;
 };
@@ -686,9 +703,9 @@ export function decorateAnchorLink(header) {
 
 /**
  * Set the width of a block from Section Metadata.
- * 
+ *
  * Nov 15th 2024: Removed from all blocks and will refactor in the future if there's demand.
- *   
+ *
  * @param {Element} The element to add the width style to.
  */
 export function applyWidthOverride(block) {
@@ -701,10 +718,10 @@ export function applyWidthOverride(block) {
 
 /**
  * set the background color of a block from Section Metadata
- * 
- * 
+ *
+ *
  * Dec 3rd 2024: Removed from all blocks and will refactor in the future if there's demand.
- *   
+ *
  * @param {Element} The element to add the background color style to.
  */
 export function applyBkgColorOverride(block) {
