@@ -726,16 +726,12 @@ export function githubActionsBlock(doc) {
 
 function parseAttribute(block) {
   const codeTags = block.querySelectorAll('code');
+  const ATTRIBUTE_PREFIX = 'data-';
   codeTags.forEach(codeTag => {
     const dataContent = codeTag?.textContent?.trim();
-    if (dataContent.startsWith('data-')) {
-      const attributes = dataContent.split(/data-/).filter(segment => segment.trim() !== '');
-      attributes.forEach(attribute => {
-        const [key, value] = attribute.split('=').map(part => part.trim());
-        if (key && value) {
-          block.setAttribute(`data-${key}`, value);
-        }
-      });
+    if (dataContent.startsWith(ATTRIBUTE_PREFIX)) {
+      const [key, value] = dataContent.split('=').map(part => part.trim());
+      block.setAttribute(key, value || true);
       let parentDiv = codeTag.closest('div');
       if (parentDiv) {
         let grandparentDiv = parentDiv.parentElement;
@@ -746,6 +742,7 @@ function parseAttribute(block) {
     }
   });
 }
+
 
 
 /**
