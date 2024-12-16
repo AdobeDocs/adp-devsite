@@ -47,8 +47,8 @@ export default async function decorate(block) {
     }
   });
   const sourceElement = block.querySelector('source[type="image/webp"]');
-  const srcsetValue = sourceElement ? sourceElement.getAttribute('srcset') : null;
-  const url = srcsetValue.split(' ')[0];
+  const srcsetValue = sourceElement ? sourceElement?.getAttribute('srcset') : null;
+  const url = srcsetValue?.split(' ')[0];
   const imgElement = block.querySelector('img');
   const heroFirstDiv = block.querySelector('.herosimple > div');
   const heroSecondDiv = block.querySelector('.herosimple > div:nth-of-type(2)');
@@ -64,12 +64,13 @@ export default async function decorate(block) {
     });
   }
 
-  const section = block?.parentElement?.parentElement;
-    if (section.classList.contains('herosimple-container')) {
-      section.style.margin = '0px';
-      section.style.maxWidth = 'none';
+  const heroSimpleContainer = document.querySelector('.herosimple-container');
+  const sideNav = document.querySelector('.side-nav-container');
+    if (heroSimpleContainer) {
+      heroSimpleContainer.style.margin = '0px';
+      heroSimpleContainer.style.maxWidth = 'none';
       const subParent = createTag('div',{class:'sub-parent'});
-      const children = Array.from(section.children);
+      const children = Array.from(heroSimpleContainer.children);
       children.forEach(child => {
         if (!child.classList.contains('herosimple-wrapper')) {
           subParent.appendChild(child);
@@ -77,11 +78,15 @@ export default async function decorate(block) {
       });
       const herosimpleWrapper = block?.parentElement;
       if (herosimpleWrapper) {
-        section.insertBefore(subParent, herosimpleWrapper.nextSibling);
+        heroSimpleContainer.insertBefore(subParent, herosimpleWrapper.nextSibling);
       } else {
-        section.appendChild(subParent);
+        heroSimpleContainer.appendChild(subParent);
       }
       subParent.style.margin = '0 164px';
       subParent.style.maxWidth = '1280px';
+    }
+    if(!sideNav){
+      const heroSimpleDiv = block.querySelector('.herosimple > div');
+      heroSimpleDiv.style.setProperty('max-width', '1280px', 'important');
     }
 }

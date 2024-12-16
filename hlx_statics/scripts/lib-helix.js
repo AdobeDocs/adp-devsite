@@ -474,6 +474,7 @@ export function buildBlock(blockName, content) {
  * @param {Element} block The block element
  */
 export async function loadBlock(block, eager = false) {
+  parseAttribute(block);
   if (!(block.getAttribute('data-block-status') === 'loading' || block.getAttribute('data-block-status') === 'loaded')) {
     block.setAttribute('data-block-status', 'loading');
     const blockName = block.getAttribute('data-block-name');
@@ -718,6 +719,31 @@ export function githubActionsBlock(doc) {
     contentHeader?.append(newContent);
   }
 };
+
+/**
+ * parse attributes from row and added to particular blcok
+ */
+
+function parseAttribute(block) {
+  const codeTags = block.querySelectorAll('code');
+  const ATTRIBUTE_PREFIX = 'data-';
+  codeTags.forEach(codeTag => {
+    const dataContent = codeTag?.textContent?.trim();
+    if (dataContent.startsWith(ATTRIBUTE_PREFIX)) {
+      const [key, value] = dataContent.split('=').map(part => part.trim());
+      block.setAttribute(key, value || true);
+      let parentDiv = codeTag.closest('div');
+      if (parentDiv) {
+        let grandparentDiv = parentDiv.parentElement;
+        if (grandparentDiv) {
+          grandparentDiv.remove();
+        }
+      }
+    }
+  });
+}
+
+
 
 /**
  * Loads all blocks in a section.
