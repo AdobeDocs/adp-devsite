@@ -1,14 +1,14 @@
 name: NPM Publish
 on:
   release:
-    types: [created] # Triggers when a new release is created
+    types: [created]
 
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./ # Set the working directory if needed
+        working-directory: ./
 
     steps:
       - name: Checkout Code
@@ -22,7 +22,7 @@ jobs:
 
       - name: Run Secret Injection Script
         run: |
-          bash .github/scripts/inject-secrets.sh "./hlx_statics/blocks/redoclyapiblock/redoclyapiblock.js" "${{ secrets.REDOCLY_LICENSE_KEY }}"
+          bash .github/scripts/inject-secrets.sh "./hlx_statics/blocks/redoclyapiblock/redoclyapiblock.js" "${{ secrets.REDOCLY_LICENSE_KEY }}" "REDOCLY_LICENSE_KEY"
         env:
           REDOCLY_LICENSE_KEY: ${{ secrets.REDOCLY_LICENSE_KEY }}
       
