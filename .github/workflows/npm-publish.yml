@@ -1,19 +1,35 @@
 name: NPM Publish
 on:
   release:
-    types: [created]
+    types: [created] # Triggers when a new release is created
+
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./
+        working-directory: ./ # Set the working directory if needed
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
         with:
           node-version: 14
           registry-url: https://registry.npmjs.org/
-      - run: npm publish
+
+      - name: Run Secret Injection Script
+        run: |
+          bash .github/scripts/inject-secrets.sh "./hlx_statics/blocks/redoclyapiblock/redoclyapiblock.js" "${{ secrets.REDOCLY_LICENSE_KEY }}"
         env:
-          NODE_AUTH_TOKEN: ${{secrets.ADOBE_BOT_NPM_TOKEN}}
+          REDOCLY_LICENSE_KEY: ${{ secrets.REDOCLY_LICENSE_KEY }}
+      
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ADOBE_BOT_NPM_TOKEN }}
