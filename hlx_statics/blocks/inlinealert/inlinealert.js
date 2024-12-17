@@ -55,10 +55,8 @@ export default async function decorate(block) {
         inlineAlert.classList.add('spectrum-InLineAlert'); 
         // figure out variant based on parent element or on the block itself
         // TODO: may need to refactor this logic
-        const source = getMetadata('source')
-        if(source === "github"){
+        if(getMetadata('template') === 'documentation'){
             classVariant = getVariant(block.classList);
-            console.log('block.classList: ', block.classList);
         }else{
             classVariant = getVariant(block.parentElement.parentElement.classList);
         }
