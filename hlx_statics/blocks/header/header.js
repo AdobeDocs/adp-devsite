@@ -2,7 +2,7 @@ import {
   createTag,
   setActiveTab,
   focusRing,
-  isDevEnvironment,
+  isLocalHostEnvironment,
   isTopLevelNav,
   setSearchFrameOrigin,
   getClosestFranklinSubfolder,
@@ -105,7 +105,7 @@ function globalNavLinkItemDropdownItem(url, name) {
 const globalNavSearchDropDown = () => createTag('div', { class: 'nav-console-search-frame' });
 
 const setSearchFrameSource = () => {
-  const src = isDevEnvironment(window.location.host) ? setSearchFrameOrigin(window.location.host) : `${setSearchFrameOrigin(window.location.host, '/search-frame')}`;
+  const src = isLocalHostEnvironment(window.location.host) ? setSearchFrameOrigin(window.location.host) : `${setSearchFrameOrigin(window.location.host, '/search-frame')}`;
   const queryString = getQueryString();
   return queryString && queryString.toString().length > 0
     ? `${src}?${queryString.toString()}`
