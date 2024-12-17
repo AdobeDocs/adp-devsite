@@ -775,3 +775,77 @@ export async function applyAnalytic(domObj = document) {
     const analytic = await loadCustomAnalytic(domObj, analyticPath);
   }
 }
+
+/**
+ * @returns Fetches the devsitePath.json file
+ */
+export async function getdevsitePathFile() {
+  let devsitePathUrl = 'https://developer.adobe.com/franklin_assets/devsitepaths.json';
+
+  const resp = await fetch(devsitePathUrl);
+  if (resp.ok) {
+    const devsitePath = await resp.json();
+    return devsitePath;
+  } else {
+    return null;
+  }
+};
+
+/**
+ * @returns Fetches and redirects page based on redirects.json
+ */
+export async function redirect() {
+
+  let devsitePaths = await getdevsitePathFile();
+
+  if(devsitePaths) {
+    const suffixSplit = window.location.pathname.split('/');
+    let suffixSplitRest = suffixSplit.slice(1);
+
+    let devsitePathMatch;
+    let devsitePathMatchFlag = false;
+
+    // find match based on level 3, 2, or 1 transclusion rule
+    // if match found in higher level don't do lower level
+    if (suffixSplit.length > 2) {
+      devsitePathMatch = devsitePaths.data.find((element) => element.pathPrefix === `/${suffixSplit[1]}/${suffixSplit[2]}/${suffixSplit[3]}`);
+      devsitePathMatchFlag = !!devsitePathMatch;
+      if (devsitePathMatchFlag) {
+        suffixSplitRest = suffixSplit.slice(4);
+      }
+    }
+    if (suffixSplit.length > 1 && !devsitePathMatchFlag) {
+      devsitePathMatch = devsitePaths.data.find((element) => element.pathPrefix === `/${suffixSplit[1]}/${suffixSplit[2]}`);
+      devsitePathMatchFlag = !!devsitePathMatch;
+      if (devsitePathMatchFlag) {
+        suffixSplitRest = suffixSplit.slice(3);
+      }
+    }
+    if (suffixSplit.length > 0 && !devsitePathMatchFlag) {
+      devsitePathMatch = devsitePaths.data.find((element) => element.pathPrefix === `/${suffixSplit[1]}`);
+      devsitePathMatchFlag = !!devsitePathMatch;
+      if (devsitePathMatchFlag) {
+        suffixSplitRest = suffixSplit.slice(2);
+      }
+    }
+
+    if (devsitePathMatch) {
+      console.log(`Matched pathPrefix: ${devsitePathMatch.pathPrefix}`);
+
+      let redirectPath = `https://${window.location.hostname}${devsitePathMatch.pathPrefix}/redirects.json`;
+      console.log(`redirectPath ${redirectPath}`)
+      const resp = await fetch(redirectPath);
+      if (resp.ok) {
+        const redirectList = await resp.json();
+        // apply redirect
+        redirectList.data.forEach((redirect) => {
+          if(window.location.pathname === redirect?.Source) {
+            window.location.pathname = redirect?.Destination
+          }
+        });
+      } else {
+        return null;
+      }
+    }
+  }
+}
