@@ -194,9 +194,14 @@ export function decorateInlineCodes(element) {
  */
 export function decorateNestedCodes(element) {
   element.querySelectorAll('div.default-content-wrapper pre > code').forEach((code) => {
+    const pre = code.parentElement;
+
+    const wrapper = createTag('div', { class: 'nested-code-wrapper' });
+    pre.replaceWith(wrapper);
+    wrapper.append(pre);
+
     loadCSS(`${window.hlx.codeBasePath}/blocks/code/code.css`);
-    const container = code.parentElement.parentElement;
-    decoratePreformattedCode(container);
+    decoratePreformattedCode(wrapper);
   });
 
 }
