@@ -180,5 +180,7 @@ div.code-toolbar>.toolbar>.toolbar-item>button {
     padding: 0.6em;
     background: rgba(0, 0, 0, 0);
 }
-
+main li .code-toolbar {
+  max-width: 750px;
+}
 

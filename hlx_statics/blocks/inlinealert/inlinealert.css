@@ -147,3 +147,8 @@ main .inlinealert img {
     width: 100%;
     height: 100%;
 }
+
+main .spectrum-InLineAlert--warning{
+    border-color: orange;
+    color: orange;
+  }

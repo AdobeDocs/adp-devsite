@@ -937,22 +937,14 @@ main .default-content-wrapper strong{
 main .content-header {
   display:flex;
   gap: 32px;
-}
-
-main .content-header .breadcrumbs-container {
-  flex: 1;
-}
-
-main .github-actions-wrapper{
-  padding: 40px 20px 20px 0px;
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
+  align-items: center;
+  justify-content: space-between;
 }
 
 main .github-actions-block{
   display: flex;
   gap: 20px;
+  min-width: 250px;
 }
 
 main .action-buttons{
@@ -976,4 +968,12 @@ main .default-content-wrapper img{
 
 main li h3{
   color: black;
+}
+
+main .code-wrapper{
+  max-width: 830px;
+}
+
+.default-content-wrapper .code-toolbar{
+  max-width: 830px;
 }
