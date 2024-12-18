@@ -19,42 +19,18 @@ const DEFAULT_OPTIONS = {
   requestInterceptor: '',
 };
 
-const ATTRIBUTE_PREFIX = 'data-';
-
 function parseOptions(block) {
   // start with default options
   const options = Object.assign({}, DEFAULT_OPTIONS);
 
-  const blockChildrenToRemove = [];
-
   // overwrite with options from user
-  block.querySelectorAll('div > div > pre > code').forEach(code => {
-    if(code.textContent.startsWith(ATTRIBUTE_PREFIX)){
-      let [name, value] = code.textContent.split("=");
-      name = name.replace(ATTRIBUTE_PREFIX, '');
-      value = value.trim();
-
-      // JSX shorthand for passing true
-      if(value === '') {
-        value = true;
-      }
-      
-      options[name] = value;
-
-      // remove attribute row since already been parsed
-      blockChildrenToRemove.push(code.parentElement.parentElement.parentElement);
+  Object.keys(options).forEach((key) => {
+    const name = `data-${key}`;
+    const value = block.getAttribute(name);
+    if (value != null) {
+      options[key] = value;
     }
   });
-
-  block.querySelectorAll('div > div > strong').forEach(strong => {
-    if(strong.textContent.startsWith(ATTRIBUTE_PREFIX)) {
-       // remove comma-separated attributes row as this is redundant with the ones already parsed above
-      blockChildrenToRemove.push(strong.parentElement.parentElement);
-    } 
-  })
-
-  // clear attribute rows
-  blockChildrenToRemove.forEach(child => block.removeChild(child));
 
   return options;
 }
