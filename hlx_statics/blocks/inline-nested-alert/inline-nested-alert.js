@@ -18,11 +18,11 @@ function getVariant(variant) {
 export default async function decorate(block) {
     const parent = block?.parentElement?.parentElement;
 
-    const variant = parent?.getAttribute('data-variant');
+    const header = parent?.getAttribute('data-header');
+    const variant = header === 'true' ? parent?.getAttribute('data-variant') : (parent?.getAttribute('data-variant') || 'info');
     const iconPosition = parent?.getAttribute('data-iconposition');
     const isNested = parent?.getAttribute('data-isnested');
     const isLinkDecorate = parent?.getAttribute('data-islinkdecorate');
-    const header = parent?.getAttribute('data-header');
 
     parent.style.padding = header === 'true' ? '0px' : '10px 0px';
     const anchorTags = block.querySelectorAll('.inline-nested-alert a');
