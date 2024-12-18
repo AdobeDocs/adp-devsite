@@ -881,11 +881,7 @@ main .heading6 h6>span {
   color: inherit !important;
 }
 
-.info-icon {
-  color: rgb(20, 122, 243);
-}
-
-.help-icon {
+.help-icon, .info-icon{
   color: rgb(0, 84, 182);
 }
 
@@ -894,11 +890,11 @@ main .heading6 h6>span {
 }
 
 .error-icon {
-  color: rgb(203, 93, 0);
+  color: rgb(209 10 10);
 }
 
 .warning-icon {
-  color: rgb(110, 110, 110);
+  color: rgb(246,133,17);
 }
 
 .spectrum-Divider {

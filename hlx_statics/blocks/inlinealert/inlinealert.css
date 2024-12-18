@@ -149,6 +149,6 @@ main .inlinealert img {
 }
 
 main .spectrum-InLineAlert--warning{
-    border-color: orange;
-    color: orange;
+    border-color: rgb(246,133,17);
+    color: rgb(246,133,17);
 }
