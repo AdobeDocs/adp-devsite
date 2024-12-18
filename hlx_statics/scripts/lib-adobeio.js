@@ -211,12 +211,16 @@ export function decorateNestedCodes(element) {
  * @param {*} container The container to inspect
  */
 export function buildCodes(container) {
-  const codes = [...container.querySelectorAll('main > div > pre > code')];
-  codes.forEach((code) => {
+  const allCodes = [...container.querySelectorAll('main > div > pre > code')];
+
+  allCodes.forEach((code) => {
     const block = buildBlock('code', code.outerHTML);
-    const parentContainer = code.parentElement.parentElement;
-    const pre = parentContainer.querySelector('pre');
-    pre.replaceWith(block);
+    const allPreElements = [...document.querySelectorAll('main > div > pre')];
+    const validPreElements = allPreElements.filter(pre => {
+      // Check if the closest div ancestor has the class 'inlinealert'
+      return !pre.closest('div.inlinealert');
+    });
+    validPreElements[0].replaceWith(block);
   });
 }
 
