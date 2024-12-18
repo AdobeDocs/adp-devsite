@@ -38,8 +38,12 @@ export default async function decorate(block) {
 
   //load the video link.
   const a = block.querySelectorAll("a");
-  for (let i = 0; i < a.length; i++) {
-    loadVideoURL(block, a[i]);
+  const videoLinks = Array.from(a).filter(link => 
+    link.title.includes('https')
+  );
+  for (let i = 0; i < videoLinks.length; i++) {
+    console.log(videoLinks[i])
+    loadVideoURL(block, videoLinks[i]);
   }
 
   block.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
@@ -133,10 +137,33 @@ export default async function decorate(block) {
         let flex_div = block.querySelector(
           "[id=text-flex-div-" + p.parentElement.id + "]"
         );
-        flex_div.setAttribute("class", "text-container");
-        p.classList.add("spectrum-Body", "spectrum-Body--sizeM");
+        //changing class list of p tags for icons
+        if (p.querySelector("span")) {
+          // Add a class to the <p> tag
+          p.classList.add("icon-container");
+          const icon_link = p.querySelector("a");
+          if(icon_link){
+            icon_link.classList.add("spectrum-Link", "spectrum-Link--quiet");
+          }
+        }else{
+          flex_div.setAttribute("class", "text-container");
+          p.classList.add("spectrum-Body", "spectrum-Body--sizeM");
+        }
         flex_div.insertBefore(p, button_div);
       }
+    }
+  });
+
+  block.querySelectorAll('div.text-container').forEach((text_container) => {
+    const prevElement = text_container.querySelector('p.icon-container')?.previousElementSibling;
+    // Only wrap in prdouct link container div if element container icon container
+    if (prevElement){
+      const productLinkContainer = createTag('div', { class: 'product-link-container' });
+      text_container.querySelectorAll('p.icon-container').forEach((innerLink) => {
+        productLinkContainer.append(innerLink);
+      });
+      // Maintains order within carousel text container
+      prevElement.after(productLinkContainer);
     }
   });
 

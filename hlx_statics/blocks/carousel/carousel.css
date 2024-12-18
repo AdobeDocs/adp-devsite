@@ -12,6 +12,28 @@ div.carousel picture img {
   width: 100%;
 }
 
+main div.carousel .icon img {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+}
+
+main div.carousel div.product-link-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+}
+
+main div.carousel .icon-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 16px;
+  margin-bottom: 0px;
+}
+
 @media screen and (max-width: 700px) {
   main div.carousel div.carousel-container {
     flex-direction: column;
