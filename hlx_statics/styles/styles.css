@@ -970,13 +970,6 @@ main .code-wrapper{
   max-width: 830px;
 }
 @media screen and (max-width: 1024px) {
-  main {
-      grid-template-areas: "main main" "main footer" !important;
-      grid-template-columns: auto !important;
-  }
-  .side-nav-container, .aside {
-      display: none !important;
-  }
   main .code-wrapper{
     max-width: 900px !important;
   }
