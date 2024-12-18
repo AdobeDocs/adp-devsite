@@ -41,6 +41,12 @@ main div.carousel .icon-container {
     justify-content: center;
   }
 
+  main div.carousel div.product-link-container {    
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  } 
+
   main div.carousel div.media-container,
   main div.carousel div.text-container {
     width: 100% !important;
