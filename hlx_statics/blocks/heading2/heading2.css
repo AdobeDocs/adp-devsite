@@ -18,3 +18,10 @@ main div.heading2 hr {
   height: 1px;
   background-color: rgb(213, 213, 213);
 }
+main div.heading2 a{
+  color: rgb(0, 84, 182);
+  text-decoration: none;
+}
+main div.heading2 a:hover{
+  text-decoration: underline;
+}

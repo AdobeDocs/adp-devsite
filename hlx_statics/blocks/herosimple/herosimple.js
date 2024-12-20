@@ -8,6 +8,9 @@ import {
  */
 export default async function decorate(block) {
 
+  const backgroundColor = block.getAttribute('data-background') || 'rgb(29, 125, 238)';
+  block.style.backgroundColor = backgroundColor;
+
   block.setAttribute('daa-lh', 'hero');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     const fontFamily = block?.parentElement?.parentElement?.getAttribute('data-font-family');
