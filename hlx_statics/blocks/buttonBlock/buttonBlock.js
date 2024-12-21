@@ -11,7 +11,7 @@ export default async function decorate(block) {
     const innerText = block.querySelector('div div').innerText;
 
     const pTag = document.createElement('p');
-    pTag.style.cssText = `display: flex;${position ? `justify-content: ${position};` : ''}`;
+    // pTag.style.cssText = `display: flex;${position ? `justify-content: ${position};` : ''}`;
 
     const anchorTag = document.createElement('a');
     anchorTag.setAttribute('href', href || '#');
