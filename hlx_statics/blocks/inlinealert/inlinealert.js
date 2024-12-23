@@ -2,6 +2,7 @@ import {
     createTag,
     getBlockSectionContainer
   } from '../../scripts/lib-adobeio.js';
+import { getMetadata } from '../../scripts/scripts.js';
 
 function NeutralMedium() {
     // no image 
@@ -49,12 +50,16 @@ function getVariant(classList) {
  */
 export default async function decorate(block) {
     const container = getBlockSectionContainer(block);
-
     block.querySelectorAll('.inlinealert > div').forEach((inlineAlert) => {
         inlineAlert.classList.add('spectrum-InLineAlert'); 
         // figure out variant based on parent element or on the block itself
         // TODO: may need to refactor this logic
-        let classVariant = getVariant(block.parentElement.parentElement.classList) ;
+        let classVariant;
+        if(getMetadata('template') === 'documentation'){
+            classVariant = getVariant(block.classList);
+        }else{
+            classVariant = getVariant(block.parentElement.parentElement.classList);
+        }
         if(classVariant) {
             const inlineClass = classVariant.class ? classVariant.class : 'spectrum-InLineAlert--info';
             const inlineIcon = classVariant.icon ? classVariant.icon : infoIcon;
