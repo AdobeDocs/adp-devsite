@@ -13,7 +13,7 @@ main div.link-block-container p {
     gap: 4px;
 }
 
-main div.link-block-container p>a {
+main div.link-block-container li>a {
     text-decoration: none !important;
     font-weight:500;
     line-height: 38px;
@@ -32,6 +32,18 @@ main div.link-block-container a:hover {
     cursor: pointer;
 }
 
-main div.link-block-container .link-block-wrapper {
+main div.link-block-container{
     margin: 3%;
+}
+main div.link-block li{
+    list-style-type: none; 
+}
+main .link-icon{
+    display: flex;
+    align-items: baseline;
+    column-gap: 5px;
+}
+main .link-block-wrapper{
+    margin-top: 40px;
+    max-width: 280px;
 }
