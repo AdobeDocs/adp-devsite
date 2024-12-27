@@ -50,11 +50,12 @@ function getVariant(classList) {
  */
 export default async function decorate(block) {
     const container = getBlockSectionContainer(block);
-    block.querySelectorAll('.inlinealert > div').forEach((inlineAlert) => {
-        inlineAlert.classList.add('spectrum-InLineAlert'); 
+
+        block.classList.add('spectrum-InLineAlert'); 
         // figure out variant based on parent element or on the block itself
         // TODO: may need to refactor this logic
         let classVariant;
+        const slots = block?.getAttribute('data-slots')?.split(',');
         if(getMetadata('template') === 'documentation'){
             classVariant = getVariant(block.classList);
         }else{
@@ -63,16 +64,21 @@ export default async function decorate(block) {
         if(classVariant) {
             const inlineClass = classVariant.class ? classVariant.class : 'spectrum-InLineAlert--info';
             const inlineIcon = classVariant.icon ? classVariant.icon : infoIcon;
-            inlineAlert.classList.add(inlineClass);
-            inlineAlert.insertAdjacentHTML("afterbegin", inlineIcon);
+            block.classList.add(inlineClass);
+            block.insertAdjacentHTML("afterbegin", inlineIcon);
         }
 
         // need to wrap content into p
-        inlineAlert.querySelectorAll('div').forEach((divContent) =>{
+        block.querySelectorAll('div').forEach((divContent) =>{
             const inlineP = createTag('p', { class: 'spectrum-InLineAlert-content' });
             inlineP.innerHTML = divContent.innerHTML;
-            inlineAlert.appendChild(inlineP);
+            block.appendChild(inlineP);
             divContent.replaceWith(inlineP);
         });
-    })
+        if (slots?.includes('title')) {
+            const firstPTag = block.querySelector('p');
+            if (firstPTag) {
+              firstPTag.remove();
+            }
+        }
 }

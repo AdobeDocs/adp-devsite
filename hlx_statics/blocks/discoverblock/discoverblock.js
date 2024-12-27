@@ -23,26 +23,41 @@ export default async function decorate(block) {
   const width = block.getAttribute('data-width')
   if(width === '100%'){
     block.classList.add('discoverblock-column');
-  }else{
+  }else {
+    let existingWrapper = document.querySelector('.discoverblock-container-wrapper') || null;
+    if (!existingWrapper) {
+      existingWrapper = createTag('div', { class: 'discoverblock-container-wrapper' });
+      const parentElement = block.parentElement;
+      parentElement.appendChild(existingWrapper);
+    }
+    existingWrapper.appendChild(block);
+    const firstHeading = existingWrapper.querySelector('h2, h3');
+    if (firstHeading) {
+      const parent = firstHeading.parentElement;
+      parent.style.marginBottom = '20px';
+      Array.from(existingWrapper.children).forEach((child,index) => {
+        if(index > 0) {
+          child.style.marginTop = '35px';
+        } 
+      });
+    }
+    const children = Array.from(existingWrapper.children);
+    children.forEach(child => {
+      child.style.maxWidth = '290px';
+    });
+    if (children.length === 4) {
+      children.forEach(child => {
+        child.style.setProperty('max-width', '310px', 'important');
+      });
+    }
     const discoverBlocks = document.querySelectorAll('.discoverblock-wrapper');
-    if (discoverBlocks.length > 0) {
-      const parentElement = discoverBlocks[0].parentNode;
-      let existingWrapper = document.querySelector('.discoverblock-container-wrapper');
-      if (!existingWrapper) {
-        existingWrapper = createTag('div', { class: 'discoverblock-container-wrapper' });
-        parentElement.insertBefore(existingWrapper, discoverBlocks[0]);
+    discoverBlocks.forEach(div => {
+      if (div.childElementCount === 0) {
+        div.remove();
       }
-      discoverBlocks.forEach(block => {
-        existingWrapper.appendChild(block);
-      });
-    }
-    if (discoverBlocks.length === 4) {
-      discoverBlocks.forEach(block => {
-        block.style.setProperty('max-width', '310px', 'important');
-      });
-    }
+    });
   }
-
+  
   Array.from(block.children).forEach(div => {
     const containsHeading = div.querySelector('h1, h2, h3, h4, h5, h6') !== null;
     if (containsHeading) {
