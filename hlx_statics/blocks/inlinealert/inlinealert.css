@@ -131,6 +131,7 @@ main .inlinealert{
     max-width: 1280px;
     margin: 0 auto;
     font-size: 16px;
+    width: 100%;
 }
 
 main .inlinealert>div{
@@ -151,4 +152,8 @@ main .inlinealert img {
 main .spectrum-InLineAlert--warning{
     border-color: rgb(246,133,17);
     color: rgb(246,133,17);
+}
+
+main .inlinealert-wrapper{
+    margin: 20px 0px;
 }
