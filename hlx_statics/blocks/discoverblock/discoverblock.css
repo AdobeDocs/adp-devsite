@@ -1,13 +1,9 @@
 main div.discover-container:has(.discover.background-color-white) {
     background-color: white !important;
 }
-
 .discover {
     display: flex;
     flex-wrap: wrap;
-}
-.discoverblock{
-    width: 100%;
 }
 /* main .discover-nonheading-child-container  div.button-container {
     padding-top: 23.4px;
@@ -78,9 +74,6 @@ main div.discover-container:has(.discover.background-color-white) {
         width: 100%;
     }
 }
-main .discoverblock-wrapper{
-    max-width: 290px;
- }
 main .discoverblock-container-wrapper{
     display: flex;
     flex-wrap: wrap;
@@ -97,4 +90,4 @@ main .discoverblock-column{
 }
 .discover-nonheading-child-container.discover-child-container {
     font-size: 16px; 
-  }
+}
