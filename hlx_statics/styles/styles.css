@@ -924,6 +924,7 @@ main .default-content-wrapper {
 main .default-content-wrapper a {
   color: rgb(0, 84, 182);
   text-decoration: unset;
+  font-weight: bold;
 }
 
 main .default-content-wrapper a:hover{
