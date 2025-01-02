@@ -16,6 +16,12 @@ main div.codeblock {
   max-width: 1280px;
 }
 
+.codeblock .inline-code {
+  color: rgb(235, 235, 235);
+  background-color: rgb(15, 15, 15);
+  border: none;
+}
+
 /* copied from https://raw.githubusercontent.com/adobe/aem-block-collection/main/blocks/tabs/tabs.css, then edited */
 
 .codeblock .tabs-list {
