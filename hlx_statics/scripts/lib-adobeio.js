@@ -243,6 +243,7 @@ export function decorateHR(container) {
  */
 export function buildEmbeds(container) {
   const embeds = [...container.querySelectorAll('div > p > a[href^="https://www.youtube.com"], div > p > a[href^="https://youtu.be"]')];
+  if(!getMetadata('template') === 'documentation'){
   embeds.forEach((embed) => {
     const block = buildBlock('embed', embed.outerHTML);
     embed.replaceWith(block);
@@ -251,6 +252,7 @@ export function buildEmbeds(container) {
     parentContainer.prepend(block);
     removeEmptyPTags(parentContainer);
   });
+ }
 }
 
 /**
@@ -282,7 +284,15 @@ export function buildHeadings(container) {
  */
 export function buildGrid(main) {
   main.style.display = 'grid';
-  main.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer aside"';
+  const mainContainer = document.querySelector('main');
+  const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
+  const heroSimpleContainer = document.querySelector('.herosimple-container');
+  if (heroSimpleContainer || headings.length === 0) {
+    console.log('headings: ', headings);
+    main.style.gridTemplateAreas = '"sidenav main" "sidenav footer"';
+  } else {
+    main.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer aside"';
+  }
 
   const gridAreaMain = main.querySelector(".section");
   gridAreaMain.style.gridArea = 'main';

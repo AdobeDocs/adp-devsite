@@ -26,29 +26,7 @@ export default async function decorate(block) {
     }
 
   });
-
-  // arrange divs
-  let firstDiv = block.firstElementChild;
-  let secondDiv = block.lastElementChild;
-
-  let wrapperDiv = createTag('div');
-  wrapperDiv.appendChild(firstDiv);
-  wrapperDiv.appendChild(secondDiv);
-
-  block.appendChild(wrapperDiv);
-
-  // second child inner div make it a p
-  let descriptionP = secondDiv.innerText;
-  let descriptionPElement = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL' });
-  descriptionPElement.innerText = descriptionP;
-
-  secondDiv.replaceWith(descriptionPElement);
-  // Paragraph decoration
-  block.querySelectorAll('p').forEach((p) => {
-    if (p.innerText) {
-      p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
-    }
-  });
+  
   const sourceElement = block.querySelector('source[type="image/webp"]');
   const srcsetValue = sourceElement ? sourceElement?.getAttribute('srcset') : null;
   const url = srcsetValue?.split(' ')[0];
