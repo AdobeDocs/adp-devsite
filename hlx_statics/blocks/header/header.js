@@ -14,7 +14,7 @@ import { loadFragment } from '../fragment/fragment.js';
 
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
-  div.innerHTML = `<button class="nav-dropdown-search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
+  div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
       <svg class="spectrum-Icon spectrum-Icon--sizeM" focusable="false" aria-hidden="true" aria-label="Edit">
         <use href="/hlx_statics/icons/search.svg#spectrum-icon-24-Search"></use>
       </svg>

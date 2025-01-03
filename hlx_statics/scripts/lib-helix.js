@@ -478,29 +478,32 @@ export async function loadBlock(block, eager = false) {
   if (!(block.getAttribute('data-block-status') === 'loading' || block.getAttribute('data-block-status') === 'loaded')) {
     block.setAttribute('data-block-status', 'loading');
     const blockName = block.getAttribute('data-block-name');
-    try {
-      const cssLoaded = new Promise((resolve) => {
-        loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`, resolve);
-      });
-      const decorationComplete = new Promise((resolve) => {
-        (async () => {
-          try {
-            const mod = await import(`../blocks/${blockName}/${blockName}.js`);
-            if (mod.default) {
-              await mod.default(block, blockName, document, eager);
+    if (blockName !== 'nav') {
+      try {
+        const cssLoaded = new Promise((resolve) => {
+          loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`, resolve);
+        });
+        const decorationComplete = new Promise((resolve) => {
+          (async () => {
+            try {
+              const mod = await import(`../blocks/${blockName}/${blockName}.js`);
+              if (mod.default) {
+                await mod.default(block, blockName, document, eager);
+              }
+            } catch (error) {
+              // eslint-disable-next-line no-console
+              console.log(`failed to load module for ${blockName}`, error);
             }
-          } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`failed to load module for ${blockName}`, error);
-          }
-          resolve();
-        })();
-      });
-      await Promise.all([cssLoaded, decorationComplete]);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(`failed to load block ${blockName}`, error);
+            resolve();
+          })();
+        });
+        await Promise.all([cssLoaded, decorationComplete]);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log(`failed to load block ${blockName}`, error);
+      }
     }
+
     block.setAttribute('data-block-status', 'loaded');
   }
 }
