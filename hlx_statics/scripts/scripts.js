@@ -364,7 +364,8 @@ async function loadLazy(doc) {
     main.append(footer);
 
     // turn off this page when in doc mode and there's no hero
-    if(!document.querySelector('.hero, .herosimple')) {
+    const headings = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
+    if(!document.querySelector('.hero, .herosimple') && headings.length !== 0) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
     }
