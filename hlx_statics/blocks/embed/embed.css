@@ -5,7 +5,6 @@ main div.embed-container:has(.embed.background-color-white) {
 main div.embed-container {
   align-items: center;
   justify-content: center;
-  text-align: center;
   background: rgb(245, 245, 245);
 }
 
