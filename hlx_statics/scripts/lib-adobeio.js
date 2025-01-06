@@ -243,7 +243,7 @@ export function decorateHR(container) {
  */
 export function buildEmbeds(container) {
   const embeds = [...container.querySelectorAll('div > p > a[href^="https://www.youtube.com"], div > p > a[href^="https://youtu.be"]')];
-  if(!getMetadata('template') === 'documentation'){
+  if(getMetadata('template') !== 'documentation'){
   embeds.forEach((embed) => {
     const block = buildBlock('embed', embed.outerHTML);
     embed.replaceWith(block);
