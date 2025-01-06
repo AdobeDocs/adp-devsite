@@ -171,7 +171,7 @@ const imsSignIn = new Event('imsSignIn');
 function setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout) {
   window.adobeid = {
     client_id: client_id,
-    scope: scope, 
+    scope: scope,
     locale: 'en_US',
     environment: environment,
     useLocalStorage: true,
@@ -244,15 +244,15 @@ export async function loadIms() {
     window.imsLoaded ||
     new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('IMS timeout')), 5000);
-      
+
       // different IMS clients
       if (isHlxPath(window.location.host)) {
         const client_id = 'helix_adobeio';
         const scope = 'AdobeID,openid,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk';
         const environment = 'stg1';
         const logsEnabled = true;
-        
-        setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout); 
+
+        setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         window.marketingtech = {
           adobe: {
             launch: {
@@ -271,17 +271,17 @@ export async function loadIms() {
           const scope = 'AdobeID,openid,creative_sdk,creative_cloud,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye';
           const environment = 'stg1';
           const logsEnabled = true;
-        
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout); 
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'stage_adobe_io';
           const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk';
           const environment = 'stg1';
           const logsEnabled = true;
-        
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout); 
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         }
-        
+
         window.marketingtech = {
           adobe: {
             launch: {
@@ -299,15 +299,15 @@ export async function loadIms() {
           const scope = 'AdobeID,openid,creative_sdk,creative_cloud,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye';
           const environment = 'prod';
           const logsEnabled = false;
-        
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout); 
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'adobe_io';
           const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk';
           const environment = 'prod';
           const logsEnabled = false;
-        
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout); 
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         }
 
         window.marketingtech = {
@@ -322,7 +322,7 @@ export async function loadIms() {
           },
         };
       }
-  
+
       if (isHlxPath(window.location.host) || isStageEnvironment(window.location.host)) {
         addExtraScript(document.body, 'https://auth-stg1.services.adobe.com/imslib/imslib.js');
       } else {
@@ -337,12 +337,12 @@ export async function loadIms() {
  */
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
-  
+
   loadIms();
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
   }
-  
+
   if (window.adobeIMS && window.adobeIMS.initialize) {
     window.adobeIMS.initialize();
   }
@@ -405,9 +405,14 @@ function loadDelayed() {
   }
 }
 
+function loadTitle() {
+  document.title = window.location.href;
+}
+
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  loadTitle();
   loadDelayed(document);
 }
 

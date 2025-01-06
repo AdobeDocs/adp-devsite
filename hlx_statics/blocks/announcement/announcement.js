@@ -4,17 +4,34 @@ import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js'
 /**
  * @param {Element} block
  */
-function rearrangeLinks(block) {
+ function rearrangeLinks(block) {
   const leftDiv = block.firstElementChild.firstElementChild;
-  const announcementblockButton = document.createElement('div');
-  announcementblockButton.classList.add('announcement-button-container');
+  const announcementButtonContainer = document.createElement('div');
+  announcementButtonContainer.classList.add('announcement-button-container');
 
-  const buttons = leftDiv.querySelectorAll('p.button-container');
-  buttons.forEach((p) => {
-    announcementblockButton.append(p);
+  leftDiv.querySelectorAll('ul').forEach((ul) => {
+    ul.querySelectorAll('li a').forEach((a, index) => {
+      const pTag = document.createElement('p');
+      if (index === 0) {
+        const strong = document.createElement('strong');
+        strong.append(a.cloneNode(true)); 
+        pTag.append(strong);
+      } else {
+        pTag.append(a);
+      }
+      announcementButtonContainer.append(pTag);
+      decorateButtons(pTag);
+    });
+    ul.remove();
   });
-  leftDiv.append(announcementblockButton);
+
+  leftDiv.querySelectorAll('p.button-container').forEach((p) => {
+    announcementButtonContainer.append(p);
+  });
+
+  leftDiv.append(announcementButtonContainer);
 }
+
 
 /**
  * @param {Element} block
