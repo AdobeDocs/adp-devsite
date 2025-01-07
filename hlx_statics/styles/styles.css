@@ -967,7 +967,7 @@ main li h3{
   color: black;
 }
 
-main .code-wrapper{
+main .code-wrapper, main .nested-code-wrapper{
   max-width: 60vw;
   margin: 10px 0px;
 }
