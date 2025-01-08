@@ -30,13 +30,10 @@ export default async function decorate(block) {
   const sourceElement = block.querySelector('source[type="image/webp"]');
   const srcsetValue = sourceElement ? sourceElement?.getAttribute('srcset') : null;
   const url = srcsetValue?.split(' ')[0];
-  const imgElement = block.querySelector('img');
-  const heroFirstDiv = block.querySelector('.herosimple > div');
-  const heroSecondDiv = block.querySelector('.herosimple > div:nth-of-type(2)');
-  if (srcsetValue) {
-    imgElement.style.display = 'none';
-    heroFirstDiv.style.marginBottom = '0px';
-    heroSecondDiv.style.marginTop = '0px';
+  const pictureElement = block.querySelector('picture');
+  if(pictureElement){
+    const parentDiv = pictureElement.parentElement;
+    parentDiv.remove();
     Object.assign(block.style, {
       backgroundImage: `url(${url})`,
       backgroundSize: 'cover',
@@ -47,10 +44,10 @@ export default async function decorate(block) {
 
   const heroSimpleContainer = document.querySelector('.herosimple-container');
   const sideNav = document.querySelector('.side-nav-container');
+  const subParent = createTag('div',{class:'sub-parent'});
     if (heroSimpleContainer) {
       heroSimpleContainer.style.margin = '0px';
       heroSimpleContainer.style.maxWidth = 'none';
-      const subParent = createTag('div',{class:'sub-parent'});
       const children = Array.from(heroSimpleContainer.children);
       children.forEach(child => {
         if (!child.classList.contains('herosimple-wrapper')) {
@@ -63,11 +60,13 @@ export default async function decorate(block) {
       } else {
         heroSimpleContainer.appendChild(subParent);
       }
-      subParent.style.margin = '0 164px';
-      subParent.style.maxWidth = '1280px';
+      subParent.style.margin = '0 auto';
+      subParent.style.maxWidth = '1000px';
     }
     if(!sideNav){
       const heroSimpleDiv = block.querySelector('.herosimple > div');
       heroSimpleDiv.style.setProperty('max-width', '1280px', 'important');
+      subParent.style.margin = '0 auto';
+      subParent.style.maxWidth = '1280px';
     }
 }
