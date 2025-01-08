@@ -57,7 +57,7 @@ export default async function decorate(block) {
     const linkHref = resource.querySelector('a')?.href;
     const heading = resource.querySelector('a')?.innerText;
     const imgSrc = resource.querySelector('img')?.src;
-    const text = resource.querySelector('p')?.innerText;
+    const text = resource.querySelector('p')?.innerText || resource.querySelector('div')?.innerText;
     const altText = resource.querySelector('img')?.alt;
     resource.innerHTML = getResourceCard(linkHref, heading, text);
     const picture = createOptimizedPicture(imgSrc, altText);
