@@ -967,16 +967,11 @@ main li h3{
   color: black;
 }
 
-main .code-wrapper{
-  max-width: 830px;
+main .code-wrapper, main .nested-code-wrapper{
+  max-width: 60vw;
+  margin: 10px 0px;
 }
-@media screen and (max-width: 1024px) {
-  main .code-wrapper{
-    max-width: 900px !important;
-  }
-}
-@media screen and (max-width: 768px) {
-  main .code-wrapper{
-    max-width: 650px !important;
-  }
+main:not(:has(.onthispage-wrapper)) .code-wrapper {
+  max-width: none;
+  width: 100%;
 }

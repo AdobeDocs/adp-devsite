@@ -47,10 +47,6 @@ export default async function decorate(block) {
             anchor.classList.add('active');
         }
     });
-    if (headings.length === 0) {
-        const onThisPageWrapper = document.querySelector('.onthispage-wrapper');
-        onThisPageWrapper.style.display = 'none';
-    }
 
     const observer = new IntersectionObserver((entries) => {
         if (isClick) return;
