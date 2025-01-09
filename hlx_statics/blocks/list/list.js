@@ -33,7 +33,6 @@ export default async function decorate(block) {
       padding: '0px 50px 0px 25px',
       borderRight: '1px solid rgb(213, 213, 213)',
     });
-    console.log('listFirstDivs: ', listFirstDivs);
     const listSecondDivs = createTag('ul',{class:'spectrum-Body spectrum-Body--sizeM'});
 
     const divs = block.querySelectorAll('div');
@@ -61,16 +60,16 @@ export default async function decorate(block) {
     block.appendChild(listSecondDivs);
     listSecondDivs.style.listStyleType = 'none';
     
-    const buttonContainer = block.querySelectorAll('.button-container');
-    buttonContainer.forEach((button) => {
-      Object.assign(button.style, {
+    const buttonContainer = block.querySelectorAll('li');
+    buttonContainer.forEach((li) => {
+      Object.assign(li.style, {
         display: 'flex',
         columnGap: '10px',
       });
       const addIcon = createTag('div', { class:'icon-div'});
       addIcon.textContent = icon === 'disc'? '\u25CF':'\u2714';
       addIcon.style.color = iconColor? iconColor: 'black';  
-      button.insertBefore(addIcon, button.firstChild);
+      li.insertBefore(addIcon, li.firstChild);
     });
     block.style.display = 'flex';
   }
