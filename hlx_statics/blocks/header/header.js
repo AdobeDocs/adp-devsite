@@ -53,7 +53,7 @@ function globalMobileDistributeButton() {
 }
 
 function globalMobileConsoleButton() {
-  const div = createTag('div', { class: 'nav-mobile-console-button' });
+  const div = createTag('li', { class: 'nav-mobile-console-button' });
   div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--secondary  spectrum-Button--sizeM">
     <span class="spectrum-Button-label">
       Console
@@ -406,7 +406,7 @@ export default async function decorate(block) {
     ul.appendChild(buttonDiv);
     buttonDiv.appendChild(globalMobileDistributeButton());
   } else {
-    buttonDiv = createTag('div', { class: 'button-container' });
+    buttonDiv = createTag('li', { class: 'button-container' });
     navigationLinks.appendChild(buttonDiv);
   }
   buttonDiv.appendChild(globalMobileConsoleButton());
