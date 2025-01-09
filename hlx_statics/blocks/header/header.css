@@ -207,12 +207,17 @@ header.global-nav-header strong.icon-adobe-label {
   white-space: nowrap;
 }
 
-header.global-nav-header div.nav-view-docs-button {
+header.global-nav-header li.nav-view-docs-button {
   display: flex;
   margin-left: 16px;
   align-items: center;
   white-space: nowrap;
 }
+
+header.global-nav-header li.nav-view-docs-button a{
+  line-height:32px !important;
+}
+
 
 header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-Picker-menuIcon {
   transition: transform var(--spectrum-global-animation-duration-100) ease-in-out;
