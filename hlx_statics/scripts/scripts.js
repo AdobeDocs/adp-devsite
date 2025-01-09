@@ -158,12 +158,14 @@ async function loadEager(doc) {
     await waitForLCP(LCP_BLOCKS);
   }
 
+  // Initialize side navigation for all pages
+  buildSideNav(main);
+
+  // Add documentation template specific features
   if (getMetadata('template') === 'documentation') {
     buildGrid(main);
-    buildSideNav(main);
     buildBreadcrumbs(main);
   }
-
 }
 
 const imsSignIn = new Event('imsSignIn');

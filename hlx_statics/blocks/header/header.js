@@ -304,15 +304,20 @@ function addCheckmarkSvg(ul) {
 }
 
 function handleDocumentationMenuButton(header) {
+  // This function is deprecated and can be removed
+}
+
+function handleMenuButton(header) {
   const menuBtn = header.querySelector('.menu-btn');
-  if (!menuBtn) return;
+  const menuIcon = header.querySelector('.menu-icon');
+  if (!menuBtn || !menuIcon) return;
 
   menuBtn.addEventListener('change', () => {
-    const sideNav = document.querySelector('.side-nav');
-    if (menuBtn.checked) {
-      sideNav.classList.add('is-visible');
-    } else {
-      sideNav.classList.remove('is-visible');
+    const sideNavContainer = document.querySelector('.side-nav-container');
+    if (sideNavContainer) {
+      menuIcon.classList.toggle('is-active', menuBtn.checked);
+      sideNavContainer.classList.toggle('is-visible', menuBtn.checked);
+      document.body.classList.toggle('nav-open', menuBtn.checked);
     }
   });
 }
@@ -501,4 +506,38 @@ export default async function decorate(block) {
 
   setActiveTab();
   focusRing(header);
+
+  // Handle mobile menu button for all pages
+  if (window.innerWidth <= 768) {
+    // Wait for side-nav to be initialized
+    const waitForSideNav = () => {
+      const sideNav = document.querySelector('.side-nav');
+      if (sideNav) {
+        handleMenuButton(header);
+      } else {
+        // Try again in 100ms
+        setTimeout(waitForSideNav, 100);
+      }
+    };
+    waitForSideNav();
+  }
+
+  // Update navigation visibility on resize
+  window.addEventListener('resize', async () => {
+    let navigationLinks = header.querySelector('#navigation-links');
+    if (window.innerWidth > 768) {
+      if (!navigationLinks && getMetadata('template') === 'documentation') {
+        navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
+        const topNavHtml = await fetchTopNavHtml();
+        if (topNavHtml) {
+          navigationLinks.innerHTML = topNavHtml;
+          header.append(navigationLinks);
+        }
+      }
+    } else {
+      if (navigationLinks) {
+        navigationLinks.remove();
+      }
+    }
+  });
 }

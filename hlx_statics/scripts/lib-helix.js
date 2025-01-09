@@ -112,82 +112,70 @@ export function getMetadata(name) {
  * @returns {string} The top nav HTML
  */
 export async function fetchTopNavHtml() {
-  return fetchNavHtml('pages:');
+  const nav = await loadFragment('/nav');
+  if (nav && nav.querySelector('.nav')) {
+    console.log('Successfully loaded top nav');
+    return nav.innerHTML;
+  }
+  console.log('Failed to load top nav or nav content not found');
+  return null;
 }
 
 /**
  * Retrieves the side nav from the config.
- * @returns {string} The side nav HTML
+ * @returns {string} The side navigation HTML content
  */
 export async function fetchSideNavHtml() {
-  return fetchNavHtml('subPages:');
-}
-
-/**
- * Retrieves the nav with the specified name from the config.
- * @param {string} name The nav name
- * @returns {string} The nav HTML
- */
-async function fetchNavHtml(name) {
-  let pathPrefix = getMetadata('pathprefix').replace('/', '');
-  let navPath = `${window.location.origin}/${pathPrefix}/config`;
-  const fragment = await loadFragment(navPath);
-
-  let navItems;
-  fragment.querySelectorAll("p").forEach((item) => {
-    if(item.innerText === name) {
-      navItems = item.parentElement.querySelector('ul');
-      // relace annoying p tags
-      navItems.querySelectorAll('li').forEach((liItems) => {
-        let p = liItems.querySelector('p');
-        if(p) {
-          p.replaceWith(p.firstChild);
-        }
-        let a = liItems.querySelector('a');
-        a = normalizePaths(a, pathPrefix);
-        // if (!a.getAttribute('href').startsWith(pathPrefix)) {
-        //   if (a.getAttribute('href').endsWith('index.md')) {
-        //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('index.md', '')}`
-        //   } else if (a.getAttribute('href').endsWith('.md')) {
-        //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('.md', '')}`
-        //   } else {
-        //     a.href = `/${pathPrefix}/${a.getAttribute('href')}`;
-        //   }
-        // }
-      });
-    }
-  });
-
-  return navItems ? navItems.innerHTML : Promise.reject(navItems.innerHTML);
-}
-
-/**
- * Normalizes passed in anchor element's href so relative links point to
- * the right url
- * @param {object} anchorElem The anchor element
- * @param {string} pathPrefix The the path prefix
- */
-function normalizePaths(anchorElem, pathPrefix) {
-  const href = anchorElem.getAttribute('href');
-
-  if (href && (href.startsWith('http://') || href.startsWith('https://'))) { // check external link
-    anchorElem.target = '_blank';
-    anchorElem.href = href;
-  } else {
-    if (!href.startsWith(pathPrefix)) {
-      if (href.endsWith('index.md')) {
-        anchorElem.href = `/${pathPrefix}/${href.replaceAll('index.md', '')}`;
-      } else if (href.endsWith('.md')) {
-        anchorElem.href = `/${pathPrefix}/${href.replaceAll('.md', '')}`;
-      } else if (href === '/src/pages') {
-        anchorElem.href = `/${pathPrefix}/`;
-      } else {
-        anchorElem.href = `/${pathPrefix}/${href}`;
+  const path = window.location.pathname;
+  
+  // Get the first segment of the path (e.g., /commerce/ -> commerce)
+  const pathSegment = path.split('/')[1];
+  
+  let navContent = null;
+  
+  // Try to fetch the specific nav file for the current path segment first
+  if (pathSegment) {
+    const specificNavPath = `/${pathSegment}/nav`;
+    try {
+      const specificNav = await loadFragment(specificNavPath);
+      if (specificNav && specificNav.querySelector('.nav ul li')) {
+        navContent = specificNav.innerHTML;
       }
+    } catch (error) {
+      console.error('Error loading specific nav:', error);
+    }
+  }
+  
+  // If no specific nav content, try the path prefix approach
+  if (!navContent && getMetadata('pathprefix')) {
+    const pathPrefix = getMetadata('pathprefix').replace('/', '');
+    const prefixNavPath = `/${pathPrefix}/nav`;
+    try {
+      const prefixNav = await loadFragment(prefixNavPath);
+      if (prefixNav && prefixNav.querySelector('.nav ul li')) {
+        navContent = prefixNav.innerHTML;
+      }
+    } catch (error) {
+      console.error('Error loading path prefix nav:', error);
     }
   }
 
-  return anchorElem;
+  // Finally, try the root nav as a last resort
+  if (!navContent) {
+    try {
+      const rootNav = await loadFragment('/nav');
+      if (rootNav && rootNav.querySelector('.nav')) {
+        navContent = rootNav.innerHTML;
+      }
+    } catch (error) {
+      console.error('Error loading root nav:', error);
+    }
+  }
+  
+  if (!navContent) {
+    console.error('Failed to load any nav file');
+  }
+  return navContent;
 }
 
 /**

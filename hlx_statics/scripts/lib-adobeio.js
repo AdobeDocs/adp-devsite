@@ -296,10 +296,16 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildSideNav(main) {
-  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav' });
-  let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
-  let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
-  main.style.gridTemplateColumns = '256px auto';
+  const sideNavDiv = createTag('div', { class: 'section side-nav-container' });
+  const sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
+  const sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
+  
+  // Only set grid styles for documentation template
+  if (getMetadata('template') === 'documentation') {
+    main.style.gridTemplateColumns = '256px auto';
+    sideNavDiv.style.gridArea = 'sidenav';
+  }
+  
   sideNavWrapper.append(sideNavBlock);
   sideNavDiv.append(sideNavWrapper);
   main.prepend(sideNavDiv);
