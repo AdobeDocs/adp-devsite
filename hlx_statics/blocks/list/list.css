@@ -31,7 +31,6 @@ main div.list-container div.list > div {
 }
 
 main div.list-container div.list > div > div {
-  flex-direction: column;
   flex-basis:100%;
   text-align: start;
   padding: 0 32px;
@@ -81,6 +80,16 @@ main main div.list-container div.list h3 + p {
   text-align: center;
   margin-top: 0!important;
 }
+
+main div.list a{
+  text-decoration: none;
+  color: rgb(0,84,182);
+}
+
+main div.list a:hover{
+  text-decoration: underline;
+}
+
 
 @media screen and (min-width : 768px) and (max-width : 1440px) {
   main div.list-container>div.list-wrapper>div {

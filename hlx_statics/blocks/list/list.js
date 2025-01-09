@@ -1,4 +1,5 @@
-import { decorateAnchorLink } from '../../scripts/lib-adobeio.js';
+import { createTag, decorateAnchorLink } from '../../scripts/lib-adobeio.js';
+import { getMetadata } from '../../scripts/scripts.js';
 
 /**
  * decorates the list
@@ -11,7 +12,7 @@ export default async function decorate(block) {
     decorateAnchorLink(h);
   });
   block.querySelectorAll('p').forEach((p) => {
-      p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
   });
   block.querySelectorAll('li').forEach((list) => {
     list.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
@@ -20,4 +21,57 @@ export default async function decorate(block) {
   block.querySelectorAll('ul, ol').forEach((unorder) => {
     unorder.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
   });
+
+  if (getMetadata('template') === 'documentation') {
+
+    const icon = block.getAttribute('data-icon') || 'checkmark';
+    const iconColor = block.getAttribute('data-iconColor') || 'black';
+
+    const listFirstDivs = createTag('ul',{class:'spectrum-Body spectrum-Body--sizeM'});
+    Object.assign(listFirstDivs.style, {
+      listStyleType: 'none',
+      padding: '0px 50px 0px 25px',
+      borderRight: '1px solid rgb(213, 213, 213)',
+    });
+    console.log('listFirstDivs: ', listFirstDivs);
+    const listSecondDivs = createTag('ul',{class:'spectrum-Body spectrum-Body--sizeM'});
+
+    const divs = block.querySelectorAll('div');
+    divs.forEach(parentDiv => {
+      const firstDiv = parentDiv.querySelector('div:first-child');
+      const secondDiv = parentDiv.querySelector('div:nth-child(2)');
+      const firstDivListItem = createTag('li');
+      const secondDivListItem = createTag('li');
+      if (firstDiv && firstDiv.textContent.trim() !== '') {
+        firstDivListItem.appendChild(firstDiv);
+      }
+      if (secondDiv && secondDiv.textContent.trim() !== '') {
+        secondDivListItem.appendChild(secondDiv);
+      }
+      if (firstDivListItem.hasChildNodes()) {
+        listFirstDivs.appendChild(firstDivListItem);
+      }
+      if (secondDivListItem.hasChildNodes()) {
+        listSecondDivs.appendChild(secondDivListItem);
+      }
+    });
+
+    block.innerHTML = '';
+    block.appendChild(listFirstDivs);
+    block.appendChild(listSecondDivs);
+    listSecondDivs.style.listStyleType = 'none';
+    
+    const buttonContainer = block.querySelectorAll('.button-container');
+    buttonContainer.forEach((button) => {
+      Object.assign(button.style, {
+        display: 'flex',
+        columnGap: '10px',
+      });
+      const addIcon = createTag('div', { class:'icon-div'});
+      addIcon.textContent = icon === 'disc'? '\u25CF':'\u2714';
+      addIcon.style.color = iconColor? iconColor: 'black';  
+      button.insertBefore(addIcon, button.firstChild);
+    });
+    block.style.display = 'flex';
+  }
 }
