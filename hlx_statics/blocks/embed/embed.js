@@ -20,8 +20,8 @@ const loadScript = (url, callback, type) => {
 const getDefaultEmbed = (url, loop, controls, vidTitle) => {
   const embedHTML = `<div style="left: 0; width: 55vw; height: 45vh; max-height: fit-content; position: relative; padding-bottom: 56.25%;">
     <iframe src="${url.href}?${loop ? `loop=1&` : ``}${controls ? `controls=1`: ``}autoplay=0&mute=0&" 
-    style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen=""
-      scrolling="no" allow="encrypted-media" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
+    style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
+      scrolling="no" allow="encrypted-media" ${vidTitle ? `title=${vidTitle}` : `title="Content from ${url.hostname}`} loading="lazy">
     </iframe>
   </div>`;
   return embedHTML;
@@ -30,8 +30,8 @@ const getDefaultEmbed = (url, loop, controls, vidTitle) => {
 const embedIG = (url, loop, controls, vidTitle) => {
   const link = url.href.split('?')[0] + 'embed/captioned';
   const embedHTML = `<div class="igReel">
-  <iframe src="${link}" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen=""
-    scrolling="no" allow="encrypted-media" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
+  <iframe src="${link}" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
+    scrolling="no" allow="encrypted-media" ${vidTitle ? `title=${vidTitle}` : `title="Content from" ${url.hostname}`} loading="lazy">
   </iframe>
 </div>`;
 loadScript("https://www.instagram.com/embed.js");
@@ -44,7 +44,7 @@ const embedYTShort = (url, loop, controls, vidTitle) => {
  <div style="width: 75vw; height: 40vh; position: relative; padding-bottom: 56.25%;">
   <iframe 
     src="https://www.youtube.com/embed/${videoCode}/?playlist=${videoCode}&loop=${loop}&controls=${controls}"
-    title=${vidTitle ? vidTitle : `Content from ${url.hostname}`}
+    ${vidTitle ? `title=${vidTitle}` : `title="Content from" ${url.hostname}`}
     frameborder="0"
     loading="lazy"
     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -63,20 +63,20 @@ const embedMP4 = (url, loop, controls, vidTitle) => {
   return  video;
 };
 const embedYTPlaylist = (usp, loop, controls, vidTitle) => {
-  const source = `"https://www.youtube.com${`/embed/videoseries/?list=${usp.get('list')}`}&loop=${loop}&controls=${controls}";`
+  const source = `"https://www.youtube-nocookie.com${`/embed/videoseries/?list=${usp.get('list')}`}&loop=${loop}&controls=${controls}";`
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
   <iframe 
-  style="opacity: 1" src=${source} data-src=${source} allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen=""
-  title=${vidTitle ? vidTitle : `Content from Youtube`} scrolling="no">
+  style="opacity: 1" src=${source} data-src=${source} allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
+  ${vidTitle ? `title=${vidTitle}` : `title="Content from YouTube"`} scrolling="no">
    </iframe>
   </div>`;
   return embedHTML;
-  
+
 }
 const embedTikTok = (url, loop, controls, vidTitle) => {
   const [, vidID] = url.pathname.split('video/')
   return  `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
-    <iframe src="https://www.tiktok.com/embed/${vidID}"style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen=""
+    <iframe src="https://www.tiktok.com/embed/${vidID}"style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
       scrolling="no" allow="accelerometer encrypted-media" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
     </iframe>
   </div>`;
@@ -96,10 +96,10 @@ const embedYoutube = (url, loop, controls, vidTitle) => {
     [, vid] = url.pathname.split('/');
   }
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
-        <iframe src="https://www.youtube.com${vid ? `/embed/${vid}?playlist=${vid}&amp;` : embed}loop=${loop}&controls=${controls}" 
-        data-src="https://www.youtube.com${vid ? `/embed/${vid}?playlist=${vid}&amp;` : embed}loop=${loop}&controls=${controls}" 
-        allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen="" 
-        scrolling="no" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
+        <iframe src="https://www.youtube-nocookie.com${vid ? `/embed/${vid}?playlist=${vid}&amp;` : embed}loop=${loop}&controls=${controls}" 
+        data-src="https://www.youtube-nocookie.com${vid ? `/embed/${vid}?playlist=${vid}&amp;` : embed}loop=${loop}&controls=${controls}" 
+        allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
+        scrolling="no" ${vidTitle ? `title=${vidTitle}` : `title="Content from YouTube"`} loading="lazy">
         <p> Sorry, we're having an internal error. Try again later. <//p>
         </iframe>
     </img>
@@ -113,8 +113,8 @@ const embedVimeo = (url, loop, controls, vidTitle) => {
       <iframe src="https://player.vimeo.com/video/${video}?loop=${loop}&controls=${controls}" 
       style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" 
       frameborder="0" allow="fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture"  
-      allowfullscreen=""
-      title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy"></iframe>
+      allowfullscreen
+      ${vidTitle ? `title=${vidTitle}` : `title="Content from" ${url.hostname}`} loading="lazy"></iframe>
     </div>`;
   return embedHTML;
 };
@@ -130,7 +130,7 @@ const loadEmbed = (block, link) => {
   if (block.classList.contains('embed-is-loaded')) {
     return;
   }
-  decorateLightOrDark(block, true);    
+  decorateLightOrDark(block, true);
   const EMBEDS_CONFIG = [
     {
       match: ['youtube', 'youtu.be'],
@@ -225,7 +225,7 @@ export default function decorate(block) {
   if (placeholder) {
     if (!(placeholder.alt)) placeholder.alt = "Content thumbnail";
     addImage(placeholder, block, link);
-  } 
+  }
   else {
     loadEmbed(block, link);
   }

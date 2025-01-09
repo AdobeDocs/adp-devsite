@@ -216,6 +216,7 @@ header.global-nav-header li.nav-view-docs-button {
 
 header.global-nav-header li.nav-view-docs-button a{
   line-height:32px !important;
+  display: flex !important;
 }
 
 
