@@ -124,10 +124,6 @@ main div.side-nav {
     height: calc(100vh - 64px);
 }
 
-main>div:nth-child(2) {
-    margin: 0 64px;
-    max-width: 1280px;
-}
 
 .spectrum-SideNav--multiLevel .has-children>a {
     padding-left: 0;
@@ -196,7 +192,7 @@ main>div:nth-child(2) {
 @media screen and (max-width: 768px) {
   /* Adjust grid layout */
   body.template-documentation main {
-    grid-template-columns: 0 1fr !important;
+    grid-template-columns: 0 auto !important;
   }
 
   main div.side-nav {
@@ -206,7 +202,7 @@ main>div:nth-child(2) {
     top: 64px;
     left: 0;
     bottom: 0;
-    width: 95vw !important;
+    width: 100vw !important;
     background: #fafafa;
     z-index: 1000;
     overflow-y: auto;
@@ -240,12 +236,7 @@ main>div:nth-child(2) {
   }
 }
 
-/* Documentation template specific styles */
-@media screen and (min-width: 769px) {
-  body.template-documentation #navigation-links {
-    display: flex !important; /* Keep header navigation visible in desktop */
-  }
-}
+
 
 /* Section labels */
 .side-nav-section-label {

@@ -303,7 +303,7 @@ function addCheckmarkSvg(ul) {
   });
 }
 
-function handleDocumentationMenuButton(header) {
+function handleMenuButton(header) {
   const menuBtn = header.querySelector('.menu-btn');
   if (!menuBtn) return;
 
@@ -311,8 +311,10 @@ function handleDocumentationMenuButton(header) {
     const sideNav = document.querySelector('.side-nav');
     if (menuBtn.checked) {
       sideNav.classList.add('is-visible');
+      document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
     } else {
       sideNav.classList.remove('is-visible');
+      document.body.style.overflow = ''; // Restore scrolling
     }
   });
 }
@@ -329,7 +331,7 @@ export default async function decorate(block) {
   header.classList.add('main-header', 'global-nav-header');
   header.setAttribute('daa-lh', 'header');
 
-  // Create menu button
+  // Create menu button (moved outside of template condition)
   const mobileButton = createTag('input', { class: 'menu-btn', type: 'checkbox', id: 'menu-btn' });
   header.appendChild(mobileButton);
   const mobileMenu = createTag('label', { class: 'menu-icon', for: 'menu-btn' });
@@ -363,7 +365,7 @@ export default async function decorate(block) {
 
     // Handle mobile menu button for side nav
     if (window.innerWidth <= 768) {
-      handleDocumentationMenuButton(header);
+      handleMenuButton(header);
     }
 
     // Update navigation visibility on resize
@@ -501,4 +503,7 @@ export default async function decorate(block) {
 
   setActiveTab();
   focusRing(header);
+
+  // Always handle menu button (removed template condition)
+  handleMenuButton(header);
 }
