@@ -53,7 +53,7 @@ function globalMobileDistributeButton() {
 }
 
 function globalMobileConsoleButton() {
-  const div = createTag('div', { class: 'nav-mobile-console-button' });
+  const div = createTag('li', { class: 'nav-mobile-console-button' });
   div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--secondary  spectrum-Button--sizeM">
     <span class="spectrum-Button-label">
       Console
@@ -303,6 +303,22 @@ function addCheckmarkSvg(ul) {
   });
 }
 
+function handleMenuButton(header) {
+  const menuBtn = header.querySelector('.menu-btn');
+  if (!menuBtn) return;
+
+  menuBtn.addEventListener('change', () => {
+    const sideNav = document.querySelector('.side-nav');
+    if (menuBtn.checked) {
+      sideNav.classList.add('is-visible');
+      document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+    } else {
+      sideNav.classList.remove('is-visible');
+      document.body.style.overflow = ''; // Restore scrolling
+    }
+  });
+}
+
 /**
  * Decorates the header
  * @param {*} block The header
@@ -311,22 +327,21 @@ export default async function decorate(block) {
   const cfg = readBlockConfig(block);
   block.textContent = '';
 
-  // block.innerHTML = html;
   const header = block.parentElement;
-
   header.classList.add('main-header', 'global-nav-header');
   header.setAttribute('daa-lh', 'header');
 
+  // Create menu button (moved outside of template condition)
   const mobileButton = createTag('input', { class: 'menu-btn', type: 'checkbox', id: 'menu-btn' });
   header.appendChild(mobileButton);
   const mobileMenu = createTag('label', { class: 'menu-icon', for: 'menu-btn' });
   mobileMenu.innerHTML = '<span class="navicon"></span>';
   header.appendChild(mobileMenu);
-  const iconContainer = createTag('p', { class: 'icon-adobe-container' });
 
+  // Add Adobe icon and title
+  const iconContainer = createTag('p', { class: 'icon-adobe-container' });
   const title = "Adobe Developer";
   const siteLink = createTag('a', { class: 'na-console-adobeio-link', href: "https://developer.adobe.com/" });
-
   const iconLink = createTag('a', { class: 'na-console-adobeio-link', href: siteLink.href });
   iconLink.innerHTML = '<img class="icon icon-adobe" src="/hlx_statics/icons/adobe.svg" alt="adobe icon">';
   iconContainer.appendChild(iconLink);
@@ -335,117 +350,169 @@ export default async function decorate(block) {
   iconContainer.appendChild(siteLink);
   header.append(iconContainer);
 
-  let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu', style: 'list-style-type: none;'});
-
-  if (isTopLevelNav(window.location.pathname)) {
-    const homeLinkLi = createTag('li', {class: 'navigation-home'});
-    const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
-    homeLinkA.innerHTML = 'Products';
-    homeLinkLi.append(homeLinkA);
-    navigationLinks.append(homeLinkLi);
-  } else {
-    const productLi = createTag('li', {class: 'navigation-products'});
-    const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
-    productA.innerHTML = 'Products';
-    productLi.append(productA);
-    navigationLinks.append(productLi);
-  }
-
-  // check if there's a path prefix then retrieve it otherwise default back to google drive path
-  let navPath;
-  if(getMetadata('pathprefix')) {
-    const topNavHtml = await fetchTopNavHtml();
-    if (topNavHtml) {
-      navigationLinks.innerHTML += topNavHtml;
+  // Handle navigation based on template
+  if (getMetadata('template') === 'documentation') {
+    // Create navigation for documentation template (desktop only)
+    if (window.innerWidth > 768) {
+      let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
+      
+      // Add Products link for documentation template
+      if (isTopLevelNav(window.location.pathname)) {
+        const homeLinkLi = createTag('li', {class: 'navigation-home'});
+        const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+        homeLinkA.innerHTML = 'Products';
+        homeLinkLi.append(homeLinkA);
+        navigationLinks.append(homeLinkLi);
+      } else {
+        const productLi = createTag('li', {class: 'navigation-products'});
+        const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+        productA.innerHTML = 'Products';
+        productLi.append(productA);
+        navigationLinks.append(productLi);
+      }
+      
+      const topNavHtml = await fetchTopNavHtml();
+      if (topNavHtml) {
+        navigationLinks.innerHTML += topNavHtml;
+        header.append(navigationLinks);
+      }
     }
-  } else {
-    navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin,'nav');
-    let fragment = await loadFragment(navPath);
-    if (fragment == null) {
-      // load the default nav in franklin_assets folder nav
-      fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+
+    // Handle mobile menu button for side nav
+    if (window.innerWidth <= 768) {
+      handleMenuButton(header);
     }
-    const ul = fragment.querySelector("ul");
-    ul.classList.add("menu");
-    ul.setAttribute("id", "navigation-links");
-    fragment.querySelectorAll("li").forEach((li, index) => {
-      if (index == 0) {
-        if (isTopLevelNav(window.location.pathname)) {
-          const homeLink = ul.querySelector('li:nth-child(1)');
-          homeLink.className = 'navigation-home';
-        } else {
-          li.classList.add("navigation-products");
+
+    // Update navigation visibility on resize
+    window.addEventListener('resize', async () => {
+      let navigationLinks = header.querySelector('#navigation-links');
+      if (window.innerWidth > 768) {
+        if (!navigationLinks) {
+          navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
+          
+          // Add Products link for documentation template
+          if (isTopLevelNav(window.location.pathname)) {
+            const homeLinkLi = createTag('li', {class: 'navigation-home'});
+            const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+            homeLinkA.innerHTML = 'Products';
+            homeLinkLi.append(homeLinkA);
+            navigationLinks.append(homeLinkLi);
+          } else {
+            const productLi = createTag('li', {class: 'navigation-products'});
+            const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+            productA.innerHTML = 'Products';
+            productLi.append(productA);
+            navigationLinks.append(productLi);
+          }
+          
+          const topNavHtml = await fetchTopNavHtml();
+          if (topNavHtml) {
+            navigationLinks.innerHTML += topNavHtml;
+            header.append(navigationLinks);
+          }
+        }
+      } else {
+        if (navigationLinks) {
+          navigationLinks.remove();
         }
       }
     });
-    navigationLinks = ul;
-  }
+  } else {
+    // Create navigation for non-documentation pages
+    let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu', style: 'list-style-type: none;'});
 
-  navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
-    let dropdownLinkDropdownHTML = '';
-    let dropdownLinksHTML = '';
+    if (isTopLevelNav(window.location.pathname)) {
+      const homeLinkLi = createTag('li', {class: 'navigation-home'});
+      const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+      homeLinkA.innerHTML = 'Products';
+      homeLinkLi.append(homeLinkA);
+      navigationLinks.append(homeLinkLi);
+    } else {
+      const productLi = createTag('li', {class: 'navigation-products'});
+      const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+      productA.innerHTML = 'Products';
+      productLi.append(productA);
+      navigationLinks.append(productLi);
+    }
 
-    dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
-      dropdownLinksHTML
-        += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+    // check if there's a path prefix then retrieve it otherwise default back to google drive path
+    let navPath;
+    if(getMetadata('pathprefix')) {
+      const topNavHtml = await fetchTopNavHtml();
+      if (topNavHtml) {
+        navigationLinks.innerHTML += topNavHtml;
+      }
+    } else {
+      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin,'nav');
+      let fragment = await loadFragment(navPath);
+      if (fragment == null) {
+        // load the default nav in franklin_assets folder nav
+        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+      }
+      const ul = fragment.querySelector("ul");
+      ul.classList.add("menu");
+      ul.setAttribute("id", "navigation-links");
+      fragment.querySelectorAll("li").forEach((li, index) => {
+        if (index == 0) {
+          if (isTopLevelNav(window.location.pathname)) {
+            const homeLink = ul.querySelector('li:nth-child(1)');
+            homeLink.className = 'navigation-home';
+          } else {
+            li.classList.add("navigation-products");
+          }
+        }
+      });
+      navigationLinks = ul;
+    }
+
+    navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
+      let dropdownLinkDropdownHTML = '';
+      let dropdownLinksHTML = '';
+
+      dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
+        dropdownLinksHTML
+          += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+      });
+
+      dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
+        index,
+        dropDownList.parentElement.firstChild.textContent.trim(),
+        dropdownLinksHTML,
+      );
+      dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
     });
 
-    dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
-      index,
-      dropDownList.parentElement.firstChild.textContent.trim(),
-      dropdownLinksHTML,
-    );
-    dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
-  });
+    addCheckmarkSvg(navigationLinks);
 
-  addCheckmarkSvg(navigationLinks);
-
-  let buttonDiv;
-  if (window.location.pathname.includes('/developer-distribution')) {
-    buttonDiv = createTag('div');
-    ul.appendChild(buttonDiv);
-    buttonDiv.appendChild(globalMobileDistributeButton());
-  } else {
-    buttonDiv = createTag('div', { class: 'button-container' });
-    navigationLinks.appendChild(buttonDiv);
-  }
-  buttonDiv.appendChild(globalMobileConsoleButton());
-  navigationLinks.querySelectorAll('a').forEach((a) => {
-    if (a.parentElement.tagName === 'STRONG') {
-      a.className = 'spectrum-Button spectrum-Button--secondary  spectrum-Button--sizeM';
-      const span = createTag('span', { class: 'spectrum-Button-label' });
-      span.innerHTML = a.innerHTML;
-      a.innerHTML = '';
-      a.appendChild(span);
-      const li = a.parentElement.parentElement;
-      const div = createTag('div', { class: 'nav-view-docs-button' });
-      div.appendChild(a);
-      navigationLinks.removeChild(li);
-      navigationLinks.appendChild(div);
+    let buttonDiv;
+    if (window.location.pathname.includes('/developer-distribution')) {
+      buttonDiv = createTag('div');
+      navigationLinks.appendChild(buttonDiv);
+      buttonDiv.appendChild(globalMobileDistributeButton());
+    } else {
+      buttonDiv = createTag('div', { class: 'button-container' });
+      navigationLinks.appendChild(buttonDiv);
     }
-  });
-
-  window.search_path_name_check = '';
-
-  window.addEventListener('message', (evt) => {
-    const expectedOrigin = setSearchFrameOrigin(window.location.host);
-    if (evt.origin !== expectedOrigin) return;
-    try {
-      const message = typeof evt.data === 'string' ? JSON.parse(evt.data) : evt.data;
-      if (message.query) {
-        setQueryStringParameter('query', message.query);
-        setQueryStringParameter('keywords', message.keywords);
-        setQueryStringParameter('index', message.index);
-      } else if (message.received) {
-        window.search_path_name_check = message.received;
+    buttonDiv.appendChild(globalMobileConsoleButton());
+    navigationLinks.querySelectorAll('a').forEach((a) => {
+      if (a.parentElement.tagName === 'STRONG') {
+        a.className = 'spectrum-Button spectrum-Button--secondary  spectrum-Button--sizeM';
+        const span = createTag('span', { class: 'spectrum-Button-label' });
+        span.innerHTML = a.innerHTML;
+        a.innerHTML = '';
+        a.appendChild(span);
+        const li = a.parentElement.parentElement;
+        const div = createTag('div', { class: 'nav-view-docs-button' });
+        div.appendChild(a);
+        navigationLinks.removeChild(li);
+        navigationLinks.appendChild(div);
       }
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-    }
-  });
+    });
 
-  header.append(navigationLinks);
+    header.append(navigationLinks);
+  }
+
+  // Add right container for all templates
   const rightContainer = createTag('div', { class: 'nav-console-right-container' });
   rightContainer.appendChild(globalNavSearchButton());
   if (window.location.pathname.includes('/developer-distribution')) {
@@ -467,4 +534,7 @@ export default async function decorate(block) {
 
   setActiveTab();
   focusRing(header);
+
+  // Always handle menu button (removed template condition)
+  handleMenuButton(header);
 }

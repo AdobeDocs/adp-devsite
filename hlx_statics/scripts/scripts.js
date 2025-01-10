@@ -160,7 +160,11 @@ async function loadEager(doc) {
 
   if (getMetadata('template') === 'documentation') {
     buildGrid(main);
-    buildSideNav(main);
+  }
+
+  buildSideNav(main);
+
+  if (getMetadata('template') === 'documentation') {
     buildBreadcrumbs(main);
   }
 

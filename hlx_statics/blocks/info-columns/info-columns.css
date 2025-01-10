@@ -8,19 +8,10 @@ main div.info-columns-container {
 }
 
 main div.info-columns {
-  width: 90%;
+  width: 100%;
   max-width: 1280px;
   box-sizing: border-box;
   margin: auto;
-}
-
-@media screen and (max-width: 1280px) {
-  main div.info-columns {
-    width: 100%;
-  }
-  main div.info-columns > div {
-    flex-direction: column !important;
-  }
 }
 
 main div.info-columns > div {
@@ -32,12 +23,6 @@ main div.info-columns > div:nth-child(even) {
   flex-direction: row-reverse;
 }
 
-@media screen and (max-width: 1280px) {
-  main div.info-columns > div {
-    flex-direction: column;
-  }
-}
-
 main div.info-column {
   width: 50%;
   display: flex;
@@ -45,10 +30,27 @@ main div.info-column {
   justify-content: center;
   text-align: left;
   box-sizing: border-box;
-  padding: 0 32px;
 }
 
 @media screen and (max-width: 1280px) {
+  main div.info-columns div.info-column {
+    padding: 0 32px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  main div.info-columns {
+    width: 100%;
+  }
+  
+  main div.info-columns > div {
+    flex-direction: column !important;
+  }
+
+  main div.info-columns > div {
+    flex-direction: column;
+  }
+
   main div.info-columns div.info-column {
     width: 100%;
     margin: 32px 0;
