@@ -90,6 +90,17 @@ main div.list a:hover{
   text-decoration: underline;
 }
 
+main div.list .listDiv{
+  display: flex;
+  column-gap: 10px;
+  padding: 10px 32px !important;
+  font-size: 16px;
+  align-items: baseline;
+}
+
+main div.list .divBorder{
+  border-right: 1px solid rgb(195 189 189);
+}
 
 @media screen and (min-width : 768px) and (max-width : 1440px) {
   main div.list-container>div.list-wrapper>div {

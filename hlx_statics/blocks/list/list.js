@@ -23,54 +23,22 @@ export default async function decorate(block) {
   });
 
   if (getMetadata('template') === 'documentation') {
-
     const icon = block.getAttribute('data-icon') || 'checkmark';
     const iconColor = block.getAttribute('data-iconColor') || 'black';
-
-    const listFirstDivs = createTag('ul',{class:'spectrum-Body spectrum-Body--sizeM'});
-    Object.assign(listFirstDivs.style, {
-      listStyleType: 'none',
-      padding: '0px 50px 0px 25px',
-      borderRight: '1px solid rgb(213, 213, 213)',
+    const firstDivs = block.querySelectorAll('.list > div');
+    firstDivs.forEach((div) => {
+      div.style.setProperty('padding', '0px', 'important');
     });
-    const listSecondDivs = createTag('ul',{class:'spectrum-Body spectrum-Body--sizeM'});
-
-    const divs = block.querySelectorAll('div');
-    divs.forEach(parentDiv => {
-      const firstDiv = parentDiv.querySelector('div:first-child');
-      const secondDiv = parentDiv.querySelector('div:nth-child(2)');
-      const firstDivListItem = createTag('li');
-      const secondDivListItem = createTag('li');
-      if (firstDiv && firstDiv.textContent.trim() !== '') {
-        firstDivListItem.appendChild(firstDiv);
+    const listDivs = block.querySelectorAll('.list > div > div');
+    listDivs.forEach((div, index) => {
+      div.classList.add('listDiv');
+      if (index % 2 === 0) {
+        div.classList.add('divBorder');
       }
-      if (secondDiv && secondDiv.textContent.trim() !== '') {
-        secondDivListItem.appendChild(secondDiv);
-      }
-      if (firstDivListItem.hasChildNodes()) {
-        listFirstDivs.appendChild(firstDivListItem);
-      }
-      if (secondDivListItem.hasChildNodes()) {
-        listSecondDivs.appendChild(secondDivListItem);
-      }
+      const addIcon = createTag('div', { class: 'icon-div' });
+      addIcon.textContent = icon === 'disc' ? '\u25CF' : '\u2714';
+      addIcon.style.color = iconColor ? iconColor : 'black';
+      div.insertBefore(addIcon, div.firstChild);
     });
-
-    block.innerHTML = '';
-    block.appendChild(listFirstDivs);
-    block.appendChild(listSecondDivs);
-    listSecondDivs.style.listStyleType = 'none';
-    
-    const buttonContainer = block.querySelectorAll('li');
-    buttonContainer.forEach((li) => {
-      Object.assign(li.style, {
-        display: 'flex',
-        columnGap: '10px',
-      });
-      const addIcon = createTag('div', { class:'icon-div'});
-      addIcon.textContent = icon === 'disc'? '\u25CF':'\u2714';
-      addIcon.style.color = iconColor? iconColor: 'black';  
-      li.insertBefore(addIcon, li.firstChild);
-    });
-    block.style.display = 'flex';
   }
 }
