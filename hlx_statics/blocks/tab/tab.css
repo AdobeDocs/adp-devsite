@@ -10,6 +10,7 @@ main .tab-container {
 main .tab-container .tab {
     display: flex;
     justify-content: center;
+    flex-direction: column;
 }
 
 main .tab-container .vertical .innerTab {
@@ -34,16 +35,22 @@ main .tab-container .innerTab>div:first-child {
     gap: 16px;
 }
 
-main .tab-container .innerTab>div:first-child>div {
+main .tab-button {
     display: flex;
     align-items: center;
     gap: 10px;
     height: 54px;
-    padding: 4px;
+    padding: 10px;
     margin-bottom: 16px;
     border-radius: 10px;
     cursor: pointer;
     width: 260px;
+}
+
+main .tab-button.active,
+main .tab-button:hover {
+    background-color: #2e3c6a;
+    color: white;
 }
 
 main .tab-container .background-hover>div:first-child>div:hover,
@@ -95,7 +102,7 @@ main div.tab.background-color-navy .innerTab>div:not(:first-child) {
 main .tab-container .innerTab>div:not(:first-child) {
     width: 100%;
     display: none;
-    color: rgb(75,75,75);
+    color: rgb(75, 75, 75);
 }
 
 main .tab-container .activeTabContent {
@@ -105,7 +112,7 @@ main .tab-container .activeTabContent {
 main .tab-container .custom-tab-container {
     display: flex;
     flex-direction: column;
-    border-radius: 4px;
+    /* border-radius: 4px; */
     border: 1px solid transparent;
 }
 
@@ -147,10 +154,6 @@ main .tab-container pre.code-content {
     line-height: 24px;
 }
 
-main .tab-container div.code-toolbar>.toolbar {
-    top: -45px;
-}
-
 main .tab-container div.code-toolbar>.toolbar>.toolbar-item>button {
     padding: 12px;
     height: 32px;
@@ -182,7 +185,7 @@ main .tab-container .line-numbers-rows>span {
         right: 0px;
     }
 
-    main .tab-container .custom-tab-header{
+    main .tab-container .custom-tab-header {
         font-size: 13px;
     }
 
@@ -191,3 +194,175 @@ main .tab-container .line-numbers-rows>span {
         align-items: center;
     }
 }
+
+.tabs-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.tab-button.active {
+    color: #0078d4;
+}
+
+.tab-icon img {
+    width: 32px;
+    height: 32px;
+}
+
+/* .content-wrapper {
+    margin-top: 20px;
+} */
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+
+.nested-tabs-wrapper {
+    display: flex;
+    margin-top: 10px;
+}
+
+.nested-tab-button {
+    padding: 8px 12px;
+    cursor: pointer;
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    margin-right: 5px;
+}
+
+main .tab-container .nested-tab-button.active {
+    background: #0078d4;
+    color: white;
+}
+
+main .tab-container .nested-content-wrapper {
+    margin-top: 10px;
+}
+
+main .tab-container .nested-tab-content {
+    display: none;
+}
+
+main .tab-container .nested-tab-content.active {
+    display: block;
+}
+
+main .tab-container .table-wrapper {
+    margin-top: 10px;
+}
+
+main .tab-container .code-toolbar {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+main .tab-container .tab.vertical{
+    flex-direction: column;
+}
+main .tab-container .tab.horizontal{
+    flex-direction: row;
+}
+
+main .tab-container .tab.horizontal > .tabs-wrapper{
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+}
+
+main .tab-container .tab.horizontal > .content-wrapper{
+    width: 70%;
+}
+
+main .tab-container .tab {
+    width: 100%;
+}
+
+/* pre {
+    background: #f4f4f4;
+    padding: 10px;
+    overflow-x: auto;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+} */
+
+.language-none {
+    background: #f9f9f9;
+}
+
+.tab-button {
+    cursor: pointer;
+    padding: 10px;
+    margin: 0 5px;
+    border: none;
+    background: #eee;
+    font-size: 16px;
+}
+
+.tab-button.active {
+    background: #0078d4;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    /* margin-top: 15px; */
+}
+
+.sub-tabs-wrapper {
+    display: flex;
+    background: #000;
+    height: 50px;
+  }
+  
+  .sub-tab-button {
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 5px;
+    color: #fff;
+    background: transparent;
+    border: none;
+    color: #e1dbdb;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .sub-tab-button.active {
+    border-bottom: 1px solid white;
+  }
+    
+  .sub-tab-content {
+    display: none;
+  }
+  
+  .sub-tab-content.active {
+    display: block;
+  }
+  
+  .sub-tabs-wrapper > pre[class*=language-].line-numbers {
+    border-radius: 0 !important;
+    border: 1px solid ;
+    border-bottom-right-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+  }
