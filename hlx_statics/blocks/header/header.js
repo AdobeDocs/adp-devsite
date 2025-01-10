@@ -355,7 +355,7 @@ export default async function decorate(block) {
     // Create navigation for documentation template (desktop only)
     if (window.innerWidth > 768) {
       let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
-      
+
       // Add Products link for documentation template
       if (isTopLevelNav(window.location.pathname)) {
         const homeLinkLi = createTag('li', {class: 'navigation-home'});
@@ -370,7 +370,7 @@ export default async function decorate(block) {
         productLi.append(productA);
         navigationLinks.append(productLi);
       }
-      
+
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
@@ -389,7 +389,7 @@ export default async function decorate(block) {
       if (window.innerWidth > 768) {
         if (!navigationLinks) {
           navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
-          
+
           // Add Products link for documentation template
           if (isTopLevelNav(window.location.pathname)) {
             const homeLinkLi = createTag('li', {class: 'navigation-home'});
@@ -404,7 +404,7 @@ export default async function decorate(block) {
             productLi.append(productA);
             navigationLinks.append(productLi);
           }
-          
+
           const topNavHtml = await fetchTopNavHtml();
           if (topNavHtml) {
             navigationLinks.innerHTML += topNavHtml;
@@ -490,7 +490,7 @@ export default async function decorate(block) {
       navigationLinks.appendChild(buttonDiv);
       buttonDiv.appendChild(globalMobileDistributeButton());
     } else {
-      buttonDiv = createTag('div', { class: 'button-container' });
+      buttonDiv = createTag('li', { class: 'button-container' });
       navigationLinks.appendChild(buttonDiv);
     }
     buttonDiv.appendChild(globalMobileConsoleButton());
@@ -502,7 +502,7 @@ export default async function decorate(block) {
         a.innerHTML = '';
         a.appendChild(span);
         const li = a.parentElement.parentElement;
-        const div = createTag('div', { class: 'nav-view-docs-button' });
+        const div = createTag('li', { class: 'nav-view-docs-button' });
         div.appendChild(a);
         navigationLinks.removeChild(li);
         navigationLinks.appendChild(div);
