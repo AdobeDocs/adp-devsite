@@ -356,9 +356,24 @@ export default async function decorate(block) {
     if (window.innerWidth > 768) {
       let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
       
+      // Add Products link for documentation template
+      if (isTopLevelNav(window.location.pathname)) {
+        const homeLinkLi = createTag('li', {class: 'navigation-home'});
+        const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+        homeLinkA.innerHTML = 'Products';
+        homeLinkLi.append(homeLinkA);
+        navigationLinks.append(homeLinkLi);
+      } else {
+        const productLi = createTag('li', {class: 'navigation-products'});
+        const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+        productA.innerHTML = 'Products';
+        productLi.append(productA);
+        navigationLinks.append(productLi);
+      }
+      
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
-        navigationLinks.innerHTML = topNavHtml;
+        navigationLinks.innerHTML += topNavHtml;
         header.append(navigationLinks);
       }
     }
@@ -374,9 +389,25 @@ export default async function decorate(block) {
       if (window.innerWidth > 768) {
         if (!navigationLinks) {
           navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
+          
+          // Add Products link for documentation template
+          if (isTopLevelNav(window.location.pathname)) {
+            const homeLinkLi = createTag('li', {class: 'navigation-home'});
+            const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+            homeLinkA.innerHTML = 'Products';
+            homeLinkLi.append(homeLinkA);
+            navigationLinks.append(homeLinkLi);
+          } else {
+            const productLi = createTag('li', {class: 'navigation-products'});
+            const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+            productA.innerHTML = 'Products';
+            productLi.append(productA);
+            navigationLinks.append(productLi);
+          }
+          
           const topNavHtml = await fetchTopNavHtml();
           if (topNavHtml) {
-            navigationLinks.innerHTML = topNavHtml;
+            navigationLinks.innerHTML += topNavHtml;
             header.append(navigationLinks);
           }
         }

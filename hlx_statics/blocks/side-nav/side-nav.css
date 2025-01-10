@@ -145,10 +145,41 @@ main div.side-nav {
   padding: 0;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item > a {
+.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
   font-size: 14px;
   font-weight: 700;
   color: rgb(70, 70, 70);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
+  font-weight: 400;
+  color: rgb(70, 70, 70);
+  text-decoration: none;
+  display: block;
+  padding: 8px 16px 8px 24px;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
+  color: #000;
 }
 
 /* Console button styles matching header */
@@ -245,5 +276,49 @@ main div.side-nav {
   text-transform: uppercase;
   color: rgb(110, 110, 110);
   margin: 0 0 8px;
-  padding: 0 16px;
+  padding: 0 8px;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgb(70, 70, 70);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
+  font-weight: 400;
+  color: rgb(70, 70, 70);
+  text-decoration: none;
+  display: block;
+  padding: 8px 16px 8px 24px;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
+.side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
+  color: #000;
+}
+
+/* Ensure consistent section header spacing */
+.side-nav-menu-section .side-nav-section-label,
+.side-nav-subpages-section .side-nav-section-label {
+  margin: 0 0 12px;
+  padding: 0 8px;
 }
