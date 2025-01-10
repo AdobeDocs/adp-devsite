@@ -14,9 +14,6 @@
     min-width: 368px;
   } 
 
-  main div.resource-card > div:first-child {
-    padding-left: 0 !important;
-  } 
   main div.resource-card > div:nth-child(2){
     padding-left: 0;
     padding-right: 0;

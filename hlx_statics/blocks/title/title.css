@@ -17,6 +17,7 @@ main div.title-container {
 
 main div.title-container>.title-wrapper>div {
     margin: auto;
+    max-width: 1280px;
 }
 
 main div.title-container>.title-wrapper>div>div>div {

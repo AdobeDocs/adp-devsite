@@ -176,6 +176,9 @@ header.global-nav-header {
   z-index: 1001;
   padding-left: 8px;
   padding-right: 32px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 header.global-nav-header img.icon {
@@ -474,88 +477,50 @@ header .menu-btn {
     overflow-y: hidden;
   }
 
-  header .nav-console-distribute-button{
+  header .nav-console-distribute-button,
+  header .nav-console-button,
+  header .nav-dropdown-popover {
     display: none;
   }
 
-  header .nav-console-button{
-    display:none;
+  header.global-nav-header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
   }
 
-  header .nav-dropdown-popover{
-    display:none;
+  header.global-nav-header > ul#navigation-links {
+    display: none;
   }
 
-  header.global-nav-header{
-    z-index:1001;
+  header.global-nav-header a.nav-console-adobeio-link {
+    display: flex;
+    align-items: center;
+    height: 100%;
   }
 
-  header .nav-console-right-container{
-    position: fixed;
-    right: 0px;
-    top: 20px;
+  header .nav-console-right-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+  }
+
+  header.global-nav-header div.nav-console-search-button {
+    margin-right: 0;
+  }
+
+  header.global-nav-header div.nav-sign-in {
+    margin-right: 0;
   }
 
   header .menu-icon {
     cursor: pointer;
     display: inline-block;
-    float: right;
-    padding: 36px 20px;
+    padding: 20px;
     position: relative;
     user-select: none;
-  }
-
-  header .menu-btn:checked ~ .menu {
-    max-height: 100vh;
-  }
-
-  header .menu-btn:checked ~ .menu-icon .navicon {
-    background: transparent;
-  }
-
-  header .menu-btn:checked ~ .menu-icon .navicon:before {
-    transform: rotate(-45deg);
-  }
-
-  header .menu-btn:checked ~ .menu-icon .navicon:after {
-    transform: rotate(45deg);
-  }
-
-  header .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:before,
-  header .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:after {
-    top: 0;
-  }
-
-  header ul {
-    position: absolute;
-    top: 80px;
-    left: 0px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    overflow: hidden;
-    background-color: #FAFAFA;
-    width: 95%;
-    height: 100vh;
-  }
-
-  header li a {
-    display: block;
-    font-size: 15px;
-    padding: 15px 15px;
-    text-decoration: none;
-    color: #505050;
-  }
-
-  header li {
-    font-size: 15px;
-    border-bottom: solid 1px #f3f3f3;
-  }
-
-  header .menu {
-    clear: both;
-    max-height: 0;
-    transition: max-height .2s ease-out;
   }
 
   header .menu-icon .navicon {
@@ -586,96 +551,18 @@ header .menu-btn {
     top: -5px;
   }
 
-  header .menu .navigation-dropdown {
-    width: 95%;
-    height: 100%;
-    padding: 15px 15px;
-    box-shadow: none !important;
+  header .menu-btn:checked ~ .menu-icon .navicon {
+    background: transparent;
   }
 
-  header .menu .navigation-dropdown .nav-label{
-    font-size: 15px;
+  header .menu-btn:checked ~ .menu-icon .navicon:before {
+    transform: rotate(-45deg);
+    top: 0;
   }
 
-  header .menu .nav-dropdown-mobile-popover{
-    width: 100%;
-    height: 100%;
-    transform: none;
-    border:none;
-    box-shadow: none;
-    display:none;
-    transition: max-height .2s ease-out;
-  }
-
-  header .menu .nav-dropdown-mobile-popover.is-open {
-    display: block;
-    width: 100%;
-    max-height: 100%;
-  }
-
-  header .menu .nav-dropdown-mobile-popover.is-open > ul {
-    position: initial;
-    display: block;
-    height: 100%;
-    border-left: solid 1px;
-    border-top: solid 1px #f3f3f3;
-    border-bottom: solid 1px #f3f3f3;
-    padding-top: 5px;
-  }
-
-  header .menu .nav-dropdown-mobile-popover .nav-sub-menu{
-    transform: none !important;
-    position: absolute;
-    top: 80px;
-    left: 0px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    overflow: hidden;
-    background-color: #FAFAFA;
-    width: 100%;
-  }
-
-  header .menu .nav-dropdown-mobile-popover .nav-sub-menu > li{
-    display: block;
-    border-bottom:0;
-    padding-left: 15px;
-    padding-top:0;
-    padding-bottom: 0;
-  }
-  header .menu .nav-dropdown-mobile-popover .nav-sub-menu > li a{
-    padding-top:5px;
-    padding-bottom: 5px;
-  }
-
-  header.global-nav-header div.nav-console-search-button {
-    margin-right: 5px;
-    padding-top: 5px;
-  }
-
-  header .button-container {
-    display: flex;
-  }
-
-  header .nav-mobile-distribute-button {
-    flex: 1;
-    margin: 10px;
-  }
-  header .nav-mobile-console-button {
-    flex: 1;
-    margin: 10px;
-  }
-
-  .site-hero picture {
-    height: 100%;
-  }
-
-  .site-hero img{
-    height:100%;
-  }
-
-  .footer {
-    overflow-x: hidden;
+  header .menu-btn:checked ~ .menu-icon .navicon:after {
+    transform: rotate(45deg);
+    top: 0;
   }
 }
 .svgDisplay {

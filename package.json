@@ -54,5 +54,6 @@
         "@spectrum-css/well": "3.0.22",
         "minimist": "^1.2.6"
     },
-    "buildNavigation": "webpack --config webpack.config.js && node eds/scripts/buildNavigation.js"
+    "buildNavigation": "webpack --config webpack.config.js && node eds/scripts/buildNavigation.js",
+    "packageManager": "yarn@4.6.0"
 }
