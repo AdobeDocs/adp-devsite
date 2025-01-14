@@ -270,7 +270,6 @@ export async function loadIms() {
           },
         };
       } else if (!isHlxPath(window.location.host) && isStageEnvironment(window.location.host)) {
-
         if (window.location.pathname.includes('/photoshop/api')) {
           const client_id = 'cis_easybake';
           const scope = 'AdobeID,openid,creative_sdk,creative_cloud,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye';
@@ -286,18 +285,6 @@ export async function loadIms() {
 
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         }
-
-        window.marketingtech = {
-          adobe: {
-            launch: {
-              property: 'global',
-              environment: 'dev',
-            },
-            analytics: {
-              additionalAccounts: 'pgeo1xxpnwadobeio-qa',
-            },
-          },
-        };
       } else if (!isHlxPath(window.location.host) && !isStageEnvironment(window.location.host)) {
         if (window.location.pathname.includes('/photoshop/api')) {
           const client_id = 'cis_easybake';
@@ -314,18 +301,6 @@ export async function loadIms() {
 
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         }
-
-        window.marketingtech = {
-          adobe: {
-            launch: {
-              property: 'global',
-              environment: 'production',
-            },
-            analytics: {
-              additionalAccounts: 'pgeo1xxpnwadobeio-prod',
-            },
-          },
-        };
       }
 
       if (isHlxPath(window.location.host) || isStageEnvironment(window.location.host)) {
@@ -342,6 +317,45 @@ export async function loadIms() {
  */
 function loadConfig() {
   window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTczMjEzNzQzNSwiZSI6MTc1OTI2NTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iXSwicyI6InBvcnRhbCJ9.gf0tCrK+ApckZEqbuOlYJFlt19NU6UEWpiruC4VIMg9ZYUojkyDGde2aEKpBK2cm57r6yNNFNWHyIRljWAQnsg==`;
+
+  // check to see if we're on an aem url, stage or prod
+  if (isHlxPath(window.location.host)) {
+    window.marketingtech = {
+      adobe: {
+        launch: {
+          property: 'global',
+          environment: 'dev',
+        },
+        analytics: {
+          additionalAccounts: 'pgeo1xxpnwadobeio-qa',
+        },
+      },
+    };
+  } else if (!isHlxPath(window.location.host) && isStageEnvironment(window.location.host)) { 
+    window.marketingtech = {
+      adobe: {
+        launch: {
+          property: 'global',
+          environment: 'dev',
+        },
+        analytics: {
+          additionalAccounts: 'pgeo1xxpnwadobeio-qa',
+        },
+      },
+    };
+  } if (!isHlxPath(window.location.host) && !isStageEnvironment(window.location.host)) {
+    window.marketingtech = {
+      adobe: {
+        launch: {
+          property: 'global',
+          environment: 'production',
+        },
+        analytics: {
+          additionalAccounts: 'pgeo1xxpnwadobeio-prod',
+        },
+      },
+    };
+  }
 }
 
 /**
