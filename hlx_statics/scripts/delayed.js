@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-cycle
-import { 
-  sampleRUM, 
-  loadCSS 
+import {
+  sampleRUM,
+  loadCSS
 } from './lib-helix.js';
 import {
   focusRing,
@@ -46,8 +46,9 @@ addExtraScript(document.body, 'https://wwwimages2.adobe.com/etc/beagle/public/gl
 
 document.querySelectorAll('.embed').forEach((embed) => {
   const iframe = embed.querySelector('iframe');
+  if (iframe == null) return;
   if (!iframe.src) {
-    iframe.src = iframe.getAttribute('data-src');
+    iframe.src = iframe?.getAttribute('data-src');
     iframe.onload = () => { iframe.style.opacity = 1; };
   }
 });
