@@ -9,10 +9,10 @@
     border-radius: 4px;
 }
 
-main .contributors-wrapper {
+/* main .contributors-wrapper {
     padding: 16px !important;
     margin: 16px;
-}
+} */
 
 main .contributors-wrapper .feedbackWrapper {
     display: flex;
@@ -51,9 +51,9 @@ main .contributors-container .imageList {
     left: 0;
     top: 0;
     transition: visibility 0s linear 130ms;
-    width: 100vw;
+    width: 99vw;
     z-index: 2;
-    height: 100vh;
+    height: 90vh;
 }
 
 .show-model-contributors {
@@ -72,13 +72,13 @@ main .contributors-container .imageList {
     gap: 10px;
 }
 
-h1 {
+.model-comp-contributors h1 {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
 }
 
-hr {
+.model-comp-contributors hr {
     border-radius: 2px;
     height: 1px;
     border-color: rgb(213, 213, 213);
