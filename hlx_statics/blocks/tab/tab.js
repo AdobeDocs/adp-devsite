@@ -1,110 +1,145 @@
 import decoratePreformattedCode from "../../components/code.js";
+import { getMetadata } from "../../scripts/scripts.js";
 
 /**
- * decorates the text
+ * Decorates the tab block 
  * @param {*} block The text block element
  */
 
-export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'tab');
-  const codeBackgroundColor =  "rgb(0,0,0)"
+const createCodeBlock = (codeBlock, language) => {
+  const preContainer = document.createElement('div');
+  const pre = document.createElement('pre');
+  pre.className = `language-${language.toLowerCase()}`;
+  pre.innerHTML = codeBlock.outerHTML;
 
-  block.querySelectorAll('p').forEach((p) => {
-    p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
+  preContainer.appendChild(pre);
+  decoratePreformattedCode(preContainer);
+
+  return preContainer;
+}
+
+const handleCode = (contentDiv) => {
+  const codeBlock = contentDiv.querySelector('pre code');
+  const isTable = contentDiv.querySelector('table');
+
+  if (codeBlock && !isTable) {
+    const language = contentDiv.querySelector('p')?.textContent || '';
+    const preContainer = createCodeBlock(codeBlock, language);
+    contentDiv.innerHTML = preContainer.innerHTML;
+  }
+}
+
+const createSubTabs = (table) => {
+  const subTabsWrapper = document.createElement('div');
+  subTabsWrapper.className = 'sub-tabs-wrapper';
+
+  const subContentWrapper = document.createElement('div');
+  subContentWrapper.className = 'sub-content-wrapper';
+
+  let subTabCount = 0;
+
+  table.querySelectorAll('tbody tr').forEach((row) => {
+    const subTabTitle = row.querySelector('td:first-child')?.textContent.trim();
+    const codeBlock = row.querySelector('pre code');
+    const language = row.querySelector('p')?.textContent.trim() || 'none';
+
+    if (subTabTitle && codeBlock) {
+      subTabCount++;
+
+      const subTabButton = document.createElement('button');
+      subTabButton.className = 'sub-tab-button';
+      subTabButton.textContent = subTabTitle;
+      subTabButton.setAttribute('data-sub-tab', `subTab${subTabCount}`);
+      if (subTabCount === 1) subTabButton.classList.add('active');
+
+      const subContentDiv = document.createElement('div');
+      subContentDiv.className = 'sub-tab-content';
+      subContentDiv.setAttribute('data-sub-tab-content', `subTab${subTabCount}`);
+
+      const preContainer = createCodeBlock(codeBlock, language);
+      subContentDiv.appendChild(preContainer);
+
+      if (subTabCount === 1) subContentDiv.classList.add('active');
+
+      subTabButton.addEventListener('click', () => {
+        subTabsWrapper.querySelectorAll('.sub-tab-button').forEach((btn) => btn.classList.remove('active'));
+        subContentWrapper.querySelectorAll('.sub-tab-content').forEach((content) => content.classList.remove('active'));
+
+        subTabButton.classList.add('active');
+        subContentDiv.classList.add('active');
+      });
+
+      subTabsWrapper.appendChild(subTabButton);
+      subContentWrapper.appendChild(subContentDiv);
+    }
   });
 
-  const innerTab = document.createElement('div');
+  table.remove();
+  return { subTabsWrapper, subContentWrapper };
+}
 
-  innerTab.classList.add('background-hover');
-  innerTab.classList.add('innerTab');
+export default async function decorate(block) {
+  let orientation;
+  if (getMetadata('template') === 'documentation') {
+    orientation = block.getAttribute('data-orientation') || 'horizontal';
+  }
+  block.classList.add(orientation);
+  block.setAttribute('daa-lh', 'tab');
 
-  Array.from(block.children).forEach((div, index) => {
-    if (index > 0) {
-      div.setAttribute('id', `tabView${index - 1}`);
+  const tabsWrapper = document.createElement('div');
+  tabsWrapper.className = 'tabs-wrapper';
 
-      const table = block.querySelector('table');
+  const contentWrapper = document.createElement('div');
+  contentWrapper.className = 'content-wrapper';
 
-      if (table) {
-        const tabContainer = document.createElement('div');
-        tabContainer.classList.add('custom-tab-container');
-        tabContainer.style.backgroundColor = codeBackgroundColor;
+  let tabCount = 0;
 
-        const tabHeaders = document.createElement('div');
-        tabHeaders.classList.add('custom-tab-headers');
+  block.querySelectorAll('div').forEach((tab) => {
+    const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
+    const tabImage = tab.querySelector('picture')?.outerHTML || '';
+    const tabContent = tab.querySelector('div:last-child');
 
-        const heading = document.createElement('div');
-        heading.classList.add('custom-tab-heading');
-        heading.style.backgroundColor = codeBackgroundColor;
+    if (tabTitle && tabContent) {
+      tabCount++;
 
-        const tabContents = document.createElement('div');
-        tabContents.classList.add('custom-tab-contents');
+      const tabButton = document.createElement('button');
+      tabButton.className = 'tab-button';
+      tabButton.innerHTML = `
+        <div class="tab-icon">${tabImage}</div>
+        <span class="tab-title">${tabTitle}</span>
+      `;
+      tabButton.setAttribute('data-tab', `tab${tabCount}`);
+      if (tabCount === 1) tabButton.classList.add('active');
 
-        const rows = Array.from(table.querySelectorAll('tr'));
-        const headers = rows[0].children;
-        const contents = rows[1].children;
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'tab-content';
+      contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
+      contentDiv.innerHTML = tabContent.innerHTML;
 
-        Array.from(headers).forEach((header, index) => {
-          const tabHeader = document.createElement('div');
-          tabHeader.classList.add('custom-tab-header');
-          tabHeader.textContent = header.textContent;
+      handleCode(contentDiv);
 
-          if (index === 0) {
-            tabHeader.classList.add('active-tab');
-          }
+      contentDiv.querySelectorAll('table').forEach((table) => {
+        const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
+        contentDiv.appendChild(subTabsWrapper);
+        contentDiv.appendChild(subContentWrapper);
+      });
 
-          const tabContent = document.createElement('div');
-          tabContent.classList.add('custom-tab-content');
+      if (tabCount === 1) contentDiv.classList.add('active');
 
-          const codeContentContainer = document.createElement('pre');
-          codeContentContainer.classList.add('code-content');
-          codeContentContainer.style.backgroundColor = codeBackgroundColor;
+      tabButton.addEventListener('click', () => {
+        tabsWrapper.querySelectorAll('.tab-button').forEach((btn) => btn.classList.remove('active'));
+        contentWrapper.querySelectorAll('.tab-content').forEach((content) => content.classList.remove('active'));
 
-          //get the code from the content
-          const code = contents[index].querySelector('code');
-          codeContentContainer.appendChild(code);
-          tabContent.appendChild(codeContentContainer);
+        tabButton.classList.add('active');
+        contentDiv.classList.add('active');
+      });
 
-          //formatted the code with number
-          decoratePreformattedCode(tabContent);
-
-          if (index !== 0) {
-            tabContent.style.display = 'none';
-          }
-
-          tabHeader.addEventListener('click', () => {
-            tabContainer.querySelector('.active-tab').classList.remove('active-tab');
-            tabContainer.querySelector('.custom-tab-content:not([style*="display: none"])').style.display = 'none';
-
-            tabHeader.classList.add('active-tab');
-            tabContent.style.display = 'block';
-          });
-
-          heading.appendChild(tabHeader);
-          tabContents.appendChild(tabContent);
-        });
-
-        tabHeaders.appendChild(heading);
-        tabContainer.appendChild(tabHeaders);
-        tabContainer.appendChild(tabContents);
-        table.replaceWith(tabContainer);
-
-      }
-
+      tabsWrapper.appendChild(tabButton);
+      contentWrapper.appendChild(contentDiv);
     }
-    innerTab.append(div);
-  })
+  });
 
-  let backgroundColor;
-  block.append(innerTab);
-  block.firstElementChild.firstElementChild.firstElementChild.classList.add('activeTab', `${backgroundColor}Tab`);
-  block.querySelectorAll('#tabView0')[0].classList.add('activeTabContent');
-  Array.from(block.firstElementChild.firstElementChild.children).forEach((div, index) => {
-    div.setAttribute('aria-controls', `tabView${index}`);
-    div.addEventListener("click", () => {
-      block.querySelectorAll('.activeTab')[0].classList.remove('activeTab', `${backgroundColor}Tab`);
-      div.classList.add('activeTab');
-      block.querySelectorAll('.activeTabContent')[0].classList.remove('activeTabContent');
-      block.querySelectorAll(`#${div.getAttribute('aria-controls')}`)[0].classList.add('activeTabContent');
-    })
-  })
+  block.innerHTML = '';
+  block.appendChild(tabsWrapper);
+  block.appendChild(contentWrapper);
 }

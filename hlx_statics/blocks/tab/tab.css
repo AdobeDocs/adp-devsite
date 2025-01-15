@@ -2,6 +2,10 @@ main div.tab-container:has(.tab.background-color-navy) {
     background-color: rgb(15, 55, 95);
 }
 
+main .tab-wrapper {
+    padding: 25px 0;
+}
+
 main .tab-container {
     background-color: rgb(245, 245, 245);
     padding: 3%;
@@ -10,145 +14,25 @@ main .tab-container {
 main .tab-container .tab {
     display: flex;
     justify-content: center;
-}
-
-main .tab-container .vertical .innerTab {
-    display: flex;
-}
-
-main .tab-container .innerTab {
-    width: 75%;
-    gap: 50px;
-}
-
-main .tab-container .innerTab>div:first-child {
-    display: flex;
-}
-
-main .tab-container .vertical .innerTab>div:first-child {
     flex-direction: column;
-    align-items: center;
 }
 
-main .tab-container .innerTab>div:first-child {
-    gap: 16px;
-}
-
-main .tab-container .innerTab>div:first-child>div {
+main .tab-container .tab-button {
     display: flex;
     align-items: center;
     gap: 10px;
     height: 54px;
-    padding: 4px;
+    padding: 10px;
     margin-bottom: 16px;
     border-radius: 10px;
     cursor: pointer;
     width: 260px;
 }
 
-main .tab-container .background-hover>div:first-child>div:hover,
-main .tab-container .background-hover .activeTab {
+main .tab-container .tab-button.active,
+main .tab-container .tab-button:hover {
     background-color: #2e3c6a;
-}
-
-main div.tab.background-color-navy .background-hover>div:first-child>div:hover,
-main div.tab.background-color-navy .activeTab {
-    background-color: rgb(245, 245, 245) !important;
-}
-
-main div.tab.background-color-navy .innerTab>div:first-child>div:hover>p {
-    color: rgb(75, 75, 75) !important;
-}
-
-main .tab-container .innerTab>div:first-child>div:hover>p {
-    color: white !important;
-}
-
-main div.tab.background-color-navy .innerTab>div:first-child>div>p {
     color: white;
-}
-
-main div.tab.background-color-navy .activeTab>p {
-    color: rgb(75, 75, 75) !important;
-}
-
-main .tab-container .activeTab>p {
-    color: white !important;
-}
-
-main .tab-container .innerTab>div:first-child>div>p:first-child>picture {
-    display: flex;
-}
-
-main .tab-container .innerTab>div:first-child>div>p:first-child>picture>img {
-    width: 40px;
-    height: 40px;
-    margin: 0px 6px;
-}
-
-main div.tab.background-color-navy .innerTab>div:not(:first-child) {
-    width: 100%;
-    display: none;
-    color: white;
-}
-
-main .tab-container .innerTab>div:not(:first-child) {
-    width: 100%;
-    display: none;
-    color: rgb(75,75,75);
-}
-
-main .tab-container .activeTabContent {
-    display: block !important;
-}
-
-main .tab-container .custom-tab-container {
-    display: flex;
-    flex-direction: column;
-    border-radius: 4px;
-    border: 1px solid transparent;
-}
-
-main .tab-container .custom-tab-headers {
-    display: flex;
-    border-bottom: 2px solid #1d2643 !important;
-    justify-content: space-between;
-    align-items: center;
-}
-
-main .tab-container .custom-tab-header {
-    cursor: pointer;
-    border-bottom: none;
-    display: inline-block;
-    font-size: 16px;
-    line-height: 48px;
-    color: rgb(209, 209, 209);
-    margin-left: 24px;
-    white-space: nowrap;
-}
-
-main .tab-container .custom-tab-header:hover {
-    color: white;
-}
-
-main .tab-container .custom-tab-header.active-tab {
-    color: white;
-    border-bottom: 2px solid white;
-    font-weight: bold;
-}
-
-main .tab-container pre.code-content {
-    word-wrap: break-word;
-    overflow-x: hidden !important;
-    white-space: pre-wrap;
-    word-break: break-word !important;
-    padding-top: 40px !important;
-    margin: 0;
-    line-height: 24px;
-}
-
-main .tab-container div.code-toolbar>.toolbar {
-    top: -45px;
 }
 
 main .tab-container div.code-toolbar>.toolbar>.toolbar-item>button {
@@ -172,9 +56,6 @@ main .tab-container .line-numbers-rows>span {
 }
 
 @media only screen and (max-width: 860px) {
-    main .tab-container .innerTab {
-        display: block !important;
-    }
 
     main .tab-container div.code-toolbar>.toolbar>.toolbar-item>button {
         padding: 0;
@@ -182,12 +63,137 @@ main .tab-container .line-numbers-rows>span {
         right: 0px;
     }
 
-    main .tab-container .custom-tab-header{
-        font-size: 13px;
-    }
+}
 
-    main .tab-container .innerTab>div:first-child {
-        flex-direction: column;
-        align-items: center;
-    }
+main .tab-container .tabs-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+main .tab-container .tab-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+main .tab-container .tab-icon img {
+    width: 32px;
+    height: 32px;
+}
+
+main .tab-container .tab-content,
+main .tab-container .nested-tab-content {
+    display: none;
+}
+
+main .tab-container .tab-content.active,
+main .tab-container .nested-tab-content.active {
+    display: block;
+}
+
+main .tab-container .nested-tabs-wrapper {
+    display: flex;
+    margin-top: 10px;
+}
+
+main .tab-container .nested-tab-button {
+    padding: 8px 12px;
+    cursor: pointer;
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    margin-right: 5px;
+}
+
+main .tab-container .nested-content-wrapper {
+    margin-top: 10px;
+}
+
+main .tab-container .table-wrapper {
+    margin-top: 10px;
+}
+
+main .tab-container .code-toolbar {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+main .tab-wrapper .tab.vertical {
+    flex-direction: row;
+}
+
+main .tab-wrapper .tab.vertical .tabs-wrapper,
+main .tab-container .tab.horizontal {
+    flex-direction: column;
+}
+
+main .tab-container .tab.vertical>.tabs-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 350px;
+}
+
+main .tab-container .tab.vertical>.content-wrapper {
+    width: 80%;
+}
+
+main .tab-container .tab {
+    width: 100%;
+}
+
+main .tab-container .sub-tab-button.active {
+    color: white !important;
+}
+
+main .tab-container .tab-button {
+    cursor: pointer;
+    padding: 10px;
+    margin: 0 5px;
+    border: none;
+    background: #eee;
+    font-size: 16px;
+}
+
+main .tab-container .tab-content,
+main .tab-container .sub-tab-content {
+    display: none;
+}
+
+main .tab-container .tab-content.active,
+main .tab-container .sub-tab-content.active {
+    display: block;
+}
+
+main .tab-container .sub-tabs-wrapper {
+    display: flex;
+    background: #000;
+    height: 50px;
+}
+
+main .tab-container .sub-tab-button {
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 5px;
+    background: transparent;
+    border: none;
+    color: #e1dbdb;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+main .tab-container .sub-tab-button.active {
+    border-bottom: 1px solid white;
+}
+
+main .tab-container .sub-tabs-wrapper>pre[class*=language-].line-numbers {
+    border-radius: 0 !important;
+    border: 1px solid;
+    border-bottom-right-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
 }
