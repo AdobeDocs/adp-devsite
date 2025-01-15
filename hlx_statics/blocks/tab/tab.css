@@ -17,7 +17,7 @@ main .tab-container .tab {
     flex-direction: column;
 }
 
-main .tab-button {
+main .tab-container .tab-button {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -33,16 +33,6 @@ main .tab-container .tab-button.active,
 main .tab-container .tab-button:hover {
     background-color: #2e3c6a;
     color: white;
-}
-
-main .tab-container pre.code-content {
-    word-wrap: break-word;
-    overflow-x: hidden !important;
-    white-space: pre-wrap;
-    word-break: break-word !important;
-    padding-top: 40px !important;
-    margin: 0;
-    line-height: 24px;
 }
 
 main .tab-container div.code-toolbar>.toolbar>.toolbar-item>button {
@@ -93,27 +83,27 @@ main .tab-container .tab-button {
     cursor: pointer;
 }
 
-
-.tab-icon img {
+main .tab-container .tab-icon img {
     width: 32px;
     height: 32px;
 }
 
-.tab-content {
+main .tab-container .tab-content,
+main .tab-container .nested-tab-content {
     display: none;
 }
 
-.tab-content.active {
+main .tab-container .tab-content.active,
+main .tab-container .nested-tab-content.active {
     display: block;
 }
 
-
-.nested-tabs-wrapper {
+main .tab-container .nested-tabs-wrapper {
     display: flex;
     margin-top: 10px;
 }
 
-.nested-tab-button {
+main .tab-container .nested-tab-button {
     padding: 8px 12px;
     cursor: pointer;
     background: #f1f1f1;
@@ -123,14 +113,6 @@ main .tab-container .tab-button {
 
 main .tab-container .nested-content-wrapper {
     margin-top: 10px;
-}
-
-main .tab-container .nested-tab-content {
-    display: none;
-}
-
-main .tab-container .nested-tab-content.active {
-    display: block;
 }
 
 main .tab-container .table-wrapper {
@@ -143,34 +125,31 @@ main .tab-container .code-toolbar {
 }
 
 main .tab-wrapper .tab.vertical {
-    flex-direction: column;
-}
-
-main .tab-container .tab.horizontal {
     flex-direction: row;
 }
 
-main .tab-container .tab.horizontal>.tabs-wrapper {
-    display: flex;
+main .tab-wrapper .tab.vertical .tabs-wrapper,
+main .tab-container .tab.horizontal {
     flex-direction: column;
-    width: 30%;
 }
 
-main .tab-container .tab.horizontal>.content-wrapper {
-    width: 70%;
+main .tab-container .tab.vertical>.tabs-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 350px;
+}
+
+main .tab-container .tab.vertical>.content-wrapper {
+    width: 80%;
 }
 
 main .tab-container .tab {
     width: 100%;
 }
 
-.sub-tab-button.active{
+main .tab-container .sub-tab-button.active {
     color: white !important;
 }
-
-/* main .tab-container .language-none {
-    background: #f9f9f9;
-} */
 
 main .tab-container .tab-button {
     cursor: pointer;
@@ -180,7 +159,6 @@ main .tab-container .tab-button {
     background: #eee;
     font-size: 16px;
 }
-
 
 main .tab-container .tab-content,
 main .tab-container .sub-tab-content {
