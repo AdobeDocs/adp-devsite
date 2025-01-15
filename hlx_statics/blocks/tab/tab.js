@@ -6,7 +6,7 @@ import decoratePreformattedCode from "../../components/code.js";
  */
 export default async function decorate(block) {
 
-  const orientation = block.getAttribute('data-orientation') || 'horizontal';
+  const orientation = block.getAttribute('data-orientation');
   block.classList.add(orientation)
   block.setAttribute('daa-lh', 'tab');
 
@@ -18,10 +18,10 @@ export default async function decorate(block) {
 
   let tabCount = 0;
 
-  block.querySelectorAll(':scope > div').forEach((tab) => {
+  block.querySelectorAll('div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
     const tabImage = tab.querySelector('picture')?.outerHTML || '';
-    const tabContent = tab.querySelector(':scope > div:last-child');
+    const tabContent = tab.querySelector('div:last-child');
 
     if (tabTitle && tabContent) {
       tabCount++;
@@ -78,7 +78,9 @@ export default async function decorate(block) {
 
             decoratePreformattedCode(preContainer);
 
-            if (subTabCount === 1) subContentDiv.classList.add('active');
+            if (subTabCount === 1) {
+              subContentDiv.classList.add('active');
+            }
 
             subTabButton.addEventListener('click', () => {
               subTabsWrapper.querySelectorAll('.sub-tab-button').forEach((btn) => btn.classList.remove('active'));
