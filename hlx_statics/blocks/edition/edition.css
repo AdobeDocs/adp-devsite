@@ -1,19 +1,19 @@
-.edition>div>div {
+main div.edition-wrapper div.edition>div>div {
   border-radius: 4px;
   padding: 5px 8px;
   width: fit-content;
   margin-bottom: 10px;
 }
 
-.edition-wrapper a {
+main div.edition-wrapper a {
   margin-left: 3px;
   color: white;
 }
 
-.edition>div>div:hover {
+main div.edition-wrapper .edition>div>div:hover {
   filter: brightness(75%);
 }
 
-.edition>div>div:first-child {
+main div.edition-wrapper .edition>div>div:first-child {
   cursor: default;
 }

@@ -7,23 +7,23 @@ main div.info-columns-container {
   background: rgb(245, 245, 245);
 }
 
-main div.info-columns {
+main div.info-columns-wrapper div.info-columns {
   width: 100%;
   max-width: 1280px;
   box-sizing: border-box;
   margin: auto;
 }
 
-main div.info-columns > div {
+main div.info-columns-wrapper div.info-columns > div {
   display: flex;
   align-items: start;
 }
 
-main div.info-columns > div:nth-child(even) {
+main div.info-columns-wrapper div.info-columns > div:nth-child(even) {
   flex-direction: row-reverse;
 }
 
-main div.info-column {
+main div.info-columns-wrapper div.info-column {
   width: 50%;
   display: flex;
   flex-direction: column;
@@ -33,67 +33,67 @@ main div.info-column {
 }
 
 @media screen and (max-width: 1280px) {
-  main div.info-columns div.info-column {
+  main div.info-columns-wrapper div.info-columns div.info-column {
     padding: 0 32px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  main div.info-columns {
+  main div.info-columns-wrapper div.info-columns {
     width: 100%;
   }
-  
-  main div.info-columns > div {
+
+  main div.info-columns-wrapper div.info-columns > div {
     flex-direction: column !important;
   }
 
-  main div.info-columns > div {
+  main div.info-columns-wrapper div.info-columns > div {
     flex-direction: column;
   }
 
-  main div.info-columns div.info-column {
+  main div.info-columns-wrapper div.info-columns div.info-column {
     width: 100%;
     margin: 32px 0;
   }
 }
 
-main div.info-columns h3.column-header {
+main div.info-columns-wrapper div.info-columns h3.column-header {
   margin-top: 0 !important;
   margin-bottom: 16px !important;
 }
 
-main div.info-columns h3.column-header + p {
+main div.info-columns-wrapper div.info-columns h3.column-header + p {
   margin-top: 0 !important;
 }
 
-main div.info-columns p + p {
+main div.info-columns-wrapper div.info-columns p + p {
   margin-top: 24px;
 }
 
-main div.info-columns div.product-link-container p {
+main div.info-columns-wrapper div.info-columns div.product-link-container p {
   margin-top: 24px;
 }
 
-main div.info-columns div.product-link-container p + p {
+main div.info-columns-wrapper div.info-columns div.product-link-container p + p {
   margin-left: 24px;
 }
 
-main div.info-column div.product-link-container {
+main div.info-columns-wrapper div.info-column div.product-link-container {
   display: flex;
   flex-direction: row;
 }
 
-main div.info-column div.product-link-container p.icon-container {
+main div.info-columns-wrapper div.info-column div.product-link-container p.icon-container {
   display: flex;
   align-items: center;
 }
 
-main div.info-column div.product-link-container img.icon {
+main div.info-columns-wrapper div.info-column div.product-link-container img.icon {
   height: 32px;
   width: 32px;
   object-fit: contain;
 }
 
-main div.info-column div.product-link-container a {
+main div.info-columns-wrapper div.info-column div.product-link-container a {
   margin-left: 8px;
 }

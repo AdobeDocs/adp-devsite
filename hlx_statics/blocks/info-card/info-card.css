@@ -1,4 +1,4 @@
-main div.info-card > ul {
+main div.info-card-wrapper div.info-card > ul {
   list-style: none;
   margin-top: 24px;
   margin-bottom: 0px;
@@ -12,73 +12,73 @@ main div.info-card > ul {
   padding: 0;
 }
 
-main div.info-card.background-color-white {
+main div.info-card-container:has(.info-card.background-color-white) {
   background-color: white;
 }
 
-main div.info-card .button-container {
+main div.info-card-wrapper div.info-card .button-container {
   text-align: center;
 }
 
-main div.info-card > ul > li {
+main div.info-card-wrapper div.info-card > ul > li {
   max-width: 400px;
   border: 1px solid transparent;
   border-radius: 4px;
   background-color: rgb(255,255,255);
 }
 
-main div.info-card > ul > li:hover{
+main div.info-card-wrapper div.info-card > ul > li:hover{
   border-color: rgb(177,177,177);
 }
 
-main div.info-card .cards-card-body {
+main div.info-card-wrapper div.info-card .cards-card-body {
   margin: 16px;
 }
 
-main div.info-card .cards-card-image {
+main div.info-card-wrapper div.info-card .cards-card-image {
   line-height: 0;
 }
 
-main div.info-card .cards-card-body > *:first-child {
+main div.info-card-wrapper div.info-card .cards-card-body > *:first-child {
   margin-top: 0;
 }
 
-main div.info-card > ul > li img {
+main div.info-card-wrapper div.info-card > ul > li img {
   width: 400px;
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
-main div.info-card div.icon-div p.icon-p {
+main div.info-card-wrapper div.info-card div.icon-div p.icon-p {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 16px;
 }
 
-main div.info-card p.icon-p img {
+main div.info-card-wrapper div.info-card p.icon-p img {
   height: 32px;
   width: 32px;
   object-fit: contain;
 }
 
-main div.info-card p.icon-p svg {
+main div.info-card-wrapper div.info-card p.icon-p svg {
   height: 32px;
   width: 32px;
   object-fit: contain;
 }
 
-main div.info-card p {
+main div.info-card-wrapper div.info-card p {
   color: rgb(110, 110, 110);
 }
 
 @media screen and (min-width : 350px) and (max-width : 400px) {
-  main div.info-card > ul > li img {
+  main div.info-card-wrapper div.info-card > ul > li img {
     width: 100%;
     object-fit: cover;
   }
 }
 
-a:-webkit-any-link {
+div.info-card-wrapper div.info-card a:-webkit-any-link {
   text-decoration: none;
 }
