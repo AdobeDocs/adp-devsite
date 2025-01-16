@@ -331,7 +331,7 @@ function loadConfig() {
         },
       },
     };
-  } else if (!isHlxPath(window.location.host) && isStageEnvironment(window.location.host)) { 
+  } else if (isStageEnvironment(window.location.host)) { 
     window.marketingtech = {
       adobe: {
         launch: {
@@ -343,7 +343,7 @@ function loadConfig() {
         },
       },
     };
-  } if (!isHlxPath(window.location.host) && !isStageEnvironment(window.location.host)) {
+  } else {
     window.marketingtech = {
       adobe: {
         launch: {
