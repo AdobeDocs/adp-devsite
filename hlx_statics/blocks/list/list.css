@@ -16,9 +16,6 @@ main div.list {
   margin: auto;
 }
 
-main div.list-container{
-  width: 100%;
-}
 main div.list > div {
   display: flex;
   justify-content: center;
