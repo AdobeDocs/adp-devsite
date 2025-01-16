@@ -1,13 +1,13 @@
-main .announcement-button-container {
+main div.announcement-wrapper div.announcement-button-container {
   display: flex;
   gap: 20px;
 }
 
-main .announcement-container {
+main div.announcement-container {
   padding: 3% 0;
 }
 
-main div.announcement.block {
+main div.announcement-wrapper div.announcement.block {
   margin: auto;
   max-width: 1280px;
 }
@@ -23,11 +23,11 @@ main div.announcement-container:has(.announcement.background-color-dark-gray), m
   background-color: #323232;
 }
 
-main div.announcement.background-color-dark-gray .announcement-heading, main div.announcement.background-color-dark-gray p,
-main div.announcement.background-color-navy .announcement-heading, main div.announcement.background-color-navy p{
+main div.announcement-wrapper div.announcement.background-color-dark-gray .announcement-heading, main div.announcement-wrapper div.announcement.background-color-dark-gray p,
+main div.announcement-wrapper div.announcement.background-color-navy .announcement-heading, main div.announcement-wrapper div.announcement.background-color-navy p{
   color:white;
 }
-main .announcement-wrapper > .block > div > div {
+main div.announcement-wrapper > .block > div > div {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -35,51 +35,51 @@ main .announcement-wrapper > .block > div > div {
   align-items: center;
 }
 
-main .announcement-wrapper > .block > div {
+main div.announcement-wrapper > .block > div {
   display: flex;
   margin-left: 5%;
 }
 
-main .announcement-wrapper .announcement.start > div {
+main div.announcement-wrapper .announcement.start > div {
   justify-content: start;
   margin-left: 5%;
 }
-main .announcement-wrapper .announcement.start > div > div {
+main div.announcement-wrapper .announcement.start > div > div {
   align-items: normal;
 }
-main .announcement-wrapper .announcement > div{
+main div.announcement-wrapper .announcement > div{
   justify-content: center;
   margin: 0;
 }
 
-main .announcement-wrapper .announcement.end > div {
+main div.announcement-wrapper .announcement.end > div {
   justify-content: end;
   margin-right: 5%;
 }
-main .announcement-wrapper .announcement.end > div > div {
+main div.announcement-wrapper .announcement.end > div > div {
   width: 750px;
 }
 
-main .announcement .announcement-heading {
+main div.announcement-wrapper .announcement .announcement-heading {
   color: rgb(44, 44, 44);
 }
 
-main .announcement p {
+main div.announcement-wrapper .announcement p {
   color: rgb(44, 44, 44);
 }
 
-main .announcement.font-white .announcement-heading, main .announcement.font-white p{
+main div.announcement-wrapper .announcement.font-white .announcement-heading, main .announcement.font-white p{
   color: white;
 }
 
-main .announcement.secondary-font-white .spectrum-Button--secondary,
-main div.announcement.background-color-dark-gray .spectrum-Button--secondary,
-main div.announcement.background-color-navy .spectrum-Button--secondary{
+main div.announcement-wrapper .announcement.secondary-font-white .spectrum-Button--secondary,
+main div.announcement-wrapper div.announcement.background-color-dark-gray .spectrum-Button--secondary,
+main div.announcement-wrapper div.announcement.background-color-navy .spectrum-Button--secondary{
   color: white;
   border-color: white;
 }
 
-main .announcement.secondary-border-white .spectrum-Button--secondary{
+main div.announcement-wrapper .announcement.secondary-border-white .spectrum-Button--secondary{
   border-color: white;
 }
 

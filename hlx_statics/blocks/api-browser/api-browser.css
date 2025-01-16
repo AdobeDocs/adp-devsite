@@ -2,13 +2,13 @@ main div.api-browser-container:has(.api-browser.background-color-white) {
   background-color: white !important;
 }
 
-main .api-browser-container {
+main div.api-browser-container {
   background-color: #fff;
   padding-top: 32px;
   padding-bottom: 32px;
 }
 
-main .picker {
+main div.api-browser-wrapper .picker {
   display: flex;
   align-items: right;
   height: 64px;
@@ -16,15 +16,15 @@ main .picker {
   margin-right: 32px;
 }
 
-main .picker .sort-group {
+main div.api-browser-wrapper .picker .sort-group {
   display: flex;
 }
 
-main .picker .sort-by-label {
+main div.api-browser-wrapper .picker .sort-by-label {
   margin: 8px;
 }
 
-main .picker .filter-by-popover {
+main div.api-browser-wrapper .picker .filter-by-popover {
   display: flex;
   min-width: 64px;
   width: auto;
@@ -35,13 +35,13 @@ main .picker .filter-by-popover {
   margin-left: 40px;
 }
 
-main .api-browser {
+main div.api-browser-wrapper .api-browser {
   max-width: 1280px;
   margin: 32px auto;
   margin-bottom: 0;
 }
 
-main .api-cards {
+main div.api-browser-wrapper .api-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, calc(368px - 64px));
   grid-auto-rows: calc(368px - 40px);
@@ -51,24 +51,23 @@ main .api-cards {
 }
 
 @media screen and (max-width: 320px) {
-  main .api-cards {
+  main div.api-browser-wrapper .api-cards {
     margin-top: 32px;
     display: flex;
     flex-direction: column;
   }
 }
 
-main .api-card {
+main div.api-browser-wrapper .api-card {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-
   background: rgb(245, 245, 245);
 }
 
 @media screen and (max-width: 320px) {
-  main .api-card {
+  main div.api-browser-wrapper .api-card {
     display: flex;
     width: 100%;
     align-items: center;
@@ -76,96 +75,96 @@ main .api-card {
 }
 
 @media screen and (max-width: 768px) {
-  main .api-card {
+  main div.api-browser-wrapper .api-card {
     flex-wrap: wrap;
   }
-  main .api-card > * {
+  main div.api-browser-wrapper .api-card > * {
     flex: 0 0 50%;
   }
 }
 
-main .api-cards-inner {
+main div.api-browser-wrapper .api-cards-inner {
   display: flex;
 }
 
 @media screen and (max-width: 320px) {
-  main .api-cards-inner {
+  main div.api-browser-wrapper .api-cards-inner {
     flex-direction: column;
     align-items: center;
   }
 }
 
-main .api-card-inner {
+main div.api-browser-wrapper .api-card-inner {
   margin: 0 24px;
   width: calc(368px - 64px);
   height: calc(368px - 40px);
 }
 
-main .api-card-inner:hover {
+main div.api-browser-wrapper .api-card-inner:hover {
   border-color: rgb(230, 230, 230);
 }
 
 @media screen and (max-width: 320px) {
-  main .api-card-inner {
+  main div.api-browser-wrapper .api-card-inner {
     width: 0;
     margin: 0;
   }
 }
 
-main .api-card-body {
+main div.api-browser-wrapper .api-card-body {
   height: calc(368px - 40px);
   overflow: auto;
   text-align: left;
 }
 
-main .api-card-icon-container {
+main div.api-browser-wrapper .api-card-icon-container {
   position: absolute;
   height: 64px;
   z-index: 1;
 }
 
-main .api-card-icon {
+main div.api-browser-wrapper .api-card-icon {
   height: 48px;
   width: 48px;
   margin-top: 0;
 }
 
-main .api-card-icon img {
+main div.api-browser-wrapper .api-card-icon img {
   display: block;
   height: 100%;
   object-fit: contain;
 }
 
-main .api-card-icon-container + .api-card-body-inner {
+main div.api-browser-wrapper .api-card-icon-container + .api-card-body-inner {
   top: 64px;
 }
 
-main .api-card-body-inner {
+main div.api-browser-wrapper .api-card-body-inner {
   position: relative;
   z-index: 1;
   background-color: rgb(255, 255, 255);
 }
 
-main .api-card-title-container {
+main div.api-browser-wrapper .api-card-title-container {
   margin-top: 0 !important;
   margin-bottom: 8px !important;
 }
 
-main .api-card-title {
+main div.api-browser-wrapper .api-card-title {
   font-size: 16px;
 }
 
-main .api-card-title h4 {
+main div.api-browser-wrapper .api-card-title h4 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-main .api-card-content {
+main div.api-browser-wrapper .api-card-content {
   height: auto;
   margin-bottom: 0 !important;
 }
 
-main .api-card-button-container {
+main div.api-browser-wrapper .api-card-button-container {
   display: flex;
   --gap: 16px;
   flex-wrap: wrap;
@@ -174,17 +173,17 @@ main .api-card-button-container {
   justify-content: flex-end;
 }
 
-main .api-card-button-container a {
+main div.api-browser-wrapper .api-card-button-container a {
   margin: var(--gap) 0 0 var(--gap);
 }
 
 @media screen and (max-width: 320px) {
-  main .api-card-button-container {
+  main div.api-browser-wrapper .api-card-button-container {
     justify-content: center;
   }
 }
 
-main .api-browser .filters {
+main div.api-browser-wrapper .api-browser .filters {
   width: 240px;
   align-items: flex-end;
   flex-direction: column;
@@ -192,30 +191,30 @@ main .api-browser .filters {
 }
 
 @media screen and (max-width: 768px) {
-  main .api-browser .api-cards-inner {
+  main div.api-browser-wrapper .api-browser .api-cards-inner {
     display: block;
   }
-  main .api-browser .filters {
+  main div.api-browser-wrapper .api-browser .filters {
     padding: 32px;
   }
 }
 
-main .api-browser .filters-inner {
+main div.api-browser-wrapper .api-browser .filters-inner {
   align-items: flex-start;
   flex-direction: column;
   display: flex;
 }
 
-main .filter-item {
+main div.api-browser-wrapper .filter-item {
   margin-bottom: 8px;
 }
 
-main .filters-list {
+main div.api-browser-wrapper .filters-list {
   margin-top: 8px;
   display: flex;
   flex-direction: column;
 }
 
-main .filter-label {
+main div.api-browser-wrapper .filter-label {
   margin-left: 9px;
 }

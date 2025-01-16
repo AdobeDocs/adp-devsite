@@ -31,15 +31,15 @@ main div.link-block-wrapper a:hover {
     text-decoration: underline !important;
     cursor: pointer;
 }
-main div.link-block li{
-    list-style-type: none; 
+main div.link-block-wrapper div.link-block li{
+    list-style-type: none;
 }
-main .link-icon{
+main div.link-block-wrapper .link-icon{
     display: flex;
     align-items: baseline;
     column-gap: 5px;
 }
-main .link-block-wrapper{
+main div.link-block-wrapper .link-block-wrapper{
     margin-top: 40px;
     max-width: 280px;
 }

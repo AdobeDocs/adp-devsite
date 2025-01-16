@@ -6,7 +6,7 @@ main div.title-container:has(.title.background-color-navy) {
     background-color: rgb(15, 55, 95);
 }
 
-main div.title.background-color-navy .title-heading, main div.title.background-color-navy p{
+main div.title-wrapper div.title.background-color-navy .title-heading, main  div.title-wrapper div.title.background-color-navy p{
     color:white;
 }
 
