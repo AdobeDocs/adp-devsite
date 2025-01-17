@@ -69,18 +69,18 @@ main div.announcement-wrapper .announcement p {
 }
 
 main div.announcement-wrapper .announcement.font-white .announcement-heading, main .announcement.font-white p{
-  color: white;
+  color: white !important;
 }
 
 main div.announcement-wrapper .announcement.secondary-font-white .spectrum-Button--secondary,
 main div.announcement-wrapper div.announcement.background-color-dark-gray .spectrum-Button--secondary,
 main div.announcement-wrapper div.announcement.background-color-navy .spectrum-Button--secondary{
-  color: white;
-  border-color: white;
+  color: white !important;
+  border-color: white !important;
 }
 
 main div.announcement-wrapper .announcement.secondary-border-white .spectrum-Button--secondary{
-  border-color: white;
+  border-color: white !important;
 }
 
 @media screen and (max-width: 1024px) {

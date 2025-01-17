@@ -109,8 +109,8 @@ main div.summary-wrapper div.summary.background-color-white .spectrum-Heading, m
   color: rgb(44, 44, 44);
 }
 
-main div.summary-wrapper div.summary.background-color-white p, div.summary-wrapper main div.summary.background-color-gray p  {
-  color: rgb(44, 44, 44);
+main div.summary-wrapper div.summary.background-color-white p, main div.summary-wrapper div.summary.background-color-gray p  {
+  color: rgb(44, 44, 44) !important;
 }
 
 main div.summary-wrapper div.summary.background-color-white .spectrum-Button--secondary, main div.summary-wrapper div.summary.background-color-gray .spectrum-Button--secondary{
