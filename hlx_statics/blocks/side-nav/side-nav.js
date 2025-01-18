@@ -128,6 +128,69 @@ export default async function decorate(block) {
     const topNavHtml = await fetchTopNavHtml();
     if (topNavHtml) {
       menuUl.innerHTML += topNavHtml;
+
+      // Process nested lists to make them expandable (same as non-doc pages)
+      menuUl.querySelectorAll('li').forEach((li) => {
+        const nestedUl = li.querySelector('ul');
+        if (nestedUl) {
+          // Get the text node or link that precedes the nested ul
+          const label = li.childNodes[0];
+          const text = label.nodeType === Node.TEXT_NODE ? label.textContent.trim() : label.textContent;
+          
+          // Create the expandable link
+          const expandableLink = createTag('button', {
+            class: 'spectrum-SideNav-itemLink',
+            type: 'button',
+            'aria-expanded': 'false'
+          });
+          expandableLink.innerHTML = text;
+          
+          // Replace the text/link with the expandable link
+          if (label.nodeType === Node.TEXT_NODE) {
+            li.removeChild(label);
+          } else {
+            li.removeChild(label);
+          }
+          li.insertBefore(expandableLink, nestedUl);
+          
+          // Set up proper nesting structure
+          li.setAttribute('role', 'treeitem');
+          li.classList.add('header');
+          nestedUl.setAttribute('role', 'group');
+          nestedUl.classList.add('spectrum-SideNav');
+          nestedUl.style.display = 'none';
+          
+          // Process nested links
+          nestedUl.querySelectorAll('li').forEach(nestedLi => {
+            const nestedLink = nestedLi.querySelector('a');
+            if (nestedLink) {
+              nestedLink.style.fontWeight = '400';
+              if (!nestedLi.querySelector('ul')) {
+                nestedLink.innerHTML = nestedLink.textContent.trim();
+                nestedLi.classList.add('no-chevron');
+              }
+            }
+          });
+          
+          // Add click handler
+          expandableLink.onclick = (e) => {
+            e.preventDefault();
+            const isExpanded = li.getAttribute('aria-expanded') === 'true';
+            
+            li.setAttribute('aria-expanded', !isExpanded);
+            li.classList.toggle('is-expanded', !isExpanded);
+            nestedUl.style.display = isExpanded ? 'none' : 'block';
+            
+            updateIcon(expandableLink, !isExpanded, true);
+          };
+          
+          // Initialize icon
+          updateIcon(expandableLink, false, true);
+        } else {
+          // For non-expandable items, ensure they don't get chevrons
+          li.classList.add('no-chevron');
+        }
+      });
     }
   } else {
     // Handle regular pages
