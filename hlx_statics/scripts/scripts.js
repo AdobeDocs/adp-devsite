@@ -35,7 +35,8 @@ import {
   decorateProfile,
   isStageEnvironment,
   addExtraScript,
-  decorateHR
+  decorateHR,
+  buildNextPrev
 } from './lib-adobeio.js';
 
 export {
@@ -92,6 +93,14 @@ function loadOnThisPage(onthispage) {
   decorateBlock(onthispageBlock);
   loadBlock(onthispageBlock);
 }
+
+function loadNextPrev(nextPrev) {
+  const nextPrevBlock = buildBlock('next-prev', '');
+  nextPrev.append(nextPrevBlock);
+  decorateBlock(nextPrevBlock);
+  loadBlock(nextPrevBlock);
+}
+
 /**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
@@ -395,6 +404,10 @@ async function loadLazy(doc) {
     if(!document.querySelector('.hero, .herosimple') && headings.length !== 0) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+    }
+    if(document.querySelector('.side-nav-subpages-section')) {
+      buildNextPrev(main);
+      loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
   }
 
