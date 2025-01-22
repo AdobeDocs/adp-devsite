@@ -323,6 +323,20 @@ export function buildOnThisPage(main) {
 }
 
 /**
+ * Builds the next-prev wrapper
+ * @param {*} main The grid container
+ */
+export function buildNextPrev(main) {
+  let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
+  if (!document.querySelector('.herosimple-wrapper')) {
+    main.children[1].appendChild(nextPrevWrapper)
+  }
+  else {
+    main.children[1].children[1].appendChild(nextPrevWrapper)
+  }
+}
+
+/**
  * Builds the breadcrumbs
  * @param {*} main The grid container
  */

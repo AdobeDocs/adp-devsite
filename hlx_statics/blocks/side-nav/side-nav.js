@@ -184,6 +184,7 @@ export default async function decorate(block) {
     });
   }
 
+
   if (isSourceGithub()) {
     // Fetch and populate main menu for documentation template
     // Add Products link first
