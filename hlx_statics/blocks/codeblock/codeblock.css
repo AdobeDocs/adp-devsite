@@ -22,9 +22,15 @@ main div.codeblock-wrapper div.codeblock .inline-code {
   border: none;
 }
 
+main div.codeblock-wrapper div.codeblock .control-bar {
+  display: flex;
+  justify-content: space-between;
+}
+
 /* copied from https://raw.githubusercontent.com/adobe/aem-block-collection/main/blocks/tabs/tabs.css, then edited */
 
-main div.codeblock-wrapper div.codeblock .tabs-list {
+main div.codeblock-wrapper div.codeblock .control-bar,
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list {
   display: flex;
   gap: 16px;
   max-width: 100%;
@@ -32,7 +38,8 @@ main div.codeblock-wrapper div.codeblock .tabs-list {
   margin: 0 16px;
 }
 
-main div.codeblock-wrapper div.codeblock .tabs-list button {
+main div.codeblock-wrapper div.codeblock .control-bar select,
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   flex: 0 0 max-content;
   border: 0px;
   border-radius: 0;
@@ -51,15 +58,16 @@ main div.codeblock-wrapper div.codeblock .tabs-list button {
   padding: 16px 0;
 }
 
-main div.codeblock-wrapper div.codeblock .tabs-list button:hover {
+main div.codeblock-wrapper div.codeblock .control-bar select:hover,
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover {
   color: rgb(255, 255, 255);
 }
 
-main div.codeblock-wrapper div.codeblock .tabs-list button p {
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
   margin: 0;
 }
 
-main div.codeblock-wrapper div.codeblock .tabs-list button[aria-selected="true"] {
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button[aria-selected="true"] {
   border-bottom: 3px solid rgb(255, 255, 255);
 }
 
@@ -68,6 +76,6 @@ main div.codeblock-wrapper div.codeblock .tabs-panel {
   overflow: auto;
 }
 
-main div.codeblock-wrapper div.codeblock .tabs-panel[aria-hidden="true"] {
+main div.codeblock-wrapper div.codeblock .hidden {
   display: none;
 }
