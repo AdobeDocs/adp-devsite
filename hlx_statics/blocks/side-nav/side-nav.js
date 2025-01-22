@@ -14,6 +14,10 @@ function isDocumentationTemplate() {
   return getMetadata("template") === "documentation";
 }
 
+function isSourceGithub() {
+  return getMetadata('source') === 'github';
+}
+
 function isMobileView() {
   return window.innerWidth <= 768;
 }
@@ -58,7 +62,7 @@ export default async function decorate(block) {
   });
   navigationLinksUl.setAttribute("aria-label", "Table of contents");
 
-  if (isDocumentationTemplate()) {
+  if (isSourceGithub()) {
     // Create subpages section (only for documentation template)
     const subPagesSection = createTag("div", {
       class: "side-nav-subpages-section",
@@ -180,7 +184,7 @@ export default async function decorate(block) {
     });
   }
 
-  if (isDocumentationTemplate()) {
+  if (isSourceGithub()) {
     // Fetch and populate main menu for documentation template
     // Add Products link first
     const productLi = createTag('li');
@@ -197,31 +201,40 @@ export default async function decorate(block) {
   } else {
     // Handle regular pages
     const cfg = readBlockConfig(block);
-    const navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin, 'nav');
+    let fragment;
     
-    let fragment = await loadFragment(navPath);
-    if (fragment == null) {
-      // load the default nav in franklin_assets folder nav
-      fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
-    }
-
-    if (fragment) {
-      // Clone and process the fragment's content
-      const fragmentUl = fragment.querySelector("ul");
-      if (fragmentUl) {
-        menuUl.innerHTML = fragmentUl.innerHTML;
+    if (getMetadata('source') === 'github') {
+      const topNavHtml = await fetchTopNavHtml();
+      if (topNavHtml) {
+        menuUl.innerHTML = topNavHtml;
         processNestedNavigation(menuUl);
+      }
+    } else {
+      const navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin, 'nav');
+      fragment = await loadFragment(navPath);
+      if (fragment == null) {
+        // load the default nav in franklin_assets folder nav
+        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+      }
 
-        // Apply the same layer numbering and styling as table of contents
-        const originalUpdateIcon = updateIcon;
-        updateIcon = (anchorTag, isExpanded, hasChildren) => {
-          const li = anchorTag.closest('li');
-          if (!li.classList.contains('no-chevron')) {
-            originalUpdateIcon(anchorTag, isExpanded, hasChildren);
-          }
-        };
-        assignLayerNumbers(menuUl);
-        updateIcon = originalUpdateIcon;
+      if (fragment) {
+        // Clone and process the fragment's content
+        const fragmentUl = fragment.querySelector("ul");
+        if (fragmentUl) {
+          menuUl.innerHTML = fragmentUl.innerHTML;
+          processNestedNavigation(menuUl);
+
+          // Apply the same layer numbering and styling as table of contents
+          const originalUpdateIcon = updateIcon;
+          updateIcon = (anchorTag, isExpanded, hasChildren) => {
+            const li = anchorTag.closest('li');
+            if (!li.classList.contains('no-chevron')) {
+              originalUpdateIcon(anchorTag, isExpanded, hasChildren);
+            }
+          };
+          assignLayerNumbers(menuUl);
+          updateIcon = originalUpdateIcon;
+        }
       }
     }
   }
@@ -247,7 +260,7 @@ export default async function decorate(block) {
 
   mainMenuSection.append(menuUl);
 
-  if (isDocumentationTemplate()) {
+  if (isSourceGithub()) {
     // Fetch and populate subpages
     const sideNavHtml = await fetchSideNavHtml();
     if (sideNavHtml) {
