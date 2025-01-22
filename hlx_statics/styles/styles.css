@@ -975,3 +975,12 @@ main:not(:has(.onthispage-wrapper)) .code-wrapper {
   max-width: none;
   width: 100%;
 }
+
+main a{
+  color: rgb(0, 84, 182);
+  text-decoration: none;
+}
+
+main a:hover{
+  text-decoration: underline;
+}
