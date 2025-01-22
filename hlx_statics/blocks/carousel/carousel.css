@@ -2,36 +2,64 @@ main div.carousel-container:has(.carousel.background-color-white) {
   background-color: white !important;
 }
 
-div.carousel picture {
+main div.carousel-wrapper div.carousel picture {
   width: 100%;
 }
 
-div.carousel picture img {
+main div.carousel-wrapper div.carousel picture img {
   object-fit: cover;
   height: auto;
   width: 100%;
 }
 
+main div.carousel-wrapper div.carousel .icon img {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+}
+
+main div.carousel-wrapper  div.carousel div.product-link-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+}
+
+main div.carousel-wrapper div.carousel .icon-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 16px;
+  margin-bottom: 0px;
+}
+
 @media screen and (max-width: 700px) {
-  main div.carousel div.carousel-container {
+  main div.carousel-wrapper div.carousel div.carousel-container {
     flex-direction: column;
     align-items: center;
     justify-content: center;
   }
 
-  main div.carousel div.media-container,
-  main div.carousel div.text-container {
+  main div.carousel-wrapper div.carousel div.product-link-container {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  main div.carousel-wrapper  div.carousel div.media-container,
+  main div.carousel-wrapper div.carousel div.text-container {
     width: 100% !important;
     max-width: 100%;
     padding: 16px;
     text-align: center;
   }
 
-  main div.carousel .slide-arrow {
+  main div.carousel-wrapper div.carousel .slide-arrow {
     visibility: hidden;
   }
 }
-main div.carousel p.image-container picture {
+main div.carousel-wrapper div.carousel p.image-container picture {
   left: 0;
   width: 100%;
   height: 0;
@@ -39,12 +67,12 @@ main div.carousel p.image-container picture {
   padding-bottom: 56.25%;
 }
 
-main div.carousel {
+main div.carousel-wrapper div.carousel {
   max-width: 1280px;
   margin: auto;
 }
 
-main div.carousel .block-container {
+main div.carousel-wrapper div.carousel .block-container {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -52,26 +80,26 @@ main div.carousel .block-container {
   position: relative;
 }
 
-main div.carousel .carousel-heading {
+main div.carousel-wrapper div.carousel .carousel-heading {
   margin-top: 1 !important;
   margin-bottom: 8px !important;
 }
 
-main div.carousel .carousel-container {
+main div.carousel-wrapper div.carousel .carousel-container {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-content: space-between;
 }
 
-main div.carousel .media-container {
+main div.carousel-wrapper div.carousel .media-container {
   flex: 0 1 50%;
   min-height: 100%;
   max-width: 50%;
   padding: 0 8px;
 }
 
-main div.carousel .text-container {
+main div.carousel-wrapper div.carousel .text-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -82,14 +110,14 @@ main div.carousel .text-container {
   padding: 0 32px;
 }
 
-main div.carousel .carousel-button-container {
+main div.carousel-wrapper div.carousel .carousel-button-container {
   display: flex;
   flex-direction: row !important;
   margin-top: 8px;
   gap: 16px;
 }
 
-main div.carousel .slider-wrapper {
+main div.carousel-wrapper div.carousel .slider-wrapper {
   position: relative;
   overflow: hidden;
   transition-property: transform;
@@ -97,7 +125,7 @@ main div.carousel .slider-wrapper {
   align-items: center;
 }
 
-main div.carousel .slides-container {
+main div.carousel-wrapper div.carousel .slides-container {
   width: 100%;
   display: flex;
   list-style: none;
@@ -109,13 +137,13 @@ main div.carousel .slides-container {
   scroll-behavior: smooth;
 }
 
-main div.carousel .slide {
+main div.carousel-wrapper div.carousel .slide {
   width: 100%;
   height: 100%;
   flex: 1 0 100%;
 }
 
-main div.carousel .slide-arrow {
+main div.carousel-wrapper div.carousel .slide-arrow {
   margin: auto;
   background-color: transparent;
   border: none;
@@ -124,23 +152,23 @@ main div.carousel .slide-arrow {
   cursor: pointer;
 }
 
-main .carousel .slide-arrow:hover,
-main .carousel .slide-arrow:focus {
+main div.carousel-wrapper .carousel .slide-arrow:hover,
+main div.carousel-wrapper .carousel .slide-arrow:focus {
   color: #003e7a;
 }
 
-main div.carousel .slides-container {
+main div.carousel-wrapper div.carousel .slides-container {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
 /* WebKit */
-main div.carousel .slides-container::-webkit-scrollbar {
+main div.carousel-wrapper div.carousel .slides-container::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
 
-main div.carousel .carousel-circle-div {
+main div.carousel-wrapper div.carousel .carousel-circle-div {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -148,7 +176,7 @@ main div.carousel .carousel-circle-div {
   gap: 8px;
 }
 
-main div.carousel .carousel-circle {
+main div.carousel-wrapper div.carousel .carousel-circle {
   background-color: #c6c6c6;
   border: none;
   border-radius: 100%;
@@ -158,6 +186,6 @@ main div.carousel .carousel-circle {
   cursor: pointer;
 }
 
-main div.carousel .carousel-circle-selected {
+main div.carousel-wrapper div.carousel .carousel-circle-selected {
   background-color: #007aff !important;
 }

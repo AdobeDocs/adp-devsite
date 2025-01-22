@@ -1,35 +1,35 @@
-.contibutors-wrapper-comp {
+main div.contributors-wrapper div.contributors-wrapper-comp {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.wrapper-border {
+main div.contributors-wrapper .wrapper-border {
     border: 1px solid lightgray;
     border-radius: 4px;
 }
 
-main .contributors-wrapper {
+main div.contributors-wrapper {
     padding: 16px !important;
     margin: 16px;
 }
 
-main .contributors-wrapper .feedbackWrapper {
+main div.contributors-wrapper div.feedbackWrapper {
     display: flex;
     gap: 20px;
     align-items: center;
 }
 
-main .contributors-wrapper .buttonWrapper {
+main div.contributors-wrapper div.buttonWrapper {
     display: flex;
     gap: 10px;
 }
 
-main .contributors-wrapper button {
+main div.contributors-wrapper button {
     border: 2px solid !important;
 }
 
-main .contributors-wrapper a {
+main div.contributors-wrapper a {
     display: flex;
     gap: 25px;
     align-items: center;
@@ -37,7 +37,7 @@ main .contributors-wrapper a {
     color: rgb(44, 44, 44);
 }
 
-main .contributors-container .imageList {
+main div.contributors-container .imageList {
     display: flex;
     flex-direction: row-reverse;
     padding-left: 16px;

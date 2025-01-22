@@ -116,6 +116,70 @@ export default async function decorate(block) {
     class: "spectrum-SideNav spectrum-SideNav--multiLevel main-menu",
   });
 
+  function processNestedNavigation(menuUl) {
+    menuUl.querySelectorAll('li').forEach((li) => {
+      const nestedUl = li.querySelector('ul');
+      if (nestedUl) {
+        // Get the text node or link that precedes the nested ul
+        const label = li.childNodes[0];
+        const text = label.nodeType === Node.TEXT_NODE ? label.textContent.trim() : label.textContent;
+        
+        // Create the expandable link
+        const expandableLink = createTag('button', {
+          class: 'spectrum-SideNav-itemLink',
+          type: 'button',
+          'aria-expanded': 'false'
+        });
+        expandableLink.innerHTML = text;
+        
+        // Replace the text/link with the expandable link
+        if (label.nodeType === Node.TEXT_NODE) {
+          li.removeChild(label);
+        } else {
+          li.removeChild(label);
+        }
+        li.insertBefore(expandableLink, nestedUl);
+        
+        // Set up proper nesting structure
+        li.setAttribute('role', 'treeitem');
+        li.classList.add('header');
+        nestedUl.setAttribute('role', 'group');
+        nestedUl.classList.add('spectrum-SideNav');
+        nestedUl.style.display = 'none';
+        
+        // Process nested links
+        nestedUl.querySelectorAll('li').forEach(nestedLi => {
+          const nestedLink = nestedLi.querySelector('a');
+          if (nestedLink) {
+            nestedLink.style.fontWeight = '400';
+            if (!nestedLi.querySelector('ul')) {
+              nestedLink.innerHTML = nestedLink.textContent.trim();
+              nestedLi.classList.add('no-chevron');
+            }
+          }
+        });
+        
+        // Add click handler
+        expandableLink.onclick = (e) => {
+          e.preventDefault();
+          const isExpanded = li.getAttribute('aria-expanded') === 'true';
+          
+          li.setAttribute('aria-expanded', !isExpanded);
+          li.classList.toggle('is-expanded', !isExpanded);
+          nestedUl.style.display = isExpanded ? 'none' : 'block';
+          
+          updateIcon(expandableLink, !isExpanded, true);
+        };
+        
+        // Initialize icon
+        updateIcon(expandableLink, false, true);
+      } else {
+        // For non-expandable items, ensure they don't get chevrons
+        li.classList.add('no-chevron');
+      }
+    });
+  }
+
   if (isDocumentationTemplate()) {
     // Fetch and populate main menu for documentation template
     // Add Products link first
@@ -128,6 +192,7 @@ export default async function decorate(block) {
     const topNavHtml = await fetchTopNavHtml();
     if (topNavHtml) {
       menuUl.innerHTML += topNavHtml;
+      processNestedNavigation(menuUl);
     }
   } else {
     // Handle regular pages
@@ -145,72 +210,7 @@ export default async function decorate(block) {
       const fragmentUl = fragment.querySelector("ul");
       if (fragmentUl) {
         menuUl.innerHTML = fragmentUl.innerHTML;
-        
-        // Process nested lists to make them expandable
-        menuUl.querySelectorAll('li').forEach((li) => {
-          const nestedUl = li.querySelector('ul');
-          if (nestedUl) {
-            // Get the text node or link that precedes the nested ul
-            const label = li.childNodes[0];
-            const text = label.nodeType === Node.TEXT_NODE ? label.textContent.trim() : label.textContent;
-            
-            // Create the expandable link (using anchor instead of button to match TOC style)
-            const expandableLink = createTag('button', {
-              class: 'spectrum-SideNav-itemLink',
-              type: 'button',
-              'aria-expanded': 'false'
-            });
-            expandableLink.innerHTML = text;
-            
-            // Replace the text/link with the expandable link
-            if (label.nodeType === Node.TEXT_NODE) {
-              li.removeChild(label);
-            } else {
-              li.removeChild(label);
-            }
-            li.insertBefore(expandableLink, nestedUl);
-            
-            // Set up proper nesting structure
-            li.setAttribute('role', 'treeitem');
-            li.classList.add('header');
-            nestedUl.setAttribute('role', 'group');
-            nestedUl.classList.add('spectrum-SideNav');
-            nestedUl.style.display = 'none';
-            
-            // Process nested links to have normal font weight and proper indentation
-            nestedUl.querySelectorAll('li').forEach(nestedLi => {
-              const nestedLink = nestedLi.querySelector('a');
-              if (nestedLink) {
-                nestedLink.style.fontWeight = '400';
-                // Make sure nested links don't have any icons unless they're expandable
-                if (!nestedLi.querySelector('ul')) {
-                  nestedLink.innerHTML = nestedLink.textContent.trim();
-                  // Prevent assignLayerNumbers from adding icons later
-                  nestedLi.classList.add('no-chevron');
-                }
-              }
-            });
-            
-            // Add click handler
-            expandableLink.onclick = (e) => {
-              e.preventDefault();
-              const isExpanded = li.getAttribute('aria-expanded') === 'true';
-              
-              li.setAttribute('aria-expanded', !isExpanded);
-              li.classList.toggle('is-expanded', !isExpanded);
-              nestedUl.style.display = isExpanded ? 'none' : 'block';
-              
-              // Update icon using the same approach as table of contents
-              updateIcon(expandableLink, !isExpanded, true);
-            };
-            
-            // Initialize icon using the same approach as table of contents
-            updateIcon(expandableLink, false, true);
-          } else {
-            // For non-expandable items, ensure they don't get chevrons
-            li.classList.add('no-chevron');
-          }
-        });
+        processNestedNavigation(menuUl);
 
         // Apply the same layer numbering and styling as table of contents
         const originalUpdateIcon = updateIcon;

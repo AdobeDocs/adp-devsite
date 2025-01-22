@@ -38,21 +38,19 @@ export default async function decorate(block) {
 
   //load the video link.
   const a = block.querySelectorAll("a");
-  for (let i = 0; i < a.length; i++) {
-    loadVideoURL(block, a[i]);
+  const videoLinks = Array.from(a).filter(link => 
+    link.title.includes('https')
+  );
+  for (let i = 0; i < videoLinks.length; i++) {
+    loadVideoURL(block, videoLinks[i]);
   }
 
-  block.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
-    // one for each slide
-    h.parentElement.classList.add("carousel-container");
-    h.parentElement.parentElement.replaceWith(carousel_block_child);
-    h.classList.add(
-      "spectrum-Heading",
-      "spectrum-Heading--sizeL",
-      "carousel-heading"
-    );
-    h.parentElement.setAttribute("id", h.id);
-
+  block.querySelectorAll(':scope > div:not([class]) > div:not([class])').forEach((innerDiv, index) => {
+    // one outer div for each slide - add class to inner div and remove outerDiv
+    innerDiv.classList.add("carousel-container");
+    innerDiv.parentElement.replaceWith(carousel_block_child);    
+    innerDiv.setAttribute("id", `carouselTab-${index}`);
+    
     //add circle for every slide
     const div_slide_circle = block.querySelector(".carousel-circle-div");
     const circle_button = createTag("button", { class: "carousel-circle" });
@@ -63,15 +61,24 @@ export default async function decorate(block) {
 
     const carousel_li = createTag("li", { class: "slide" });
     carousel_ul.append(carousel_li);
-    carousel_li.append(h.parentElement);
+    carousel_li.append(innerDiv);
 
     //add everything but image to the text div
-    const flex_div = createTag("div", { id: "text-flex-div-" + h.id });
-    h.parentElement.append(flex_div);
-    flex_div.append(h);    
+    const flex_div = createTag("div", { id: "text-flex-div-" + `carouselTab-${index}`});
+    flex_div.classList.add("text-container");
+    innerDiv.append(flex_div);
+    
+    innerDiv.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
+      h.classList.add(
+        "spectrum-Heading",
+        "spectrum-Heading--sizeL",
+        "carousel-heading"
+      );
+      flex_div.append(h);  
+    });
 
-    const button_div = createTag("div", { id: "button-div-" + h.id });
-    h.parentElement.append(button_div);
+    const button_div = createTag("div", { id: "button-div-" + `carouselTab-${index}`});
+    flex_div.append(button_div);
   });
 
   carousel_block_child.insertBefore(arrow_button_previous, carousel_section);
@@ -100,6 +107,7 @@ export default async function decorate(block) {
       let flex_div = createTag("div", {
         id: "media-flex-div-" + img.parentElement.parentElement.parentElement.id,
       });
+
       img.parentElement.parentElement.parentElement.prepend(flex_div);
       flex_div.append(img.parentElement.parentElement);
       flex_div.classList.add("media-container");
@@ -111,11 +119,6 @@ export default async function decorate(block) {
     //add image to left div
     vid.id = "media-flex-div-" + vid.parentElement.parentElement.id;
     vid.classList.add("media-container");
-    
-    //these next two lines were needed in the old repo but made the video element not work in the one-repo so i commented them out
-    //remove p tag from video element 
-    // const pTag = vid.parentElement;
-    // pTag.parentNode.replaceChild(vid, pTag); 
   });
 
   block.querySelectorAll("p").forEach(function (p) {
@@ -133,11 +136,33 @@ export default async function decorate(block) {
         let flex_div = block.querySelector(
           "[id=text-flex-div-" + p.parentElement.id + "]"
         );
-        flex_div.setAttribute("class", "text-container");
-        p.classList.add("spectrum-Body", "spectrum-Body--sizeM");
+        //changing class list of p tags for icons
+        if (p.querySelector("span")) {
+          // Add a class to the <p> tag
+          p.classList.add("icon-container");
+          const icon_link = p.querySelector("a");
+          if(icon_link){
+            icon_link.classList.add("spectrum-Link", "spectrum-Link--quiet");
+          }
+        }else{
+          flex_div.setAttribute("class", "text-container");
+          p.classList.add("spectrum-Body", "spectrum-Body--sizeM");
+        }
         flex_div.insertBefore(p, button_div);
       }
     }
+  });
+
+  block.querySelectorAll('div.text-container').forEach((text_container) => {
+    const prevElement = text_container.querySelector('p.icon-container')?.previousElementSibling;
+    const productLinkContainer = createTag('div', { class: 'product-link-container' });
+
+    // Maintains order within carousel text container
+    if (prevElement) { // at the beginning of the div
+      text_container.querySelectorAll('p.icon-container').forEach((innerLink) => {productLinkContainer.append(innerLink)}); 
+      prevElement.after(productLinkContainer);
+    };
+
   });
 
   //slide functionality with arrow buttons

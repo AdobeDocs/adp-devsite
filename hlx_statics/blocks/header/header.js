@@ -374,6 +374,25 @@ export default async function decorate(block) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
+        
+        // Process dropdowns for documentation template navigation
+        navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
+          let dropdownLinkDropdownHTML = '';
+          let dropdownLinksHTML = '';
+
+          dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
+            dropdownLinksHTML
+              += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+          });
+
+          dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
+            index,
+            dropDownList.parentElement.firstChild.textContent.trim(),
+            dropdownLinksHTML,
+          );
+          dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
+        });
+        
         header.append(navigationLinks);
       }
     }

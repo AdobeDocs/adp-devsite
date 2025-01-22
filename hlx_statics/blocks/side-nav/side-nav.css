@@ -1,15 +1,15 @@
-main div.side-nav {
+main div.side-nav-wrapper div.side-nav {
     width: 256px;
 }
 
-.spectrum-SideNav {
+main div.side-nav-wrapper .spectrum-SideNav {
     --spectrum-sidenav-item-padding-y: 5px;
     list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
-.spectrum-SideNav-item {
+main div.side-nav-wrapper .spectrum-SideNav-item {
     list-style-type: none;
     margin-bottom: 4px;
     margin-left: 0;
@@ -17,7 +17,7 @@ main div.side-nav {
     margin-top: 4px;
 }
 
-.spectrum-SideNav-itemLink {
+main div.side-nav-wrapper .spectrum-SideNav-itemLink {
     background-color: transparent;
     color: rgb(34, 34, 34);
     align-items: center;
@@ -39,24 +39,24 @@ main div.side-nav {
     word-break: break-word;
 }
 
-.spectrum-SideNav-item.is-selected>.spectrum-SideNav-itemLink {
+main div.side-nav-wrapper .spectrum-SideNav-item.is-selected>.spectrum-SideNav-itemLink {
     background-color: rgba(0, 0, 0, .06);
     color: rgb(0, 0, 0)
 }
 
-.spectrum-SideNav--multiLevel .spectrum-SideNav {
+main div.side-nav-wrapper .spectrum-SideNav--multiLevel .spectrum-SideNav {
     margin: 0;
     padding: 0;
 }
 
-.spectrum-SideNav {
+main div.side-nav-wrapper .spectrum-SideNav {
     padding-left: 0;
     list-style-type: none;
     font-size: 14px;
     color: #333;
 }
 
-.spectrum-SideNav-item>a {
+main div.side-nav-wrapper .spectrum-SideNav-item>a {
     padding: 8px 16px;
     text-decoration: none;
     color: #333;
@@ -65,43 +65,43 @@ main div.side-nav {
     align-items: center
 }
 
-.spectrum-SideNav-item>a:hover {
+main div.side-nav-wrapper .spectrum-SideNav-item>a:hover {
     background-color: #f0f0f0;
     color: #000;
 }
 
-.spectrum-SideNav-item ul {
+main div.side-nav-wrapper .spectrum-SideNav-item ul {
     padding-left: 0px;
     margin: 0;
     list-style: none;
 }
 
-.spectrum-SideNav-item.open>ul {
+main div.side-nav-wrapper .spectrum-SideNav-item.open>ul {
     display: block;
 }
 
-.spectrum-SideNav-item.active>a {
+main div.side-nav-wrapper .spectrum-SideNav-item.active>a {
     background-color: #e6e6e6;
     font-weight: bold;
     color: #000;
 }
 
-.spectrum-SideNav-item.open>a::before {
+main div.side-nav-wrapper .spectrum-SideNav-item.open>a::before {
     content: url('./CheronIcon.svg');
     margin-right: 8px;
 }
 
-.spectrum-SideNav-itemLink a>svg {
+main div.side-nav-wrapper .spectrum-SideNav-itemLink a>svg {
     width: 10px !important;
     height: 10px !important;
 }
 
-.active-link>a {
+main div.side-nav-wrapper .active-link>a {
     background-color: rgb(238, 238, 238);
     color: #000;
 }
 
-main div.side-nav {
+main div.side-nav-wrapper div.side-nav {
     position: fixed;
     z-index: 1;
     height: 100%;
@@ -109,15 +109,15 @@ main div.side-nav {
     background-color: rgb(250, 250, 250);
 }
 
-.side-nav-container {
+main div.side-nav-container  {
     padding: 0 !important;
 }
 
-.spectrum-SideNav>.has-children>ul {
+div.side-nav-wrapper .spectrum-SideNav>.has-children>ul {
     padding-left: 10px;
 }
 
-.side-nav>nav>div {
+div.side-nav-wrapper .side-nav>nav>div {
     box-sizing: border-box;
     padding: 32px;
     overflow: auto;
@@ -125,27 +125,27 @@ main div.side-nav {
 }
 
 
-.spectrum-SideNav--multiLevel .has-children>a {
+div.side-nav-wrapper .spectrum-SideNav--multiLevel .has-children>a {
     padding-left: 0;
 }
 
-.spectrum-SideNav > li.header > a {
+div.side-nav-wrapper .spectrum-SideNav > li.header > a {
     font-weight: 700 !important;
 }
 
 /* Main menu section styles */
-.side-nav-menu-section {
+div.side-nav-wrapper .side-nav-menu-section {
   margin-bottom: 32px;
   border-bottom: 1px solid #eaeaea;
   padding-bottom: 24px;
 }
 
-.side-nav-menu-section .main-menu {
+div.side-nav-wrapper .side-nav-menu-section .main-menu {
   margin: 0;
   padding: 0;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
+div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
   font-size: 14px;
   font-weight: 700;
   color: rgb(70, 70, 70);
@@ -160,12 +160,12 @@ main div.side-nav {
   align-items: center;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
+div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
+div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
   font-weight: 400;
   color: rgb(70, 70, 70);
   text-decoration: none;
@@ -173,21 +173,21 @@ main div.side-nav {
   padding: 8px 16px 8px 24px;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
+div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
+div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
   color: #000;
 }
 
 /* Console button styles matching header */
-.side-nav-menu-section .nav-console-button {
+div.side-nav-wrapper .side-nav-menu-section .nav-console-button {
   margin: 16px 16px 0;
 }
 
-.side-nav-menu-section .nav-console-button a.spectrum-Button {
+div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Button {
   width: auto;
   min-width: 120px;
   height: 32px;
@@ -205,7 +205,7 @@ main div.side-nav {
   transition: background-color 130ms ease-out, border-color 130ms ease-out, color 130ms ease-out;
 }
 
-.side-nav-menu-section .nav-console-button a.spectrum-Button:hover {
+div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Button:hover {
   background-color: rgb(244, 244, 244);
   border-color: rgb(44, 44, 44);
   color: rgb(44, 44, 44);
@@ -213,8 +213,8 @@ main div.side-nav {
 
 /* Desktop behavior */
 @media screen and (min-width: 769px) {
-  .side-nav-menu-section,
-  .side-nav-menu-section .side-nav-section-label {
+    div.side-nav-wrapper .side-nav-menu-section,
+    div.side-nav-wrapper .side-nav-menu-section .side-nav-section-label {
     display: none;
   }
 }
@@ -226,7 +226,7 @@ main div.side-nav {
     grid-template-columns: 0 auto !important;
   }
 
-  main div.side-nav {
+  main div.side-nav-wrapper div.side-nav {
     transform: translateX(-100%);
     transition: transform 0.3s ease-out;
     position: fixed;
@@ -239,30 +239,30 @@ main div.side-nav {
     overflow-y: auto;
   }
 
-  main div.side-nav.is-visible {
+  main div.side-nav-wrapper div.side-nav.is-visible {
     transform: translateX(0);
   }
 
-  .side-nav-menu-section,
-  .side-nav-section-label {
+  main div.side-nav-wrapper .side-nav-menu-section,
+  main div.side-nav-wrapper .side-nav-section-label {
     display: block;
   }
 
   /* Style console button in mobile */
-  .side-nav-menu-section .nav-console-button {
+  main div.side-nav-wrapper .side-nav-menu-section .nav-console-button {
     margin: 16px 16px 0;
   }
 
-  .side-nav-menu-section .nav-console-button a.spectrum-Button {
+  main div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Button {
     width: calc(100% - 32px);
     margin: 0 16px;
   }
 
-  .side-nav-section-label {
+  main div.side-nav-wrapper .side-nav-section-label {
     display: block;
   }
 
-  .side-nav-menu-section {
+  main div.side-nav-wrapper  .side-nav-menu-section {
     display: block;
   }
 }
