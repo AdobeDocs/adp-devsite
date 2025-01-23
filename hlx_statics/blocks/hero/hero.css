@@ -1,4 +1,4 @@
-main div.hero {
+main div.hero-wrapper div.hero {
   background: rgb(255, 255, 255);
   height: 500px;
   width: 100%;
@@ -7,13 +7,21 @@ main div.hero {
   justify-content: center;
 }
 
-main div.hero.full-width-background img {
+main div.hero-wrapper div.hero.full-width-background img {
   width: 100% !important;
   height: 350px !important;
   object-fit: cover !important;
 }
 
-main div.hero.font-white h1,main div.hero.font-white h2, main div.hero.font-white h3, main div.hero.font-white p {
+main div.hero-wrapper div.hero p.spectrum-Body--sizeL {
+  margin-top: 0 !important;
+  color: rgb(80, 80, 80) !important;
+}
+
+main div.hero-wrapper div.hero.font-white h1,
+main div.hero-wrapper div.hero.font-white h2,
+main div.hero-wrapper div.hero.font-white h3,
+main div.hero-wrapper div.hero.font-white p {
   color: white !important;
 }
 
@@ -21,7 +29,7 @@ main div.hero-container {
   padding: 0;
 }
 
-main div.hero > div:first-child {
+main div.hero-wrapper div.hero > div:first-child {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -31,11 +39,11 @@ main div.hero > div:first-child {
   margin-right: 32px;
 }
 
-main div.hero div:nth-child(2) {
+main div.hero-wrapper div.hero div:nth-child(2) {
   flex: 1;
 }
 
-main div.hero div:nth-child(2) > div {
+main div.hero-wrapper div.hero div:nth-child(2) > div {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,7 +51,7 @@ main div.hero div:nth-child(2) > div {
   margin-top: 0;
 }
 
-main div.hero div:nth-child(2) > div img {
+main div.hero-wrapper div.hero div:nth-child(2) > div img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
@@ -54,37 +62,32 @@ main div.hero div:nth-child(2) > div img {
 main div.hero-container:has(.full-width-background) div:nth-child(2) > div img {
   display:none;
 }
-main .hero .icon-container {
+main div.hero-wrapper div.hero .icon-container {
   height: 48px;
   width: 48px;
   margin-top: 0 !important;
   margin-bottom: 24px !important;
 }
 
-main .hero span.icon {
+main div.hero-wrapper div.hero span.icon {
   display: none;
 }
 
-main .hero .icon {
+main div.hero-wrapper div.hero .icon {
   height: 100%;
   object-fit: contain;
 }
 
-main .hero h3 {
+main div.hero-wrapper div.hero h3 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-main .hero p.spectrum-Body--sizeL {
-  margin-top: 0 !important;
-  color: rgb(80, 80, 80) !important;
-}
-
-main .hero h1 + p.last-of-type {
+main div.hero-wrapper div.hero h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
-main .hero .hero-button-container {
+main div.hero-wrapper div.hero .hero-button-container {
   display: flex;
   flex-wrap: wrap;
   margin-top: 24px;
@@ -92,41 +95,41 @@ main .hero .hero-button-container {
   margin-bottom: 10px;
 }
 
-main .hero h3 {
+main div.hero-wrapper div.hero h3 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-main .hero h1 + p.last-of-type {
+main div.hero-wrapper div.hero h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
 @media screen and (max-width: 768px) {
-  main div.hero {
+  main div.hero-wrapper div.hero {
     max-width: calc(100% - 64px) ;
     padding: 32px;
     overflow: hidden;
   }
 
-  main div.hero > div:first-child {
+  main div.hero-wrapper div.hero > div:first-child {
     margin-left: 64px;
     margin-right: 32px;
     width: 100%;
     margin: 0;
   }
 
-  main div.hero div:nth-child(2) {
+  main div.hero-wrapper div.hero div:nth-child(2) {
     display: none;
   }
-  main div.hero .spectrum-Heading--sizeXXL {
+  main div.hero-wrapper div.hero .spectrum-Heading--sizeXXL {
     font-size: 36px;
   }
 
-  main .hero picture {
+  main div.hero-wrapper div.hero picture {
     display: none;
   }
 
-  main div.hero div:nth-child(2) > div div {
+  main div.hero-wrapper div.hero div:nth-child(2) > div div {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -134,14 +137,14 @@ main .hero h1 + p.last-of-type {
     margin-top: 0;
   }
 
-  main div.hero div:nth-child(2) > div img {
+  main div.hero-wrapper div.hero div:nth-child(2) > div img {
     width: 100% !important;
     min-width: 320px !important;
   }
 }
 
 @media screen and (max-width: 425px) {
-  main div.hero div:nth-child(2) > div img {
+  main div.hero-wrapper div.hero div:nth-child(2) > div img {
     min-height: 0px;
   }
 }

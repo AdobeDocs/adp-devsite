@@ -1,8 +1,8 @@
-.spectrum-InLineAlert-content {
+main div.inlinealert-wrapper .spectrum-InLineAlert-content {
     padding-right: 30px !important;
 }
 
-.spectrum-InLineAlert {
+main div.inlinealert-wrapper .spectrum-InLineAlert {
     position: relative;
     display: inline-block;
     box-sizing: border-box;
@@ -17,29 +17,29 @@
     color: rgb(110, 110, 110);
 }
 
-[dir="ltr"] .spectrum-InLineAlert-icon {
+[dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
     right: 20px;
 }
 
-[dir="rtl"] .spectrum-InLineAlert-icon {
+[dir="rtl"] main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
     left: 20px;
 }
 
-.spectrum-InLineAlert-icon {
+main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
     position: absolute;
     display: block;
     top: 20px;
 }
 
-[dir="ltr"] .spectrum-InLineAlert-header {
+[dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-header {
     padding-right: 30px;
 }
 
-[dir="rtl"] .spectrum-InLineAlert-header {
+[dir="rtl"] main div.inlinealert-wrapper .spectrum-InLineAlert-header {
     padding-left: 30px;
 }
 
-.spectrum-InLineAlert-header {
+main div.inlinealert-wrapper .spectrum-InLineAlert-header {
     display: inline-block;
     height: auto;
     min-height: 0;
@@ -53,7 +53,7 @@
     color: rgb(44, 44, 44);
 }
 
-.spectrum-InLineAlert-content {
+main div.inlinealert-wrapper .spectrum-InLineAlert-content {
     font-size: 16px;
     line-height: 1.3rem;
     display: block;
@@ -63,24 +63,24 @@
     color: rgb(110, 110, 110);
 }
 
-[dir="ltr"] .spectrum-InLineAlert-footer {
+[dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-footer {
     text-align: right;
 }
 
-[dir="rtl"] .spectrum-InLineAlert-footer {
+[dir="rtl"] main div.inlinealert-wrapper .spectrum-InLineAlert-footer {
     text-align: left;
 }
 
-.spectrum-InLineAlert-footer {
+main div.inlinealert-wrapper .spectrum-InLineAlert-footer {
     display: block;
     padding-top: 0.5rem;
 }
 
-.spectrum-InLineAlert-footer:empty {
+main div.inlinealert-wrapper .spectrum-InLineAlert-footer:empty {
     display: none;
 }
 
-[dir="ltr"] .spectrum-InLineAlert-footer .spectrum-Button {
+[dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-footer .spectrum-Button {
     margin-left: 0.75rem;
 }
 

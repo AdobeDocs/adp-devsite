@@ -26,12 +26,12 @@ main
   align-items: center;
 }
 
-main div.image-text-container img {
+main div.image-text-container div.image-text-wrapper img {
   width: 600px;
   height: 400px;
 }
 
-main div.image-text-container .image-text-button-container {
+main div.image-text-container div.image-text-wrapper .image-text-button-container {
   display: flex;
   gap: 20px;
 }
@@ -46,7 +46,7 @@ main div.image-text-container p {
 }
 
 @media screen and (min-width: 320px) and (max-width: 767px) {
-  main div.image-text-container img {
+  main div.image-text-container div.image-text-wrapper img {
     width: 350px;
     height: auto;
   }

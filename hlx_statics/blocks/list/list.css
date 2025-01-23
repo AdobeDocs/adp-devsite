@@ -2,32 +2,33 @@ main div.list-container:has(.list.background-color-white) {
   background-color: white;
 }
 
-main div.list-container li {
+main div.list-container div.list-wrapper li {
   margin: 10px 0;
   position: relative;
 }
 
-main div.list-container div.list {
+main div.list-container div.list-wrapper div.list {
   width: auto;
-}
-
-main div.list {
   box-sizing: border-box;
   margin: auto;
 }
 
-main div.list > div {
+main div.list-container div.list-wrapper{
+  width: 100%;
+}
+
+main div.list-container div.list-wrapper div.list > div {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 80px 0;
 }
 
-main div.list-container div.list > div {
+main div.list-container div.list-wrapper div.list > div {
   align-items: start;
 }
 
-main div.list-container div.list > div > div {
+main div.list-container div.list-wrapper div.list > div > div {
   flex-basis:100%;
   text-align: start;
   padding: 0 32px;
@@ -38,56 +39,57 @@ main div.list-container > div.list-wrapper >div {
   max-width: 1280px;
 }
 
-main div.list-container .checkmark {
+main div.list-container div.list-wrapper .checkmark {
   list-style-type: none;
 }
 
-main div.list-container .checkmark ol {
+main div.list-container div.list-wrapper .checkmark ol {
   list-style: none;
 }
 
-main div.list-container .checkmark li {
+main div.list-container div.list-wrapper .checkmark li {
   position: relative;
   margin-bottom: 8px;
 }
 
-main div.list-container .checkmark li:before {
+main div.list-container div.list-wrapper .checkmark li::marker {
   color: #096;
   content: "\2714\0020";
 }
 
-main main div.list-container .list .anchor-link{
+
+main div.list-container div.list-wrapper .list .anchor-link{
   /* padding-left: 10px; */
   visibility: hidden;
 }
 
-main main div.list-container .list:hover .anchor-link{
+main div.list-container div.list-wrapper .list:hover .anchor-link{
   /* padding-left: 10px; */
   visibility: visible;
 }
 
-main main div.list-container div.list h3 {
+main div.list-container div.list-wrapper div.list h3 {
   margin-top: 0!important;
   margin-bottom: 16px!important;
   scroll-margin-top:100px;
   text-align: center;
 }
 
-main main div.list-container div.list h3 + p {
+main div.list-container div.list-wrapper div.list h3 + p {
   text-align: center;
   margin-top: 0!important;
 }
 
-main div.list a{
+main div.list-container div.list-wrapper div.list a{
   text-decoration: none;
   color: rgb(0,84,182);
 }
 
-main div.list a:hover{
+main div.list-container div.list-wrapper div.list a:hover{
   text-decoration: underline;
 }
 
-main div.list .listDiv{
+main div.list-container div.list-wrapper div.list .listDiv{
   display: flex;
   column-gap: 10px;
   padding: 10px 32px !important;
@@ -95,7 +97,7 @@ main div.list .listDiv{
   align-items: baseline;
 }
 
-main div.list .divBorder{
+main div.list-container div.list-wrapper div.list .divBorder{
   border-right: 1px solid rgb(195 189 189);
 }
 
@@ -116,7 +118,7 @@ main div.list .divBorder{
 }
 
 @media screen and (min-width : 320px) and (max-width : 1024px) {
-  main div.list-container {
+  main div.list-container div.list-wrapper{
     padding: 40px 20px !important;
   }
 }

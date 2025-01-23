@@ -12,6 +12,10 @@ import {
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
 
+function isSourceGithub() {
+  return getMetadata('source') === 'github';
+}
+
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
   div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
@@ -350,9 +354,9 @@ export default async function decorate(block) {
   iconContainer.appendChild(siteLink);
   header.append(iconContainer);
 
-  // Handle navigation based on template
-  if (getMetadata('template') === 'documentation') {
-    // Create navigation for documentation template (desktop only)
+  // Handle navigation based on source
+  if (isSourceGithub()) {
+    // Create navigation for docs from github (desktop only)
     if (window.innerWidth > 768) {
       let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
 
@@ -374,6 +378,25 @@ export default async function decorate(block) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
+        
+        // Process dropdowns for documentation template navigation
+        navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
+          let dropdownLinkDropdownHTML = '';
+          let dropdownLinksHTML = '';
+
+          dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
+            dropdownLinksHTML
+              += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+          });
+
+          dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
+            index,
+            dropDownList.parentElement.firstChild.textContent.trim(),
+            dropdownLinksHTML,
+          );
+          dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
+        });
+        
         header.append(navigationLinks);
       }
     }

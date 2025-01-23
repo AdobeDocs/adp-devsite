@@ -1,20 +1,25 @@
-import { decorateActionButton } from '../../components/actionButton.js';
 import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
+import { getMetadata } from '../../scripts/scripts.js';
 
 /**
  * @param {Element} block
  */
- function rearrangeLinks(block) {
-  const leftDiv = block.firstElementChild.firstElementChild;
+function rearrangeLinks(block) {
+  let variant = block.getAttribute('data-variant');
+
+  let leftDiv = block.firstElementChild.firstElementChild;
+  if (getMetadata('template') === 'documentation') {
+    leftDiv = block.lastElementChild.lastElementChild;
+  }
   const announcementButtonContainer = document.createElement('div');
   announcementButtonContainer.classList.add('announcement-button-container');
 
   leftDiv.querySelectorAll('ul').forEach((ul) => {
     ul.querySelectorAll('li a').forEach((a, index) => {
       const pTag = document.createElement('p');
-      if (index === 0) {
+      if (index === 0 && variant !== 'secondary') {
         const strong = document.createElement('strong');
-        strong.append(a.cloneNode(true)); 
+        strong.append(a.cloneNode(true));
         pTag.append(strong);
       } else {
         pTag.append(a);
@@ -56,7 +61,6 @@ function setBackgroundImage(block) {
  * @param {Element} block
  */
 export default async function decorate(block) {
-  const parent = block?.parentElement?.parentElement;
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
@@ -68,7 +72,7 @@ export default async function decorate(block) {
     p.style.wordBreak = "break-all";
     p.style.whiteSpace = "normal";
   });
-  if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')){
+  if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')) {
     block.classList.add('background-color-gray');
   }
   decorateButtons(block);

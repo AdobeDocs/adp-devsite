@@ -2,7 +2,7 @@ main div.mini-resource-card-container:has(.mini-resource-card.background-color-w
   background-color: white;
 }
 
-main div.mini-resource-card .card-container {
+main div.mini-resource-card-wrapper div.mini-resource-card .card-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   column-gap: 10px;
@@ -12,11 +12,11 @@ main div.mini-resource-card .card-container {
   width: 1280px !important;
 }
 
-main div.mini-resource-card .button-container {
+main div.mini-resource-card-wrapper div.mini-resource-card .button-container {
   text-align: center;
 }
 
-main div.mini-resource-card .mini-card {
+main div.mini-resource-card-wrapper div.mini-resource-card .mini-card {
   display: flex;
   flex-direction: row;
   text-decoration: none !important;
@@ -34,19 +34,19 @@ main div.mini-resource-card .mini-card {
   box-shadow: 0 9px 15px 5px #e6e6e6;
 }
 
-main div.mini-resource-card .mini-resource-card-image-container {
+main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-image-container {
   margin: 0 !important;
   height: 100px !important;
   width: 100px !important;
 }
 
-main div.mini-resource-card .image-mini {
+main div.mini-resource-card-wrapper div.mini-resource-card .image-mini {
   height: 100px !important;
   width: auto !important;
   object-fit: cover;
 }
 
-main div.mini-resource-card .mini-resource-card-body {
+main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-body {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -57,12 +57,12 @@ main div.mini-resource-card .mini-resource-card-body {
   padding: 0 0 0 4% !important;
 }
 
-main div.mini-resource-card-container .section-title {
+main div.mini-resource-card-container div.mini-resource-card-wrapper .section-title {
   margin: 48px 0 40px 0;
 }
 
 @media screen and (max-width: 1280px) {
-  main div.mini-resource-card .card-container {
+  main div.mini-resource-card-wrapper div.mini-resource-card .card-container {
     /* grid-template-columns: repeat(2, 1fr); */
     width: 90% !important;
     column-gap: 10px;
@@ -70,45 +70,45 @@ main div.mini-resource-card-container .section-title {
     margin: auto !important;
   }
 
-  main div.mini-resource-card .mini-card {
+  main div.mini-resource-card-wrapper div.mini-resource-card .mini-card {
     width: 100%;
     height: 100px !important;
   }
 
-  main div.mini-resource-card .mini-resource-card-body {
+  main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-body {
     height: 100px !important;
     width: auto !important;
   }
 }
 
 @media screen and (max-width: 1280px) {
-  main div.mini-resource-card .card-container {
+  main div.mini-resource-card-wrapper div.mini-resource-card .card-container {
     grid-template-columns: repeat(1, 1fr);
     margin: auto auto 50px auto !important;
     width: 70% !important;
     grid-row-gap: 30px;
   }
 
-  main div.mini-resource-card .mini-card {
+  main div.mini-resource-card-wrapper div.mini-resource-card .mini-card {
     height: 100px !important;
   }
 
-  main div.mini-resource-card .mini-resource-card-body {
+  main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-body {
     height: 100px !important;
     width: auto !important;
   }
 }
 @media screen and (max-width: 425px) {
-  main div.mini-resource-card .card-container {
+  main div.mini-resource-card-wrapper div.mini-resource-card .card-container {
     width: 80% !important;
   }
-  main div.mini-resource-card .mini-card {
+  main div.mini-resource-card-wrapper div.mini-resource-card .mini-card {
     height: 100% !important;
   }
-  main div.mini-resource-card .mini-resource-card-body {
+  main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-body {
     height: 100% !important;
   }
-  main .mini-resource-card-container {
+  main div.mini-resource-card-container {
     padding: 40px 0px 5px 0px;
   }
 }

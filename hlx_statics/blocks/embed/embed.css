@@ -16,20 +16,20 @@ main div.embed-container > div{
 
 @media screen and (min-width: 700px) {
 main div.embed-container .igReel {
-  left: 0; 
-  padding:0; 
+  left: 0;
+  padding:0;
   width: 356px !important;
   aspect-ratio: 9 / 13;
-  position: relative; 
+  position: relative;
 }
 }
 
 main div.embed-container .igReel {
-  left: 0; 
-  padding:0; 
+  left: 0;
+  padding:0;
   width: 432px;
   aspect-ratio: 9 / 13;
-  position: relative; 
+  position: relative;
 }
 
 main div.embed-container p {
@@ -37,14 +37,14 @@ main div.embed-container p {
   margin-bottom: 0!important;
 }
 
-main div.embed {
+main div.embed-wrapper div.embed {
   /* margin-top: 32px; */
   max-width: 1280px;
   display: flex;
   justify-content: center;
 }
 
-main div.embed iframe {
+main div.embed-wrapper div.embed iframe {
   position: absolute;
   top: 0;
   left: 0;
@@ -60,13 +60,13 @@ main div.embed-container .embed-custom-width{
 }
 
 
-.embed .embed-placeholder {
+main div.embed-wrapper div.embed .embed-placeholder {
 width: 100%;
 aspect-ratio: 16 / 9;
 position: relative;
 }
 
-.embed .embed-placeholder > * {
+main div.embed-wrapper div.embed .embed-placeholder > * {
 display: flex;
 align-items: center;
 justify-content: center;
@@ -74,14 +74,14 @@ position: absolute;
 inset: 0;
 }
 
-.embed .embed-placeholder picture img {
+main div.embed-wrapper div.embed .embed-placeholder picture img {
 width: 100%;
 height: 100%;
 /* object-fit: cover; */
 max-width: 1280px;
 }
 
-.embed .embed-placeholder-play button {
+main div.embed-wrapper div.embed .embed-placeholder-play button {
 box-sizing: border-box;
 position: relative;
 display: block;
@@ -93,7 +93,7 @@ border-radius: 20px;
 padding: 0;
 }
 
-.embed .embed-placeholder-play button::before {
+main div.embed-wrapper div.embed .embed-placeholder-play button::before {
 content: "";
 display: block;
 box-sizing: border-box;

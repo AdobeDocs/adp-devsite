@@ -5,46 +5,46 @@ main div.table-container:has(.table.background-color-white) {
 
 main div.table-wrapper {
   padding: 80px 32px;
-} 
+}
 
 main div.table-container {
   background: rgb(245, 245, 245);
   overflow-x: auto;
 }
 
-main div.table {
+main div.table-wrapper div.table {
   max-width: 1280px;
   padding: 80px 0px;
   box-sizing: border-box;
   margin: auto;
 }
 
-body.documentation main div.table , body.documentation main div.table-wrapper {
+body.documentation main div.table-wrapper div.table , body.documentation main div.table-wrapper {
   padding: 0 !important;
 }
 
-.table table {
+main div.table-wrapper .table table {
   width: 100%;
   max-width: 100%;
   border-collapse: collapse;
 }
 
-.table table tbody tr {
+main div.table-wrapper .table table tbody tr {
   border-bottom: 1px solid;
 }
 
-.table table th {
+main div.table-wrapper .table table th {
   font-weight: 700;
 }
 
-.table table th,
-.table table td {
+main div.table-wrapper .table table th,
+main div.table-wrapper .table table td {
   padding: 8px 16px;
   text-align: left;
 }
 
 /* no header variant */
-.table.no-header table tbody tr {
+main div.table-wrapper .table.no-header table tbody tr {
   border-top: 1px solid;
 }
 
@@ -54,25 +54,25 @@ body.documentation main div.table , body.documentation main div.table-wrapper {
 } */
 
 /* bordered variant */
-.table.bordered table th,
-.table.bordered table td {
+main div.table-wrapper .table.bordered table th,
+main div.table-wrapper .table.bordered table td {
   border: 1px solid;
 }
 
-.spectrum-Table {
+main div.table-wrapper .spectrum-Table {
   border-spacing: 0
 }
 
-[dir=ltr] .spectrum-Table-headCell {
+[dir=ltr] main div.table-wrapper .spectrum-Table-headCell {
   text-align: left
 }
 
-[dir=ltr] .spectrum-Table-headCell {
+[dir=ltr] main div.table-wrapper .spectrum-Table-headCell {
   padding-left: 16px;
   padding-right: 16px;
 }
 
-.spectrum-Table-headCell {
+main div.table-wrapper .spectrum-Table-headCell {
   border-radius: 0px;
   box-sizing: border-box;
   cursor: default;
@@ -88,39 +88,39 @@ body.documentation main div.table , body.documentation main div.table-wrapper {
   transition: color .13s ease-in-out
 }
 
-.spectrum-Table-body {
+main div.table-wrapper .spectrum-Table-body {
   overflow: auto;
   position: relative;
   vertical-align: top;
 }
 
-.spectrum-Table-body {
+main div.table-wrapper .spectrum-Table-body {
   border-radius: 4px;
   border-width: 1px;
 }
 
-[dir=ltr] .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:first-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:first-child {
   border-top-left-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:last-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:last-child {
   border-top-right-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:first-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:first-child {
   border-bottom-left-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:last-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:last-child {
   border-bottom-right-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table-cell {
+[dir=ltr] main div.table-wrapper .spectrum-Table-cell {
   padding-left: 16px;
   padding-right: 16px;
 }
 
-.spectrum-Table-cell {
+main div.table-wrapper .spectrum-Table-cell {
   box-sizing: border-box;
   font-size: 14px;
   font-weight: 400;
@@ -130,35 +130,35 @@ body.documentation main div.table , body.documentation main div.table-wrapper {
   padding-top: 11px;
 }
 
-.spectrum-Table-cell,
-.spectrum-Table-headCell {
+main div.table-wrapper .spectrum-Table-cell,
+main div.table-wrapper .spectrum-Table-headCell {
   position: relative
 }
 
-.spectrum-Table-row {
+main div.table-wrapper .spectrum-Table-row {
   cursor: pointer;
   position: relative;
   transition: background-color .13s ease-in-out
 }
 
-.spectrum-Table-row:focus {
+main div.table-wrapper .spectrum-Table-row:focus {
   outline: 0
 }
 
-.spectrum-Table>.spectrum-Table-body>.spectrum-Table-row:last-of-type {
+main div.table-wrapper .spectrum-Table>.spectrum-Table-body>.spectrum-Table-row:last-of-type {
   border-bottom-style: none
 }
 
-[dir=ltr] .spectrum-Table--spacious .spectrum-Table-headCell {
+[dir=ltr] main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-headCell {
   text-align: left
 }
 
-[dir=ltr] .spectrum-Table--spacious .spectrum-Table-headCell {
+[dir=ltr] main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-headCell {
   padding-left: 16px;
   padding-right: 16px;
 }
 
-.spectrum-Table--spacious .spectrum-Table-headCell {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-headCell {
   border-radius: 0px;
   box-sizing: border-box;
   cursor: default;
@@ -174,39 +174,39 @@ body.documentation main div.table , body.documentation main div.table-wrapper {
   transition: color .13s ease-in-out
 }
 
-.spectrum-Table--spacious .spectrum-Table-body {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-body {
   overflow: auto;
   position: relative;
   vertical-align: top;
 }
 
-.spectrum-Table--spacious .spectrum-Table-body {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-body {
   border-radius: 4px;
   border-width: 1px;
 }
 
-[dir=ltr] .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:first-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:first-child {
   border-top-left-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:last-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:first-child .spectrum-Table-cell:last-child {
   border-top-right-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:first-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:first-child {
   border-bottom-left-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:last-child {
+[dir=ltr] main div.table-wrapper .spectrum-Table--spacious .spectrum-Table tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell:last-child {
   border-bottom-right-radius: 4px;
 }
 
-[dir=ltr] .spectrum-Table--spacious .spectrum-Table-cell {
+[dir=ltr] main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-cell {
   padding-left: 16px;
   padding-right: 16px;
 }
 
-.spectrum-Table--spacious .spectrum-Table-cell {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-cell {
   box-sizing: border-box;
   font-size: 14px;
   font-weight: 400;
@@ -216,74 +216,74 @@ body.documentation main div.table , body.documentation main div.table-wrapper {
   padding-top: 15px;
 }
 
-.spectrum-Table--spacious .spectrum-Table-cell,
-.spectrum-Table--spacious .spectrum-Table-headCell {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-cell,
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-headCell {
   position: relative
 }
 
-.spectrum-Table--spacious .spectrum-Table-row {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-row {
   cursor: pointer;
   position: relative;
   transition: background-color .13s ease-in-out
 }
 
-.spectrum-Table--spacious .spectrum-Table-row:focus {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table-row:focus {
   outline: 0
 }
 
-.spectrum-Table--spacious .spectrum-Table>.spectrum-Table-body>.spectrum-Table-row:last-of-type {
+main div.table-wrapper .spectrum-Table--spacious .spectrum-Table>.spectrum-Table-body>.spectrum-Table-row:last-of-type {
   border-bottom-style: none
 }
 
-.spectrum-Table-headCell {
+main div.table-wrapper .spectrum-Table-headCell {
   background-color: transparent;
   color: rgb(110, 110, 110);
 }
 
-.spectrum-Table-body {
+main div.table-wrapper .spectrum-Table-body {
   background-color: rgb( 255, 255, 255);
   border-color: rgb(213, 213, 213);
   border-style: solid
 }
 
-tbody.spectrum-Table-body {
+main div.table-wrapper tbody.spectrum-Table-body {
   border: none
 }
 
-tbody.spectrum-Table-body .spectrum-Table-row {
+main div.table-wrapper tbody.spectrum-Table-body .spectrum-Table-row {
   border-top: none
 }
 
-tbody.spectrum-Table-body .spectrum-Table-cell {
+main div.table-wrapper tbody.spectrum-Table-body .spectrum-Table-cell {
   border-top: 1px solid rgb(213, 213, 213);
 }
 
-[dir=ltr] tbody.spectrum-Table-body .spectrum-Table-row .spectrum-Table-cell:first-child {
+[dir=ltr] main div.table-wrapper tbody.spectrum-Table-body .spectrum-Table-row .spectrum-Table-cell:first-child {
   border-left: 1px solid rgb(213, 213, 213);
 }
 
-[dir=ltr] tbody.spectrum-Table-body .spectrum-Table-row .spectrum-Table-cell:last-child {
+[dir=ltr] main div.table-wrapper tbody.spectrum-Table-body .spectrum-Table-row .spectrum-Table-cell:last-child {
   border-right: 1px solid rgb(213, 213, 213);
 }
 
-.spectrum-Table-row,
-tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell {
+main div.table-wrapper .spectrum-Table-row,
+main div.table-wrapper tbody.spectrum-Table-body .spectrum-Table-row:last-child .spectrum-Table-cell {
   border-bottom: 1px solid rgb(213, 213, 213);
 }
 
-.spectrum-Table-row {
+main div.table-wrapper .spectrum-Table-row {
   background-color: transparent;
 }
 
-.spectrum-Table-row:hover {
+main div.table-wrapper .spectrum-Table-row:hover {
   background-color: rgba(0,0,0,0.06);
 }
 
-.spectrum-Table-row:active {
+main div.table-wrapper .spectrum-Table-row:active {
   background-color: rgba(0,0,0,0.1);
 }
 
-.spectrum-Table-cell {
+main div.table-wrapper .spectrum-Table-cell {
   background-color: transparent;
   color: rgb(75, 75, 75);
 }

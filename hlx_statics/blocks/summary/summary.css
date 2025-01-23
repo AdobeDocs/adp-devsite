@@ -5,13 +5,13 @@ main div.summary-container {
   padding: 0;
 }
 
-main div.summary {
+main div.summary-wrapper div.summary {
   position: relative;
   width: 100%;
   height: 350px;
 }
 
-main div.summary > div {
+main div.summary-wrapper div.summary > div {
   box-sizing: border-box;
   padding: 64px 64px 64px calc((100vw - 1280px)/2);
   width: calc(7 * 100% / 12);
@@ -23,33 +23,39 @@ main div.summary > div {
   text-align: left;
 }
 
-main div.summary.no-image > div {
+main div.summary-wrapper  div.summary.no-image > div {
   width: 100%;
 }
 
 @media screen and (max-width: 1280px) {
-  main div.summary picture {
+  main div.summary-wrapper  div.summary picture {
     height: 350px;
     width: 100%;
   }
-  main div.summary img {
+  main div.summary-wrapper  div.summary img {
     height: 100%;
     width: 100%;
   }
-  main div.summary > div {
+  main div.summary-wrapper  div.summary > div {
     padding: 32px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  main div.summary > div {
+  main div.summary-wrapper div.summary {
+    height: 500px;
+  }
+  main div.summary-wrapper div.summary picture{
+    height: 500px;
+  }
+  main div.summary-wrapper div.summary > div {
     width: 100%;
     padding: 32px;
   }
 }
 
 @media screen and (max-width: 415px) {
-  main div.summary > div {
+  main div.summary-wrapper div.summary > div {
     box-sizing: border-box;
     padding: 32px;
     width: 100%;
@@ -62,60 +68,60 @@ main div.summary.no-image > div {
   }
 }
 
-main div.summary .spectrum-Heading {
+main div.summary-wrapper div.summary .spectrum-Heading {
   margin-top: 0 !important;
   margin-bottom: 16px !important;
   color: white;
 }
 
-main div.summary p {
+main div.summary-wrapper div.summary p {
   margin-bottom: 24px !important;
   color: rgb(255, 255, 255);
   margin-top: 0;
 }
 
-main div.summary p a:hover {
+main div.summary-wrapper  div.summary p a:hover {
   color: rgb(84, 84, 84);
 }
 
-main div.summary img {
+main div.summary-wrapper div.summary img {
   object-fit: cover;
   height: 350px;
 }
 
-main div.summary .spectrum-Button--secondary {
+main div.summary-wrapper div.summary .spectrum-Button--secondary {
   border-color: white !important;
 }
 
-main div.summary.background-color-navy {
+main div.summary-wrapper div.summary.background-color-navy {
   background-color: rgb(15, 55, 95);
 }
 
-main div.summary.background-color-gray {
+main div.summary-wrapper div.summary.background-color-gray {
   background-color: rgb(245, 245, 245);
 }
 
-main div.summary.background-color-dark-gray {
+main div.summary-wrapper div.summary.background-color-dark-gray {
   background-color: #323232;
 }
 
-main div.summary.background-color-white .spectrum-Heading, main div.summary.background-color-gray .spectrum-Heading {
+main div.summary-wrapper div.summary.background-color-white .spectrum-Heading, main div.summary-wrapper div.summary.background-color-gray .spectrum-Heading {
   color: rgb(44, 44, 44);
 }
 
-main div.summary.background-color-white p, main div.summary.background-color-gray p  {
-  color: rgb(44, 44, 44);
+main div.summary-wrapper div.summary.background-color-white p, main div.summary-wrapper div.summary.background-color-gray p  {
+  color: rgb(44, 44, 44) !important;
 }
 
-main div.summary.background-color-white .spectrum-Button--secondary, main div.summary.background-color-gray .spectrum-Button--secondary{
+main div.summary-wrapper div.summary.background-color-white .spectrum-Button--secondary, main div.summary-wrapper div.summary.background-color-gray .spectrum-Button--secondary{
   border-color: rgb(44, 44, 44) !important;
 }
 
-main div.summary.background-color-white p a:hover, main div.summary.background-color-gray p a:hover {
+main div.summary-wrapper div.summary.background-color-white p a:hover, main div.summary-wrapper div.summary.background-color-gray p a:hover {
   color: rgb(44, 44, 44);
 }
 
-main div.summary.background-color-white {
+main div.summary-wrapper div.summary.background-color-white {
   background-color: rgb(255, 255, 255);
 }
 
