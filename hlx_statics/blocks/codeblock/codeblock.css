@@ -63,6 +63,11 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover {
   color: rgb(255, 255, 255);
 }
 
+main div.codeblock-wrapper div.codeblock .control-bar select:focus-visible
+{
+  outline: none;
+}
+
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
   margin: 0;
 }
