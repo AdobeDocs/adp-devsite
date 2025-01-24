@@ -95,6 +95,10 @@ main div.columns-wrapper div.columns h3.column-header {
     scroll-margin-top:100px;
 }
 
+main div.columns-wrapper div.columns h3.column-header a {
+    font-size: 22px;
+}
+
 main div.columns-wrapper div.columns h3.column-header + p {
     margin-top: 0!important;
 }
