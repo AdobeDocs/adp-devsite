@@ -2,7 +2,7 @@ main div.discoverblock-container-wrapper div.discover-container:has(.discover.ba
     background-color: white !important;
 }
 
-main div.discoverblock-container-wrapper div.discover-child-container a {
+main div.discoverblock-wrapper div.discover-child-container a {
     font-size: 16px;
     text-decoration: none;
     color: #0054b6;
@@ -51,13 +51,14 @@ main div.discoverblock-container-wrapper div.discover-img-child-container {
     }
 }
 main div.discoverblock-container-wrapper{
+    max-width: 800px;
     display: flex;
     flex-wrap: wrap;
     column-gap: 50px;
     margin: 20px 0;
     row-gap: 40px;
 }
-main div.discoverblock-container-wrapper div.discoverblock-column{
+main div.discoverblock-wrapper div.discoverblock-column .discover-child-container{
     width: 650px;
     display: flex;
     flex-direction: column;
@@ -66,4 +67,9 @@ main div.discoverblock-container-wrapper div.discoverblock-column{
 }
 main div.discoverblock-container-wrapper div.discover-nonheading-child-container.discover-child-container {
     font-size: 16px;
+}
+main div.discoverblock-wrapper div.discoverblock-container-wrapper .discover-child-container{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }

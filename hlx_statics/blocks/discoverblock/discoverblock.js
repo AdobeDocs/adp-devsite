@@ -33,8 +33,6 @@ export default async function decorate(block) {
     existingWrapper.appendChild(block);
     const firstHeading = existingWrapper.querySelector('h2, h3');
     if (firstHeading) {
-      const parent = firstHeading.parentElement;
-      parent.style.marginBottom = '20px';
       Array.from(existingWrapper.children).forEach((child,index) => {
         if(index > 0) {
           child.style.marginTop = '35px';
@@ -45,11 +43,6 @@ export default async function decorate(block) {
     children.forEach(child => {
       child.style.maxWidth = '290px';
     });
-    if (children.length === 4) {
-      children.forEach(child => {
-        child.style.setProperty('max-width', '310px', 'important');
-      });
-    }
     const discoverBlocks = document.querySelectorAll('.discoverblock-wrapper');
     discoverBlocks.forEach(div => {
       if (div.childElementCount === 0) {
