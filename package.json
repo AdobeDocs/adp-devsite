@@ -52,6 +52,8 @@
         "@spectrum-css/underlay": "2.0.31",
         "@spectrum-css/vars": "8.0.0",
         "@spectrum-css/well": "3.0.22",
+        "algoliasearch": "^5.20.0",
+        "instantsearch.js": "^4.77.1",
         "minimist": "^1.2.6"
     },
     "buildNavigation": "webpack --config webpack.config.js && node eds/scripts/buildNavigation.js",

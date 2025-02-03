@@ -389,6 +389,9 @@ async function loadLazy(doc) {
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
   if (hash && element) element.scrollIntoView();
 
+  addExtraScript(document.body, 'https://cdn.jsdelivr.net/npm/algoliasearch@5.20.0/dist/lite/builds/browser.umd.js');
+  addExtraScript(document.body, 'https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js');
+
   loadHeader(doc.querySelector('header'));
   decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
