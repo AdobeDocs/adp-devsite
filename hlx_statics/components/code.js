@@ -1,5 +1,3 @@
-import { toClassName } from '../scripts/lib-helix.js';
-
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre');
   // see https://prismjs.com/plugins/line-numbers/#how-to-use
