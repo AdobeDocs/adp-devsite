@@ -23,7 +23,7 @@ const handleCode = (contentDiv) => {
   const isTable = contentDiv.querySelector('table');
 
   if (codeBlock && !isTable) {
-    const language = contentDiv.querySelector('p')?.textContent || '';
+    const language = contentDiv.querySelector('p')?.textContent || 'none';
     const preContainer = createCodeBlock(codeBlock, language);
     contentDiv.innerHTML = preContainer.innerHTML;
   }
