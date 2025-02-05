@@ -472,23 +472,28 @@ async function loadLazy(doc) {
         "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
         () => {
           const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-          const { instantsearch } = window;
+          const searchClient = algoliasearch(
+            "E642SEDTHL",
+            "424b546ba7ae75391585a10c6ea38dab"
+          );
+
+          // Render the InstantSearch.js wrapper
+          // Replace INDEX_NAME with the name of your index.
+          const search = instantsearch({
+            indexName: "INDEX_NAME",
+            searchClient,
+          });
 
           if (!algoliasearch || !instantsearch) {
             console.error("Required search libraries not loaded");
             return;
           }
 
-          const searchClient = algoliasearch("undefined", "undefined");
-          const search = instantsearch({
-            indexName: "INDEX_NAME",
-            searchClient,
-          });
-
           search.addWidgets([
             instantsearch.widgets.searchBox({
               container: "#searchbox",
             }),
+
             instantsearch.widgets.hits({
               container: "#hits",
             }),
