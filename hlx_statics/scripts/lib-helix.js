@@ -174,20 +174,30 @@ function normalizePaths(anchorElem, pathPrefix) {
     anchorElem.target = '_blank';
     anchorElem.href = href;
   } else {
-    if (!href.startsWith(pathPrefix)) {
-      if (href.endsWith('index.md')) {
-        anchorElem.href = `/${pathPrefix}/${href.replaceAll('index.md', '')}`;
-      } else if (href.endsWith('.md')) {
-        anchorElem.href = `/${pathPrefix}/${href.replaceAll('.md', '')}`;
-      } else if (href === '/src/pages') {
-        anchorElem.href = `/${pathPrefix}/`;
-      } else {
-        anchorElem.href = `/${pathPrefix}/${href}`;
-      }
-    }
+    const path = new URL(href, 'https://example.com');
+    const normalizedPath = cleanMarkdownExtension(path.pathname);
+    anchorElem.pathname = decodeURIComponent(normalizedPath);
+    anchorElem.href = `/${pathPrefix}${normalizedPath}`;
   }
 
   return anchorElem;
+}
+
+function cleanMarkdownExtension (pathName) {
+  return pathName
+    .replace('/src/pages/', '/')
+    .replace('/index.md/', '')
+    .replace('/index.md', '')
+    .replace('index.md', '')
+    .replace('.md/', '')
+    .replace('.md', '');
+};
+
+function trailingSlashFix (pathName)  {
+  if (!pathName.endsWith('/')){
+    return `${pathName}/`;
+  }
+  return pathName;
 }
 
 /**
