@@ -8,7 +8,7 @@ main div.info-card-wrapper div.info-card > ul {
   max-width: 1280px;
   justify-content: center;
   grid-template-columns: repeat(auto-fit, minmax(375px, 400px));
-  grid-gap: 24px;
+  grid-gap: 40px;
   padding: 0;
 }
 
