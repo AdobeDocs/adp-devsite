@@ -397,6 +397,10 @@ export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
   let currentPath = window.location.pathname;
 
+  // use selected sidenav path to set which one is the activeTab.
+  const selectedSidenav = document.querySelector('.side-nav')?.querySelector('.is-selected');
+  currentPath = selectedSidenav ? selectedSidenav.closest(".header").querySelector("a").pathname : currentPath;
+
   nav.querySelectorAll('li > a').forEach((tabItem) => {
     const hrefPath = new URL(tabItem.href);
 
