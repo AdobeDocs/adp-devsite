@@ -968,9 +968,10 @@ main li h3{
 }
 
 main .code-wrapper, main .nested-code-wrapper{
-  max-width: 60vw;
+  max-width: 58vw;
   margin: 10px 0px;
 }
+
 main:not(:has(.onthispage-wrapper)) .code-wrapper {
   max-width: none;
   width: 100%;
