@@ -401,19 +401,47 @@ export function setActiveTab(isMainPage) {
   const selectedSidenav = document.querySelector('.side-nav')?.querySelector('.is-selected');
   currentPath = selectedSidenav ? selectedSidenav.closest(".header").querySelector("a").pathname : currentPath;
 
-  nav.querySelectorAll('li > a').forEach((tabItem) => {
-    const hrefPath = new URL(tabItem.href);
+  let bestMatch = null;
+  let bestMatchLength = 0;
 
-    if (hrefPath && hrefPath.pathname) {
+  const links = Array.from(nav.querySelectorAll('li > a'));
+  for (const tabItem of links) {
+    const hrefPath = new URL(tabItem.href);
+    const fullPath = tabItem.getAttribute('fullPath');
+
+    if (hrefPath && hrefPath.pathname && !fullPath) {
       // remove trailing slashes before we compare
       const hrefPathname = hrefPath.pathname.replace(/\/$/, '');
       currentPath = currentPath.replace(/\/$/, '');
+      // 1. Exact match
       if (currentPath === hrefPathname) {
-        const parentWidth = tabItem.parentElement.offsetWidth;
-        tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
+        bestMatch = tabItem;
+        break;
+      }
+
+      // 2. Check if it's a valid parent (subpath) and prioritize the deepest match
+      if (isSubpath(hrefPathname, currentPath) && hrefPathname.length > bestMatchLength) {
+        bestMatch = tabItem;
+        bestMatchLength = hrefPathname.length;
       }
     }
-  });
+  };
+
+  if (bestMatch) {
+    activateTab(bestMatch);
+  }
+}
+
+// Function to check if `childPath` is a subpath of `parentPath`
+function isSubpath(parentPath, childPath) {
+  return childPath.startsWith(parentPath) &&
+      (childPath.length === parentPath.length || childPath[parentPath.length] === '/');
+}
+
+// Function to mark tab as active
+function activateTab(tabItem, isMainPage) {
+  const parentWidth = tabItem.parentElement.offsetWidth;
+  tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
 }
 
 /**

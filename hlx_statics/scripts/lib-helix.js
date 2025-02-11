@@ -173,6 +173,7 @@ function normalizePaths(anchorElem, pathPrefix) {
   if (href && (href.startsWith('http://') || href.startsWith('https://'))) { // check external link
     anchorElem.target = '_blank';
     anchorElem.href = href;
+    anchorElem.setAttribute("fullPath", true);
   } else {
     const path = new URL(href, 'https://example.com');
     const normalizedPath = cleanMarkdownExtension(path.pathname);

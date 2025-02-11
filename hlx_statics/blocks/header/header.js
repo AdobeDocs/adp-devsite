@@ -363,13 +363,13 @@ export default async function decorate(block) {
       // Add Products link for documentation template
       if (isTopLevelNav(window.location.pathname)) {
         const homeLinkLi = createTag('li', {class: 'navigation-home'});
-        const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+        const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home', 'fullPath': true});
         homeLinkA.innerHTML = 'Products';
         homeLinkLi.append(homeLinkA);
         navigationLinks.append(homeLinkLi);
       } else {
         const productLi = createTag('li', {class: 'navigation-products'});
-        const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+        const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products',  'fullPath': true});
         productA.innerHTML = 'Products';
         productLi.append(productA);
         navigationLinks.append(productLi);
@@ -378,7 +378,7 @@ export default async function decorate(block) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
-        
+
         // Process dropdowns for documentation template navigation
         navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
           let dropdownLinkDropdownHTML = '';
@@ -396,7 +396,7 @@ export default async function decorate(block) {
           );
           dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
         });
-        
+
         header.append(navigationLinks);
       }
     }
