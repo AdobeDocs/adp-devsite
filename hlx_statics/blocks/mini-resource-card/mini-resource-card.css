@@ -61,10 +61,6 @@ main div.mini-resource-card-container div.mini-resource-card-wrapper .section-ti
   margin: 48px 0 40px 0;
 }
 
-main div.mini-resource-card-wrapper a div:last-child{
-  margin-right: 20px;
-}
-
 @media screen and (max-width: 1280px) {
   main div.mini-resource-card-wrapper div.mini-resource-card .card-container {
     /* grid-template-columns: repeat(2, 1fr); */
