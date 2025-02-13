@@ -43,6 +43,9 @@ function getMiniResourceCard(linkHref, heading, text) {
 export default async function decorate(block) {
     let containerParent;
     block.setAttribute('daa-lh', 'mini resource card');
+    if (block.classList.contains('nobox-design')) {
+        block.classList.add('background-color-white');
+    }
     if (block.classList.contains('primarybutton')) {
         const primaryButton = block.querySelectorAll('a')[0];
         const up = primaryButton.parentElement;
