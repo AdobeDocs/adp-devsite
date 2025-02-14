@@ -40,6 +40,14 @@ main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-i
   width: 100px !important;
 }
 
+main div.mini-resource-card-wrapper div.mini-resource-card.nobox-design .mini-card {
+  box-shadow: none;
+}
+
+main div.mini-resource-card-wrapper div.mini-resource-card.nobox-design .mini-resource-card-image-container  img {
+  border-radius: 25px;
+}
+
 main div.mini-resource-card-wrapper div.mini-resource-card .image-mini {
   height: 100px !important;
   width: auto !important;
