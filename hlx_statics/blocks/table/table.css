@@ -8,7 +8,7 @@ main div.table-wrapper {
 }
 
 main div.table-container {
-  background: rgb(245, 245, 245);
+  background: white;
   overflow-x: auto;
 }
 
