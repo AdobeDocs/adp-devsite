@@ -87,6 +87,10 @@ main {
   background-color: rgb(245,245,245);
 }
 
+main.white-background {
+  background-color: white;
+}
+
 main .section {
   padding: var(--spectrum-global-dimension-size-400) 0;
 }
