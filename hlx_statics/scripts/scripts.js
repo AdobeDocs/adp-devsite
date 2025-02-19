@@ -79,7 +79,7 @@ function loadHeader(header) {
   decorateBlock(headerBlock);
   loadBlock(headerBlock);
   const contentHeader = document.querySelector('.content-header');
-  if (document.querySelector('.breadcrumbs').clientWidth > 750) {
+  if (document.querySelector('.breadcrumbs')?.clientWidth > 750) {
     contentHeader.classList.add('block-display');
   }
 
