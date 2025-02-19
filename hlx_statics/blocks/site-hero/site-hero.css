@@ -63,14 +63,14 @@ main div.site-hero-wrapper div.site-hero .hero-button-container {
   gap: 16px;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (min-width:768px) and (max-width:1024px) {
   main div.site-hero-wrapper div.site-hero .site-hero-content {
     padding: 0 32px;
   }
 
   main div.site-hero-wrapper div.site-hero img {
     width: 100%;
-    height: 350px;
+    height: 350px !important;
     object-fit: cover;
   }
 
@@ -81,11 +81,11 @@ main div.site-hero-wrapper div.site-hero .hero-button-container {
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (min-width:320px) and (max-width:767px) {
   main div.site-hero-wrapper div.site-hero {
     position: relative;
     width: 100%;
-    height: 100vh !important;
+    height: 75vh !important;
   }
 
   main div.site-hero-wrapper div.site-hero.xl {
@@ -97,7 +97,7 @@ main div.site-hero-wrapper div.site-hero .hero-button-container {
   main div.site-hero-wrapper div.site-hero img {
     overflow-clip-margin: content-box;
     overflow: clip;
-    height: 100vh !important;
+    height: 75vh !important;
   }
 
   main div.site-hero-wrapper div.site-hero.xl img {
@@ -105,4 +105,9 @@ main div.site-hero-wrapper div.site-hero .hero-button-container {
     overflow: clip;
     height: 100vh !important;
   }
+   
+  main div.site-hero-wrapper div.site-hero .site-hero-content {
+    padding: 0 32px;
+  }
+
 }
