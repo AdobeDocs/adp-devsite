@@ -40,6 +40,14 @@ main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-i
   width: 100px !important;
 }
 
+main div.mini-resource-card-wrapper div.mini-resource-card.nobox-design .mini-card {
+  box-shadow: none;
+}
+
+main div.mini-resource-card-wrapper div.mini-resource-card.nobox-design .mini-resource-card-image-container  img {
+  border-radius: 25px;
+}
+
 main div.mini-resource-card-wrapper div.mini-resource-card .image-mini {
   height: 100px !important;
   width: auto !important;
@@ -59,6 +67,10 @@ main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-b
 
 main div.mini-resource-card-container div.mini-resource-card-wrapper .section-title {
   margin: 48px 0 40px 0;
+}
+
+main div.mini-resource-card-wrapper a div:last-child{
+  margin-right: 20px;
 }
 
 @media screen and (max-width: 1280px) {

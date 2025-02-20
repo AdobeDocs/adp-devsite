@@ -87,6 +87,10 @@ main {
   background-color: rgb(245,245,245);
 }
 
+main.white-background {
+  background-color: white;
+}
+
 main .section {
   padding: var(--spectrum-global-dimension-size-400) 0;
 }
@@ -938,6 +942,10 @@ main .content-header {
   justify-content: space-between;
 }
 
+main .content-header.block-display {
+  display: block;
+}
+
 main .github-actions-block{
   display: flex;
   gap: 20px;
@@ -983,4 +991,17 @@ main a{
 
 main a:hover{
   text-decoration: underline;
+}
+
+main .content-header.block-display .github-actions-wrapper{
+  padding-top: 0px;
+}
+
+@media screen and (max-width: 768px) {
+  main .content-header {
+    display: block;
+  }
+  main .content-header .github-actions-wrapper{
+    padding-top: 0px;
+  }
 }

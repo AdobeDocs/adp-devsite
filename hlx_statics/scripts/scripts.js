@@ -78,6 +78,11 @@ function loadHeader(header) {
   header.append(headerBlock);
   decorateBlock(headerBlock);
   loadBlock(headerBlock);
+  const contentHeader = document.querySelector('.content-header');
+  if (document.querySelector('.breadcrumbs')?.clientWidth > 750) {
+    contentHeader.classList.add('block-display');
+  }
+
 }
 
 function loadFooter(footer) {
@@ -166,6 +171,13 @@ async function loadEager(doc) {
     decorateMain(main);
     await waitForLCP(LCP_BLOCKS);
   }
+
+  if (getMetadata('githubblobpath')){
+    // check if this page is from dev docs, then change the main container to white background.
+    const mainContainer = document.querySelector('main');
+    mainContainer.classList.add('white-background');
+  }
+
 
   if (getMetadata('template') === 'documentation') {
     buildGrid(main);
@@ -340,7 +352,7 @@ function loadConfig() {
         },
       },
     };
-  } else if (isStageEnvironment(window.location.host)) { 
+  } else if (isStageEnvironment(window.location.host)) {
     window.marketingtech = {
       adobe: {
         launch: {
