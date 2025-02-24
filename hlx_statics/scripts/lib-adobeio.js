@@ -843,9 +843,8 @@ export async function applyAnalytic(domObj = document) {
  * @returns Fetches the devsitePath.json file
  */
 export async function getdevsitePathFile() {
-  let devsitePathUrl = 'https://developer.adobe.com/franklin_assets/devsitepaths.json';
-
-  const resp = await fetch(devsitePathUrl);
+  let devsitePath = `${window.location.origin}/franklin_assets/devsitepaths.json`;
+  const resp = await fetch(devsitePath);
   if (resp.ok) {
     const devsitePath = await resp.json();
     return devsitePath;
