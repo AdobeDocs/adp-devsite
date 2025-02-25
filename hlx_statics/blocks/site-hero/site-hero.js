@@ -29,7 +29,6 @@ export default async function decorate(block) {
     if (!p.classList.contains('icon-container')) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
       p.style.color = "white";
-      button_div.parentElement.querySelector('.spectrum-Heading').after(p);
     }
     if (p.classList.contains('button-container')){
       button_div.append(p);
