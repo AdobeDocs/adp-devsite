@@ -6,7 +6,7 @@ main div.mini-resource-card-wrapper div.mini-resource-card .card-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   column-gap: 10px;
-  row-gap: 10px;
+  row-gap: 30px;
   margin-top: auto;
   margin: auto auto 60px auto !important;
   width: 1280px !important;
@@ -81,9 +81,9 @@ main div.mini-resource-card-wrapper a div:last-child{
     grid-row-gap: 30px;
   }
 
-  main div.mini-resource-card-wrapper div.mini-resource-card .mini-card { 
-    width: 100% !important; 
-    height: 100px !important;  
+  main div.mini-resource-card-wrapper div.mini-resource-card .mini-card {
+    width: 100% !important;
+    height: 100px !important;
   }
 
   main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-body {
@@ -94,14 +94,14 @@ main div.mini-resource-card-wrapper a div:last-child{
 
   main div.title-container>.title-wrapper>div {
     margin: auto !important;
-  } 
+  }
 }
 
 @media screen and (max-width: 767px) {
   main div.mini-resource-card .mini-resource-card-body h3 {
     font-size: 18px !important;
-  } 
-  
+  }
+
   main div.mini-resource-card .mini-resource-card-body p {
     font-size: 14px !important;
     display: -webkit-box;
@@ -111,7 +111,7 @@ main div.mini-resource-card-wrapper a div:last-child{
   }
   main div.title-container>.title-wrapper>div {
     margin: 0 20px !important;
-  } 
+  }
 }
 
 @media screen and (max-width: 425px) {
