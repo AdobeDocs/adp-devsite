@@ -4,8 +4,6 @@ main div.api-browser-container:has(.api-browser.background-color-white) {
 
 main div.api-browser-container {
   background-color: #fff;
-  padding-top: 32px;
-  padding-bottom: 32px;
 }
 
 main div.api-browser-wrapper .picker {
@@ -37,7 +35,7 @@ main div.api-browser-wrapper .picker .filter-by-popover {
 
 main div.api-browser-wrapper .api-browser {
   max-width: 1280px;
-  margin: 32px auto;
+  margin: 0px auto;
   margin-bottom: 0;
 }
 

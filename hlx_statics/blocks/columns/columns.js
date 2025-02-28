@@ -66,6 +66,12 @@ export default async function decorate(block) {
     }
   });
 
+  const columnList = block.querySelectorAll('.columns > div');
+  if (columnList.length > 0) {
+    columnList[0].classList.add("first-column-div");
+    columnList[columnList.length - 1].classList.add("last-column-div");
+  }
+
   block.querySelectorAll('.columns > div > div').forEach((column) => {
     const buttonGroupContainer = createTag('div', { class: 'button-group-container' });
     column.querySelectorAll('.button-container').forEach((p, key) => {
