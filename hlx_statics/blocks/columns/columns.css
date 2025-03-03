@@ -20,6 +20,10 @@ main div.columns-wrapper div.columns > div {
     padding: 80px 0;
 }
 
+main div.columns-wrapper div.columns .first-column-div, main div.columns-wrapper div.columns .last-column-div {
+    padding: 0 0;
+}
+
 main div.columns-wrapper  div.columns > div:nth-child(even) {
     flex-direction: row-reverse;
 }

@@ -85,4 +85,10 @@ export default async function decorate(block) {
     if (block.classList.contains('primarybutton')) {
         block.appendChild(containerParent);
     }
+    
+    document.querySelectorAll(".mini-resource-card-body p").forEach((para) => {
+        if (para.scrollHeight > para.clientHeight) {
+            para.setAttribute("title", para.innerText);
+        }
+    });
 }

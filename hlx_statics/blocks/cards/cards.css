@@ -36,7 +36,6 @@ main div.cards-wrapper div.cards {
 main div.cards-wrapper div.cards > div {
   text-align: center;
   display: table-cell;
-  padding: 80px 0;
 }
 
 main div.cards-wrapper div.cards > div.three-cards {

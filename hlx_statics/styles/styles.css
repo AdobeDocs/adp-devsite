@@ -92,7 +92,7 @@ main.white-background {
 }
 
 main .section {
-  padding: var(--spectrum-global-dimension-size-400) 0;
+  padding: 20px 0;
 }
 
 main .section .section-title {
