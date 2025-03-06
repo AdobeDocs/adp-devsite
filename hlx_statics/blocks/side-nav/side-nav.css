@@ -322,3 +322,7 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   margin: 0 0 12px;
   padding: 0 8px;
 }
+
+main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hide-sidenav {
+    display:none;
+}

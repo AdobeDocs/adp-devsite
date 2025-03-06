@@ -305,7 +305,7 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildSideNav(main) {
-  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav' });
+  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav; visibility: hidden' });
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
@@ -395,12 +395,15 @@ function activeTabTemplate(width, isMainPage = false) {
  */
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
+  const actTab = getActiveTab(nav);
+  if (actTab) {
+    activateTab(actTab);
+  }
+  activeSubNav(actTab);
+}
+
+export function getActiveTab(nav) {
   let currentPath = window.location.pathname;
-
-  // use selected sidenav path to set which one is the activeTab.
-  const selectedSidenav = document.querySelector('.side-nav')?.querySelector('.is-selected');
-  currentPath = selectedSidenav ? selectedSidenav.closest(".header").querySelector("a").pathname : currentPath;
-
   let bestMatch = null;
   let bestMatchLength = 0;
 
@@ -427,9 +430,7 @@ export function setActiveTab(isMainPage) {
     }
   };
 
-  if (bestMatch) {
-    activateTab(bestMatch);
-  }
+  return bestMatch
 }
 
 // Function to check if `childPath` is a subpath of `parentPath`
@@ -444,6 +445,31 @@ function activateTab(tabItem, isMainPage) {
   tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
 }
 
+function activeSubNav(actTab) {
+  if (actTab) {
+    const navLinksUl = document.querySelector(".side-nav-subpages-section");
+    const firstLevelItems = navLinksUl.querySelectorAll(':scope > ul > li');
+    const currentPath = actTab.pathname;
+    firstLevelItems.forEach(li => {
+      const link = li.querySelector(':scope > a');
+      if (link) {
+        const linkPath = new URL(link.href, window.location.origin).pathname;
+        if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
+          li.classList.add('active-sidenav');
+        } else {
+          li.classList.add('hide-sidenav');
+        }
+      } else {
+        li.classList.add('hide-sidenav');
+      }
+    });
+  }
+  if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
+    document.querySelector("main").classList.add("no-sidenav");
+  }
+  const sidecontainer = document.querySelector(".side-nav-container");
+  sidecontainer.style.visibility = "visible";
+}
 /**
  * Checks whether the current URL is one of the top level navigation items
  * @param {*} urlPathname The current URL path name
