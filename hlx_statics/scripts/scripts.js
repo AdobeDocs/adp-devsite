@@ -456,6 +456,9 @@ function loadDelayed() {
   if (getMetadata('template') === 'documentation') {
     githubActionsBlock(document);
   }
+  // delay on the main visibility;
+  const maindoc = document.querySelector("main");
+  maindoc.style.visibility = "hidden";
 }
 
 function loadTitle() {

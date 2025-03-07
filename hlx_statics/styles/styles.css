@@ -90,6 +90,10 @@ main {
 main.white-background {
   background-color: white;
 }
+main.no-sidenav{
+  grid-template-areas: "main" "footer" !important;
+  grid-template-columns: 100% 100% !important;
+}
 
 main .section {
   padding: 20px 0;
@@ -1005,3 +1009,5 @@ main .content-header.block-display .github-actions-wrapper{
     padding-top: 0px;
   }
 }
+
+
