@@ -180,7 +180,6 @@ function normalizePaths(anchorElem, pathPrefix) {
   } else {
     const path = new URL(href, 'https://example.com');
     const normalizedPath = cleanMarkdownExtension(path.pathname);
-    const removeLeadingSlash = normalizedPath.replace('/', '');
     anchorElem.pathname = decodeURIComponent(normalizedPath);
     anchorElem.href = `/${pathPrefix}${normalizedPath}`;
   }
