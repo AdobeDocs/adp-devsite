@@ -129,7 +129,7 @@ export async function fetchSideNavHtml() {
  * @returns {string} The nav HTML
  */
 async function fetchNavHtml(name) {
-  let pathPrefix = getMetadata('pathprefix').replace('/', '');
+  let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let navPath = `${window.location.origin}/${pathPrefix}/config`;
   const fragment = await loadFragment(navPath);
 
@@ -138,13 +138,16 @@ async function fetchNavHtml(name) {
     if(item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
-      navItems.querySelectorAll('li').forEach((liItems) => {
+      const navItemsChild = navItems.querySelectorAll('li');
+      navItemsChild.forEach((liItems) => {
         let p = liItems.querySelector('p');
         if(p) {
           p.replaceWith(p.firstChild);
         }
-        let a = liItems.querySelector('a');
-        a = normalizePaths(a, pathPrefix);
+        let a = liItems.querySelector(':scope > a');
+        if (a) {
+          a = normalizePaths(a, pathPrefix);
+        }
         // if (!a.getAttribute('href').startsWith(pathPrefix)) {
         //   if (a.getAttribute('href').endsWith('index.md')) {
         //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('index.md', '')}`
@@ -177,6 +180,7 @@ function normalizePaths(anchorElem, pathPrefix) {
   } else {
     const path = new URL(href, 'https://example.com');
     const normalizedPath = cleanMarkdownExtension(path.pathname);
+    const removeLeadingSlash = normalizedPath.replace('/', '');
     anchorElem.pathname = decodeURIComponent(normalizedPath);
     anchorElem.href = `/${pathPrefix}${normalizedPath}`;
   }
