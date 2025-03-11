@@ -446,8 +446,6 @@ function activateTab(tabItem, isMainPage) {
     // if the item is within a dropdown, it needs to find the parent item to be underlined.
     underlineItem = tabItem.closest('.nav-dropdown-popover');
   }
-  const parentWidth = underlineItem.parentElement.offsetWidth;
-//  underlineItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
   underlineItem.parentElement.classList.add("activeTab");
 }
 
