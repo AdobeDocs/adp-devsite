@@ -399,7 +399,7 @@ export function setActiveTab(isMainPage) {
   if (actTab) {
     activateTab(actTab);
   }
-  activeSubNav(actTab);
+  // activeSubNav(actTab);
 }
 
 export function getActiveTab(nav) {
