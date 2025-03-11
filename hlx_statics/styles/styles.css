@@ -971,7 +971,7 @@ main .action-buttons div{
 }
 
 main .default-content-wrapper img{
-  width: 100%;
+  width: 0;
   height: 100%;
 }
 
