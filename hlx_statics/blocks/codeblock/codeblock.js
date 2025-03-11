@@ -78,6 +78,9 @@ export default function decorate(block) {
     tab.innerHTML = tabContent.innerHTML;
     tab.addEventListener('click', handleTabClick);
 
+    if (i === 0) tab.setAttribute('aria-selected', 'true');
+    else tab.setAttribute('aria-selected', 'false');
+
     const isGroupAdded = [...tabs.children].find(existingTab => tab.textContent === existingTab.textContent);
     if(!areTabsGrouped || !isGroupAdded) {
       tabs.append(tab);
@@ -106,6 +109,7 @@ export default function decorate(block) {
     panel.setAttribute('aria-labelledby', `tab-${i} option-${i}`);
     panel.setAttribute('role', 'tabpanel');
     decoratePreformattedCode(panel);
+    if (i !== 0) panel.classList.add('hidden');
   });
 
   // initialize by simulating a click on the first tab
