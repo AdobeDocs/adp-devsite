@@ -415,8 +415,8 @@ async function loadLazy(doc) {
     const headings = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
     const hasSideNav = document.querySelector('.side-nav')?.children;
     if (!document.querySelector('.hero, .herosimple') && headings.length !== 0 && hasSideNav.length !== 0) {
-      buildOnThisPage(main);
-      loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+      // buildOnThisPage(main);
+      // loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
     }
     if(document.querySelector('.side-nav-subpages-section')) {
       buildNextPrev(main);
