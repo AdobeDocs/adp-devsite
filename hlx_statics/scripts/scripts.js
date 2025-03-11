@@ -183,7 +183,7 @@ async function loadEager(doc) {
     buildGrid(main);
   }
 
-  buildSideNav(main);
+  // buildSideNav(main);
 
   if (getMetadata('template') === 'documentation') {
     buildBreadcrumbs(main);
