@@ -407,7 +407,7 @@ export function getActiveTab(nav) {
   let bestMatch = null;
   let bestMatchLength = 0;
 
-  const links = Array.from(nav.querySelectorAll('li > a'));
+  const links = Array.from(nav.querySelectorAll('a'));
   for (const tabItem of links) {
     const hrefPath = new URL(tabItem.href);
     const fullPath = tabItem.getAttribute('fullPath');
@@ -441,8 +441,12 @@ function isSubpath(parentPath, childPath) {
 
 // Function to mark tab as active
 function activateTab(tabItem, isMainPage) {
-  const parentWidth = tabItem.parentElement.offsetWidth;
-  tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
+  let underlineItem = tabItem;
+  if (tabItem.closest('.nav-dropdown-popover')){
+    // if the item is within a dropdown, it needs to find the parent item to be underlined.
+    underlineItem = tabItem.closest('.nav-dropdown-popover');
+  }
+  underlineItem.parentElement.classList.add("activeTab");
 }
 
 function activeSubNav(actTab) {
