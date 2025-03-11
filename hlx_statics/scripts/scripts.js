@@ -78,10 +78,10 @@ function loadHeader(header) {
   header.append(headerBlock);
   decorateBlock(headerBlock);
   loadBlock(headerBlock);
-  const contentHeader = document.querySelector('.content-header');
-  if (document.querySelector('.breadcrumbs')?.clientWidth > 750) {
-    contentHeader.classList.add('block-display');
-  }
+  // const contentHeader = document.querySelector('.content-header');
+  // if (document.querySelector('.breadcrumbs')?.clientWidth > 750) {
+  //   contentHeader.classList.add('block-display');
+  // }
 
 }
 

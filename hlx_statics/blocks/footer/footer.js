@@ -36,29 +36,29 @@ function buildFooter(html) {
  */
 
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'footer');
-  const cfg = readBlockConfig(block);
-  block.textContent = '';
-  const footerPath = cfg.footer || 'https://main--adobe-io-website--adobe.hlx.live/franklin_assets/footer';
-  const resp = await fetch(`${footerPath}.plain.html`);
-  const html = await resp.text();
-  block.classList.add('footer-links-container');
-  block.append(buildFooter(html));
+  // block.setAttribute('daa-lh', 'footer');
+  // const cfg = readBlockConfig(block);
+  // block.textContent = '';
+  // const footerPath = cfg.footer || 'https://main--adobe-io-website--adobe.hlx.live/franklin_assets/footer';
+  // const resp = await fetch(`${footerPath}.plain.html`);
+  // const html = await resp.text();
+  // block.classList.add('footer-links-container');
+  // block.append(buildFooter(html));
 
-  block.querySelectorAll('.footer-links-container-inner ul').forEach((ul) => {
-    ul.className = 'spectrum-Body spectrum-Body--sizeS';
-  });
-  block.querySelectorAll('h3').forEach((h3) => {
-    h3.className = 'spectrum-Heading--sizeXS';
-  });
-  block.querySelector('.footer-legal ul').className = 'spectrum-Body spectrum-Body--sizeXS';
-  block.querySelectorAll('a').forEach((a) => {
-    const className = a.parentElement.tagName === 'STRONG'
-      ? 'spectrum-Link spectrum-Link--quiet'
-      : 'spectrum-Link spectrum-Link--secondary spectrum-Link--quiet';
-    a.className = className;
-  });
-  block.querySelectorAll('div.footer-legal > div > p').forEach((p) => {
-    p.className = 'spectrum-Body spectrum-Body--sizeXS footer-date';
-  });
+  // block.querySelectorAll('.footer-links-container-inner ul').forEach((ul) => {
+  //   ul.className = 'spectrum-Body spectrum-Body--sizeS';
+  // });
+  // block.querySelectorAll('h3').forEach((h3) => {
+  //   h3.className = 'spectrum-Heading--sizeXS';
+  // });
+  // block.querySelector('.footer-legal ul').className = 'spectrum-Body spectrum-Body--sizeXS';
+  // block.querySelectorAll('a').forEach((a) => {
+  //   const className = a.parentElement.tagName === 'STRONG'
+  //     ? 'spectrum-Link spectrum-Link--quiet'
+  //     : 'spectrum-Link spectrum-Link--secondary spectrum-Link--quiet';
+  //   a.className = className;
+  // });
+  // block.querySelectorAll('div.footer-legal > div > p').forEach((p) => {
+  //   p.className = 'spectrum-Body spectrum-Body--sizeXS footer-date';
+  // });
 }

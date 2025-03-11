@@ -732,8 +732,8 @@ export function githubActionsBlock(doc) {
                       </a>
               </div>
       `;
-    const contentHeader = doc.querySelector('.content-header');
-    contentHeader?.append(newContent);
+    // const contentHeader = doc.querySelector('.content-header');
+    // contentHeader?.append(newContent);
   }
 };
 

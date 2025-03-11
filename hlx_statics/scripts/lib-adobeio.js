@@ -296,8 +296,8 @@ export function buildGrid(main) {
   const gridAreaMain = main.querySelector(".section");
   gridAreaMain.style.gridArea = 'main';
 
-  let contentHeader = createTag('div', { class: 'content-header' });
-  gridAreaMain.prepend(contentHeader)
+  // let contentHeader = createTag('div', { class: 'content-header' });
+  // gridAreaMain.prepend(contentHeader)
 }
 
 /**
@@ -348,8 +348,8 @@ export function buildBreadcrumbs(main) {
   breadcrumbsWrapper.append(breadcrumbsBlock);
   breadcrumbsDiv.append(breadcrumbsWrapper);
 
-  const contentHeader = main.querySelector('.content-header');
-  contentHeader?.append(breadcrumbsDiv);
+  // const contentHeader = main.querySelector('.content-header');
+  // contentHeader?.append(breadcrumbsDiv);
 }
 
 /**
