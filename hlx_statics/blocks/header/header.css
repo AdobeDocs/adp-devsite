@@ -228,6 +228,7 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
   transform: rotate(-90deg);
 }
 
+
 @media screen and (min-width: 769px) {
   header .nav-dropdown-mobile-popover {
     display:none;
@@ -296,6 +297,26 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
   header.global-nav-header > ul#navigation-links > li > button:hover {
     background-color: rgb(253, 253, 253);
     color: rgb(44, 44, 44);
+  }
+
+
+  header.global-nav-header > ul#navigation-links > li.activeTab > a:hover {
+    border-bottom: 3px solid black;
+    display: block;
+    height: 61px;
+  }
+
+  header.global-nav-header > ul#navigation-links > li.activeTab button{
+    border-bottom: 3px solid black;
+    display: block;
+    padding-top: 3px;
+  }
+
+
+  header.global-nav-header > ul#navigation-links > li.activeTab {
+    border-bottom: 2px solid black;
+    display: block;
+    padding-bottom: 3px;
   }
 
   header.global-nav-header > ul#navigation-links > li.navigation-products a {
@@ -582,3 +603,4 @@ header .menu-btn {
       width: 20px !important;
   }
 }
+
