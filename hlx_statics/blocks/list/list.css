@@ -1,4 +1,4 @@
-main div.list-container:has(.list.background-color-white) {
+/* main div.list-container:has(.list.background-color-white) {
   background-color: white;
 }
 
@@ -121,4 +121,4 @@ main div.list-container div.list-wrapper div.list .divBorder{
   main div.list-container div.list-wrapper{
     padding: 40px 20px !important;
   }
-}
+} */
