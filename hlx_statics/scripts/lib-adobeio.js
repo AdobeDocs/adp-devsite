@@ -283,7 +283,7 @@ export function buildHeadings(container) {
  * @param {*} main The grid container
  */
 export function buildGrid(main) {
-  main.style.display = 'grid';
+  // main.style.display = 'grid';
   const mainContainer = document.querySelector('main');
   const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
   const heroSimpleContainer = document.querySelector('.herosimple-container');
