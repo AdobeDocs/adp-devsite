@@ -14,7 +14,7 @@ main div.inlinealert-wrapper .spectrum-InLineAlert {
     border-style: solid;
     border-radius: 4px;
     background-color: rgb(255, 255, 255);
-    color: rgb(110, 110, 110);
+    color: rgb(203, 93, 0);
 }
 
 [dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
@@ -60,7 +60,7 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-content {
     margin: 0;
     padding: 0;
     word-wrap: break-word;
-    color: rgb(110, 110, 110);
+    color: rgb(44, 44, 44);
 }
 
 [dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-footer {
