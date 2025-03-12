@@ -465,9 +465,31 @@ function loadTitle() {
   document.title = window.location.href;
 }
 
+function loadPrism(document) {
+  const highlightable = document.querySelector(
+    'code[class*="language-"], [class*="language-"] code',
+  );
+  if (!highlightable) return; // exit, no need to load prism if nothing to highlight
+
+  // see: https://prismjs.com/docs/Prism.html#.manual
+  window.Prism = window.Prism || {};
+  window.Prism.manual = true;
+  loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
+  import('./prism.js')
+    .then(() => {
+      // see: https://prismjs.com/plugins/autoloader/
+      window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
+      // run prism in async mode; uses webworker.
+      window.Prism.highlightAll(true);
+    })
+    // eslint-disable-next-line no-console
+    .catch((err) => console.error(err));
+}
+
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  loadPrism(document);
   loadTitle();
   loadDelayed(document);
 }
