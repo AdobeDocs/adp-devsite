@@ -63,6 +63,10 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-content {
     color: rgb(44, 44, 44);
 }
 
+main div.inlinealert-wrapper .inlinealert.neutral{
+    border-color:   rgb(44, 44, 44);
+}
+
 [dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-footer {
     text-align: right;
 }
