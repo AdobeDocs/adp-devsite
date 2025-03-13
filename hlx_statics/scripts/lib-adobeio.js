@@ -200,6 +200,8 @@ export function decorateNestedCodes(element) {
     pre.replaceWith(wrapper);
     wrapper.append(pre);
 
+    // TODO
+
     loadCSS(`${window.hlx.codeBasePath}/blocks/code/code.css`);
     decoratePreformattedCode(wrapper);
   });
@@ -230,6 +232,8 @@ export function buildCodes(container) {
  */
 export function decorateHR(container) {
   const hrWrappers = container.querySelectorAll('main div.hr-wrapper');
+
+  // TODO
 
   hrWrappers.forEach(hrWrapper => {
     const hr = document.createElement('hr');
@@ -309,6 +313,7 @@ export function buildSideNav(main) {
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
+  // TODO
   sideNavDiv.append(sideNavWrapper);
   main.prepend(sideNavDiv);
 }
@@ -319,6 +324,7 @@ export function buildSideNav(main) {
  */
 export function buildOnThisPage(main) {
   let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
+  // TODO
   main.append(asideWrapper);
 }
 
@@ -328,6 +334,7 @@ export function buildOnThisPage(main) {
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
+  // TODO
   if (!document.querySelector('.herosimple-wrapper')) {
     main.children[1].appendChild(nextPrevWrapper)
   }
@@ -343,6 +350,7 @@ export function buildNextPrev(main) {
 export function buildBreadcrumbs(main) {
   let breadcrumbsDiv = createTag('div', { class: 'section breadcrumbs-container' });
   let breadcrumbsWrapper = createTag('div', { class: 'breadcrumbs-wrapper' });
+  // TODO
   let breadcrumbsBlock = createTag('div', { class: 'breadcrumbs block', 'data-block-name': 'breadcrumbs' });
 
   breadcrumbsWrapper.append(breadcrumbsBlock);

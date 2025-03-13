@@ -330,6 +330,7 @@ export function decorateBlock(block) {
     block.setAttribute('data-block-status', 'initialized');
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
+    // TODO
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
   }
@@ -395,6 +396,7 @@ export function decorateSections(main) {
       }
       wrappers[wrappers.length - 1].append(e);
     });
+    // TODO
     wrappers.forEach((wrapper) => section.append(wrapper));
     section.classList.add('section');
     section.setAttribute('data-section-status', 'initialized');
@@ -716,6 +718,7 @@ export function githubActionsBlock(doc) {
   if (!doc.querySelector('.herosimple-container') && !doc.querySelector('.hero-container')) {
     const newContent = doc.createElement('div');
     newContent.classList.add('section', 'github-actions-wrapper');
+    // TODO
     newContent.innerHTML = `
               <div class="github-actions-block">
                       <a class="action-buttons" target="_blank" rel="noopener noreferrer nofollow" href=${githubEditUrl} role="button">
