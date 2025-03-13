@@ -32,6 +32,7 @@ export default async function decorate(block) {
   if (!isDocumentationTemplate() && sideNavContainer) {
     // For non-documentation pages, only show on mobiles
     const updateVisibility = () => {
+      /* 2 */
       sideNavContainer.style.display = isMobileView() ? 'block' : 'none';
     };
     
@@ -80,21 +81,26 @@ export default async function decorate(block) {
       const mainContent = document.querySelector("main > div:nth-child(2)");
 
       if (mainContent) {
+        /* 1 */
         mainContent.style.margin = "0 64px";
         mainContent.style.maxWidth = "1280px";
       }
 
       if (window.innerWidth <= 768) {
+        /* 1 */
         main.style.gridTemplateColumns = "0 100vw";
       } else {
+        /* 1 */
         main.style.gridTemplateColumns = "256px auto";
       }
 
       // Update grid on window resize
       window.addEventListener("resize", () => {
         if (window.innerWidth <= 768) {
+          /* 1 */
           main.style.gridTemplateColumns = "0 100vw";
         } else {
+          /* 1 */
           main.style.gridTemplateColumns = "256px auto";
         }
       });

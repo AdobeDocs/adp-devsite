@@ -1,3 +1,4 @@
+/* 2 */
 main div.image-text-container:has(.image-text.background-color-white) {
   background-color: white;
 }
@@ -41,6 +42,7 @@ main div.image-text-container > .image-text-wrapper > .image-text > div > div {
   justify-content: center;
 }
 
+/* 2 */
 main div.image-text-container p {
   text-align: center;
 }

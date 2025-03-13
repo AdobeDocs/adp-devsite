@@ -1,3 +1,4 @@
+/* 3 */
 main div.discoverblock-container-wrapper div.discover-container:has(.discover.background-color-white) {
     background-color: white !important;
 }
@@ -8,21 +9,24 @@ main div.discoverblock-wrapper div.discover-child-container a {
     color: #0054b6;
 }
 
-
+/* 3 */
 main div.discoverblock-container-wrapper div.discover-child-inner-container {
     display: flex;
     gap: 30px;
 }
 
+/* 3 */
 main div.discoverblock-container-wrapper div.discover-img-child-container {
     width: 50%;
 }
 
 @media screen and (max-width : 1300px) {
+    /* 3 */
     .discover {
         width: 768px !important;
     }
 
+    /* 3 */
     main div.discoverblock-container-wrapper div.discover-child-container {
         width: 33.3%;
         padding: 20px;
@@ -30,10 +34,12 @@ main div.discoverblock-container-wrapper div.discover-img-child-container {
 }
 
 @media screen and (max-width : 800px) {
+    /* 3 */
     .discover {
         width: 600px !important;
     }
 
+    /* 3 */
     main div.discoverblock-container-wrapper div.discover-child-container {
         width: 50%;
         padding:20px;
@@ -41,15 +47,18 @@ main div.discoverblock-container-wrapper div.discover-img-child-container {
 }
 
 @media screen and (max-width : 650px) {
+    /* 3 */
     .discoverblock {
         width: 370px !important;
     }
 
+    /* 3 */
     main div.discoverblock-container-wrapper div.discover-child-container {
         width: 100%;
         padding: 20px;
     }
 }
+/* 3 */
 main div.discoverblock-container-wrapper{
     max-width: 800px;
     display: flex;
@@ -58,6 +67,7 @@ main div.discoverblock-container-wrapper{
     margin: 20px 0;
     row-gap: 40px;
 }
+/* 3 */
 main div.discoverblock-wrapper div.discoverblock-column .discover-child-container{
     width: 650px;
     display: flex;
@@ -65,9 +75,11 @@ main div.discoverblock-wrapper div.discoverblock-column .discover-child-containe
     gap: 10px;
     margin-top: 20px;
 }
+/* 3 */
 main div.discoverblock-container-wrapper div.discover-nonheading-child-container.discover-child-container {
     font-size: 16px;
 }
+/* 3 */
 main div.discoverblock-wrapper div.discoverblock-container-wrapper .discover-child-container{
     display: flex;
     flex-direction: column;

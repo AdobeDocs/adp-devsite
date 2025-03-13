@@ -1,7 +1,9 @@
+/* 2 */
 main div.api-browser-container:has(.api-browser.background-color-white) {
   background-color: white !important;
 }
 
+/* 2 */
 main div.api-browser-container {
   background-color: #fff;
 }

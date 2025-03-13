@@ -1,3 +1,4 @@
+/* 2 */
 main div.list-container:has(.list.background-color-white) {
   background-color: white;
 }

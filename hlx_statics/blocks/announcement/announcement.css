@@ -7,6 +7,7 @@ main div.announcement-wrapper div.announcement-button-container p {
   margin: 0;
 }
 
+/* 0 */
 main div.announcement-container .announcement-wrapper {
 }
 
@@ -15,16 +16,19 @@ main div.announcement-wrapper div.announcement.block {
   max-width: 1280px;
 }
 
+/* 2 */
 main div.announcement-container:has(.announcement.background-color-white),
 main div.announcement.background-color-white {
   background-color: white;
 }
 
+/* 2 */
 main div.announcement-container:has(.announcement.background-color-navy),
 main div.announcement.background-color-navy {
   background-color: rgb(15, 55, 95);
 }
 
+/* 2 */
 main div.announcement-container:has(.announcement.background-color-dark-gray),
 main div.announcement.background-color-dark-gray {
   background-color: #323232;
@@ -105,7 +109,8 @@ main div.announcement-wrapper .announcement.secondary-border-white .spectrum-But
     margin: 0 !important;
     justify-content: center !important;
   }
-
+  
+  /* 3 */
   main .announcement-container .announcement>div>div {
     text-align: center;
     align-items: center !important;
@@ -113,15 +118,17 @@ main div.announcement-wrapper .announcement.secondary-border-white .spectrum-But
 }
 
 @media screen and (max-width: 425px) {
+  /* 3 */
   main .announcement-container .announcement-button-container {
     flex-direction: column;
   }
-
+  /* 3 */
   main .announcement-container .announcement {
     margin: 5%;
     text-align: center;
   }
 
+  /* 2 */
   main .announcement-container {
     padding: 4% 0;
   }

@@ -23,6 +23,7 @@ export default async function decorate(block) {
     li.append(division);
   });
   
+  /* 2 */
   const subParent = document.querySelector('.sub-parent');
       const linkBlockWrapper = document.querySelector('.link-block-wrapper');
       if (linkBlockWrapper) {
@@ -36,6 +37,7 @@ export default async function decorate(block) {
               }
           });
           subParent.appendChild(relatedBlocksDiv);
+          /* 2 */
           subParent.style.display = 'flex';
           subParent.style.flexDirection = 'row-reverse';
   }

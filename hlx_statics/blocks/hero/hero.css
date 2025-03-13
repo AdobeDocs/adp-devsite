@@ -25,6 +25,7 @@ main div.hero-wrapper div.hero.font-white p {
   color: white !important;
 }
 
+/* 2 */
 main div.hero-container {
   padding: 0;
 }
@@ -59,6 +60,7 @@ main div.hero-wrapper div.hero div:nth-child(2) > div img {
   min-height: 500px !important;
 }
 
+/* 2 */
 main div.hero-container:has(.full-width-background) div:nth-child(2) > div img {
   display:none;
 }

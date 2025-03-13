@@ -494,6 +494,7 @@ header .menu-btn {
 }
 
 @media screen and (max-width: 768px) {
+  /* 1 */
   main {
     overflow-y: hidden;
   }
@@ -586,10 +587,12 @@ header .menu-btn {
     top: 0;
   }
 }
+/* 1 */
 .svgDisplay {
   display: block;
   color: #0265dc;
 }
+/* 1 */
 .spectrum-Menu-itemLabel {
   display: flex;
   gap: 5px;

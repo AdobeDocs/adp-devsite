@@ -1,3 +1,28 @@
+/* 
+Rule of thumb
+ - styles in BLOCK.css should include BLOCK-wrapper to restrict the style to that block
+ - or start with the block name as seen in header.css and footer.css
+ - BLOCK-container shouldn't be used by itself in BLOCK.css because it lands on the section and can conflict with other blocks
+
+Bad examples
+ - main div.BLOCK-container
+ - main div.BLOCK-container non BLOCK-wrapper...
+ - main div.accordion-container.accordion-whole
+    accordion-whole is applied on the section but it's possible to have a whole and non-whole accordion in the same section and that results in conflict
+ 
+Good examples
+ - main div.BLOCK-container BLOCK-wrapper
+ - main BLOCK
+ - main BLOCK-wrapper
+
+TODOS
+ - 0. remove unused
+ - 1. too general, conflicts with style.css
+ - 2. style goes through section rather than the block. better to use wrapper to go through the block
+ - 3. class seems specific enough for it to potentially land on the block, but using wrapper is better because it guarantees it lands on the block
+*/
+
+/* 2 */
 main div.accordion-container:has(.accordion.background-color-white) {
     background-color: white;
 }
@@ -11,10 +36,12 @@ main div.accordion-wrapper div.accordion .accordion-div {
     margin: auto !important;
 }
 
+/* 2 */
 main div.accordion-container.accordion-whole {
     padding: 32px 0;
 }
 
+/* 2 */
 main div.accordion-container.accordion-whole .accordion-wrapper {
     display: flex;
     align-items: center;

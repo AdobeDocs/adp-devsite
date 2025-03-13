@@ -1,3 +1,4 @@
+/* 2 */
 main div.mini-resource-card-container:has(.mini-resource-card.background-color-white) {
   background-color: white;
 }
@@ -92,6 +93,7 @@ main div.mini-resource-card-wrapper a div:last-child{
     padding-right: 10px !important;
   }
 
+  /* 1 */
   main div.title-container>.title-wrapper>div {
     margin: auto !important;
   }
@@ -109,6 +111,7 @@ main div.mini-resource-card-wrapper a div:last-child{
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  /* 1 */
   main div.title-container>.title-wrapper>div {
     margin: 0 20px !important;
   }

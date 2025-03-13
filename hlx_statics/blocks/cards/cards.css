@@ -1,7 +1,9 @@
-main div.cards-container:has(.cards.background-color-white) {
+/* 3 */
+main div.cards:has(.cards.background-color-white) {
   background-color: white;
 }
 
+/* 3 */
 main div.cards.background-color-white {
   background-color: white !important;
 }
@@ -46,6 +48,7 @@ main div.cards-wrapper div.cards > div.four-cards {
   width: 25vw;
 }
 
+/* 0 */
 /* main div.cards-container.background-color-white {
   background-color: white !important;
 } */
@@ -101,6 +104,7 @@ main div.cards-wrapper div.cards a.card-button {
 }
 
 @media screen and (max-width: 425px) {
+  /* 2 */
   main .cards-container {
     padding: 40px 0px 0px 0px;
   }

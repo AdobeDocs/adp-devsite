@@ -1,7 +1,9 @@
+/* 2 */
 main div.columns-container:has(.columns.background-color-white) {
     background-color: white !important;
 }
 
+/* 2 */
 main div.columns-container {
     width: 100%;
     background: rgb( 245,245,245 );
@@ -28,6 +30,7 @@ main div.columns-wrapper  div.columns > div:nth-child(even) {
     flex-direction: row-reverse;
 }
 
+/* 3 */
 main div.columns-container.section[data-list-class="checkmark"] ul {
     list-style: none;
     font-size: 16px;
@@ -35,10 +38,12 @@ main div.columns-container.section[data-list-class="checkmark"] ul {
     padding-left: 0px;
 }
 
+/* 3 */
 main div.columns-container.section[data-list-class="checkmark"] ul > li {
     margin-bottom: 12px;
 }
 
+/* 3 */
 main div.columns-container.section[data-list-class="checkmark"] ul > li:before{
     color: #096;
     content: "\2714\0020";
@@ -83,11 +88,13 @@ main div.columns-wrapper div.second-column {
     padding: 0 32px;
 }
 
+/* 3 */
 main .column-header .anchor-link{
     /* padding-left: 10px; */
     visibility: hidden;
 }
 
+/* 3 */
 main .column-header:hover .anchor-link{
     /* padding-left: 10px; */
     visibility: visible;
@@ -136,6 +143,7 @@ main div.columns-wrapper div.second-column div.product-link-container {
     main div.columns-wrapper div.columns div.product-link-container p {
         max-width: 150px;
     }
+    /* 3 */
     main div.columns div.first-column {
         width: 100% !important;
     }
@@ -165,14 +173,17 @@ main div.columns-wrapper div.second-column div.product-link-container svg {
     object-fit: contain;
 }
 
+/* 3 */
 main div.columns-container div.columns.center {
     width: auto;
 }
 
+/* 3 */
 main div.columns-container div.columns.center > div {
     align-items: start;
 }
 
+/* 3 */
 main div.columns-container div.columns.center > div > div {
     display: flex;
     flex-direction: column;
@@ -180,6 +191,7 @@ main div.columns-container div.columns.center > div > div {
     padding: 0 32px;
 }
 
+/* 3 */
 main div.columns-container div.columns.center .button-container {
     display: inline-flex;
     margin: 16px 8px;
@@ -204,11 +216,13 @@ main div.columns-wrapper div.columns div.first-column img {
         flex-direction: column !important;
         padding: 0 0 !important;
     }
+    /* 3 */
     main div.columns-container.center div.columns > div > div {
         text-align: center;
         padding: 32px 32px;
     }
 
+    /* 3 */
     main div.columns-container.center div.columns > div {
         align-items: center;
     }

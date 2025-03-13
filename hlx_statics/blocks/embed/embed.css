@@ -1,13 +1,16 @@
+/* 2 */
 main div.embed-container:has(.embed.background-color-white) {
   background-color: white;
 }
 
+/* 2 */
 main div.embed-container {
   align-items: center;
   justify-content: center;
   background: rgb(245, 245, 245);
 }
 
+/* 2 */
 main div.embed-container > div{
   max-width: 1280px;
   padding: 0px 32px;
@@ -15,6 +18,7 @@ main div.embed-container > div{
 }
 
 @media screen and (min-width: 700px) {
+/* 2 */
 main div.embed-container .igReel {
   left: 0;
   padding:0;
@@ -24,6 +28,7 @@ main div.embed-container .igReel {
 }
 }
 
+/* 2 */
 main div.embed-container .igReel {
   left: 0;
   padding:0;
@@ -32,6 +37,7 @@ main div.embed-container .igReel {
   position: relative;
 }
 
+/* 2 */
 main div.embed-container p {
   margin-top: 0;
   margin-bottom: 0!important;
@@ -53,6 +59,7 @@ main div.embed-wrapper div.embed iframe {
   border: 0;
 }
 
+/* 2 */
 main div.embed-container .embed-custom-width{
   display: flex;
   align-items: center;

@@ -46,6 +46,7 @@ export default async function decorate(block) {
   const sideNav = document.querySelector('.side-nav-container');
   const subParent = createTag('div',{class:'sub-parent'});
     if (heroSimpleContainer) {
+      /* 2 */
       heroSimpleContainer.style.margin = '0px';
       heroSimpleContainer.style.maxWidth = 'none';
       const children = Array.from(heroSimpleContainer.children);
@@ -56,16 +57,19 @@ export default async function decorate(block) {
       });
       const herosimpleWrapper = block?.parentElement;
       if (herosimpleWrapper) {
+        /* 2 */
         heroSimpleContainer.insertBefore(subParent, herosimpleWrapper.nextSibling);
       } else {
         heroSimpleContainer.appendChild(subParent);
       }
+      /* 2 */
       subParent.style.margin = '0 auto';
       subParent.style.maxWidth = '1000px';
     }
     if(!sideNav){
       const heroSimpleDiv = block.querySelector('.herosimple > div');
       heroSimpleDiv.style.setProperty('max-width', '1280px', 'important');
+      /* 2 */
       subParent.style.margin = '0 auto';
       subParent.style.maxWidth = '1280px';
     }

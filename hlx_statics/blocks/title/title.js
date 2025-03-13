@@ -14,9 +14,11 @@ export default async function decorate(block) {
       h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'title-heading');
   });
   if (padding) {
+    /* 2 */
     block?.parentElement?.parentElement.style.setProperty("padding", padding, "important");
   }
   if (contentAlign) {
+    /* 2 */
     block?.parentElement?.parentElement.style.setProperty("text-align", contentAlign, "important");
   }
   block.querySelectorAll('p').forEach((p) => {

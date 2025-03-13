@@ -109,6 +109,7 @@ main div.side-nav-wrapper div.side-nav {
     background-color: rgb(250, 250, 250);
 }
 
+/* 2 */
 main div.side-nav-container  {
     padding: 0 !important;
 }
@@ -222,6 +223,7 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
 /* Mobile behavior */
 @media screen and (max-width: 768px) {
   /* Adjust grid layout */
+  /* 1 */
   body.template-documentation main {
     grid-template-columns: 0 auto !important;
   }
@@ -270,6 +272,7 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
 
 
 /* Section labels */
+/* 3 */
 .side-nav-section-label {
   font-size: 12px;
   font-weight: 700;
@@ -279,6 +282,7 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   padding: 0 8px;
 }
 
+/* 3 */
 .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
   font-size: 14px;
   font-weight: 700;
@@ -294,11 +298,13 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   align-items: center;
 }
 
+/* 3 */
 .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
+/* 3 */
 .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
   font-weight: 400;
   color: rgb(70, 70, 70);
@@ -307,16 +313,19 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   padding: 8px 16px 8px 24px;
 }
 
+/* 3 */
 .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
+/* 3 */
 .side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
   color: #000;
 }
 
 /* Ensure consistent section header spacing */
+/* 3 */
 .side-nav-menu-section .side-nav-section-label,
 .side-nav-subpages-section .side-nav-section-label {
   margin: 0 0 12px;

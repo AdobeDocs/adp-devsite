@@ -1,3 +1,4 @@
+/* 2 */
 main div.carousel-container:has(.carousel.background-color-white) {
   background-color: white !important;
 }

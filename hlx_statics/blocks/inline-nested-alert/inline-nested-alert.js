@@ -24,6 +24,7 @@ export default async function decorate(block) {
     const isNested = parent?.getAttribute('data-isnested');
     const isLinkDecorate = parent?.getAttribute('data-islinkdecorate');
 
+    /* 2 */
     parent.style.padding = header === 'true' ? '0px' : '10px 0px';
     const anchorTags = block.querySelectorAll('.inline-nested-alert a');
     anchorTags.forEach(anchor => {
