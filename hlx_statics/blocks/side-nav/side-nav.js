@@ -34,10 +34,10 @@ export default async function decorate(block) {
     const updateVisibility = () => {
       sideNavContainer.style.display = isMobileView() ? 'block' : 'none';
     };
-    
+
     // Initial visibility
     updateVisibility();
-    
+
     // Update visibility on resize
     window.addEventListener('resize', updateVisibility);
   }
@@ -70,7 +70,7 @@ export default async function decorate(block) {
     const subPagesLabel = createTag("h2", { class: "side-nav-section-label" });
     subPagesLabel.textContent = "Table of Contents";
     subPagesSection.appendChild(subPagesLabel);
-    
+
     navigationLinksContainer.append(subPagesSection);
     subPagesSection.append(navigationLinksUl);
 
@@ -127,7 +127,7 @@ export default async function decorate(block) {
         // Get the text node or link that precedes the nested ul
         const label = li.childNodes[0];
         const text = label.nodeType === Node.TEXT_NODE ? label.textContent.trim() : label.textContent;
-        
+
         // Create the expandable link
         const expandableLink = createTag('button', {
           class: 'spectrum-SideNav-itemLink',
@@ -135,7 +135,7 @@ export default async function decorate(block) {
           'aria-expanded': 'false'
         });
         expandableLink.innerHTML = text;
-        
+
         // Replace the text/link with the expandable link
         if (label.nodeType === Node.TEXT_NODE) {
           li.removeChild(label);
@@ -143,14 +143,14 @@ export default async function decorate(block) {
           li.removeChild(label);
         }
         li.insertBefore(expandableLink, nestedUl);
-        
+
         // Set up proper nesting structure
         li.setAttribute('role', 'treeitem');
         li.classList.add('header');
         nestedUl.setAttribute('role', 'group');
         nestedUl.classList.add('spectrum-SideNav');
         nestedUl.style.display = 'none';
-        
+
         // Process nested links
         nestedUl.querySelectorAll('li').forEach(nestedLi => {
           const nestedLink = nestedLi.querySelector('a');
@@ -162,19 +162,19 @@ export default async function decorate(block) {
             }
           }
         });
-        
+
         // Add click handler
         expandableLink.onclick = (e) => {
           e.preventDefault();
           const isExpanded = li.getAttribute('aria-expanded') === 'true';
-          
+
           li.setAttribute('aria-expanded', !isExpanded);
           li.classList.toggle('is-expanded', !isExpanded);
           nestedUl.style.display = isExpanded ? 'none' : 'block';
-          
+
           updateIcon(expandableLink, !isExpanded, true);
         };
-        
+
         // Initialize icon
         updateIcon(expandableLink, false, true);
       } else {
@@ -203,7 +203,7 @@ export default async function decorate(block) {
     // Handle regular pages
     const cfg = readBlockConfig(block);
     let fragment;
-    
+
     if (getMetadata('source') === 'github') {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
@@ -312,7 +312,14 @@ export default async function decorate(block) {
 
           if (window.location.href === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
-            li.classList.add("is-selected");
+            if (li.classList.contains("header") && li.classList.contains("is-expanded")) {
+              // if the header is expanded, make sure it's not selected if there is already a child selected.
+              if (li.querySelector(".is-selected")) {
+                li.classList.remove("is-selected");
+              }
+            } else {
+              li.classList.add("is-selected");
+            }
             toggleParent(li, true);
           } else {
             window.location.href = getAnchorTag.href;
@@ -322,6 +329,13 @@ export default async function decorate(block) {
         if (window.location.href === getAnchorTag.href) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
+          const header = li.closest(".header");
+          // Check to make sure only the child is selected and not the parent.
+          if (header) {
+            if (header.classList.contains("is-selected")){
+              header.classList.remove("is-selected");
+            }
+          }
           li.classList.add("is-expanded", "is-selected");
           toggleParent(li, true);
         } else {
