@@ -305,7 +305,7 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildSideNav(main) {
-  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav; visibility: hidden' });
+  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
@@ -395,11 +395,15 @@ function activeTabTemplate(width, isMainPage = false) {
  */
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
-  const actTab = getActiveTab(nav);
-  if (actTab) {
-    activateTab(actTab);
+  if (nav) {
+    const actTab = getActiveTab(nav);
+    if (actTab) {
+      activateTab(actTab);
+    }
+    if (getMetadata('template') === 'documentation') {
+      activeSubNav(actTab);
+    }
   }
-  activeSubNav(actTab);
 }
 
 export function getActiveTab(nav) {

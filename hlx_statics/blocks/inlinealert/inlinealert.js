@@ -5,9 +5,9 @@ import {
 import { getMetadata } from '../../scripts/scripts.js';
 
 function NeutralMedium() {
-    // no image 
+    // no image
     return `
-        <svg class="spectrum-Icon"></svg>`
+        <svg class="spectrum-Icon" style="display: none"></svg>`
 }
 const infoIcon = `<svg class="spectrum-Icon spectrum-UIIcon-InfoMedium spectrum-InLineAlert-icon" focusable="false" aria-hidden="true" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/info.svg#icon-info"></use></svg>`
 
@@ -51,7 +51,7 @@ function getVariant(classList) {
 export default async function decorate(block) {
     const container = getBlockSectionContainer(block);
 
-        block.classList.add('spectrum-InLineAlert'); 
+        block.classList.add('spectrum-InLineAlert');
         // figure out variant based on parent element or on the block itself
         // TODO: may need to refactor this logic
         let classVariant;
