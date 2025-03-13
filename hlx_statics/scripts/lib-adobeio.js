@@ -306,11 +306,6 @@ export function buildGrid(main) {
  */
 export function buildSideNav(main) {
   let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
-  // Do not hide 
-  if (window.innerWidth >= 768) {
-    sideNavDiv.style.visibility = "hidden";
-  }
-
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
