@@ -352,20 +352,6 @@ function loadConfig() {
   window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo = window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo || {};
   window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo.language = 'en-US';
 
-  window.marketingtech = {
-    adobe: {
-      launch: {
-        url: launchURL,
-        controlPageLoad: true,
-      },
-      alloy: {
-        edgeConfigId: edgeConfigId,
-      },
-      target: false,
-      audienceManager: false,
-    }
-  };
-
   let launchURL;
   let edgeConfigId;
 
@@ -379,6 +365,20 @@ function loadConfig() {
     edgeConfigId = 'a44f0037-2ada-441f-a012-243832ce5ff9';
     launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js';
   }
+
+  window.marketingtech = {
+    adobe: {
+      launch: {
+        url: launchURL,
+        controlPageLoad: true,
+      },
+      alloy: {
+        edgeConfigId: edgeConfigId,
+      },
+      target: false,
+      audienceManager: false,
+    }
+  };
 }
 
 /**
