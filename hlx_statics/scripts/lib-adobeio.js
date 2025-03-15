@@ -516,6 +516,16 @@ export function isStageEnvironment(host) {
 export function isDevEnvironment(host) {
   return host.indexOf('developer-dev') >= 0;
 }
+
+/**
+ * Checks whether the current URL is the prod environment based on host value
+ * @param {*} host The host
+ * @returns True if the current URL is a prod environment, false otherwise
+ */
+export function isProdEnvironment(host) {
+  return host.indexOf('developer.adobe.com') >= 0;
+}
+
 /**
  * Checks whether the current URL is a Franklin website based on host value
  * @param {*} host The host
