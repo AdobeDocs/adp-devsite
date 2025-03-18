@@ -284,17 +284,6 @@ export async function loadIms() {
         const logsEnabled = true;
 
         setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
-        window.marketingtech = {
-          adobe: {
-            launch: {
-              property: 'global',
-              environment: 'dev',
-            },
-            analytics: {
-              additionalAccounts: 'pgeo1xxpnwadobeio-qa',
-            },
-          },
-        };
       } else if (!isHlxPath(window.location.host) && isStageEnvironment(window.location.host)) {
         if (window.location.pathname.includes('/photoshop/api')) {
           const client_id = 'cis_easybake';
