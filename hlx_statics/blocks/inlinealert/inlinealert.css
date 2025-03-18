@@ -14,7 +14,6 @@ main div.inlinealert-wrapper .spectrum-InLineAlert {
     border-style: solid;
     border-radius: 4px;
     background-color: rgb(255, 255, 255);
-    color: rgb(110,110,110);
 }
 
 [dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
@@ -100,6 +99,10 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-footer:empty {
     color: rgb(0, 84, 182);
 }
 
+.spectrum-InLineAlert--neutral {
+    border-color: rgb(110, 110, 110);
+}
+
 .spectrum-InLineAlert--help {
     border-color: rgb(20, 122, 243);
 }
@@ -155,9 +158,15 @@ main .inlinealert img {
 
 main .inlinealert-wrapper .inlinealert.warning{
     border-color: rgb(246,133,17);
-    color: rgb(203,93,0);
+    color: rgb(203, 93, 0);
 }
 
 main .inlinealert-wrapper{
     margin: 20px 0px;
+}
+
+main div.inlinealert > p.spectrum-InLineAlert-content{
+    display: inline-flex;
+    flex-direction: column;
+    gap: 8px;
 }
