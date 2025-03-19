@@ -450,14 +450,101 @@ header iframe {
 }
 
 header div.nav-console-search-frame {
-  position: fixed;
-  top: 80px;
+    position: fixed; /* Ensures it covers the whole screen */
+    top: 80px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: transparent;
+    /* z-index: 10; */
+    /* width: 100vh; */
+    height: 100%;
+    margin: auto;
+    background: white; /* Semi-transparent black */
+    display: flex; /* Centers content inside */
+    flex-direction: column;
+    /* justify-content: center; */
+    align-items: center;
+    visibility: hidden; /* Hidden by default */
+}
+
+header div.search-bar-outer {
+  display: flex;
+  flex-direction: row;
+  min-width: 688px;
+  border: solid;
+  border-color: #333;
+}
+
+header div.search-bar-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+header svg.search-icon {
+  padding: 1px 11px
+}
+
+header input.search-input {
+  width:100%;
+  border-width:0px !important;
+}
+
+header div.search-results {
+  display: flex;
+  flex-direction: row;
+  max-width: 1280px;
+  height: 100%; /* Adjust this value based on your needs */
+
+}
+
+header div.search-box > div > form {
+  --spectrum-search-quiet-button-offset: calc(var(--spectrum-actionbutton-m-texticon-min-width, var(--spectrum-global-dimension-size-400)) / 2 - var(--spectrum-alias-ui-icon-cross-size-100) / 2);
+    display: inline-block;
+    position: relative;
+}
+
+header div.merged-results {
+  display: block;
+  flex-direction: column;
+  align-items: center;
+  width: 1000px !important;
+  top: 100px;
   left: 0px;
   right: 0px;
   bottom: 0px;
-  background-color: transparent;
-  z-index: 10;
-  visibility: hidden;
+  overflow-y: auto; /* Allow vertical scrolling if content overflows */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+header div.merged-results .result-item{
+  /* border:1px solid black;  */
+  /* margin: 20px;  */
+  display: block;
+  padding: 10px;
+  width: 940px;
+  
+}
+
+header div.result-item > h1 > a {
+  text-decoration: none;
+  color: rgb(0, 84, 182) !important;
+}
+
+header div.result-item .result-url {
+  font-style: italic;
+}
+
+header div.result-item .result-content {
+  display: block;
+  margin: var(--spectrum-global-dimension-size-100) 0;
+  overflow-wrap: break-word;
+  font-weight: normal;
+  font-size: 14px;
+  margin: 8px 0;
 }
 
 header div.nav-console-search-frame iframe {

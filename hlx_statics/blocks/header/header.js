@@ -16,6 +16,698 @@ function isSourceGithub() {
   return getMetadata('source') === 'github';
 }
 
+function init_Search() {
+  const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+  const { connectAutocomplete } = instantsearch.connectors;
+
+  const searchClient = algoliasearch('E642SEDTHL', '424b546ba7ae75391585a10c6ea38dab');
+
+  // Convert window.index_map to an object
+  const indexMap = Object.fromEntries(window.adp_search.index_to_product_map);
+
+  // Extract indices and products
+  const indices = Object.keys(indexMap);
+  const products = Array.from(new Set(Object.values(indexMap))); // Unique products
+  
+  // Initialize selected products (all selected by default)
+  let selectedProducts = products.slice();
+
+  // Get indices corresponding to selected products
+  const selectedIndices = indices.filter((indexName) => {
+    const product = indexMap[indexName];
+    return selectedProducts.includes(product);
+  });
+
+  // Create the search instance
+  let search;
+
+  // Create a new search instance
+  search = instantsearch({
+    indexName: selectedIndices[0],
+    searchClient,
+    routing: true,
+  });
+
+  function customSearchBox({ container, button }) {
+    return {
+      init({ helper }) {
+        const input = document.querySelector(container);
+        const buttonElement = document.querySelector(button);
+  
+        function performSearch() {
+          if (input.value.trim() !== "") {
+            updateSearch(); // Call updateSearch only when the user submits a query
+            helper.setQuery(input.value).search();
+          }
+        }
+  
+        input.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            performSearch();
+          }
+        });
+  
+        buttonElement.addEventListener("click", () => {
+          performSearch();
+        });
+      },
+      render() {},
+    };
+  }
+
+  function renderMergedHits({ indices, widgetParams }, isFirstRendering) {
+    if (!indices || !Array.isArray(indices)) {
+      console.error("indices is undefined or not an array", indices);
+      return;
+    }
+
+    // const queryParams = new URLSearchParams(window.location.search);
+    // const query = queryParams.get("query") || "";
+    // console.log(query);
+    console.log("Full search string:", window.location.search);
+
+
+    results = new Map();
+
+    // if (isFirstRendering){
+    //   results_products = selectedProducts.copyWithin();
+    // }
+    // console.log("hello im here")
+    // results_products = new Array();
+
+    // const faltINdex = indices.flatMap(({ hits }) => hits || []);
+    // console.log(faltINdex)
+    indices.flatMap(({ hits }) => hits || []).forEach((hit) => {
+      // console.log("Hit data:", hit); // Log hit data to inspect it
+      results.set(instantsearch.highlight({ hit, attribute: "title" }), {
+        url: hit.url,
+        product: hit.product,
+        content: instantsearch.highlight({ hit, attribute: 'content' })
+      });
+      // results_products.concat(hit.product);
+    });
+    renderResults();
+  };
+  
+  const customMergedHits = connectAutocomplete(renderMergedHits);
+
+  search.addWidgets([
+    customSearchBox({
+      container: '.search-input',
+      button: '#search-button',
+    }),
+    customMergedHits({
+      container: document.querySelector(".merged-results")
+    }),
+  ]);
+
+  let results = new Map();
+
+  // Function to initialize or update the search
+  function updateSearch() {
+    console.log("update search");
+  
+    if (search) {
+      search.dispose(); // Dispose of the existing search instance
+    }
+
+    // Get indices corresponding to selected products
+    const selectedIndices = indices.filter((indexName) => {
+      const product = indexMap[indexName];
+      return selectedProducts.includes(product);
+    });
+
+    if (selectedIndices.length === 0) {
+      document.querySelector('.merged-results').innerHTML = '<p>No products selected.</p>';
+      document.querySelector('.filters').innerHTML = '';
+      renderProductCheckboxes();
+      attachCheckboxEventListeners();
+      return;
+    };
+
+    // Add common widgets
+    search.addWidgets([
+      instantsearch.widgets.configure({
+        hitsPerPage: 1,
+        attributesToSnippet: ['content:240'],
+      }),
+    ]);
+
+    // function customSearchBox({ container, button }) {
+    //   return {
+    //     init({ helper }) {
+    //       const input = document.querySelector(container);
+    //       const buttonElement = document.querySelector(button);
+    
+    //       input.addEventListener('keypress', (event) => {
+    //         if (event.key === 'Enter') {
+    //           helper.setQuery(input.value).search();
+    //         }
+    //       });
+    
+    //       buttonElement.addEventListener('click', () => {
+    //         helper.setQuery(input.value).search();
+    //       });
+    //     },
+    //     render() {
+    //     },
+    //   };
+    // };    
+
+    // Add indices
+    selectedIndices.slice(1).forEach((indexName) => {
+      search.addWidgets([
+        instantsearch.widgets.index({
+          indexName: indexName,
+        }),
+      ]);
+    });
+
+    // Start the search
+    search.start();
+  }
+
+
+  // Function to render product checkboxes
+  function renderProductCheckboxes() {
+    const container = document.querySelector('.filters');
+    container.innerHTML = ''; // Clear any existing content
+
+    // console.log(results_products)
+    products.forEach((product) => {
+      // if(results_products.includes(product)){
+      const checkboxId = `checkbox-${product.replace(/\s+/g, '-')}`;
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = checkboxId;
+      checkbox.value = product;
+      checkbox.checked = selectedProducts.includes(product);
+
+      const label = document.createElement('label');
+      label.htmlFor = checkboxId;
+      label.innerText = product;
+
+      container.appendChild(checkbox);
+      container.appendChild(label);
+      container.appendChild(document.createElement('br'));
+      // }
+    });
+  }
+
+  // Function to attach event listeners to checkboxes
+  function attachCheckboxEventListeners() {
+    const checkboxes = document.querySelectorAll('.filters input[type="checkbox"]');
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        selectedProducts = Array.from(checkboxes)
+          .filter((cb) => cb.checked)
+          .map((cb) => cb.value);
+
+        renderResults(); // Update the results with new selections
+      });
+    });
+  }
+
+  function renderResults() {
+    const container = document.querySelector(".merged-results");
+    // renderProductCheckboxes();
+
+    if (results.size > 0) {
+      const mergedResultsHTML = [...results] // Convert Map to an array
+        .filter(([key, value]) => selectedProducts.includes(value.product)) // Check if the product is selected
+        .map(([key, value]) => `
+          <div class="result-item">
+            <h1 class="spectrum-Body spectrum-Body--sizeM css-1i3xfjj">
+              <a href="${value.url}">${key}</a>
+            </h1>
+            <a class="result-url spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>        
+            <p class="result-content spectrum-Body spectrum-Body--sizeS" >${value.content}</p>  
+                  
+          </div>
+          <hr>
+        `)
+        .join(""); // Join all strings into a single HTML string
+      container.innerHTML = mergedResultsHTML;
+    } else {
+      container.innerHTML = '<p>No results found.</p>';
+    }
+  };
+  
+  // Initialize the search and render checkboxes
+  renderProductCheckboxes();
+  attachCheckboxEventListeners();
+  // updateSearch();
+}
+
+function init__Search() {
+  const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+  const { connectAutocomplete } = instantsearch.connectors;
+
+  const searchClient = algoliasearch('E642SEDTHL', '424b546ba7ae75391585a10c6ea38dab');
+  
+  // Convert window.index_map to an object
+  const indexMap = Object.fromEntries(window.adp_search.index_to_product_map);
+
+  // Extract indices and products
+  const indices = Object.keys(indexMap);
+  const products = Array.from(new Set(Object.values(indexMap))); // Unique products
+  
+  // Initialize selected products (all selected by default)
+  let selectedProducts = products.slice();
+
+  // Get indices corresponding to selected products
+  const selectedIndices = indices.filter((indexName) => {
+    const product = indexMap[indexName];
+    return selectedProducts.includes(product);
+  });
+
+  // Create the search instance with disabled auto-search
+  const search = instantsearch({
+    indexName: selectedIndices[0],
+    searchClient,
+    searchFunction(helper) {
+      // Do nothing unless explicitly triggered
+    },
+    routing: true,
+  });
+
+  // Custom search box widget to handle Enter key and button click
+  function customSearchBox({ container, button }) {
+    return {
+      init({ helper }) {
+        const input = document.querySelector(container);
+        const buttonElement = document.querySelector(button);
+
+        function performSearch() {
+          if (input.value.trim() !== "") {
+            helper.setQuery(input.value).search();
+          }
+        }
+
+        input.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            updateSearch();
+          }
+        });
+
+        buttonElement.addEventListener("click", () => {
+          performSearch();
+        });
+      },
+      render() {},
+    };
+  }
+
+  // Render merged results
+  function renderMergedHits({ indices, widgetParams }, isFirstRendering) {
+    if (!indices || !Array.isArray(indices)) {
+      console.error("indices is undefined or not an array", indices);
+      return;
+    }
+
+    const results = new Map();
+    indices.flatMap(({ hits }) => hits || []).forEach((hit) => {
+      results.set(instantsearch.highlight({ hit, attribute: "title" }), {
+        url: hit.url,
+        product: hit.product,
+        content: instantsearch.highlight({ hit, attribute: "content" }),
+      });
+    });
+
+    renderResults(results);
+  };
+
+  const customMergedHits = connectAutocomplete(renderMergedHits);
+
+  search.addWidgets([
+    customSearchBox({
+      container: ".search-input",
+      button: "#search-button",
+    }),
+    customMergedHits({
+      container: document.querySelector(".merged-results"),
+    }),
+  ]);
+
+  // Render checkboxes for filtering
+  function renderProductCheckboxes() {
+    const container = document.querySelector(".filters");
+    container.innerHTML = ""; // Clear previous content
+
+    products.forEach((product) => {
+      const checkboxId = `checkbox-${product.replace(/\s+/g, "-")}`;
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = checkboxId;
+      checkbox.value = product;
+      checkbox.checked = selectedProducts.includes(product);
+
+      const label = document.createElement("label");
+      label.htmlFor = checkboxId;
+      label.innerText = product;
+
+      container.appendChild(checkbox);
+      container.appendChild(label);
+      container.appendChild(document.createElement("br"));
+    });
+  }
+
+  // Attach event listeners to the checkboxes
+  function attachCheckboxEventListeners() {
+    const checkboxes = document.querySelectorAll(".filters input[type='checkbox']");
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        selectedProducts = Array.from(checkboxes)
+          .filter((cb) => cb.checked)
+          .map((cb) => cb.value);
+
+        updateSearch();
+      });
+    });
+  }
+
+  function renderResults(results) {
+    const container = document.querySelector(".merged-results");
+
+    if (results.size > 0) {
+      const mergedResultsHTML = [...results]
+        .filter(([key, value]) => selectedProducts.includes(value.product))
+        .map(
+          ([key, value]) => `
+            <div class="result-item">
+              <h1>
+                <a href="${value.url}">${key}</a>
+              </h1>
+              <a class="result-url">${value.url}</a>
+              <p class="result-content">${value.content}</p>
+            </div>
+            <hr>
+          `
+        )
+        .join("");
+      container.innerHTML = mergedResultsHTML;
+    } else {
+      container.innerHTML = "<p>No results found.</p>";
+    }
+  }
+
+  // Update the search instance
+  function updateSearch() {
+    // if (search) {
+    //   search.dispose(); // Dispose of the existing search instance
+    // }
+
+    const selectedIndices = indices.filter((indexName) => {
+      const product = indexMap[indexName];
+      return selectedProducts.includes(product);
+    });
+
+    if (selectedIndices.length === 0) {
+      document.querySelector(".merged-results").innerHTML =
+        "<p>No products selected.</p>";
+      renderProductCheckboxes();
+      attachCheckboxEventListeners();
+      return;
+    }
+
+    search.start();
+  }
+
+  // Initialize checkboxes and event listeners
+  renderProductCheckboxes();
+  attachCheckboxEventListeners();
+}
+
+const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+const { connectAutocomplete } = instantsearch.connectors;
+const searchClient = algoliasearch('E642SEDTHL', '424b546ba7ae75391585a10c6ea38dab');
+
+// Convert window.index_map to an object
+const indexMap = Object.fromEntries(window.adp_search.index_to_product_map);
+
+// Extract indices and products
+const indices = Object.keys(indexMap);
+const products = Array.from(new Set(Object.values(indexMap))); // Unique products
+
+// Initialize selected products (all selected by default)
+let selectedProducts = products.slice();
+
+// Get indices corresponding to selected products
+const selectedIndices = indices.filter((indexName) => {
+  const product = indexMap[indexName];
+  return selectedProducts.includes(product);
+});
+
+
+function initSearch(){
+  // Create the search instance
+  let search;
+  console.log("init search")
+  let userSearch = false;
+
+  // Create a new search instance
+  search = instantsearch({
+    indexName: selectedIndices[0],
+    searchClient,
+    searchFunction(helper) {
+      // Only perform the search if explicitly triggered
+      if (userSearch) {
+        helper.search();
+      }
+    },
+    routing: true,
+  });
+
+  // function customSearchBox({ container, button }) {
+  //   return {
+  //     init({ helper }) {
+  //       const input = document.querySelector(container);
+  //       const buttonElement = document.querySelector(button);
+  
+  //       // input.addEventListener('keypress', (event) => {
+  //       //   if (event.key === 'Enter') {
+  //       //     helper.setQuery(input.value).search();
+  //       //   }
+  //       // });
+  //       // Trigger search on "Enter" key press
+  //       input.addEventListener('keypress', (event) => {
+  //         if (event.key === 'Enter') {
+  //           if (input.value.trim() !== '') {
+  //             helper.setQuery(input.value).search();
+  //           }
+  //         }
+  //       });
+  
+  //       buttonElement.addEventListener('click', () => {
+  //         helper.setQuery(input.value).search();
+  //       });
+  //     },
+  //     render() {
+  //     },
+  //   };
+  // };
+
+  function customSearchBox({ container, button }) {
+    return {
+      init(params) {
+        const { helper } = params;
+        const input = document.querySelector(container);
+        const buttonElement = document.querySelector(button);
+
+        // Trigger search on "Enter" key press
+        input.addEventListener('keypress', (event) => {
+          if (event.key === 'Enter') {
+            performSearch(input, helper);
+          }
+        });
+
+        // Trigger search on button click
+        buttonElement.addEventListener('click', () => {
+          performSearch(input, helper);
+        });
+      },
+      render({ helper }) {
+        // Update the input value with the current query
+        const input = document.querySelector(container);
+        input.value = helper.state.query || '';
+      },
+    };
+  }
+
+  function performSearch(input, helper) {
+    if (input.value.trim() !== '') {
+      helper.setQuery(input.value);
+      userSearch = true; // Set flag to indicate user-triggered search
+      helper.search();
+    }
+  }
+
+  function renderMergedHits({ indices, widgetParams }, isFirstRendering) {
+    if (!indices || !Array.isArray(indices)) {
+      console.error("indices is undefined or not an array", indices);
+      return;
+    }
+
+    // const queryParams = new URLSearchParams(window.location.search);
+    // const query = queryParams.get("query") || "";
+    // console.log(query);
+    console.log("Full search string:", window.location.search);
+
+
+    let results = new Map();
+    indices.flatMap(({ hits }) => hits || []).forEach((hit) => {
+      // console.log("Hit data:", hit); // Log hit data to inspect it
+      results.set(instantsearch.highlight({ hit, attribute: "title" }), {
+        url: hit.url,
+        product: hit.product,
+        content: instantsearch.highlight({ hit, attribute: 'content' })
+      });
+      // results_products.concat(hit.product);
+    });
+    renderResults(selectedProducts, results);
+    console.log("hits list")
+    console.log(results)
+  };
+
+  
+  
+  const customMergedHits = connectAutocomplete(renderMergedHits);
+
+  search.addWidgets([
+    customSearchBox({
+      container: '.search-input',
+      button: '#search-button',
+    }),
+    customMergedHits({
+      container: document.querySelector(".merged-results")
+    }),
+  ]);
+
+  
+
+  // Function to initialize or update the search
+  function updateSearch() {
+    console.log("update search");
+  
+    // if (search) {
+    //   search.dispose(); // Dispose of the existing search instance
+    // }
+
+    // Get indices corresponding to selected products
+    const selectedIndices = indices.filter((indexName) => {
+      const product = indexMap[indexName];
+      return selectedProducts.includes(product);
+    });
+
+    if (selectedIndices.length === 0) {
+      document.querySelector('.merged-results').innerHTML = '<p>No products selected.</p>';
+      document.querySelector('.filters').innerHTML = '';
+      renderProductCheckboxes();
+      attachCheckboxEventListeners();
+      return;
+    };
+
+    // Add common widgets
+    search.addWidgets([
+      instantsearch.widgets.configure({
+        hitsPerPage: 1,
+        attributesToSnippet: ['content:240'],
+      }),
+    ]);
+
+    
+
+    // Add indices
+    selectedIndices.slice(1).forEach((indexName) => {
+      search.addWidgets([
+        instantsearch.widgets.index({
+          indexName: indexName,
+        }),
+      ]);
+    });
+
+    // Start the search
+    search.start();
+  }
+
+  // Initialize checkboxes and event listeners
+  renderProductCheckboxes(products);
+  attachCheckboxEventListeners(selectedProducts);
+  updateSearch();
+}
+
+
+
+// Render checkboxes for filtering
+function renderProductCheckboxes(products) {
+  const container = document.querySelector(".filters");
+  container.innerHTML = ""; // Clear previous content
+
+  products.forEach((product) => {
+    const checkboxId = `checkbox-${product.replace(/\s+/g, "-")}`;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = checkboxId;
+    checkbox.value = product;
+    checkbox.checked = selectedProducts.includes(product);
+
+    const label = document.createElement("label");
+    label.htmlFor = checkboxId;
+    label.innerText = product;
+
+    container.appendChild(checkbox);
+    container.appendChild(label);
+    container.appendChild(document.createElement("br"));
+  });
+}
+
+// Attach event listeners to the checkboxes
+function attachCheckboxEventListeners(selectedProducts) {
+  const checkboxes = document.querySelectorAll(".filters input[type='checkbox']");
+
+  checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      selectedProducts = Array.from(checkboxes)
+        .filter((cb) => cb.checked)
+        .map((cb) => cb.value);
+
+      updateSearch();
+    });
+  });
+}
+
+function renderResults(selectedProducts, searchResults) {
+  const container = document.querySelector(".merged-results");
+  if (searchResults.size > 0) {
+    console.log("update results")
+
+    const mergedResultsHTML = [...searchResults]
+      .filter(([key, value]) => selectedProducts.includes(value.product))
+      .map(
+        ([key, value]) => `
+          <div class="result-item">
+            <h1>
+              <a href="${value.url}">${key}</a>
+            </h1>
+            <a class="result-url">${value.url}</a>
+            <p class="result-content">${value.content}</p>
+          </div>
+          <hr>
+        `
+      )
+      .join("");
+    container.innerHTML = mergedResultsHTML;
+  } else {
+    container.innerHTML = "<p>No results found.</p>";
+  }
+}
+
+
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
   div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
@@ -24,6 +716,132 @@ function globalNavSearchButton() {
       </svg>
     </button>`;
   return div;
+}
+
+{/* <div id="search-box">
+      <input type="text" id="search-input" placeholder="Search..." />
+      <button tabindex="0" aria-label="Clear Search" type="reset" class="spectrum-ClearButton spectrum-Search-clearButton css-wf990j spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
+        <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeM">
+          <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
+        </svg>
+      </button>
+    </div> */}
+
+const globalNavSearchDropDown = () => {
+  const searchDropDown = createTag('div', { class: 'nav-console-search-frame' });
+  searchDropDown.innerHTML = `
+    <div class="search-bar-outer">
+      <div class="search-bar-inner">
+        <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="search-icon spectrum-Textfield-icon spectrum-Icon spectrum-Icon--sizeM"><path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path></svg>
+        <input aria-label="Search" placeholder="Search" class="search-input">
+      </div>
+      <button tabindex="0" aria-label="Clear Search" type="reset" id="search-button" class="spectrum-ClearButton spectrum-Search-clearButton css-wf990j spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
+        <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeM"><path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path></svg>
+      </button>
+    </div>
+
+    <div class="search-results">
+      <div class="search-refinement">
+        <h4 class="spectrum-Heading spectrum-Heading--sizeXS css-ctmjql">Filter by Products</h4>
+        <div class="filters"></div>
+      </div>
+      <div class="merged-results"></div>
+    </div>
+    `;
+
+  return searchDropDown;
+};
+
+const setSearchFrameSource = () => {
+  const src = isLocalHostEnvironment(window.location.host) ? setSearchFrameOrigin(window.location.host) : `${setSearchFrameOrigin(window.location.host, '/search-frame')}`;
+  const queryString = getQueryString();
+  return queryString && queryString.toString().length > 0
+    ? `${src}?${queryString.toString()}`
+    : src;
+};
+
+const searchFrameOnLoad = (renderedFrame, counter = 0, loaded) => {
+  renderedFrame.contentWindow.postMessage(JSON.stringify({ localPathName: window.location.pathname }), '*');
+  if (window.search_path_name_check !== window.location.pathname) {
+    if (counter > 30) {
+      console.warn('Loading Search iFrame timed out');
+      return;
+    }
+    window.setTimeout(() => { searchFrameOnLoad(renderedFrame, counter + 1, loaded); }, 100);
+  }
+  if (!loaded) {
+    const queryString = getQueryString();
+    if (queryString.has('query')) {
+      const searchIframeContainer = document.querySelector('div.nav-console-search-frame');
+      if (searchIframeContainer.length > 0) {
+        searchIframeContainer.style.visibility = 'visible';
+      }
+    }
+  }
+  loaded = true; 
+};
+
+// // Referenced https://stackoverflow.com/a/10444444/15028986
+// const checkIframeLoaded = (renderedFrame) => {
+//   // Get a handle to the iframe element
+//   const iframeDoc = renderedFrame.contentDocument || renderedFrame.contentWindow.document;
+
+//   // Check if loading is complete
+//   if (iframeDoc.readyState === 'complete') {
+//     renderedFrame.onload = () => {
+//       searchFrameOnLoad(renderedFrame);
+//     };
+//     // The loading is complete, call the function we want executed once the iframe is loaded
+//     return;
+//   }
+//   // If we are here, it is not loaded.
+//   // Set things up so we check the status again in 100 milliseconds
+//   window.setTimeout(checkIframeLoaded, 100);
+// };
+
+// Referenced https://stackoverflow.com/a/10444444/15028986
+const checkIframeLoaded = (renderedFrame) => {
+  // Get a handle to the iframe element
+  const iframeDoc = renderedFrame.contentDocument || renderedFrame.contentWindow.document;
+
+  // Check if loading is complete
+  if (iframeDoc.readyState === 'complete') {
+    renderedFrame.onload = () => {
+      searchFrameOnLoad(renderedFrame);
+    };
+    // The loading is complete, call the function we want executed once the iframe is loaded
+    return;
+  }
+  // If we are here, it is not loaded.
+  // Set things up so we check the status again in 100 milliseconds
+  window.setTimeout(checkIframeLoaded, 100);
+}
+
+function decorateSearchIframeContainer(header) {
+  const search_div = header.querySelector('div.nav-console-search-frame');
+  const search_button = header.querySelector('button.nav-dropdown-search');
+  const escape_search_button = header.querySelector('button.spectrum-ClearButton');
+  const queryString = getQueryString();
+
+  search_button.addEventListener('click', (evt) => {
+    if (!evt.currentTarget.classList.contains('is-open')) {
+      initSearch();
+      search_div.style.visibility = 'visible';
+      search_button.classList.add('is-open');
+    } else {
+      search_button.classList.remove('is-open');
+      search_div.style.visibility = 'hidden';
+    }
+  });
+  escape_search_button.addEventListener('click', (evt) => {
+    if(search_button.classList.contains('is-open')){
+      search_button.classList.remove('is-open');
+      search_div.style.visibility = 'hidden';
+    } 
+  });
+  if (queryString.has('query')) {
+    button.click();
+  }
 }
 
 function globalDistributeButton() {
@@ -104,92 +922,6 @@ function globalNavLinkItemDropdownItem(url, name) {
         <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
       </li>
     `;
-}
-
-const globalNavSearchDropDown = () => createTag('div', { class: 'nav-console-search-frame' });
-
-const setSearchFrameSource = () => {
-  const src = isLocalHostEnvironment(window.location.host) ? setSearchFrameOrigin(window.location.host) : `${setSearchFrameOrigin(window.location.host, '/search-frame')}`;
-  const queryString = getQueryString();
-  return queryString && queryString.toString().length > 0
-    ? `${src}?${queryString.toString()}`
-    : src;
-};
-
-const searchFrameOnLoad = (renderedFrame, counter = 0, loaded) => {
-  renderedFrame.contentWindow.postMessage(JSON.stringify({ localPathName: window.location.pathname }), '*');
-  if (window.search_path_name_check !== window.location.pathname) {
-    // attempt to establish connection for 3 seconds then time out
-    if (counter > 30) {
-      // eslint-disable-next-line no-console
-      console.warn('Loading Search iFrame timed out');
-      return;
-    }
-    window.setTimeout(() => { searchFrameOnLoad(renderedFrame, counter + 1, loaded); }, 100);
-  }
-
-  // Past this point we successfully passed the local pathname
-  // and received a confirmation from the iframe
-  if (!loaded) {
-    const queryString = getQueryString();
-
-    if (queryString.has('query')) {
-      const searchIframeContainer = document.querySelector('div.nav-console-search-frame');
-      if (searchIframeContainer.length > 0) {
-        searchIframeContainer.style.visibility = 'visible';
-      }
-    }
-  }
-
-  loaded = true; // eslint-disable-line no-param-reassign
-};
-
-// Referenced https://stackoverflow.com/a/10444444/15028986
-const checkIframeLoaded = (renderedFrame) => {
-  // Get a handle to the iframe element
-  const iframeDoc = renderedFrame.contentDocument || renderedFrame.contentWindow.document;
-
-  // Check if loading is complete
-  if (iframeDoc.readyState === 'complete') {
-    renderedFrame.onload = () => {
-      searchFrameOnLoad(renderedFrame);
-    };
-    // The loading is complete, call the function we want executed once the iframe is loaded
-    return;
-  }
-  // If we are here, it is not loaded.
-  // Set things up so we check the status again in 100 milliseconds
-  window.setTimeout(checkIframeLoaded, 100);
-};
-
-function decorateSearchIframeContainer(header) {
-  const searchIframeContainer = header.querySelector('div.nav-console-search-frame');
-  const button = header.querySelector('button.nav-dropdown-search');
-  const queryString = getQueryString();
-
-  button.addEventListener('click', (evt) => {
-    if (!evt.currentTarget.classList.contains('is-open')) {
-      const searchFrame = createTag('iframe');
-      searchFrame.id = 'nav-search-iframe';
-      searchFrame.src = setSearchFrameSource();
-      searchIframeContainer.appendChild(searchFrame);
-      button.classList.add('is-open');
-      /* Loading Iframe */
-      checkIframeLoaded(searchIframeContainer.firstChild);
-      searchIframeContainer.style.visibility = 'visible';
-      document.body.style.overflow = 'hidden';
-    } else {
-      button.classList.remove('is-open');
-      searchIframeContainer.style.visibility = 'hidden';
-      document.body.style.overflow = 'auto';
-      searchIframeContainer.firstChild.remove();
-    }
-  });
-
-  // to load search if query string is present
-  if (queryString.has('query')) {
-    button.click();
-  }
 }
 
 function handleButtons(header) {
@@ -537,6 +1269,7 @@ export default async function decorate(block) {
 
   // Add right container for all templates
   const rightContainer = createTag('div', { class: 'nav-console-right-container' });
+
   rightContainer.appendChild(globalNavSearchButton());
   if (window.location.pathname.includes('/developer-distribution')) {
     rightContainer.appendChild(globalDistributeButton());
@@ -546,6 +1279,7 @@ export default async function decorate(block) {
   header.append(rightContainer);
   header.append(globalNavSearchDropDown());
   decorateSearchIframeContainer(header);
+  // initSearch();
   block.remove();
 
   handleButtons(header);
@@ -560,4 +1294,4 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
-}
+  }
