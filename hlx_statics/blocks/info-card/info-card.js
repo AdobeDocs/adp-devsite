@@ -28,44 +28,56 @@ export default async function decorate(block) {
   /* change to ul, li */
   const ul = document.createElement('ul');
   [...block.children].forEach((row) => {
-    if (row.querySelector('picture')) {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      while (row.firstElementChild) a.append(row.firstElementChild);
-      [...a.children].forEach((div) => {
-        let a_tag, p_tag;
-        if (div.children.length === 1 && div.querySelector('picture'))
-          div.className = 'cards-card-image';
-        else {// make body class and find link + text
-          // find link
-          a_tag = div.querySelector('a');
-          a.href = a_tag.href;
+    const li = document.createElement('li');
+    const a = document.createElement('a');
 
-          // change text font and size and color
-          div.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-            h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM');
-            h.textContent = a_tag.textContent;
-          });
-          p_tag = div.querySelector('p');
-          p_tag.style.color = 'rgb(110, 110, 110)';
-          div.className = 'cards-card-body';
-        }
-      });
-      li.append(a);
-      ul.append(li);
+    const image = row.querySelector('img') || row.querySelector('picture img');
+    if (image) {
+      const imageDiv = createTag('div', { class: 'cards-card-image' });
+      imageDiv.appendChild(createOptimizedPicture(image.src, image.alt, false, [{ width: '750' }]));
+      a.appendChild(imageDiv);
     }
 
+    const textDiv = createTag('div', { class: 'cards-card-body' });   
+    
+    const headingElement = row.querySelector('h1, h2, h3, h4, h5, h6') || row.querySelector('a');
+    if (headingElement) {
+      const anchorHref = row.querySelector('a');
+      if (anchorHref) {
+        const h3 = document.createElement('h3');
+        h3.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS','card-heading');
+        h3.textContent = headingElement.textContent.trim();
+        textDiv.appendChild(h3);
+        headingElement.href ?  a.href = headingElement.href : a.href = anchorHref.href ;
+      } else {
+        headingElement.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS','card-heading');
+        textDiv.appendChild(headingElement);
+      }
+    }
+          
+    const description = row.querySelector('p') || row.querySelector('.info-card > div > div:last-child');
+    if (description && description.textContent.trim() !== '') {
+      const p = document.createElement('p');
+      p.style.color = 'rgb(110, 110, 110)';
+      p.innerHTML = description.innerHTML;
+      textDiv.appendChild(p);
+    }    
+            
+    a.appendChild(textDiv);
+    li.appendChild(a);
+    ul.appendChild(li);
+
   });
-  ul.querySelectorAll('img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+  
   block.textContent = '';
-  block.append(ul);
+  block.appendChild(ul);
 
   block.querySelectorAll('.icon').forEach((s) => {
     const p_parent = s.parentElement;
     const div_parent = createTag('div', {class: 'icon-div'});
     p_parent.classList.add('icon-p');
-    p_parent.parentElement.append(div_parent);
-    div_parent.append(p_parent)
+    p_parent.parentElement.appendChild(div_parent);
+    div_parent.appendChild(p_parent)
   });
 
   if (block.classList.contains('primarybutton')) {

@@ -15,6 +15,10 @@ export default async function decorate(block) {
     const mainContainer = document.querySelector('main');
     const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
 
+    if (headings?.length > 0) {
+        mainContainer.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer aside"';
+    }
+
     Object.assign(aside.style, {
         display: 'flex',
         flexDirection: 'column',
