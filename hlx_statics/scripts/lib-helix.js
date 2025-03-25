@@ -131,7 +131,20 @@ export async function fetchRedirectJson() {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
   console.log('redirectFile', redirectFile)
-  const redirectHTML = await fetch(redirectFile);
+  const redirectHTML = await fetch(redirectFile)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data);
+    })
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+
   console.log('redirectHTML', redirectHTML)
   return redirectHTML;
 }
@@ -149,13 +162,13 @@ async function fetchNavHtml(name) {
 
   let navItems;
   fragment.querySelectorAll("p").forEach((item) => {
-    if(item.innerText === name) {
+    if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
       const navItemsChild = navItems.querySelectorAll('li');
       navItemsChild.forEach((liItems) => {
         let p = liItems.querySelector('p');
-        if(p) {
+        if (p) {
           p.replaceWith(p.firstChild);
         }
         let a = liItems.querySelector(':scope > a');
@@ -201,7 +214,7 @@ function normalizePaths(anchorElem, pathPrefix) {
   return anchorElem;
 }
 
-function cleanMarkdownExtension (pathName) {
+function cleanMarkdownExtension(pathName) {
   return pathName
     .replace('/src/pages/', '/')
     .replace('/index.md/', '')
@@ -211,8 +224,8 @@ function cleanMarkdownExtension (pathName) {
     .replace('.md', '');
 };
 
-function trailingSlashFix (pathName)  {
-  if (!pathName.endsWith('/')){
+function trailingSlashFix(pathName) {
+  if (!pathName.endsWith('/')) {
     return `${pathName}/`;
   }
   return pathName;
@@ -427,7 +440,7 @@ export function decorateSections(main) {
             }
           });
         } else {
-            section.dataset[toCamelCase(key)] = meta[key];
+          section.dataset[toCamelCase(key)] = meta[key];
         }
       });
       sectionMeta.parentNode.remove();
