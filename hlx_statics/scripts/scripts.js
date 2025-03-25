@@ -466,24 +466,46 @@ function loadTitle() {
 }
 
 function loadPrism(document) {
-  const highlightable = document.querySelector(
-    'code[class*="language-"], [class*="language-"] code',
+  const codeBlocks = document.querySelectorAll(
+    'code[class*="language-"], [class*="language-"] code'
   );
-  if (!highlightable) return; // exit, no need to load prism if nothing to highlight
 
-  // see: https://prismjs.com/docs/Prism.html#.manual
-  window.Prism = window.Prism || {};
-  window.Prism.manual = true;
-  loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
-  import('./prism.js')
-    .then(() => {
-      // see: https://prismjs.com/plugins/autoloader/
-      window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
-      // run prism in async mode; uses webworker.
-      window.Prism.highlightAll(true);
-    })
-    // eslint-disable-next-line no-console
-    .catch((err) => console.error(err));
+  if (!codeBlocks.length) return; 
+
+  const observer = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const pre = entry.target.closest('pre') || entry.target;
+          pre.classList.add('prism-loading');
+
+          observer.unobserve(entry.target); 
+          loadPrismScripts(pre);
+        }
+      });
+    },
+    { rootMargin: '200px 0px', threshold: 0.1 }
+  );
+
+  function loadPrismScripts(pre) {  
+    window.Prism = window.Prism || {};
+    window.Prism.manual = true;
+
+    loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
+
+    import('./prism.js')
+      .then(() => {
+        window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
+        window.Prism.highlightAll(true);
+
+        setTimeout(() => {
+          pre.classList.remove('prism-loading');
+        }, 300);
+      })
+      .catch((err) => console.error('Prism.js failed to load:', err));
+  }
+
+  codeBlocks.forEach((block) => observer.observe(block));
 }
 
 async function loadPage() {
