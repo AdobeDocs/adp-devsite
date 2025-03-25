@@ -124,6 +124,16 @@ export async function fetchSideNavHtml() {
 }
 
 /**
+ * Retrieves the side nav from the config.
+ * @returns {string} The side nav HTML
+ */
+export async function fetchRedirectJson() {
+  let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
+  let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
+  console.log('redirectFile', redirectFile)
+}
+
+/**
  * Retrieves the nav with the specified name from the config.
  * @param {string} name The nav name
  * @returns {string} The nav HTML
@@ -132,6 +142,7 @@ async function fetchNavHtml(name) {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let navPath = `${window.location.origin}/${pathPrefix}/config`;
   const fragment = await loadFragment(navPath);
+  console.log('fragment', fragment)
 
   let navItems;
   fragment.querySelectorAll("p").forEach((item) => {
