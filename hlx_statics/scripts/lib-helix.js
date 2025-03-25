@@ -131,7 +131,7 @@ export async function fetchRedirectJson() {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
   console.log('redirectFile', redirectFile)
-  const redirectHTML = await loadFragment(redirectFile);
+  const redirectHTML = await fetch(redirectFile);
   console.log('redirectHTML', redirectHTML)
   return redirectHTML;
 }
