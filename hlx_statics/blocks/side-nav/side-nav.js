@@ -3,6 +3,7 @@ import {
   getClosestFranklinSubfolder,
 } from "../../scripts/lib-adobeio.js";
 import {
+  fetchRedirectJson,
   fetchSideNavHtml,
   fetchTopNavHtml,
   getMetadata,
