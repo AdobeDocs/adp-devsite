@@ -474,6 +474,8 @@ function activeSubNav(actTab) {
   }
   if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
     document.querySelector("main").classList.add("no-sidenav");
+    const sectionDivision = document.querySelector("main > div:nth-child(2)");
+    sectionDivision.style.margin = "0 auto"
   }
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";
