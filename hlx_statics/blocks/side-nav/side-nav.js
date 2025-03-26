@@ -3,7 +3,6 @@ import {
   getClosestFranklinSubfolder,
 } from "../../scripts/lib-adobeio.js";
 import {
-  fetchRedirectJson,
   fetchSideNavHtml,
   fetchTopNavHtml,
   getMetadata,
@@ -30,7 +29,6 @@ function isMobileView() {
 export default async function decorate(block) {
   // Handle visibility of side nav container based on template and screen size
   const sideNavContainer = block.closest('.side-nav-container');
-  console.log('sideNavContainer', sideNavContainer)
   if (!isDocumentationTemplate() && sideNavContainer) {
     // For non-documentation pages, only show on mobiles
     const updateVisibility = () => {
@@ -266,8 +264,6 @@ export default async function decorate(block) {
   if (isSourceGithub()) {
     // Fetch and populate subpages
     const sideNavHtml = await fetchSideNavHtml();
-    const redirectHTML = await fetchRedirectJson();
-    console.log('redirectHTML', redirectHTML)
     if (sideNavHtml) {
       navigationLinksUl.innerHTML = sideNavHtml;
     }
@@ -399,8 +395,6 @@ export default async function decorate(block) {
         .replace(downIcon, "");
     }
   }
-
-  console.log('navigationLinksUl', navigationLinksUl)
 
   assignLayerNumbers(navigationLinksUl);
 }

@@ -195,8 +195,6 @@ async function fetchNavHtml(name) {
     }
   });
 
-  console.log('navItems', navItems)
-
   return navItems ? navItems.innerHTML : Promise.reject(navItems.innerHTML);
 }
 
@@ -748,7 +746,6 @@ export function githubActionsBlock(doc) {
   let baseUrl = getMetadata('githubblobpath');
   if (!baseUrl) return;
   const githubEditUrl = baseUrl.replace('blob', 'edit');
-  console.log('githubEditUrl', githubEditUrl)
   const githubIssueUrl = baseUrl.replace('blob', 'issues/new?title=Issue%20in%20');
   if (!doc.querySelector('.herosimple-container') && !doc.querySelector('.hero-container')) {
     const newContent = doc.createElement('div');
