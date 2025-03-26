@@ -172,15 +172,12 @@ async function fetchNavHtml(name) {
           p.replaceWith(p.firstChild);
         }
         let a = liItems.querySelector(':scope > a');
-        console.log('a', a)
         if (a) {
           a = normalizePaths(a, pathPrefix);
         }
         if (redirectHTML.data.length > 0) {
           redirectHTML.data.forEach((redirect) => {
             if (a.getAttribute('href') == redirect.Source) {
-              console.log('a.getAttribute(href)', a.getAttribute('href'));
-              console.log('redirect.Source', redirect.Source);
               a.setAttribute('dhref', redirect.Destination);
             }
           });
@@ -751,6 +748,7 @@ export function githubActionsBlock(doc) {
   let baseUrl = getMetadata('githubblobpath');
   if (!baseUrl) return;
   const githubEditUrl = baseUrl.replace('blob', 'edit');
+  console.log('githubEditUrl', githubEditUrl)
   const githubIssueUrl = baseUrl.replace('blob', 'issues/new?title=Issue%20in%20');
   if (!doc.querySelector('.herosimple-container') && !doc.querySelector('.hero-container')) {
     const newContent = doc.createElement('div');
