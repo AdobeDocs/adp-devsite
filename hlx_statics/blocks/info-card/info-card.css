@@ -7,7 +7,6 @@ main div.info-card-wrapper div.info-card > ul {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 1280px;
   gap: 40px;
   padding: 0;
 }
@@ -46,7 +45,7 @@ main div.info-card-wrapper div.info-card .cards-card-body > *:first-child {
 
 main div.info-card-wrapper div.info-card > ul > li img {
   width: 400px;
-  aspect-ratio: 5 / 3;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
