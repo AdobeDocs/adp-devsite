@@ -305,7 +305,7 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildSideNav(main) {
-  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav; visibility: hidden' });
+  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
@@ -395,11 +395,15 @@ function activeTabTemplate(width, isMainPage = false) {
  */
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
-  const actTab = getActiveTab(nav);
-  if (actTab) {
-    activateTab(actTab);
+  if (nav) {
+    const actTab = getActiveTab(nav);
+    if (actTab) {
+      activateTab(actTab);
+    }
+    if (getMetadata('template') === 'documentation') {
+      activeSubNav(actTab);
+    }
   }
-  activeSubNav(actTab);
 }
 
 export function getActiveTab(nav) {
@@ -407,7 +411,7 @@ export function getActiveTab(nav) {
   let bestMatch = null;
   let bestMatchLength = 0;
 
-  const links = Array.from(nav.querySelectorAll('li > a'));
+  const links = Array.from(nav.querySelectorAll('a'));
   for (const tabItem of links) {
     const hrefPath = new URL(tabItem.href);
     const fullPath = tabItem.getAttribute('fullPath');
@@ -441,8 +445,12 @@ function isSubpath(parentPath, childPath) {
 
 // Function to mark tab as active
 function activateTab(tabItem, isMainPage) {
-  const parentWidth = tabItem.parentElement.offsetWidth;
-  tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
+  let underlineItem = tabItem;
+  if (tabItem.closest('.nav-dropdown-popover')){
+    // if the item is within a dropdown, it needs to find the parent item to be underlined.
+    underlineItem = tabItem.closest('.nav-dropdown-popover');
+  }
+  underlineItem.parentElement.classList.add("activeTab");
 }
 
 function activeSubNav(actTab) {
@@ -508,6 +516,16 @@ export function isStageEnvironment(host) {
 export function isDevEnvironment(host) {
   return host.indexOf('developer-dev') >= 0;
 }
+
+/**
+ * Checks whether the current URL is the prod environment based on host value
+ * @param {*} host The host
+ * @returns True if the current URL is a prod environment, false otherwise
+ */
+export function isProdEnvironment(host) {
+  return host.indexOf('developer.adobe.com') >= 0;
+}
+
 /**
  * Checks whether the current URL is a Franklin website based on host value
  * @param {*} host The host

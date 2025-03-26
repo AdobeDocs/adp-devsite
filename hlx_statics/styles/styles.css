@@ -120,7 +120,7 @@ body.sidekick-library #onetrust-consent-sdk {
 
 main .inline-code {
   font-family: Courier, monospace;
-  font-size: 0.98rem;
+  font-size: 100%;
   background-color: rgb(245, 245, 245);
   padding: 0 2px;
   margin: 0;
@@ -991,6 +991,10 @@ main:not(:has(.onthispage-wrapper)) .code-wrapper {
 main a{
   color: rgb(0, 84, 182);
   text-decoration: none;
+}
+
+main div p{
+  line-height: 24px;
 }
 
 main a:hover{
