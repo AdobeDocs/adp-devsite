@@ -30,6 +30,7 @@ function isMobileView() {
 export default async function decorate(block) {
   // Handle visibility of side nav container based on template and screen size
   const sideNavContainer = block.closest('.side-nav-container');
+  console.log('sideNavContainer', sideNavContainer)
   if (!isDocumentationTemplate() && sideNavContainer) {
     // For non-documentation pages, only show on mobiles
     const updateVisibility = () => {
@@ -298,6 +299,8 @@ export default async function decorate(block) {
       li.setAttribute("role", "treeitem");
       li.setAttribute("aria-level", layer);
 
+      console.log('getAnchorTag', getAnchorTag)
+
       if (getAnchorTag) {
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
@@ -312,6 +315,7 @@ export default async function decorate(block) {
           }
 
           updateIcon(getAnchorTag, !isExpanded, Boolean(childUl));
+          console.log('getAnchorTag.href', getAnchorTag.href)
 
           if (window.location.href === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
@@ -329,6 +333,7 @@ export default async function decorate(block) {
           }
         };
 
+        // console.log('getAnchorTag', getAnchorTag)
         if (window.location.href === getAnchorTag.href) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
@@ -397,6 +402,8 @@ export default async function decorate(block) {
         .replace(downIcon, "");
     }
   }
+
+  console.log('navigationLinksUl', navigationLinksUl)
 
   assignLayerNumbers(navigationLinksUl);
 }

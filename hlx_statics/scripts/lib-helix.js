@@ -130,7 +130,6 @@ export async function fetchSideNavHtml() {
 export async function fetchRedirectJson() {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
-  console.log('redirectFile', redirectFile)
   const redirectHTML = await fetch(redirectFile)
     .then(response => {
       if (!response.ok) {
@@ -142,8 +141,6 @@ export async function fetchRedirectJson() {
     .catch(error => {
       console.error('There was a problem with the fetch operation:', error);
     });
-
-  console.log('redirectHTML', redirectHTML)
   return redirectHTML;
 }
 
@@ -155,11 +152,16 @@ export async function fetchRedirectJson() {
 async function fetchNavHtml(name) {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let navPath = `${window.location.origin}/${pathPrefix}/config`;
+  // console.log('navPath', navPath)
   const fragment = await loadFragment(navPath);
-  console.log('fragment', fragment)
+  // console.log('fragment', fragment)
+
+  const redirectHTML = await fetchRedirectJson();
+  console.log('redirectHTML', redirectHTML.data);
 
   let navItems;
   fragment.querySelectorAll("p").forEach((item) => {
+    // console.log('item', item)
     if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
@@ -170,8 +172,18 @@ async function fetchNavHtml(name) {
           p.replaceWith(p.firstChild);
         }
         let a = liItems.querySelector(':scope > a');
+        console.log('a', a)
         if (a) {
           a = normalizePaths(a, pathPrefix);
+        }
+        if (redirectHTML.data.length > 0) {
+          redirectHTML.data.forEach((redirect) => {
+            if (a.getAttribute('href') == redirect.Source) {
+              console.log('a.getAttribute(href)', a.getAttribute('href'));
+              console.log('redirect.Source', redirect.Source);
+              a.setAttribute('dhref', redirect.Destination);
+            }
+          });
         }
         // if (!a.getAttribute('href').startsWith(pathPrefix)) {
         //   if (a.getAttribute('href').endsWith('index.md')) {
@@ -185,6 +197,8 @@ async function fetchNavHtml(name) {
       });
     }
   });
+
+  console.log('navItems', navItems)
 
   return navItems ? navItems.innerHTML : Promise.reject(navItems.innerHTML);
 }
