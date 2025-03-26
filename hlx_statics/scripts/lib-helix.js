@@ -171,7 +171,7 @@ async function fetchNavHtml(name) {
         if (a) {
           a = normalizePaths(a, pathPrefix);
         }
-        if (redirectHTML.data.length > 0) {
+        if (redirectHTML?.data?.length > 0) {
           redirectHTML.data.forEach((redirect) => {
             if (a.getAttribute('href') == redirect.Source) {
               a.setAttribute('dhref', redirect.Destination);
