@@ -95,6 +95,10 @@ main.no-sidenav{
   grid-template-columns: 100% 100% !important;
 }
 
+main.no-sidenav > div.onthispage-wrapper {
+  display: none;
+}
+
 main .section {
   padding: 20px 0;
 }
