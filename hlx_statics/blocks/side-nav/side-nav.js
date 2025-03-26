@@ -331,7 +331,6 @@ export default async function decorate(block) {
           }
         };
 
-        // console.log('getAnchorTag', getAnchorTag)
         if (window.location.href === getAnchorTag.href || window.location.pathname ===  getAnchorTag.getAttribute('dhref') ) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
