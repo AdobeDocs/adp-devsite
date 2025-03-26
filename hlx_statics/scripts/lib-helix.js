@@ -152,16 +152,12 @@ export async function fetchRedirectJson() {
 async function fetchNavHtml(name) {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let navPath = `${window.location.origin}/${pathPrefix}/config`;
-  // console.log('navPath', navPath)
   const fragment = await loadFragment(navPath);
-  // console.log('fragment', fragment)
 
   const redirectHTML = await fetchRedirectJson();
-  console.log('redirectHTML', redirectHTML.data);
 
   let navItems;
   fragment.querySelectorAll("p").forEach((item) => {
-    // console.log('item', item)
     if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
