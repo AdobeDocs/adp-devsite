@@ -28,27 +28,38 @@ function initSearch() {
   // Extract indices and products
   const indices = Object.keys(indexMap);
   const all_products = Array.from(new Set(Object.values(indexMap))); // Unique products
-  
-  // Initialize selected products (all selected by default)
-  let selectedProducts = all_products.slice();
-  let resultProduct = all_products.slice();
+
+  // Get URL parameters
+  const params = new URLSearchParams(window.location.search);
+  const queryFromURL = params.get("query") || "";
+  console.log("hey" + queryFromURL)
+  const productsFromURL = params.get("products");
+
+  let selectedProducts = all_products.slice(); // Default: all selected
+
+  // Determine selected products based on URL
+  if (productsFromURL && productsFromURL !== "all") {
+    selectedProducts = productsFromURL.split(",").filter(product => all_products.includes(product));
+  }
+
+  // Set query box value if available
+  const searchInput = document.querySelector("input[placeholder='Search...']");
+  if (searchInput) {
+    console.log("here")
+    console.log(queryFromURL)
+    searchInput.text = queryFromURL;
+  }
 
   // Get indices corresponding to selected products
-  const selectedIndices = indices.filter((indexName) => {
-    const product = indexMap[indexName];
-    return selectedProducts.includes(product);
-  });
+  let selectedIndices = indices.filter(indexName => selectedProducts.includes(indexMap[indexName]));
 
-  // Create the search instance
-  let search;
-
-  // Create a new search instance
-  search = instantsearch({
-    indexName: selectedIndices[0],
+  // Initialize InstantSearch
+  let search = instantsearch({
+    indexName: selectedIndices[0] || indices[0], // Use the first valid index
     searchClient,
-    routing: true,
+    searchParameters: queryFromURL ? { query: queryFromURL } : undefined, // Pass query if it exists
   });
-
+  
   search.start();
 
   let results = new Map();
@@ -58,6 +69,7 @@ function initSearch() {
     console.log("update search")
     console.log("selected products")
     console.log(selectedProducts)
+
 
     // Get indices corresponding to selected products
     const selectedIndices = indices.filter((indexName) => {
@@ -73,13 +85,12 @@ function initSearch() {
       return;
     };
 
-
     // Add common widgets
     search.addWidgets([
       instantsearch.widgets.searchBox({
         container: '#search-box',
         placeholder: 'Search...',
-        searchAsYouType: false,
+        searchAsYouType: true,
         showReset: true,
         showSubmit: true,
       }),
@@ -109,12 +120,11 @@ function initSearch() {
             content: instantsearch.highlight({ hit, attribute: 'content' }),
           });
         });
-    
+      
+      updateSearchParams();
       renderResults(); // Call to render the filtered results
     }
-    
-    
-
+  
     const customMergedHits = connectAutocomplete(renderMergedHits);
 
     search.addWidgets([
@@ -136,17 +146,51 @@ function initSearch() {
     search.refresh();
   }
 
+  function updateSearchParams() {
+    // Preserve existing URL parameters
+    const params = new URLSearchParams(window.location.search);
+  
+    // Get the current search query from the input box
+    const searchInput = document.querySelector("#search-box input");
+    const query = searchInput ? searchInput.value.trim() : "";
+  
+    // Determine if all products are selected
+    const allProductsSelected = selectedProducts.length === all_products.length;
+  
+    // Update the products parameter
+    if (allProductsSelected) {
+      params.set("products", "all");
+    } else if (selectedProducts.length > 0) {
+      params.set("products", selectedProducts.join(","));
+    } else {
+      params.delete("products");
+    }
+  
+    // Update the query parameter
+    if (query) {
+      params.set("query", query);
+    } else {
+      params.delete("query");
+    }
+  
+    // Prevent clearing existing URL parameters
+    window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
+  }
+  
 
   function renderProductCheckboxes() {
     const container = document.querySelector('.filters');
-    container.innerHTML = ''; // Clear any existing content
+    container.innerHTML = ''; // Clear existing content
+  
+    // Check if all products are selected
+    const allSelected = selectedProducts.length === all_products.length;
   
     // Add "All Products" checkbox
     const allProductsCheckbox = document.createElement('input');
     allProductsCheckbox.type = 'checkbox';
     allProductsCheckbox.id = 'checkbox-all-products';
     allProductsCheckbox.value = 'all-products';
-    allProductsCheckbox.checked = true; // Checked by default
+    allProductsCheckbox.checked = allSelected; // Check if all products are selected
   
     const allProductsLabel = document.createElement('label');
     allProductsLabel.htmlFor = 'checkbox-all-products';
@@ -164,7 +208,7 @@ function initSearch() {
       checkbox.type = 'checkbox';
       checkbox.id = checkboxId;
       checkbox.value = product;
-      checkbox.checked = false; // Unchecked by default
+      checkbox.checked = selectedProducts.includes(product); // Check if product is in selectedProducts
   
       const label = document.createElement('label');
       label.htmlFor = checkboxId;
@@ -175,6 +219,7 @@ function initSearch() {
       container.appendChild(document.createElement('br'));
     });
   }
+  
   
 
   function attachCheckboxEventListeners() {
@@ -190,6 +235,7 @@ function initSearch() {
         allProductsCheckbox.checked = true; // Recheck "All Products" if no other is selected
         selectedProducts = all_products.slice();
       }
+      updateSearchParams();
       updateSearch(); // Update the search based on selection
     });
   
@@ -206,6 +252,7 @@ function initSearch() {
           allProductsCheckbox.checked = true;
           selectedProducts = all_products.slice();
         }
+        updateSearchParams();
         updateSearch(); // Update the search
       });
     });
@@ -316,16 +363,17 @@ function globalNavSearchButton() {
     //   </button>
     // </div>
 
+    // <button tabindex="0" aria-label="Clear Search" type="reset" class="spectrum-ClearButton spectrum-Search-clearButton css-wf990j spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
+    //     <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeM">
+    //       <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
+    //     </svg>
+    //   </button>
+
 const globalNavSearchDropDown = () => {
   const searchDropDown = createTag('div', { class: 'nav-console-search-frame' });
   searchDropDown.innerHTML = `
     <div id="search-box">
-      <button tabindex="0" aria-label="Clear Search" type="reset" class="spectrum-ClearButton spectrum-Search-clearButton css-wf990j spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
-        <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeM">
-          <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
-        </svg>
-      </button>
-      
+    
     </div>
 
     <div class="search-results">
@@ -348,26 +396,26 @@ const setSearchFrameSource = () => {
     : src;
 };
 
-const searchFrameOnLoad = (renderedFrame, counter = 0, loaded) => {
-  renderedFrame.contentWindow.postMessage(JSON.stringify({ localPathName: window.location.pathname }), '*');
-  if (window.search_path_name_check !== window.location.pathname) {
-    if (counter > 30) {
-      console.warn('Loading Search iFrame timed out');
-      return;
-    }
-    window.setTimeout(() => { searchFrameOnLoad(renderedFrame, counter + 1, loaded); }, 100);
-  }
-  if (!loaded) {
-    const queryString = getQueryString();
-    if (queryString.has('query')) {
-      const searchIframeContainer = document.querySelector('div.nav-console-search-frame');
-      if (searchIframeContainer.length > 0) {
-        searchIframeContainer.style.visibility = 'visible';
-      }
-    }
-  }
-  loaded = true; 
-};
+// const searchFrameOnLoad = (renderedFrame, counter = 0, loaded) => {
+//   renderedFrame.contentWindow.postMessage(JSON.stringify({ localPathName: window.location.pathname }), '*');
+//   if (window.search_path_name_check !== window.location.pathname) {
+//     if (counter > 30) {
+//       console.warn('Loading Search iFrame timed out');
+//       return;
+//     }
+//     window.setTimeout(() => { searchFrameOnLoad(renderedFrame, counter + 1, loaded); }, 100);
+//   }
+//   if (!loaded) {
+//     const queryString = getQueryString();
+//     if (queryString.has('query')) {
+//       const searchIframeContainer = document.querySelector('div.nav-console-search-frame');
+//       if (searchIframeContainer.length > 0) {
+//         searchIframeContainer.style.visibility = 'visible';
+//       }
+//     }
+//   }
+//   loaded = true; 
+// };
 
 // // Referenced https://stackoverflow.com/a/10444444/15028986
 // const checkIframeLoaded = (renderedFrame) => {
@@ -408,7 +456,7 @@ const checkIframeLoaded = (renderedFrame) => {
 function decorateSearchIframeContainer(header) {
   const search_div = header.querySelector('div.nav-console-search-frame');
   const search_button = header.querySelector('button.nav-dropdown-search');
-  const escape_search_button = header.querySelector('button.spectrum-ClearButton');
+  // const escape_search_button = header.querySelector('button.spectrum-ClearButton');
   const queryString = getQueryString();
 
   search_button.addEventListener('click', (evt) => {
@@ -421,12 +469,12 @@ function decorateSearchIframeContainer(header) {
       search_div.style.visibility = 'hidden';
     }
   });
-  escape_search_button.addEventListener('click', (evt) => {
-    if(search_button.classList.contains('is-open')){
-      search_button.classList.remove('is-open');
-      search_div.style.visibility = 'hidden';
-    } 
-  });
+  // escape_search_button.addEventListener('click', (evt) => {
+  //   if(search_button.classList.contains('is-open')){
+  //     search_button.classList.remove('is-open');
+  //     search_div.style.visibility = 'hidden';
+  //   } 
+  // });
   // if (queryString.has('query')) {
   //   button.click();
   // }
