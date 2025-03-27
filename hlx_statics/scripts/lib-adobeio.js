@@ -305,7 +305,7 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildSideNav(main) {
-  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav' });
+  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
@@ -395,16 +395,23 @@ function activeTabTemplate(width, isMainPage = false) {
  */
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
+  if (nav) {
+    const actTab = getActiveTab(nav);
+    if (actTab) {
+      activateTab(actTab);
+    }
+    if (getMetadata('template') === 'documentation') {
+      activeSubNav(actTab);
+    }
+  }
+}
+
+export function getActiveTab(nav) {
   let currentPath = window.location.pathname;
-
-  // use selected sidenav path to set which one is the activeTab.
-  const selectedSidenav = document.querySelector('.side-nav')?.querySelector('.is-selected');
-  currentPath = selectedSidenav ? selectedSidenav.closest(".header").querySelector("a").pathname : currentPath;
-
   let bestMatch = null;
   let bestMatchLength = 0;
 
-  const links = Array.from(nav.querySelectorAll('li > a'));
+  const links = Array.from(nav.querySelectorAll('a'));
   for (const tabItem of links) {
     const hrefPath = new URL(tabItem.href);
     const fullPath = tabItem.getAttribute('fullPath');
@@ -427,9 +434,7 @@ export function setActiveTab(isMainPage) {
     }
   };
 
-  if (bestMatch) {
-    activateTab(bestMatch);
-  }
+  return bestMatch
 }
 
 // Function to check if `childPath` is a subpath of `parentPath`
@@ -440,10 +445,41 @@ function isSubpath(parentPath, childPath) {
 
 // Function to mark tab as active
 function activateTab(tabItem, isMainPage) {
-  const parentWidth = tabItem.parentElement.offsetWidth;
-  tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
+  let underlineItem = tabItem;
+  if (tabItem.closest('.nav-dropdown-popover')){
+    // if the item is within a dropdown, it needs to find the parent item to be underlined.
+    underlineItem = tabItem.closest('.nav-dropdown-popover');
+  }
+  underlineItem.parentElement.classList.add("activeTab");
 }
 
+function activeSubNav(actTab) {
+  if (actTab) {
+    const navLinksUl = document.querySelector(".side-nav-subpages-section");
+    const firstLevelItems = navLinksUl.querySelectorAll(':scope > ul > li');
+    const currentPath = actTab.pathname;
+    firstLevelItems.forEach(li => {
+      const link = li.querySelector(':scope > a');
+      if (link) {
+        const linkPath = new URL(link.href, window.location.origin).pathname;
+        if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
+          li.classList.add('active-sidenav');
+        } else {
+          li.classList.add('hide-sidenav');
+        }
+      } else {
+        li.classList.add('hide-sidenav');
+      }
+    });
+  }
+  if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
+    document.querySelector("main").classList.add("no-sidenav");
+    const sectionDivision = document.querySelector('main > div[style*="grid-area: main"]');
+    sectionDivision.style.margin = "0 auto"
+  }
+  const sidecontainer = document.querySelector(".side-nav-container");
+  sidecontainer.style.visibility = "visible";
+}
 /**
  * Checks whether the current URL is one of the top level navigation items
  * @param {*} urlPathname The current URL path name
@@ -482,6 +518,16 @@ export function isStageEnvironment(host) {
 export function isDevEnvironment(host) {
   return host.indexOf('developer-dev') >= 0;
 }
+
+/**
+ * Checks whether the current URL is the prod environment based on host value
+ * @param {*} host The host
+ * @returns True if the current URL is a prod environment, false otherwise
+ */
+export function isProdEnvironment(host) {
+  return host.indexOf('developer.adobe.com') >= 0;
+}
+
 /**
  * Checks whether the current URL is a Franklin website based on host value
  * @param {*} host The host

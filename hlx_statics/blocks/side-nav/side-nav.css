@@ -106,7 +106,7 @@ main div.side-nav-wrapper div.side-nav {
     z-index: 1;
     height: 100%;
     width: 256px;
-    background-color: rgb(250, 250, 250);
+    background-color: rgb(253, 253, 253);
 }
 
 main div.side-nav-container  {
@@ -211,6 +211,11 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   color: rgb(44, 44, 44);
 }
 
+main div.section.side-nav-container {
+    visibility: hidden;
+}
+
+
 /* Desktop behavior */
 @media screen and (min-width: 769px) {
     div.side-nav-wrapper .side-nav-menu-section,
@@ -224,6 +229,9 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   /* Adjust grid layout */
   body.template-documentation main {
     grid-template-columns: 0 auto !important;
+  }
+  main div.section.side-nav-container {
+      visibility: visible;
   }
 
   main div.side-nav-wrapper div.side-nav {
@@ -322,3 +330,8 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   margin: 0 0 12px;
   padding: 0 8px;
 }
+
+main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hide-sidenav {
+    display:none;
+}
+

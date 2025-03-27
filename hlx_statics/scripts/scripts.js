@@ -34,6 +34,7 @@ import {
   isHlxPath,
   decorateProfile,
   isStageEnvironment,
+  isProdEnvironment,
   addExtraScript,
   decorateHR,
   buildNextPrev
@@ -265,6 +266,10 @@ window.adobeIMSMethods = {
   },
 };
 
+export async function loadAep() {
+  addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
+}
+
 export async function loadIms() {
   window.imsLoaded =
     window.imsLoaded ||
@@ -279,17 +284,6 @@ export async function loadIms() {
         const logsEnabled = true;
 
         setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
-        window.marketingtech = {
-          adobe: {
-            launch: {
-              property: 'global',
-              environment: 'dev',
-            },
-            analytics: {
-              additionalAccounts: 'pgeo1xxpnwadobeio-qa',
-            },
-          },
-        };
       } else if (!isHlxPath(window.location.host) && isStageEnvironment(window.location.host)) {
         if (window.location.pathname.includes('/photoshop/api')) {
           const client_id = 'cis_easybake';
@@ -339,44 +333,41 @@ export async function loadIms() {
 function loadConfig() {
   window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTczMjEzNzQzNSwiZSI6MTc1OTI2NTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iXSwicyI6InBvcnRhbCJ9.gf0tCrK+ApckZEqbuOlYJFlt19NU6UEWpiruC4VIMg9ZYUojkyDGde2aEKpBK2cm57r6yNNFNWHyIRljWAQnsg==`;
 
-  // check to see if we're on an aem url, stage or prod
-  if (isHlxPath(window.location.host)) {
-    window.marketingtech = {
-      adobe: {
-        launch: {
-          property: 'global',
-          environment: 'dev',
-        },
-        analytics: {
-          additionalAccounts: 'pgeo1xxpnwadobeio-qa',
-        },
-      },
-    };
-  } else if (isStageEnvironment(window.location.host)) {
-    window.marketingtech = {
-      adobe: {
-        launch: {
-          property: 'global',
-          environment: 'dev',
-        },
-        analytics: {
-          additionalAccounts: 'pgeo1xxpnwadobeio-qa',
-        },
-      },
-    };
+  window.alloy_all = window.alloy_all || {};
+  window.alloy_all.data = window.alloy_all.data || {};
+  window.alloy_all.data._adobe_corpnew = window.alloy_all.data._adobe_corpnew || {};
+  window.alloy_all.data._adobe_corpnew.digitalData = window.alloy_all.data._adobe_corpnew.digitalData || {};
+  window.alloy_all.data._adobe_corpnew.digitalData.page = window.alloy_all.data._adobe_corpnew.digitalData.page || {};
+  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo = window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo || {};
+  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo.language = 'en-US';
+
+  let launchURL;
+  let edgeConfigId;
+
+  // if on stage, dev or on .page - set analytics to dev
+  isProdEnvironment
+  if (isProdEnvironment(window.location.host)) {
+    edgeConfigId = '57c20bab-94c3-425e-95cb-0b9948b1fdd4';
+    launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js';
+    
   } else {
-    window.marketingtech = {
-      adobe: {
-        launch: {
-          property: 'global',
-          environment: 'production',
-        },
-        analytics: {
-          additionalAccounts: 'pgeo1xxpnwadobeio-prod',
-        },
-      },
-    };
+    edgeConfigId = 'a44f0037-2ada-441f-a012-243832ce5ff9';
+    launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js';
   }
+
+  window.marketingtech = {
+    adobe: {
+      launch: {
+        url: launchURL,
+        controlPageLoad: true,
+      },
+      alloy: {
+        edgeConfigId: edgeConfigId,
+      },
+      target: false,
+      audienceManager: false,
+    }
+  };
 }
 
 /**
@@ -386,6 +377,7 @@ async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
   loadIms();
+  loadAep();
 
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
@@ -456,6 +448,9 @@ function loadDelayed() {
   if (getMetadata('template') === 'documentation') {
     githubActionsBlock(document);
   }
+  // delay on the main visibility;
+  const maindoc = document.querySelector("main");
+  maindoc.style.visibility = "hidden";
 }
 
 function loadTitle() {

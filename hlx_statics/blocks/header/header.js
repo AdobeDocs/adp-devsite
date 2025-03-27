@@ -28,7 +28,7 @@ function globalNavSearchButton() {
 
 function globalDistributeButton() {
   const div = createTag('div', { class: 'nav-console-distribute-button' });
-  div.innerHTML = `<a href="/distribute" class="spectrum-Button spectrum-Button--cta spectrum-Button-fill  spectrum-Button--sizeM">
+  div.innerHTML = `<a href="/distribute" class="spectrum-Button spectrum-Button--cta spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM">
     <span class="spectrum-Button-label">
       Distribute
     </span>
@@ -560,4 +560,8 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
+
+  // make the main visible when the header is completed.
+  const maindoc = document.querySelector("main");
+  maindoc.style.visibility = "visible";
 }

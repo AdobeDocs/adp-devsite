@@ -124,27 +124,61 @@ export async function fetchSideNavHtml() {
 }
 
 /**
+ * Retrieves the side nav from the config.
+ * @returns {string} The side nav HTML
+ */
+export async function fetchRedirectJson() {
+  let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
+  let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
+  const redirectHTML = await fetch(redirectFile)
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.warn('Network response was not ok');
+      }
+    })
+    .then(data => data)
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+  return redirectHTML;
+}
+
+/**
  * Retrieves the nav with the specified name from the config.
  * @param {string} name The nav name
  * @returns {string} The nav HTML
  */
 async function fetchNavHtml(name) {
-  let pathPrefix = getMetadata('pathprefix').replace('/', '');
+  let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let navPath = `${window.location.origin}/${pathPrefix}/config`;
   const fragment = await loadFragment(navPath);
 
+  const redirectHTML = await fetchRedirectJson();
+
   let navItems;
   fragment.querySelectorAll("p").forEach((item) => {
-    if(item.innerText === name) {
+    if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
-      navItems.querySelectorAll('li').forEach((liItems) => {
+      const navItemsChild = navItems.querySelectorAll('li');
+      navItemsChild.forEach((liItems) => {
         let p = liItems.querySelector('p');
-        if(p) {
+        if (p) {
           p.replaceWith(p.firstChild);
         }
-        let a = liItems.querySelector('a');
-        a = normalizePaths(a, pathPrefix);
+        let a = liItems.querySelector(':scope > a');
+        if (a) {
+          a = normalizePaths(a, pathPrefix);
+          if (redirectHTML?.data?.length > 0) {
+            redirectHTML.data.forEach((redirect) => {
+              if (a.getAttribute('href') == redirect.Source) {
+                a.setAttribute('dhref', redirect.Destination);
+              }
+            });
+          }
+        }
         // if (!a.getAttribute('href').startsWith(pathPrefix)) {
         //   if (a.getAttribute('href').endsWith('index.md')) {
         //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('index.md', '')}`
@@ -184,7 +218,7 @@ function normalizePaths(anchorElem, pathPrefix) {
   return anchorElem;
 }
 
-function cleanMarkdownExtension (pathName) {
+function cleanMarkdownExtension(pathName) {
   return pathName
     .replace('/src/pages/', '/')
     .replace('/index.md/', '')
@@ -194,8 +228,8 @@ function cleanMarkdownExtension (pathName) {
     .replace('.md', '');
 };
 
-function trailingSlashFix (pathName)  {
-  if (!pathName.endsWith('/')){
+function trailingSlashFix(pathName) {
+  if (!pathName.endsWith('/')) {
     return `${pathName}/`;
   }
   return pathName;
@@ -410,7 +444,7 @@ export function decorateSections(main) {
             }
           });
         } else {
-            section.dataset[toCamelCase(key)] = meta[key];
+          section.dataset[toCamelCase(key)] = meta[key];
         }
       });
       sectionMeta.parentNode.remove();
