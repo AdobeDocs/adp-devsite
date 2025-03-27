@@ -132,10 +132,11 @@ export async function fetchRedirectJson() {
   let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
   const redirectHTML = await fetch(redirectFile)
     .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.warn('Network response was not ok');
       }
-      return response.json();
     })
     .then(data => data)
     .catch(error => {
