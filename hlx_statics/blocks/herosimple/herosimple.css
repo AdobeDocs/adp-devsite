@@ -1,5 +1,7 @@
 main div.herosimple-wrapper {
   width: 100%;
+  max-width: 100% !important;
+  padding: 0 !important;
 }
 main div.herosimple {
   height: 272px;
