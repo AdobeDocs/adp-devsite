@@ -170,13 +170,13 @@ async function fetchNavHtml(name) {
         let a = liItems.querySelector(':scope > a');
         if (a) {
           a = normalizePaths(a, pathPrefix);
-        }
-        if (redirectHTML?.data?.length > 0) {
-          redirectHTML.data.forEach((redirect) => {
-            if (a.getAttribute('href') == redirect.Source) {
-              a.setAttribute('dhref', redirect.Destination);
-            }
-          });
+          if (redirectHTML?.data?.length > 0) {
+            redirectHTML.data.forEach((redirect) => {
+              if (a.getAttribute('href') == redirect.Source) {
+                a.setAttribute('dhref', redirect.Destination);
+              }
+            });
+          }
         }
         // if (!a.getAttribute('href').startsWith(pathPrefix)) {
         //   if (a.getAttribute('href').endsWith('index.md')) {
