@@ -1,3 +1,7 @@
+main .section {
+  padding: 0px;
+}
+
 main div.summary-container {
   background: rgb(245, 245, 245);
   background-position: center;
@@ -23,7 +27,12 @@ main div.summary-wrapper div.summary > div {
 }
 
 main div.summary-wrapper  div.summary.no-image > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: 100%;
+  padding: 32px;
+  /* margin: 32px; */
 }
 
 @media screen and (max-width: 1280px) {
@@ -46,6 +55,9 @@ main div.summary-wrapper  div.summary.no-image > div {
   }
   main div.summary-wrapper div.summary picture{
     height: 500px;
+  }
+  main div.summary-wrapper div.summary img{
+    height: 500px !important;
   }
   main div.summary-wrapper div.summary > div {
     width: 100%;

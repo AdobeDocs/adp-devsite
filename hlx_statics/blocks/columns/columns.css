@@ -186,9 +186,9 @@ main div.columns-container div.columns.center .button-container {
     margin-bottom: 0;
 }
 
-main div.columns-wrapper div.columns div.first-column img {
+/* main div.columns-wrapper div.columns div.first-column img {
     height: 350px !important;
-}
+} */
 
 @media screen and (max-width: 1280px) {
     main div.columns-wrapper  div.columns div.second-column {

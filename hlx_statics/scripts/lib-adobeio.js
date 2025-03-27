@@ -374,7 +374,7 @@ export function rearrangeHeroPicture(block, overlayStyle) {
   const div = block.querySelector('div');
   div.setAttribute('style', overlayStyle);
   const img = picture.querySelector('img');
-  img.setAttribute('style', 'width: 100% !important; max-height: 350px');
+  img.setAttribute('style', 'width: 100% !important; height: 350px');
   emptyDiv.remove();
 }
 

@@ -21,6 +21,11 @@ export default async function decorate(block) {
       block.classList.add('background-color-gray');
     }
 
+    let outerDiv = block.querySelector('.no-image > div');
+    let innerDiv = outerDiv.firstElementChild;
+    if (outerDiv) {
+      outerDiv.replaceWith(innerDiv); // Replace outer div with its inner div
+    }
   }
 
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
@@ -47,8 +52,12 @@ export default async function decorate(block) {
       }
     });
   });
-  const overlayStyle = 'position: absolute; display: flex; left: 0%; z-index: 1000;';
-  rearrangeHeroPicture(block, overlayStyle);
+
+  if (block.querySelector('picture')) {
+    //if there is an image as the background set up the overlay style
+    const overlayStyle = 'position: absolute; display: flex; left: 0%; z-index: 1000;';
+    rearrangeHeroPicture(block, overlayStyle);
+  }
 }
 
 
