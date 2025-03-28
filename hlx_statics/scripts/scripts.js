@@ -457,9 +457,53 @@ function loadTitle() {
   document.title = window.location.href;
 }
 
+function loadPrism(document) {
+  const codeBlocks = document.querySelectorAll(
+    'code[class*="language-"], [class*="language-"] code'
+  );
+
+  if (!codeBlocks.length) return; 
+
+  const observer = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const pre = entry.target.closest('pre') || entry.target;
+          pre.classList.add('prism-loading');
+
+          observer.unobserve(entry.target); 
+          loadPrismScripts(pre);
+        }
+      });
+    },
+    { rootMargin: '200px 0px', threshold: 0.1 }
+  );
+
+  function loadPrismScripts(pre) {  
+    window.Prism = window.Prism || {};
+    window.Prism.manual = true;
+
+    loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
+
+    import('./prism.js')
+      .then(() => {
+        window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
+        window.Prism.highlightAll(true);
+
+        setTimeout(() => {
+          pre.classList.remove('prism-loading');
+        }, 300);
+      })
+      .catch((err) => console.error('Prism.js failed to load:', err));
+  }
+
+  codeBlocks.forEach((block) => observer.observe(block));
+}
+
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  loadPrism(document);
   loadTitle();
   loadDelayed(document);
 }
