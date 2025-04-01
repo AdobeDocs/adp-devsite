@@ -979,6 +979,10 @@ main li h3{
   color: black;
 }
 
+main div.default-content-wrapper li {
+  line-height: 1.5;
+}
+
 main .code-wrapper, main .nested-code-wrapper{
   max-width: 60vw;
   margin: 10px 0px;
