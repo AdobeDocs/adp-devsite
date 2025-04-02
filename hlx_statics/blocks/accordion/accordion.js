@@ -35,7 +35,6 @@ function getAccordionItem(heading) {
 export default async function decorate(block) {
     block.setAttribute('daa-lh', 'accordion');
     removeEmptyPTags(block);
-    block.parentElement.parentElement.classList.add('accordion-whole');
 
     const accordion_div = createTag('div', {class: 'accordion-div'});
     block.querySelectorAll('.accordion > div').forEach((item) => {
