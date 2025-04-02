@@ -28,18 +28,18 @@ main div.columns-wrapper  div.columns > div:nth-child(even) {
     flex-direction: row-reverse;
 }
 
-main div.columns-container.section[data-list-class="checkmark"] ul {
+main div.columns-wrapper .checkmark ul {
     list-style: none;
     font-size: 16px;
     padding-top: 24px;
     padding-left: 0px;
 }
 
-main div.columns-container.section[data-list-class="checkmark"] ul > li {
+main div.columns-wrapper .checkmark ul > li {
     margin-bottom: 12px;
 }
 
-main div.columns-container.section[data-list-class="checkmark"] ul > li:before{
+main div.columns-wrapper .checkmark ul > li:before{
     color: #096;
     content: "\2714\0020";
 }
