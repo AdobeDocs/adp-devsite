@@ -17,17 +17,17 @@ main div.announcement-wrapper div.announcement.background-color-gray{
   background-color: rgb(245, 245, 245);
 }
 
-main div.announcement-container:has(.announcement.background-color-white),
+main div.announcement-wrapper:has(.announcement.background-color-white),
 main div.announcement.background-color-white {
   background-color: white;
 }
 
-main div.announcement-container:has(.announcement.background-color-navy),
+main div.announcement-wrapper:has(.announcement.background-color-navy),
 main div.announcement.background-color-navy {
   background-color: rgb(15, 55, 95);
 }
 
-main div.announcement-container:has(.announcement.background-color-dark-gray),
+main div.announcement-wrapper:has(.announcement.background-color-dark-gray),
 main div.announcement.background-color-dark-gray {
   background-color: #323232;
 }
@@ -108,23 +108,23 @@ main div.announcement-wrapper .announcement.secondary-border-white .spectrum-But
     justify-content: center !important;
   }
 
-  main .announcement-container .announcement>div>div {
+  main .announcement-wrapper .announcement>div>div {
     text-align: center;
     align-items: center !important;
   }
 }
 
 @media screen and (max-width: 425px) {
-  main .announcement-container .announcement-button-container {
+  main .announcement-wrapper .announcement-button-container {
     flex-direction: column;
   }
 
-  main .announcement-container .announcement {
+  main .announcement-wrapper .announcement {
     margin: 5%;
     text-align: center;
   }
 
-  main .announcement-container {
+  main .announcement-wrapper {
     padding: 4% 0;
   }
 }
