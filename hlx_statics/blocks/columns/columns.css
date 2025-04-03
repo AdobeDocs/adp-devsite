@@ -208,12 +208,12 @@ main div.columns-wrapper div.columns.center .button-container {
         flex-direction: column !important;
         padding: 0 0 !important;
     }
-    main div.columns-container.center div.columns > div > div {
+    main div.columns-wrapper  div.columns.center > div > div {
         text-align: center;
         padding: 32px 32px;
     }
 
-    main div.columns-container.center div.columns > div {
+    main div.columns-wrapper div.columns.center > div {
         align-items: center;
     }
 

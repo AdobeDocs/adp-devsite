@@ -12,7 +12,7 @@ main .heading1-wrapper {
   margin: auto;
 }
 
-main .header-content {
+main .heading1-wrapper + .default-content-wrapper .header-content {
   font-size: 20px;
   color: rgb(109, 109, 109);
   margin-bottom: 40px;

@@ -1,4 +1,4 @@
-main div.discoverblock-container-wrapper div.discover-container:has(.discover.background-color-white) {
+main div.discoverblock-wrapper:has(.discover.background-color-white) {
     background-color: white !important;
 }
 
@@ -19,7 +19,7 @@ main div.discoverblock-container-wrapper div.discover-img-child-container {
 }
 
 @media screen and (max-width : 1300px) {
-    .discover {
+    main div.discoverblock-wrapper .discoverblock {
         width: 768px !important;
     }
 
@@ -30,7 +30,7 @@ main div.discoverblock-container-wrapper div.discover-img-child-container {
 }
 
 @media screen and (max-width : 800px) {
-    .discover {
+    main div.discoverblock-wrapper .discoverblock {
         width: 600px !important;
     }
 
