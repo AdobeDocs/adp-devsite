@@ -349,7 +349,7 @@ function loadConfig() {
   if (isProdEnvironment(window.location.host)) {
     edgeConfigId = '57c20bab-94c3-425e-95cb-0b9948b1fdd4';
     launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js';
-    
+
   } else {
     edgeConfigId = 'a44f0037-2ada-441f-a012-243832ce5ff9';
     launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js';
@@ -448,9 +448,7 @@ function loadDelayed() {
   if (getMetadata('template') === 'documentation') {
     githubActionsBlock(document);
   }
-  // delay on the main visibility;
-  const maindoc = document.querySelector("main");
-  maindoc.style.visibility = "hidden";
+
 }
 
 function loadTitle() {
