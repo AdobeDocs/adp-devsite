@@ -1,8 +1,8 @@
-main div.api-browser-container:has(.api-browser.background-color-white) {
+main div.api-browser-wrapper:has(.api-browser.background-color-white) {
   background-color: white !important;
 }
 
-main div.api-browser-container {
+main div.api-browser-wrapper {
   background-color: #fff;
 }
 
