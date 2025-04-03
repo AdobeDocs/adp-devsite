@@ -1,4 +1,4 @@
-main div.cards-container:has(.cards.background-color-white) {
+main div.cards-wrapper:has(.cards.background-color-white) {
   background-color: white;
 }
 
@@ -50,7 +50,7 @@ main div.cards-wrapper div.cards > div.four-cards {
   background-color: white !important;
 } */
 
-main div.cards-container .cards-wrapper {
+main div.cards-wrapper {
   background: rgb(245, 245, 245);
   display: flex;
   align-items: center;
@@ -101,7 +101,7 @@ main div.cards-wrapper div.cards a.card-button {
 }
 
 @media screen and (max-width: 425px) {
-  main .cards-container {
+  main div.cards-wrapper {
     padding: 40px 0px 0px 0px;
   }
 }

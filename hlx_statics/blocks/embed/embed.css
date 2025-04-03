@@ -16,7 +16,7 @@ main div.embed-container > div.embed-wrapper{
 }
 
 @media screen and (min-width: 700px) {
-main div.embed-container .igReel {
+main div.embed-wrapper .igReel {
   left: 0;
   padding:0;
   width: 356px !important;
@@ -25,7 +25,7 @@ main div.embed-container .igReel {
 }
 }
 
-main div.embed-container .igReel {
+main div.embed-wrapper .igReel {
   left: 0;
   padding:0;
   width: 432px;
@@ -33,7 +33,7 @@ main div.embed-container .igReel {
   position: relative;
 }
 
-main div.embed-container p {
+main div.embed-wrapper p {
   margin-top: 0;
   margin-bottom: 0!important;
 }
@@ -54,7 +54,7 @@ main div.embed-wrapper div.embed iframe {
   border: 0;
 }
 
-main div.embed-container .embed-custom-width{
+main div.embed-wrapper .embed-custom-width{
   display: flex;
   align-items: center;
   justify-content: center;

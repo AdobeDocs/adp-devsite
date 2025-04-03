@@ -1,8 +1,8 @@
-main div.columns-container:has(.columns.background-color-white) {
+main div.columns-wrapper:has(.columns.background-color-white) {
     background-color: white !important;
 }
 
-main div.columns-container {
+main div.columns-wrapper {
     width: 100%;
     background: rgb( 245,245,245 );
 }
@@ -169,22 +169,22 @@ main div.columns-wrapper div.second-column div.product-link-container svg {
     object-fit: contain;
 }
 
-main div.columns-container div.columns.center {
+main div.columns-wrapper div.columns.center {
     width: auto;
 }
 
-main div.columns-container div.columns.center > div {
+main div.columns-wrapper div.columns.center > div {
     align-items: start;
 }
 
-main div.columns-container div.columns.center > div > div {
+main div.columns-wrapper div.columns.center > div > div {
     display: flex;
     flex-direction: column;
     text-align: center;
     padding: 0 32px;
 }
 
-main div.columns-container div.columns.center .button-container {
+main div.columns-wrapper div.columns.center .button-container {
     display: inline-flex;
     margin: 16px 8px;
     margin-bottom: 0;

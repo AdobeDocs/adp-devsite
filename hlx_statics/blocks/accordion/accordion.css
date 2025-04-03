@@ -1,4 +1,4 @@
-main div.accordion-container:has(.accordion.background-color-white) {
+main div.accordion-wrapper:has(.accordion.background-color-white) {
     background-color: white;
 }
 
@@ -11,7 +11,7 @@ main div.accordion-wrapper div.accordion .accordion-div {
     margin: auto !important;
 }
 
-main div.accordion-container .accordion-wrapper {
+main div.accordion-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
