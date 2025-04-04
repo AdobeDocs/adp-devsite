@@ -8,7 +8,7 @@ main div.embed-container {
   background: rgb(245, 245, 245);
 }
 
-main div.embed-container > div.embed-wrapper{
+main div.embed-wrapper {
   max-width: 1280px;
   padding-left: 32px;
   padding-right: 32px;
