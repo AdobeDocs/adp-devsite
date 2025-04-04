@@ -560,8 +560,5 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
-
-  // make the main visible when the header is completed.
-  const maindoc = document.querySelector("main");
-  maindoc.style.visibility = "visible";
+  
 }
