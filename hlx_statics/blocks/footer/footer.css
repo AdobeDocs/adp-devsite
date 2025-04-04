@@ -1,4 +1,4 @@
-footer {
+footer.footer-wrapper {
   position: relative;
   padding-bottom: 32px;
   background-color: rgb(255, 255, 255);
@@ -6,47 +6,47 @@ footer {
 }
 
 @media screen and (max-width: 768px) {
-  footer {
+  footer.footer-wrapper {
     padding-top: 0;
   }
 }
 
 @media screen and (max-width: 768px) {
-  footer {
+  footer.footer-wrapper {
     max-width: none;
   }
 }
 
-footer>div {
+footer.footer-wrapper>div {
   box-sizing: border-box;
   max-width: 1280px;
   margin: 0 auto;
 }
 
-footer>div ul {
+footer.footer-wrapper>div ul {
   list-style: none;
   padding: 0;
 }
 
-footer h3.spectrum-Heading--XS {
+footer.footer-wrapper h3.spectrum-Heading--XS {
   position: absolute;
   white-space: nowrap;
 }
 
-footer>div ul.spectrum-Body--sizeS {
+footer.footer-wrapper>div ul.spectrum-Body--sizeS {
   padding-top: 40px;
   padding-right: 16px;
 }
 
-footer>div ul.spectrum-Body--sizeS>li {
+footer.footer-wrapper>div ul.spectrum-Body--sizeS>li {
   margin-top: 16px;
 }
 
-footer>div ul.spectrum-Body--sizeS>li:first-of-type {
+footer.footer-wrapper>div ul.spectrum-Body--sizeS>li:first-of-type {
   margin-top: 0;
 }
 
-footer .footer-links-container-inner {
+footer.footer-wrapper .footer-links-container-inner {
   display: grid;
   grid-template-areas: "apis blogs support developer";
   grid-template-columns: 25%;
@@ -55,7 +55,7 @@ footer .footer-links-container-inner {
 }
 
 @media screen and (max-width: 320px) {
-  footer .footer-links-container-inner {
+  footer.footer-wrapper .footer-links-container-inner {
     display: flex;
     flex-direction: column;
     padding: 16px;
@@ -64,7 +64,7 @@ footer .footer-links-container-inner {
 }
 
 @media screen and (max-width: 768px) {
-  footer .footer-links-container-inner {
+  footer.footer-wrapper .footer-links-container-inner {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
@@ -72,76 +72,76 @@ footer .footer-links-container-inner {
   }
 }
 
-footer .footer-divider {
+footer.footer-wrapper .footer-divider {
   position: absolute;
   top: 0;
   right: 0;
   height: 100%;
 }
 
-footer div.footer-links-container-inner>div:nth-child(1) {
+footer.footer-wrapper div.footer-links-container-inner>div:nth-child(1) {
   position: relative;
   grid-area: apis;
 }
 
-footer div.footer-links-container-inner>div:nth-child(1)>div>ul>li>strong>a {
+footer.footer-wrapper div.footer-links-container-inner>div:nth-child(1)>div>ul>li>strong>a {
   padding-bottom: 60px !important;
 }
 
-footer .footer-apis-container {
+footer.footer-wrapper .footer-apis-container {
   display: flex;
 }
 
 @media screen and (max-width: 768px) {
-  footer .footer-apis-container {
+  footer.footer-wrapper .footer-apis-container {
     flex-direction: column;
   }
 
-  footer .footer-apis-container>div {
+  footer.footer-wrapper .footer-apis-container>div {
     margin: 0;
   }
 }
 
-footer .footer-services-container {
+footer.footer-wrapper .footer-services-container {
   margin-left: 32px;
 }
 
-footer .footer-services-container ul {
+footer.footer-wrapper .footer-services-container ul {
   padding-top: 60px !important;
 }
 
-footer div.footer-links-container-inner>div:nth-child(2) {
+footer.footer-wrapper div.footer-links-container-inner>div:nth-child(2) {
   position: relative;
   grid-area: blogs;
 }
 
-footer div.footer-links-container-inner>div:nth-child(3) {
+footer.footer-wrapper div.footer-links-container-inner>div:nth-child(3) {
   position: relative;
   grid-area: support;
 }
 
-footer .footer-legal {
+footer.footer-wrapper .footer-legal {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
 }
 
-footer .footer-legal ul {
+footer.footer-wrapper .footer-legal ul {
   display: inline-flex;
   color: rgb(70, 70, 70);
 }
 
-footer .footer-legal ul>li {
+footer.footer-wrapper .footer-legal ul>li {
   margin-right: 32px;
 }
 
-footer .footer-divider {
+footer.footer-wrapper .footer-divider {
   display: block;
 }
 
 @media screen and (max-width: 768px) {
-  footer .footer-legal {
+  footer.footer-wrapper .footer-legal {
     flex-direction: column;
     align-items: flex-start;
     padding: 16px;
@@ -149,53 +149,53 @@ footer .footer-divider {
   }
 }
 
-footer .footer-legal p {
+footer.footer-wrapper .footer-legal p {
   color: rgb(70, 70, 70);
 }
 
 @media screen and (max-width: 768px) {
-  footer .footer-legal p {
+  footer.footer-wrapper .footer-legal p {
     display: block;
     margin-top: 16px;
   }
 
-  footer .footer-divider {
+  footer.footer-wrapper .footer-divider {
     display: none;
   }
 
-  footer .footer-links-container {
+  footer.footer-wrapper .footer-links-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
   }
 
-  footer .footer-legal ul {
+  footer.footer-wrapper .footer-legal ul {
     flex-direction: column;
   }
 
-  footer .footer-horizontal {
+  footer.footer-wrapper .footer-horizontal {
     width: 85% !important;
   }
 
-  footer {
+  footer.footer-wrapper {
     padding-left: 40px;
     width: 85%;
   }
 
-  footer h3 {
+  footer.footer-wrapper h3 {
     font-size: 19px !important;
   }
 
-  footer a {
+  footer.footer-wrapper a {
     font-size: 17px !important;
   }
 
-  footer .footer-links-container-inner {
+  footer.footer-wrapper .footer-links-container-inner {
     justify-content: unset;
   }
 
-  footer .footer-legal {
+  footer.footer-wrapper .footer-legal {
     flex-direction: column !important;
     align-items: baseline !important;
     width: 100%;
@@ -205,20 +205,20 @@ footer .footer-legal p {
 
 @media screen and (min-width : 768px) and (max-width : 1024px) {
 
-  footer {
+  footer.footer-wrapper {
     padding-left: 40px;
     width: 94%;
   }
 
-  footer .footer-divider {
+  footer.footer-wrapper .footer-divider {
     display: none;
   }
 
-  footer .footer-links-container-inner {
+  footer.footer-wrapper .footer-links-container-inner {
     justify-content: unset;
   }
 
-  footer .footer-legal {
+  footer.footer-wrapper .footer-legal {
     flex-direction: column !important;
     align-items: baseline !important;
     width: 100%;
@@ -226,11 +226,11 @@ footer .footer-legal p {
 
 }
 
-footer .footer-horizontal {
+footer.footer-wrapper .footer-horizontal {
   margin-top: 56px;
   width: 100% !important;
 }
 
-footer .spectrum-Link {
+footer.footer-wrapper .spectrum-Link {
   font-size: 14px;
 }
