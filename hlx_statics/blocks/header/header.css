@@ -586,14 +586,7 @@ header .menu-btn {
     top: 0;
   }
 }
-.svgDisplay {
-  display: block;
-  color: #0265dc;
-}
-.spectrum-Menu-itemLabel {
-  display: flex;
-  gap: 5px;
-}
+
 @media screen and (max-width: 768px) {
   .header-wrapper .spectrum-Menu-itemLabel{
     justify-content: space-between !important;
