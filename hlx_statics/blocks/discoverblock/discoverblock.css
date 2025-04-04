@@ -1,4 +1,4 @@
-main div.discover-container:has(.discover.background-color-white) {
+main div.discoverblock-wrapper:has(.discover.background-color-white) {
     background-color: white !important;
 }
 
