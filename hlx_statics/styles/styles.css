@@ -128,6 +128,7 @@ main .inline-code {
   min-width: auto;
   border: 0.8px solid rgb(213, 213, 213);
   border-radius: 3px;
+  line-height: 1.5rem;
 }
 
 /* animate anchor */
@@ -980,7 +981,7 @@ main li h3{
 }
 
 main div.default-content-wrapper li {
-  line-height: 1.5;
+  line-height: 1.8;
 }
 
 main .code-wrapper, main .nested-code-wrapper{
@@ -999,6 +1000,10 @@ main a{
 
 main div p{
   line-height: 24px;
+}
+
+main div.default-content-wrapper ul li p {
+  margin: 10px 0px 0px 0px;
 }
 
 main a:hover{
