@@ -926,9 +926,13 @@ main .default-content-wrapper {
   font-size: 16px;
 }
 
-main .default-content-wrapper a {
+main .default-content-wrapper a , main .default-content-wrapper a strong{
   color: rgb(0, 84, 182);
   text-decoration: unset;
+  /* font-weight: bold; */
+}
+
+main .default-content-wrapper a strong {
   font-weight: bold;
 }
 
