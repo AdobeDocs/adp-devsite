@@ -1,6 +1,6 @@
-main .section {
+/* main .section {
   padding: 0px;
-}
+} */
 
 main div.summary-container {
   background: rgb(245, 245, 245);
@@ -30,8 +30,9 @@ main div.summary-wrapper  div.summary.no-image > div {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: start;
   width: 100%;
-  padding: 32px;
+  padding: 0px 64px 0px calc((100vw - 1280px)/2)  
   /* margin: 32px; */
 }
 
@@ -45,6 +46,9 @@ main div.summary-wrapper  div.summary.no-image > div {
     width: 100%;
   }
   main div.summary-wrapper  div.summary > div {
+    padding: 32px;
+  }
+  main div.summary-wrapper div.summary.no-image > div {
     padding: 32px;
   }
 }
