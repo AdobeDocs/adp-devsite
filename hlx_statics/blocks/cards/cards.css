@@ -46,10 +46,6 @@ main div.cards-wrapper div.cards > div.four-cards {
   width: 25vw;
 }
 
-/* main div.cards-container.background-color-white {
-  background-color: white !important;
-} */
-
 main div.cards-wrapper {
   background: rgb(245, 245, 245);
   display: flex;
