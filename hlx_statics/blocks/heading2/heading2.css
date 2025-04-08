@@ -1,27 +1,27 @@
-main .heading2 h2 {
+main div.heading2-wrapper h2 {
   margin-top: 40px;
 }
 
 main div.heading2-wrapper {
   width: 100%;
 }
-main div.heading2 > div {
+main div.heading2-wrapper > div {
   max-width: 1280px;
   margin: 0 auto;
 }
-main div.heading2 > div > div{
+main div.heading2-wrapper > div > div{
   width:   calc(12*1280px/12 - 2*1280px/12px - 32px);
 }
-main div.heading2 hr {
+main div.heading2-wrapper hr {
   border-width: 1px;
   border-radius: 1px;
   height: 1px;
   background-color: rgb(213, 213, 213);
 }
-main div.heading2 a{
+main div.heading2-wrapper a{
   color: rgb(0, 84, 182);
   text-decoration: none;
 }
-main div.heading2 a:hover{
+main div.heading2-wrapper a:hover{
   text-decoration: underline;
 }

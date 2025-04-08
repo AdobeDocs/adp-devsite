@@ -1,5 +1,4 @@
-main .heading3 h3 {
-    /* color: rgb(75, 75, 75); */
+main div.heading3-wrapper h3 {
     color: rgb(0, 0, 0);
     margin-top: 28px;
     margin-bottom: 4px;
@@ -10,12 +9,12 @@ main .heading3 h3 {
     }
 }
 
-main div.heading3 > div {
+main div.heading3-wrapper > div {
   max-width: 1280px;
   margin: 0 auto;
 }
 
-main div.heading3 a{
+main div.heading3-wrapper a{
   color: rgb(0, 84, 182);
   text-decoration: none;
 }

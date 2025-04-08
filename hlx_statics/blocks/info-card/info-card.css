@@ -11,7 +11,7 @@ main div.info-card-wrapper div.info-card > ul {
   padding: 0;
 }
 
-main div.info-card-container:has(.info-card.background-color-white) {
+main div.info-card-wrapper:has(.info-card.background-color-white) {
   background-color: white;
 }
 

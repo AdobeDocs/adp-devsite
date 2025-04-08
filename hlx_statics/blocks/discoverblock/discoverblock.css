@@ -1,4 +1,4 @@
-main div.discoverblock-container-wrapper div.discover-container:has(.discover.background-color-white) {
+main div.discoverblock-wrapper:has(.discover.background-color-white) {
     background-color: white !important;
 }
 
@@ -9,32 +9,32 @@ main div.discoverblock-wrapper div.discover-child-container a {
 }
 
 
-main div.discoverblock-container-wrapper div.discover-child-inner-container {
+main div.discoverblock-wrapper div.discover-child-inner-container {
     display: flex;
     gap: 30px;
 }
 
-main div.discoverblock-container-wrapper div.discover-img-child-container {
+main div.discoverblock-wrapper div.discover-img-child-container {
     width: 50%;
 }
 
 @media screen and (max-width : 1300px) {
-    .discover {
+    main div.discoverblock-wrapper .discoverblock {
         width: 768px !important;
     }
 
-    main div.discoverblock-container-wrapper div.discover-child-container {
+    main div.discoverblock-wrapper div.discover-child-container {
         width: 33.3%;
         padding: 20px;
     }
 }
 
 @media screen and (max-width : 800px) {
-    .discover {
+    main div.discoverblock-wrapper .discoverblock {
         width: 600px !important;
     }
 
-    main div.discoverblock-container-wrapper div.discover-child-container {
+    main div.discoverblock-wrapper div.discover-child-container {
         width: 50%;
         padding:20px;
     }
@@ -45,12 +45,12 @@ main div.discoverblock-container-wrapper div.discover-img-child-container {
         width: 370px !important;
     }
 
-    main div.discoverblock-container-wrapper div.discover-child-container {
+    main div.discoverblock-wrapper div.discover-child-container {
         width: 100%;
         padding: 20px;
     }
 }
-main div.discoverblock-container-wrapper{
+main div.discoverblock-wrapper div.discoverblock-container-wrapper{
     max-width: 800px;
     display: flex;
     flex-wrap: wrap;
@@ -64,10 +64,10 @@ main div.discoverblock-wrapper div.discoverblock-column .discover-child-containe
     gap: 10px;
     margin-top: 20px;
 }
-main div.discoverblock-container-wrapper div.discover-nonheading-child-container.discover-child-container {
+main div.discoverblock-wrapper div.discover-nonheading-child-container.discover-child-container {
     font-size: 16px;
 }
-main div.discoverblock-wrapper div.discoverblock-container-wrapper .discover-child-container{
+main div.discoverblock-wrapper .discover-child-container{
     display: flex;
     flex-direction: column;
     gap: 10px;

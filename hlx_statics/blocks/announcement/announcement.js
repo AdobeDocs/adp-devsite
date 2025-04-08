@@ -45,9 +45,9 @@ function setBackgroundImage(block) {
   const img = block.querySelector('picture img');
 
   if (img) {
-    const announcementContainer = block.closest('.announcement-container');
+    const announcementWrapper = block.closest('.announcement-wrapper');
     const imgParent = img.closest('picture').parentElement;
-    Object.assign(announcementContainer.style, {
+    Object.assign(announcementWrapper.style, {
       backgroundImage: `url('${img.src}')`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',

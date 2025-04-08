@@ -742,6 +742,11 @@ main .heading6 h6>span {
   margin-top: 6px !important;
 }
 
+.spectrum-Menu-itemLabel {
+  display: flex;
+  gap: 5px;
+}
+
 .spectrum-UIIcon-Checkmark100 {
   height: 10px !important;
   width: 10px !important;
@@ -932,6 +937,11 @@ main .heading6 h6>span {
 
 .spectrum-Link--secondary {
   color: inherit !important;
+}
+
+.svgDisplay {
+  display: block;
+  color: #0265dc;
 }
 
 .help-icon, .info-icon{
