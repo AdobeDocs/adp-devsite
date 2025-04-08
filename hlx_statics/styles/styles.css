@@ -19,6 +19,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  scroll-padding-top: 60px;
+}
+
 .spectrum {
   --spectrum-global-font-family-serif: adobe-clean-serif, adobe-clean-serif-fallback;
   --spectrum-card-border-size: 1px;
@@ -131,7 +135,6 @@ main div.nested-code-wrapper,
 main div.mini-resource-card-wrapper,
 main div.product-card-wrapper,
 main div.profile-card-wrapper,
-main div.summary-wrapper,
 main div.tab-wrapper,
 main div.table-wrapper,
 main div.text-wrapper,

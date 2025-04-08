@@ -1,4 +1,4 @@
-main div.product-card-container:has(.product-card.background-color-white) {
+main div.product-card-wrapper:has(.product-card.background-color-white) {
     background-color: white;
 }
 

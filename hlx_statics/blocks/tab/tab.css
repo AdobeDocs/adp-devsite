@@ -1,8 +1,8 @@
-main div.tab-container:has(.tab.background-color-navy) {
+main div.tab-wrapper:has(.tab.background-color-navy) {
     background-color: rgb(15, 55, 95);
 }
 
-main .tab-container {
+main div.tab-wrapper {
     background-color: rgb(245, 245, 245);
     padding-right: 3%;
     padding-left: 3%;

@@ -1,4 +1,4 @@
-main div.mini-resource-card-container:has(.mini-resource-card.background-color-white) {
+main div.mini-resource-card-wrapper:has(.mini-resource-card.background-color-white) {
   background-color: white;
 }
 
@@ -65,7 +65,7 @@ main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-b
   padding: 0 0 0 4% !important;
 }
 
-main div.mini-resource-card-container div.mini-resource-card-wrapper .section-title {
+main div.mini-resource-card-wrapper .section-title {
   margin: 48px 0 40px 0;
 }
 
@@ -124,7 +124,7 @@ main div.mini-resource-card-wrapper a div:last-child{
   main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-body {
     height: 100% !important;
   }
-  main div.mini-resource-card-container {
+  main div.mini-resource-card-wrapper {
     padding: 40px 0px 5px 0px;
   }
 }
