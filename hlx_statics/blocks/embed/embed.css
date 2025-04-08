@@ -1,8 +1,8 @@
-main div.embed-container:has(.embed.background-color-white) {
+main div.embed-wrapper:has(.embed.background-color-white) {
   background-color: white;
 }
 
-main div.embed-container {
+main div.embed-wrapper {
   align-items: center;
   justify-content: center;
   background: rgb(245, 245, 245);
