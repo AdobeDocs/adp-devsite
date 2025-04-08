@@ -1,6 +1,7 @@
 {
     "name": "adobe-io-website",
     "version": "0.0.3",
+    "type": "module",
     "scripts": {
         "lint": "eslint .",
         "buildCss": "mkdir -p hlx_statics/styles/spectrum/ && postcss -o hlx_statics/styles/spectrum/spectrum.min.css styles-includes.css",
