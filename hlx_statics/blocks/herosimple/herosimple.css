@@ -1,14 +1,14 @@
 main div.herosimple-wrapper {
   width: 100%;
 }
-main div.herosimple {
+main div.herosimple-wrapper div.herosimple {
   height: 272px;
   overflow: hidden;
   color: rgb(255, 255, 255);
   position: relative;
 }
 
-main div.herosimple > div {
+main div.herosimple-wrapper div.herosimple > div {
   max-width: 1000px;
   margin: 0 auto;
   width: 100%;
@@ -19,12 +19,12 @@ main div.herosimple > div {
   height: 100%;
 }
 
-main div.herosimple > div > div{
+main div.herosimple-wrapper div.herosimple > div > div{
   width: calc(5* 100% / 12);
   font-size: 20px;
 }
 
-main div.herosimple h1 {
+main div.herosimple-wrapper div.herosimple h1 {
   color: rgb(255, 255, 255);
   margin-top: 0;
   font-size: 36px !important;
@@ -35,11 +35,11 @@ main div.herosimple-container {
 }
 
 @media screen and (max-width: 1024px) {
-  main div.herosimple {
+  main div.herosimple-wrapper div.herosimple {
     height: auto;
     padding: 50px 0px;
   }
-  main div.herosimple > div{
+  main div.herosimple-wrapper div.herosimple > div{
     max-width: 800px;
     margin: auto;
     margin-left: 90px;
@@ -47,13 +47,13 @@ main div.herosimple-container {
 }
 
 @media screen and (max-width: 768px) {
-  main div.herosimple {
+  main div.herosimple-wrapper div.herosimple {
     height: auto;
     padding: 32px;
   }
 }
 
-main .herosimple .herosimple-button-container {
+main div.herosimple-wrapper .herosimple .herosimple-button-container {
   display: flex;
   margin-top: 24px;
   gap: 16px;

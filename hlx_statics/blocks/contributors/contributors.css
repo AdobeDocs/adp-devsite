@@ -108,12 +108,12 @@ hr {
     border: none;
 }
 
-.image-contributor {
+main div.contributors-wrapper .image-contributor {
     width: 100%;
     transition: opacity 0.5s;
 }
 
-.span-Image-contributor {
+main div.contributors-wrapper .span-Image-contributor {
     margin-left: -17px;
     position: relative;
     border: 3px solid rgb(255, 255, 255);
@@ -152,7 +152,7 @@ main .contributors-container {
 }
 
 @media screen and (min-width : 320px) and (max-width : 767px) {
-    .contibutors-wrapper-comp {
+    main div.contributors-wrapper .contibutors-wrapper-comp {
         gap: 20px;
     }
 
