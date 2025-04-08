@@ -1,8 +1,8 @@
-main div.title-container:has(.title.background-color-white) {
+main div.title-wrapper:has(.title.background-color-white) {
     background-color: white;
 }
 
-main div.title-container:has(.title.background-color-navy) {
+main div.title-wrapper:has(.title.background-color-navy) {
     background-color: rgb(15, 55, 95);
 }
 
@@ -10,31 +10,31 @@ main div.title-wrapper div.title.background-color-navy .title-heading, main  div
     color:white;
 }
 
-main div.title-container {
+main div.title-wrapper {
     width: 100%;
     text-align: center;
 }
 
-main div.title-container>.title-wrapper>div {
+main div.title-wrapper>div {
     margin: auto;
     max-width: 1280px;
 }
 
-main div.title-container>.title-wrapper>div>div>div {
+main div.title-wrapper>div>div>div {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
 @media screen and (min-width : 320px) and (max-width : 768px) {
-    main div.title-container>.title-wrapper>div {
+    main div.title-wrapper>div {
         width: fit-content !important;
         margin: 0 20px;
     }
 }
 
 @media screen and (min-width : 768px) and (max-width : 1024px) {
-    main div.title-container>.title-wrapper>div {
+    main div.title-wrapper>div {
         width: fit-content !important;
         margin: auto;
     }

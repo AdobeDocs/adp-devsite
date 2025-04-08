@@ -1,8 +1,4 @@
-/* main .section {
-  padding: 0px;
-} */
-
-main div.summary-container {
+main div.summary-wrapper {
   background: rgb(245, 245, 245);
   background-position: center;
   background-size: cover;
@@ -32,7 +28,7 @@ main div.summary-wrapper  div.summary.no-image > div {
   justify-content: center;
   align-items: start;
   width: 100%;
-  padding: 0px 64px 0px calc((100vw - 1280px)/2)  
+  padding: 0px 64px 0px calc((100vw - 1280px)/2)
   /* margin: 32px; */
 }
 

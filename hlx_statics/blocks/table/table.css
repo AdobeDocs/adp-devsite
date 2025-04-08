@@ -1,14 +1,9 @@
-main div.table-container:has(.table.background-color-white) {
-  background-color: white !important;
-  overflow-x: auto;
-}
-
 main div.table-wrapper {
   padding-left: 32px;
   padding-right: 32px;
 }
 
-main div.table-container {
+main div.table-wrapper {
   background: white;
   overflow-x: auto;
 }
