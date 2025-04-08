@@ -6,9 +6,6 @@ main div.embed-wrapper {
   align-items: center;
   justify-content: center;
   background: rgb(245, 245, 245);
-}
-
-main div.embed-wrapper {
   max-width: 1280px;
   padding-left: 32px;
   padding-right: 32px;
