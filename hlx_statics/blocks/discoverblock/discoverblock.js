@@ -24,9 +24,9 @@ export default async function decorate(block) {
   if(width === '100%'){
     block.classList.add('discoverblock-column');
   }else {
-    let existingWrapper = document.querySelector('.discoverblock-container-wrapper') || null;
+    let existingWrapper = document.querySelector('.discoverblock-wrapper-container') || null;
     if (!existingWrapper) {
-      existingWrapper = createTag('div', { class: 'discoverblock-container-wrapper' });
+      existingWrapper = createTag('div', { class: 'discoverblock-wrapper-container' });
       const parentElement = block.parentElement;
       parentElement.appendChild(existingWrapper);
     }
