@@ -41,7 +41,7 @@ main div.discoverblock-wrapper div.discover-img-child-container {
 }
 
 @media screen and (max-width : 650px) {
-    .discoverblock {
+    main div.discoverblock-wrapper .discoverblock {
         width: 370px !important;
     }
 
