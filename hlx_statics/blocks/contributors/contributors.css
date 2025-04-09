@@ -92,7 +92,7 @@ main div.contributors-wrapper .imageList {
     border: none;
 }
 
-.image-contributor {
+main div.contributors-wrapper .image-contributor {
     width: 100%;
     transition: opacity 0.5s;
 }
