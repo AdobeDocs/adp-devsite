@@ -1,5 +1,9 @@
 export default function insertWrapperContainer(block) {
-    console.log('~~ hello');
+    const wrapper = block.parentElement;
+    const container = wrapper.parentElement;
+    const name = block.getAttribute('data-block-name');
+    
+    console.log('~~ hello', wrapper, container, block, name);
 }
 
 
