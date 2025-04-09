@@ -138,6 +138,9 @@ main div.inlinealert-wrapper .inlinealert{
     margin: 0 auto;
     font-size: 16px;
     width: 100%;
+    display: inline-flex;
+    flex-direction: column;
+    gap:12px;
 }
 
 main div.inlinealert-wrapper .inlinealert>div{
@@ -164,4 +167,15 @@ main div.inlinealert-wrapper div.inlinealert > p.spectrum-InLineAlert-content{
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
+}
+
+
+main div.inlinealert-wrapper .inlinealert h1,
+main div.inlinealert-wrapper .inlinealert h2,
+main div.inlinealert-wrapper .inlinealert h3,
+main div.inlinealert-wrapper .inlinealert h4,
+main div.inlinealert-wrapper .inlinealert h5,
+main div.inlinealert-wrapper .inlinealert h6
+{
+    margin: 0;
 }
