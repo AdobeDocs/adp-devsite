@@ -147,8 +147,4 @@ main .contributors-container {
     main .contributors-container {
         padding: 15px !important;
     }
-
-    a {
-        gap: 150px;
-    }
 }
