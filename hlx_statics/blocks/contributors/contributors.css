@@ -43,7 +43,7 @@ main div.contributors-wrapper .imageList {
     padding-left: 16px;
 }
 
-.model-comp-contributors {
+.contributor-modal .model-comp-contributors {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -56,7 +56,7 @@ main div.contributors-wrapper .imageList {
     height: 100vh;
 }
 
-.show-model-contributors {
+.contributor-modal .show-model-contributors {
     background-color: white;
     z-index: 2;
     position: absolute;
@@ -65,20 +65,20 @@ main div.contributors-wrapper .imageList {
     justify-content: center;
 }
 
-.wrapper-model {
+.contributor-modal .wrapper-model {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.content-wrapper-contributors {
+.contributor-modal .content-wrapper-contributors {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.button-wrapper-contributor {
+.contributor-modal .button-wrapper-contributor {
     display: flex;
     grid-area: "buttonGroup";
     justify-content: flex-end;
@@ -86,7 +86,7 @@ main div.contributors-wrapper .imageList {
     padding-left: 16px;
 }
 
-.close-button {
+.contributor-modal .close-button {
     cursor: pointer;
     color: #fff;
     border: none;
@@ -140,7 +140,7 @@ main .contributors-container {
         gap: 20px;
     }
 
-    .button-wrapper-contributor {
+    .contributor-modal .button-wrapper-contributor {
         flex-direction: column;
     }
 
