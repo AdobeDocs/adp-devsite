@@ -102,7 +102,7 @@ hr {
     padding-left: 16px;
 }
 
-.close-button {
+.contributor-modal .close-button {
     cursor: pointer;
     color: #fff;
     border: none;
