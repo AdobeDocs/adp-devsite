@@ -140,7 +140,7 @@ main .contributors-container {
         gap: 20px;
     }
 
-    .button-wrapper-contributor {
+    .contributor-modal .button-wrapper-contributor {
         flex-direction: column;
     }
 
