@@ -152,7 +152,7 @@ main .contributors-container {
 }
 
 @media screen and (min-width : 320px) and (max-width : 767px) {
-    .contibutors-wrapper-comp {
+    main div.contributors-wrapper .contibutors-wrapper-comp {
         gap: 20px;
     }
 
@@ -165,6 +165,6 @@ main .contributors-container {
     }
 
     a {
-        gap: 15px;
+        gap: 150px;
     }
 }
