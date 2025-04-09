@@ -1,4 +1,4 @@
-main div.carousel-container:has(.carousel.background-color-white) {
+main div.carousel-wrapper:has(.carousel.background-color-white) {
   background-color: white !important;
 }
 

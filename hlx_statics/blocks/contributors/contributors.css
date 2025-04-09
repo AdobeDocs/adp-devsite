@@ -37,7 +37,7 @@ main div.contributors-wrapper a {
     color: rgb(44, 44, 44);
 }
 
-main div.contributors-container .imageList {
+main div.contributors-wrapper .imageList {
     display: flex;
     flex-direction: row-reverse;
     padding-left: 16px;

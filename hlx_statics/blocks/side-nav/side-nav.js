@@ -309,8 +309,9 @@ export default async function decorate(block) {
           }
 
           updateIcon(getAnchorTag, !isExpanded, Boolean(childUl));
+          console.log('getAnchorTag.href', getAnchorTag.href)
 
-          if (window.location.href === getAnchorTag.href) {
+          if (window.location.href === getAnchorTag.href || window.location.pathname ===  getAnchorTag.getAttribute('dhref')) {
             getAnchorTag.setAttribute("aria-current", "page");
             if (li.classList.contains("header") && li.classList.contains("is-expanded")) {
               // if the header is expanded, make sure it's not selected if there is already a child selected.
@@ -326,7 +327,7 @@ export default async function decorate(block) {
           }
         };
 
-        if (window.location.href === getAnchorTag.href) {
+        if (window.location.href === getAnchorTag.href || window.location.pathname ===  getAnchorTag.getAttribute('dhref') ) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
           const header = li.closest(".header");

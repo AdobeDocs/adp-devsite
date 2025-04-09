@@ -25,7 +25,7 @@ main div.hero-wrapper div.hero.font-white p {
   color: white !important;
 }
 
-main div.hero-container {
+main div.hero-wrapper {
   padding: 0;
 }
 
@@ -59,7 +59,7 @@ main div.hero-wrapper div.hero div:nth-child(2) > div img {
   min-height: 500px !important;
 }
 
-main div.hero-container:has(.full-width-background) div:nth-child(2) > div img {
+main div.hero-wrapper:has(.full-width-background) div:nth-child(2) > div img {
   display:none;
 }
 main div.hero-wrapper div.hero .icon-container {

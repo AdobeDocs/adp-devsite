@@ -1,4 +1,4 @@
-pre[class*="language-"] {
+main div.codeblock-wrapper pre[class*="language-"] {
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
 }
@@ -27,10 +27,6 @@ main div.codeblock-wrapper div.codeblock .control-bar {
   justify-content: space-between;
 }
 
-main div .tabs-list {
-  margin-left: 30px;
-}
-
 /* copied from https://raw.githubusercontent.com/adobe/aem-block-collection/main/blocks/tabs/tabs.css, then edited */
 
 main div.codeblock-wrapper div.codeblock .control-bar,
@@ -39,6 +35,7 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list {
   gap: 16px;
   max-width: 100%;
   overflow-x: auto;
+  margin: 0 16px;
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar select,
@@ -58,6 +55,7 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   cursor: pointer;
   background-color: initial;
   border-bottom: 3px solid transparent;
+  padding: 16px 0;
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar select:hover,

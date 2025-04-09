@@ -4,15 +4,14 @@ main div.info-card-wrapper div.info-card > ul {
   margin-bottom: 0px;
   margin-left: auto;
   margin-right: auto;
-  display: grid;
-  max-width: 1280px;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  grid-template-columns: repeat(auto-fit, minmax(375px, 400px));
-  grid-gap: 40px;
+  gap: 40px;
   padding: 0;
 }
 
-main div.info-card-container:has(.info-card.background-color-white) {
+main div.info-card-wrapper:has(.info-card.background-color-white) {
   background-color: white;
 }
 
@@ -25,6 +24,7 @@ main div.info-card-wrapper div.info-card > ul > li {
   border: 1px solid transparent;
   border-radius: 4px;
   background-color: rgb(255,255,255);
+  border-color: rgb(235,235,235);
 }
 
 main div.info-card-wrapper div.info-card > ul > li:hover{
@@ -44,8 +44,7 @@ main div.info-card-wrapper div.info-card .cards-card-body > *:first-child {
 }
 
 main div.info-card-wrapper div.info-card > ul > li img {
-  width: 390px;
-  padding: 4px;
+  width: 400px;
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
@@ -69,8 +68,12 @@ main div.info-card-wrapper div.info-card p.icon-p svg {
   object-fit: contain;
 }
 
+main div.info-card-wrapper div.info-card .card-heading {
+  color: rgb(0,0,0);
+}
+
 main div.info-card-wrapper div.info-card p {
-  color: rgb(110, 110, 110);
+  color: rgb(71,71,71) !important;
 }
 
 @media screen and (min-width : 350px) and (max-width : 400px) {

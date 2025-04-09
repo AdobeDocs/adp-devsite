@@ -374,7 +374,7 @@ export function rearrangeHeroPicture(block, overlayStyle) {
   const div = block.querySelector('div');
   div.setAttribute('style', overlayStyle);
   const img = picture.querySelector('img');
-  img.setAttribute('style', 'width: 100% !important; max-height: 350px');
+  img.setAttribute('style', 'width: 100% !important; height: 350px');
   emptyDiv.remove();
 }
 
@@ -474,6 +474,8 @@ function activeSubNav(actTab) {
   }
   if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
     document.querySelector("main").classList.add("no-sidenav");
+    const sectionDivision = document.querySelector('main > div[style*="grid-area: main"]');
+    sectionDivision.style.margin = "0 auto"
   }
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";
