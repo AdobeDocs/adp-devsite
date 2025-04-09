@@ -23,7 +23,6 @@ main div.info-card-wrapper div.info-card > ul > li {
   max-width: 400px;
   border: 1px solid transparent;
   border-radius: 4px;
-  background-color: rgb(255,255,255);
   border-color: rgb(235,235,235);
 }
 
@@ -32,7 +31,9 @@ main div.info-card-wrapper div.info-card > ul > li:hover{
 }
 
 main div.info-card-wrapper div.info-card .cards-card-body {
-  margin: 16px;
+  padding: 16px;
+  height: 125px;
+  background-color: white;
 }
 
 main div.info-card-wrapper div.info-card .cards-card-image {
