@@ -87,6 +87,22 @@ img {
   font-family: "adobe-clean", sans-serif;
 }
 
+h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+hr {
+  border-radius: 2px;
+  height: 1px;
+  border-color: rgb(213, 213, 213);
+  background-color: rgb(213, 213, 213);
+  border-top: 0;
+  border-left: 0;
+  width: 100%;
+}
+
 main {
   background-color: rgb(245,245,245);
 }
