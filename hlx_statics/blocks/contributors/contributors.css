@@ -72,22 +72,6 @@ main div.contributors-wrapper .imageList {
     gap: 10px;
 }
 
-h1 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-hr {
-    border-radius: 2px;
-    height: 1px;
-    border-color: rgb(213, 213, 213);
-    background-color: rgb(213, 213, 213);
-    border-top: 0;
-    border-left: 0;
-    width: 100%;
-}
-
 .content-wrapper-contributors {
     display: flex;
     flex-direction: column;
