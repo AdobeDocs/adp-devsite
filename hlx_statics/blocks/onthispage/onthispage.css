@@ -8,8 +8,8 @@ html {
   top: 128px;
   bottom: 0;
   left: 0;
-  width: 330px;
-  margin: 128px 0 0 32px;
+  width: 256px;
+  margin: 128px 32px 0 32px;
   height: calc(100vh - 128px);
   overflow: auto;
   box-sizing: border-box;
@@ -35,7 +35,7 @@ html {
   color: rgb(109, 109, 109);
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1228px) {
   .onthispage-wrapper {
     display: none !important;
   }
