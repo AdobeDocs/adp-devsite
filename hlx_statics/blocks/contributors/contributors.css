@@ -143,12 +143,4 @@ main .contributors-container {
     .contributor-modal .button-wrapper-contributor {
         flex-direction: column;
     }
-
-    main .contributors-container {
-        padding: 15px !important;
-    }
-
-    a {
-        gap: 15px;
-    }
 }

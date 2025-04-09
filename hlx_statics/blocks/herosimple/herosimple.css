@@ -30,10 +30,6 @@ main div.herosimple-wrapper div.herosimple h1 {
   font-size: 36px !important;
 }
 
-main div.herosimple-container {
-  padding: 0;
-}
-
 @media screen and (max-width: 1024px) {
   main div.herosimple-wrapper div.herosimple {
     height: auto;
