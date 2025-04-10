@@ -105,6 +105,7 @@ hr {
 
 main {
   background-color: rgb(245,245,245);
+  margin: 0;
 }
 
 main.white-background {

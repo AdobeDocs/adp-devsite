@@ -79,11 +79,6 @@ export default async function decorate(block) {
     if (main) {
       const mainContent = document.querySelector("main > div:nth-child(2)");
 
-      if (mainContent) {
-        mainContent.style.margin = "0 64px";
-        mainContent.style.maxWidth = "1280px";
-      }
-
       if (window.innerWidth <= 768) {
         main.style.gridTemplateColumns = "0 100vw";
       } else {

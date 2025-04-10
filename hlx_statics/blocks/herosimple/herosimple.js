@@ -46,8 +46,6 @@ export default async function decorate(block) {
   const sideNav = document.querySelector('.side-nav-container');
   const subParent = createTag('div',{class:'sub-parent'});
     if (heroSimpleContainer) {
-      heroSimpleContainer.style.margin = '0px';
-      heroSimpleContainer.style.maxWidth = 'none';
       const children = Array.from(heroSimpleContainer.children);
       children.forEach(child => {
         if (!child.classList.contains('herosimple-wrapper')) {
