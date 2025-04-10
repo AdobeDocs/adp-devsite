@@ -377,7 +377,18 @@ header.global-nav-header div.nav-console-search-button {
 
 }
 
-header.global-nav-header button.nav-dropdown-search {
+header.global-nav-header div.nav-console-search-button button.close-search-button,
+header.global-nav-header div.nav-console-search-button.is-open button.nav-dropdown-search {
+  display:none;
+}
+
+header.global-nav-header div.nav-console-search-button button.nav-dropdown-search,
+header.global-nav-header div.nav-console-search-button.is-open button.close-search-button {
+  display:block;
+}
+
+header.global-nav-header button.nav-dropdown-search,
+header.global-nav-header button.close-search-button {
   border: none;
   background-color: #fff;
   color: rgb(110, 110, 110);
@@ -472,7 +483,7 @@ header iframe {
 
 header div.nav-console-search-frame {
   position: fixed;
-  top: 80px;
+  top: 64px;
   left: 0px;
   right: 0px;
   bottom: 0px;
