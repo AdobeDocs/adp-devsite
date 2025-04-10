@@ -1,4 +1,5 @@
 import { decorateButtons } from '../../scripts/lib-adobeio.js';
+import insertWrapperContainer from '../../components/wrapperContainer.js';
 
 /**
  * Rearranges the links into a image-text-button-container div
@@ -26,6 +27,7 @@ function rearrangeLinks(block) {
  * @param {Element} block The image-text block element
  */
 export default async function decorate(block) {
+  insertWrapperContainer(block);
   decorateButtons(block);
   block.setAttribute('daa-lh', 'image-text');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {

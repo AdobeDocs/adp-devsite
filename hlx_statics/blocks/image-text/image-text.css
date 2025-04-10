@@ -1,8 +1,8 @@
-main div.image-text-container:has(.image-text.background-color-white) {
+main div.image-text-wrapper-container:has(.image-text.background-color-white) {
   background-color: white;
 }
 
-main div.image-text-container > .image-text-wrapper {
+main div.image-text-wrapper-container > .image-text-wrapper {
   width: 80%;
   margin: auto;
 }
@@ -40,7 +40,7 @@ main div.image-text-wrapper > .image-text > div > div {
   justify-content: center;
 }
 
-main div.image-text-container p {
+main div.image-text-wrapper-container p {
   text-align: center;
 }
 
