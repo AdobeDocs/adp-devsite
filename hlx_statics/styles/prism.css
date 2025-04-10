@@ -5,7 +5,7 @@ pre[class*=language-] {
     color: rgb(235, 235, 235);
     background: 0 0;
     font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-    font-size: 1em;
+    font-size: 14px;
     text-align: left;
     white-space: pre;
     word-spacing: normal;
@@ -25,7 +25,7 @@ pre[class*=language-] {
     padding: 1em;
     margin: 0;
     overflow: auto;
-    background: rgb(15, 15, 15);
+    background: #323232;
 }
 
 .token.comment,
@@ -179,4 +179,30 @@ div.code-toolbar>.toolbar>.toolbar-item>button {
     font-size: 1em;
     padding: 0.6em;
     background: rgba(0, 0, 0, 0);
+}
+
+pre.prism-loading {
+    background: #e0e0e0;
+    color: transparent !important;
+    border-radius: 4px;
+    min-height: 1em;
+    position: relative;
+    overflow: hidden;
+}
+
+pre.prism-loading::before {
+    content: " ";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: linear-gradient(90deg, #f3f3f3 25%, #e0e0e0 50%, #f3f3f3 75%);
+    background-size: 200% 100%;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+pre.prism-loading code {
+    visibility: hidden;
 }
