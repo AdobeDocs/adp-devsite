@@ -160,6 +160,10 @@ main div.title-wrapper {
   padding-bottom: 20px;
 }
 
+main .section {
+  width: 100%;
+}
+
 main .section .section-title {
   margin: 0;
   text-align: center;
