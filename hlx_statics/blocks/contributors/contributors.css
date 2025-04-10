@@ -144,8 +144,4 @@ main .contributors-wrapper-container {
     .contributor-modal .button-wrapper-contributor {
         flex-direction: column;
     }
-
-    main .contributors-container {
-        padding: 15px !important;
-    }
 }
