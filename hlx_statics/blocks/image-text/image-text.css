@@ -1,21 +1,20 @@
-main div.image-text-container:has(.image-text.background-color-white) {
+main div.image-text-wrapper-container:has(.image-text.background-color-white) {
   background-color: white;
 }
 
-main div.image-text-container > .image-text-wrapper {
+main div.image-text-wrapper-container > .image-text-wrapper {
   width: 80%;
   margin: auto;
 }
 
-main div.image-text-container > .image-text-wrapper > .image-text {
+main div.image-text-wrapper > .image-text {
   display: flex;
   gap: 100px;
   justify-content: center;
 }
 
 main
-  div.image-text-container
-  > .image-text-wrapper
+  div.image-text-wrapper
   > .image-text
   > div
   > div:last-child {
@@ -26,34 +25,34 @@ main
   align-items: center;
 }
 
-main div.image-text-container div.image-text-wrapper img {
+main div.image-text-wrapper img {
   width: 600px;
   height: 400px;
 }
 
-main div.image-text-container div.image-text-wrapper .image-text-button-container {
+main div.image-text-wrapper .image-text-button-container {
   display: flex;
   gap: 20px;
 }
 
-main div.image-text-container > .image-text-wrapper > .image-text > div > div {
+main div.image-text-wrapper > .image-text > div > div {
   display: flex;
   justify-content: center;
 }
 
-main div.image-text-container p {
+main div.image-text-wrapper-container p {
   text-align: center;
 }
 
 @media screen and (min-width: 320px) and (max-width: 767px) {
-  main div.image-text-container div.image-text-wrapper img {
+  main div.image-text-wrapper img {
     width: 350px;
     height: auto;
   }
 }
 
 @media screen and (min-width: 320px) and (max-width: 1023px) {
-  main div.image-text-container > .image-text-wrapper > .image-text {
+  main div.image-text-wrapper > .image-text {
     flex-direction: column !important;
     gap: 50px;
   }

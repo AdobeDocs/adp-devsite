@@ -43,7 +43,7 @@ main div.contributors-wrapper .imageList {
     padding-left: 16px;
 }
 
-.model-comp-contributors {
+.contributor-modal .model-comp-contributors {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -56,7 +56,7 @@ main div.contributors-wrapper .imageList {
     height: 100vh;
 }
 
-.show-model-contributors {
+.contributor-modal .show-model-contributors {
     background-color: white;
     z-index: 2;
     position: absolute;
@@ -65,36 +65,20 @@ main div.contributors-wrapper .imageList {
     justify-content: center;
 }
 
-.wrapper-model {
+.contributor-modal .wrapper-model {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-h1 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-hr {
-    border-radius: 2px;
-    height: 1px;
-    border-color: rgb(213, 213, 213);
-    background-color: rgb(213, 213, 213);
-    border-top: 0;
-    border-left: 0;
-    width: 100%;
-}
-
-.content-wrapper-contributors {
+.contributor-modal .content-wrapper-contributors {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.button-wrapper-contributor {
+.contributor-modal .button-wrapper-contributor {
     display: flex;
     grid-area: "buttonGroup";
     justify-content: flex-end;
@@ -102,18 +86,18 @@ hr {
     padding-left: 16px;
 }
 
-.close-button {
+.contributor-modal .close-button {
     cursor: pointer;
     color: #fff;
     border: none;
 }
 
-.image-contributor {
+main div.contributors-wrapper .image-contributor {
     width: 100%;
     transition: opacity 0.5s;
 }
 
-.span-Image-contributor {
+main div.contributors-wrapper .span-Image-contributor {
     margin-left: -17px;
     position: relative;
     border: 3px solid rgb(255, 255, 255);
@@ -144,27 +128,20 @@ hr {
     transform: translateY(0);
 }
 
-main .contributors-container {
-    position: sticky;
+main .contributors-wrapper-container {
+    position: fixed;
     bottom: 3px;
     background: white;
     padding: .75rem;
+    width: 100%;
 }
 
 @media screen and (min-width : 320px) and (max-width : 767px) {
-    .contibutors-wrapper-comp {
+    main div.contributors-wrapper .contibutors-wrapper-comp {
         gap: 20px;
     }
 
-    .button-wrapper-contributor {
+    .contributor-modal .button-wrapper-contributor {
         flex-direction: column;
-    }
-
-    main .contributors-container {
-        padding: 15px !important;
-    }
-
-    a {
-        gap: 15px;
     }
 }
