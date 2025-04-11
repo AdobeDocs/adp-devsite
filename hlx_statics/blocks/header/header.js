@@ -19,8 +19,13 @@ function isSourceGithub() {
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
   div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
-      <svg class="spectrum-Icon spectrum-Icon--sizeM" focusable="false" aria-hidden="true" aria-label="Edit">
+      <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true" aria-label="Edit">
         <use href="/hlx_statics/icons/search.svg#spectrum-icon-24-Search"></use>
+      </svg>
+    </button>
+    <button class="close-search-button" aria-label="Close Search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
+      <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true">
+        <use href="/hlx_statics/icons/close.svg#close-icon"></use>
       </svg>
     </button>`;
   return div;
@@ -165,6 +170,8 @@ const checkIframeLoaded = (renderedFrame) => {
 function decorateSearchIframeContainer(header) {
   const searchIframeContainer = header.querySelector('div.nav-console-search-frame');
   const button = header.querySelector('button.nav-dropdown-search');
+  const searchButtonDiv = header.querySelector('.nav-console-search-button');
+  const closeButton = header.querySelector('button.close-search-button');
   const queryString = getQueryString();
 
   button.addEventListener('click', (evt) => {
@@ -173,19 +180,20 @@ function decorateSearchIframeContainer(header) {
       searchFrame.id = 'nav-search-iframe';
       searchFrame.src = setSearchFrameSource();
       searchIframeContainer.appendChild(searchFrame);
-      button.classList.add('is-open');
+      searchButtonDiv.classList.add('is-open');
       /* Loading Iframe */
       checkIframeLoaded(searchIframeContainer.firstChild);
       searchIframeContainer.style.visibility = 'visible';
       document.body.style.overflow = 'hidden';
-    } else {
-      button.classList.remove('is-open');
-      searchIframeContainer.style.visibility = 'hidden';
-      document.body.style.overflow = 'auto';
-      searchIframeContainer.firstChild.remove();
     }
   });
 
+  closeButton.addEventListener('click', (evt) => {
+      searchButtonDiv.classList.remove('is-open');
+      searchIframeContainer.style.visibility = 'hidden';
+      document.body.style.overflow = 'auto';
+      searchIframeContainer.firstChild.remove();
+  });
   // to load search if query string is present
   if (queryString.has('query')) {
     button.click();
