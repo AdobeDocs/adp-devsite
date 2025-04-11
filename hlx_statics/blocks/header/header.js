@@ -19,12 +19,12 @@ function isSourceGithub() {
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
   div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
-      <svg class="spectrum-Icon spectrum-Icon--sizeM" focusable="false" aria-hidden="true" aria-label="Edit">
+      <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true" aria-label="Edit">
         <use href="/hlx_statics/icons/search.svg#spectrum-icon-24-Search"></use>
       </svg>
     </button>
     <button class="close-search-button" aria-label="Close Search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
-      <svg class="spectrum-Icon spectrum-Icon--sizeM" focusable="false" aria-hidden="true">
+      <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true">
         <use href="/hlx_statics/icons/close.svg#close-icon"></use>
       </svg>
     </button>`;
