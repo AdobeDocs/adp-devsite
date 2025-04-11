@@ -374,7 +374,7 @@ header.global-nav-header div.nav-console-right-container {
 
 header.global-nav-header div.nav-console-search-button {
   margin-right: 24px;
-
+  margin-top: 6px;
 }
 
 header.global-nav-header div.nav-console-search-button button.close-search-button,
