@@ -414,6 +414,10 @@ async function loadLazy(doc) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
+
+    const hasHeroSimpleContainer = Boolean(document.querySelector('.herosimple-container'));
+    console.log('~~ hasHeroSimpleContainer', hasHeroSimpleContainer);
+    console.log('~~ hasSideNav', hasSideNav.length !== 0);
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
