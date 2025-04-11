@@ -44,7 +44,6 @@ export default async function decorate(block) {
 
   const heroSimpleContainer = document.querySelector('.herosimple-container');
   const sideNav = document.querySelector('.side-nav-container');
-  console.log('~~~ hasSideNav', sideNav);
   const subParent = createTag('div',{class:'sub-parent'});
     if (heroSimpleContainer) {
       heroSimpleContainer.style.margin = '0px';
