@@ -128,11 +128,12 @@ main div.contributors-wrapper .span-Image-contributor {
     transform: translateY(0);
 }
 
-main .contributors-container {
-    position: sticky;
+main .contributors-wrapper-container {
+    position: fixed;
     bottom: 3px;
     background: white;
     padding: .75rem;
+    width: 100%;
 }
 
 @media screen and (min-width : 320px) and (max-width : 767px) {
