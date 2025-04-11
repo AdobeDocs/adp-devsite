@@ -9,14 +9,14 @@ main div.iframe-wrapper iframe.iframe-container {
   border: none;
 }
 
-main div.iframe-container {
+main div.iframe-wrapper {
   align-items: center;
   justify-content: center;
   text-align: center;
   background: rgb(248, 248, 248);
 }
 
-main div.iframe-container > div{
+main div.iframe-wrapper > div{
   max-width: 1280px;
   padding-top: 16px;
   margin: auto;
