@@ -23,6 +23,7 @@ import {
   buildCodes,
   buildEmbeds,
   buildGrid,
+  buildGridAreaMain,
   buildHeadings,
   buildSideNav,
   buildOnThisPage,
@@ -415,6 +416,7 @@ async function loadLazy(doc) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
+    buildGridAreaMain(main, hasSideNav);
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);

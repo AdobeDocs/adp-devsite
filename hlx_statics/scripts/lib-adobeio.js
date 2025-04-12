@@ -301,6 +301,32 @@ export function buildGrid(main) {
 }
 
 /**
+ * Builds the div with style*="grid-area: main"
+ * @param {*} main The grid container
+ * @param {*} hasSideNav whether main has a side nav
+ */
+export function buildGridAreaMain(main, hasSideNav) {
+  const heroSimpleContainer = main.querySelector('.herosimple-container');
+  const subParent = createTag("div", { class: "sub-parent" });
+  if (heroSimpleContainer) {
+    const children = Array.from(heroSimpleContainer.children);
+    children.forEach((child) => {
+      if (!child.classList.contains("herosimple-wrapper")) {
+        subParent.appendChild(child);
+      }
+    });
+    const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
+    if (herosimpleWrapper) {
+      heroSimpleContainer.insertBefore(subParent, herosimpleWrapper.nextSibling);
+    } else {
+      heroSimpleContainer.appendChild(subParent);
+    }
+  }
+  subParent.style.margin = "0 auto";
+  subParent.style.maxWidth = hasSideNav ? "1000px" : "1280px";  
+}
+
+/**
  * Builds the side nav
  * @param {*} main The grid container
  */
@@ -328,12 +354,8 @@ export function buildOnThisPage(main) {
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
-  if (!document.querySelector('.herosimple-wrapper')) {
-    main.children[1].appendChild(nextPrevWrapper)
-  }
-  else {
-    main.children[1].children[1].appendChild(nextPrevWrapper)
-  }
+  const gridAreaMain = main.querySelector('div[style*="grid-area: main"]');
+  gridAreaMain.appendChild(nextPrevWrapper)
 }
 
 /**
@@ -474,7 +496,7 @@ function activeSubNav(actTab) {
   }
   if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
     document.querySelector("main").classList.add("no-sidenav");
-    const sectionDivision = document.querySelector('main > div[style*="grid-area: main"]');
+    const sectionDivision = document.querySelector('main div[style*="grid-area: main"]');
     sectionDivision.style.margin = "0 auto"
   }
   const sidecontainer = document.querySelector(".side-nav-container");
