@@ -68,11 +68,7 @@ export default async function decorate(block) {
       } else {
         heroSimpleContainer.appendChild(subParent);
       }
-      subParent.style.margin = '0 auto';
-      subParent.style.maxWidth = '1000px';
     }
-    if(!sideNav){
-      subParent.style.margin = '0 auto';
-      subParent.style.maxWidth = '1280px';
-    }
+    subParent.style.margin = '0 auto';
+    subParent.style.maxWidth = sideNav ? '1000px' : '1280px';
 }

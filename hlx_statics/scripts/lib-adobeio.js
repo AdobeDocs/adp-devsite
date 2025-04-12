@@ -328,12 +328,8 @@ export function buildOnThisPage(main) {
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
-  if (!document.querySelector('.herosimple-wrapper')) {
-    main.children[1].appendChild(nextPrevWrapper)
-  }
-  else {
-    main.children[1].children[1].appendChild(nextPrevWrapper)
-  }
+  const gridAreaMain = main.querySelector('div[style*="grid-area: main"]');
+  gridAreaMain.appendChild(nextPrevWrapper)
 }
 
 /**
