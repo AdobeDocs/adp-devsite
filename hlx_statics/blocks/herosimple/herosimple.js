@@ -43,11 +43,19 @@ export default async function decorate(block) {
   }
 
   const heroSimpleContainer = document.querySelector('.herosimple-container');
+  if (heroSimpleContainer) {
+    heroSimpleContainer.style.margin = '0px';
+    heroSimpleContainer.style.maxWidth = 'none';
+  }
+
   const sideNav = document.querySelector('.side-nav-container');
+  if(!sideNav){
+    const heroSimpleDiv = block.querySelector('.herosimple > div');
+    heroSimpleDiv.style.setProperty('max-width', '1280px', 'important');
+  }
+
   const subParent = createTag('div',{class:'sub-parent'});
     if (heroSimpleContainer) {
-      heroSimpleContainer.style.margin = '0px';
-      heroSimpleContainer.style.maxWidth = 'none';
       const children = Array.from(heroSimpleContainer.children);
       children.forEach(child => {
         if (!child.classList.contains('herosimple-wrapper')) {
@@ -64,8 +72,6 @@ export default async function decorate(block) {
       subParent.style.maxWidth = '1000px';
     }
     if(!sideNav){
-      const heroSimpleDiv = block.querySelector('.herosimple > div');
-      heroSimpleDiv.style.setProperty('max-width', '1280px', 'important');
       subParent.style.margin = '0 auto';
       subParent.style.maxWidth = '1280px';
     }
