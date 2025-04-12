@@ -321,7 +321,17 @@ export function buildGridAreaMain(main, hasSideNav) {
     gridAreaMain.appendChild(subParent);
   }
   subParent.style.margin = "0 auto";
-  subParent.style.maxWidth = hasSideNav ? "1000px" : "1280px";  
+  subParent.style.maxWidth = hasSideNav ? "1000px" : "1280px"; 
+
+  const newGridAreaMain = createTag('div');
+  newGridAreaMain.style.gridArea = 'main';  
+  gridAreaMain.style.removeProperty('gridArea');
+  gridAreaMain.replaceWith(newGridAreaMain);
+  newGridAreaMain.appendChild(gridAreaMain);
+
+  if(herosimpleWrapper) {
+    div.style.width = "100%";
+  }
 }
 
 /**
