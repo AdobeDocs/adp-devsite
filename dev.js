@@ -9,7 +9,6 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Request, Response } from '@adobe/fetch';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,36 +22,20 @@ const REF = process.env.OWNER || 'main';
 
 const app = express();
 
-// TODO: fetch the path prefix map and use that to route the request
-
-// const pathPrefixMap = {
-//   '/commerce/webapi':  {
-//     'pathPrefix': '/commerce/webapi',
-//     'repo': 'commerce-webapi',
-//     'owner': 'AdobeDocs',
-//     'root': '/src/pages/',
-//     'branch': ''
-//   },
-//   '/github-actions-test':  {
-//     'pathPrefix': '/github-actions-test',
-//     'repo': 'adp-devsite-github-actions-test',
-//     'owner': 'AdobeDocs',
-//     'root': '/src/pages/',
-//     'branch': ''
-//   },
-// }
-
+let devsitePaths;
 let devsitePathMatch;
+let devsitePathMatchFlag = false;
 
 // get these based on stage or prod but default to prod for now
 let devsitePathsUrl = `https://main--adp-devsite--adobedocs.aem.live/franklin_assets/devsitepaths.json`;
 
+console.log(`fetching: ${devsitePathsUrl}`);
 await fetch(devsitePathsUrl)
 .then(function(response) {
   if (response.ok) {
     return response.json();
   } else {
-    throw new Error('Unable to fetch ${}');
+    throw new Error(`Unable to fetch ${devsitePathsUrl}`);
   }
 }).then(function(data) {
   devsitePaths = data?.data;
@@ -60,9 +43,12 @@ await fetch(devsitePathsUrl)
 
 // use path prefix matcher to figure out path on 3000
 app.use((req, res) => {
+  console.log('req path:');
+  console.log(req.path);
 
   const suffixSplit = req.path.split('/');
   let suffixSplitRest = suffixSplit.slice(1);
+
   if (suffixSplit.length > 2) {
     devsitePathMatch = devsitePaths.find((element) => element.pathPrefix === `/${suffixSplit[1]}/${suffixSplit[2]}/${suffixSplit[3]}`);
     devsitePathMatchFlag = !!devsitePathMatch;
@@ -90,21 +76,21 @@ app.use((req, res) => {
 
   if(devsitePathMatch){
 
-  // // if path prefix matches something in the pathPrefixMap
-  // // route request to the connector on port 3002
-  // // otherwise serve from aem-cli on port 3001
-  // console.log('req.path:');
-  // console.log(req.path);
-  // const pathPrefix = Object.keys(pathPrefixMap).find(prefix => req.path.startsWith(prefix));
-  // if (pathPrefix) {
-  //   console.log('match path prefix:')
-  //   console.log(prefix)
-  //   const { pathPrefix, repo, owner, root, branch } = pathPrefixMap[pathPrefix];
-  //   const connectorUrl = `http://localhost:3002/${req.path}`;
-  //   res.redirect(connectorUrl);
-  //   // res.status();
-  //   // res.setHeader('Content-Type', 'application/json');
-  //   // return res.send(body);
+  // if path prefix matches something in the pathPrefixMap
+  // route request to the connector on port 3002
+  // otherwise serve from aem-cli on port 3001
+
+
+    const connectorUrl = `http://localhost:3002${req.path}`;
+    console.log(`connector url: ${connectorUrl}`);
+
+    // is this supposed to be redirect?
+    // seems to make the browser url go to the redirected url instead of passing the the body to it
+    res.redirect(connectorUrl);
+
+    // res.status();
+    // res.setHeader('Content-Type', 'application/json');
+    // return res.send(body);
 
 
   } else {
