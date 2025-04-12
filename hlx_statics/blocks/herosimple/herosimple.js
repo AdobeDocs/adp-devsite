@@ -1,7 +1,3 @@
-import {
-  createTag,
-} from '../../scripts/lib-adobeio.js';
-
 /**
  * decorates the herosimple
  * @param {Element} block The herosimple block element
@@ -47,28 +43,4 @@ export default async function decorate(block) {
     heroSimpleContainer.style.margin = '0px';
     heroSimpleContainer.style.maxWidth = 'none';
   }
-
-  const sideNav = document.querySelector('.side-nav-container');
-  if (!sideNav) {
-    const heroSimpleDiv = block.querySelector('.herosimple > div');
-    heroSimpleDiv.style.setProperty('max-width', '1280px', 'important');
-  }
-
-  const subParent = createTag("div", { class: "sub-parent" });
-  if (heroSimpleContainer) {
-    const children = Array.from(heroSimpleContainer.children);
-    children.forEach((child) => {
-      if (!child.classList.contains("herosimple-wrapper")) {
-        subParent.appendChild(child);
-      }
-    });
-    const herosimpleWrapper = block?.parentElement;
-    if (herosimpleWrapper) {
-      heroSimpleContainer.insertBefore(subParent, herosimpleWrapper.nextSibling);
-    } else {
-      heroSimpleContainer.appendChild(subParent);
-    }
-  }
-  subParent.style.margin = "0 auto";
-  subParent.style.maxWidth = sideNav ? "1000px" : "1280px";  
 }

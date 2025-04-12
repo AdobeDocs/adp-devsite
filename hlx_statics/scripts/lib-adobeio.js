@@ -301,6 +301,37 @@ export function buildGrid(main) {
 }
 
 /**
+ * Builds the div with style*="grid-area: main"
+ * @param {*} main The grid container
+ * @param {*} hasSideNav whether main has a side nav
+ */
+export function buildGridAreaMain(main, hasSideNav) {
+  const heroSimpleContainer = main.querySelector('.herosimple-container');
+  const subParent = createTag("div", { class: "sub-parent" });
+  if (heroSimpleContainer) {
+    const children = Array.from(heroSimpleContainer.children);
+    children.forEach((child) => {
+      if (!child.classList.contains("herosimple-wrapper")) {
+        subParent.appendChild(child);
+      }
+    });
+    const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
+    if (herosimpleWrapper) {
+      heroSimpleContainer.insertBefore(subParent, herosimpleWrapper.nextSibling);
+    } else {
+      heroSimpleContainer.appendChild(subParent);
+    }
+  }
+  const width = "1280px";
+  const heroSimpleDiv = heroSimpleContainer?.querySelector('.herosimple > div');
+  if(!hasSideNav && heroSimpleDiv){
+    heroSimpleDiv.style.maxWidth = width;
+  }
+  subParent.style.margin = "0 auto";
+  subParent.style.maxWidth = hasSideNav ? "1000px" : width;  
+}
+
+/**
  * Builds the side nav
  * @param {*} main The grid container
  */
