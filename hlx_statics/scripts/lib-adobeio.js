@@ -305,7 +305,7 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  * @param {*} hasSideNav whether main has a side nav
  */
-export function buildGridAreaMain(main, hasSideNav) {
+export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
   const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
   const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
   const subParent = createTag("div", { class: "sub-parent" });
@@ -321,16 +321,17 @@ export function buildGridAreaMain(main, hasSideNav) {
     gridAreaMain.appendChild(subParent);
   }
   const width = "1280px";
-  if (!herosimpleWrapper) {
-    gridAreaMain.style.margin = "0 64px";
-    gridAreaMain.style.maxWidth = width;
-  }
   const heroSimpleDiv = herosimpleWrapper?.querySelector('.herosimple > div');
   if(!hasSideNav && heroSimpleDiv){
     heroSimpleDiv.style.maxWidth = width;
   }
-  subParent.style.margin = "0 auto";
-  subParent.style.maxWidth = hasSideNav ? "1000px" : width;  
+  if (hasHero) {
+    subParent.style.margin = "0 auto";
+    subParent.style.maxWidth = hasSideNav ? "1000px" : width;  
+  } else {
+    gridAreaMain.style.margin = "0 64px";
+    gridAreaMain.style.maxWidth = width;
+  }
 }
 
 /**
