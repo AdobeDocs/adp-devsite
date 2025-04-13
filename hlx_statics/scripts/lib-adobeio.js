@@ -321,6 +321,10 @@ export function buildGridAreaMain(main, hasSideNav) {
     gridAreaMain.appendChild(subParent);
   }
   const width = "1280px";
+  if (!herosimpleWrapper) {
+    gridAreaMain.style.margin = "0 64px";
+    gridAreaMain.style.maxWidth = width;
+  }
   const heroSimpleDiv = herosimpleWrapper?.querySelector('.herosimple > div');
   if(!hasSideNav && heroSimpleDiv){
     heroSimpleDiv.style.maxWidth = width;
