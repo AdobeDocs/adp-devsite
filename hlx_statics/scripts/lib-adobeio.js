@@ -504,8 +504,11 @@ function activeSubNav(actTab) {
   }
   if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
     document.querySelector("main").classList.add("no-sidenav");
-    const sectionDivision = document.querySelector('main > div[style*="grid-area: main"]');
-    sectionDivision.style.margin = "0 auto"
+    const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
+    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    if(!hasHero) {
+      gridAreaMain.style.margin = "0 auto"
+    }
   }
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";
