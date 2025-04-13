@@ -37,10 +37,4 @@ export default async function decorate(block) {
       backgroundRepeat: 'no-repeat'
     });
   }
-
-  const heroSimpleContainer = document.querySelector('.herosimple-container');
-  if (heroSimpleContainer) {
-    heroSimpleContainer.style.margin = '0px';
-    heroSimpleContainer.style.maxWidth = 'none';
-  }
 }
