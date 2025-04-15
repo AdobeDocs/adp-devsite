@@ -458,9 +458,45 @@ function loadTitle() {
   document.title = window.location.href;
 }
 
+function loadPrism(document) {
+  const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
+  if (!codeBlocks.length) return;
+
+  let prismLoaded = false;
+  let firstCodeBlock = true;
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(({ isIntersecting, target }) => {
+      if (!isIntersecting) return;
+
+      if (!prismLoaded) {
+        prismLoaded = true;
+        window.Prism = { manual: true };
+        loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
+        import('./prism.js').then(() => {
+          window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
+          window.Prism.highlightAll(true);
+        }).catch(console.error);
+      }
+
+      const pre = target.closest('pre');
+      if (firstCodeBlock && pre) {
+        pre.classList.add('prism-loading');
+        setTimeout(() => pre.classList.remove('prism-loading'), 300);
+        firstCodeBlock = false;
+      }
+
+      observer.unobserve(target);
+    });
+  }, { rootMargin: '200px 0px', threshold: 0.1 });
+
+  codeBlocks.forEach((block) => observer.observe(block));
+}
+
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  loadPrism(document);
   loadTitle();
   loadDelayed(document);
 }
