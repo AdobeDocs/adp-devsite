@@ -361,6 +361,11 @@ export function decorateBlock(block) {
     block.setAttribute('data-block-status', 'initialized');
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
+    const childBlock = blockWrapper.querySelector('div')
+    if(getMetadata('template') === 'documentation'){
+      // ensure all documentation blocks are having white background.
+      childBlock?.classList.add('background-color-white');
+    }
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
   }
