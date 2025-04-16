@@ -152,6 +152,10 @@ main div.inlinealert-wrapper .inlinealert a {
     text-decoration: unset;
 }
 
+main div.inlinealert-wrapper .inlinealert a:hover {
+    text-decoration: underline;
+}
+
 main div.inlinealert-wrapper .inlinealert img {
     margin-top: 10px;
     width: 100%;

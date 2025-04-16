@@ -699,6 +699,7 @@ main .heading6 h6>span {
   background-color: rgb(110, 110, 110);
   border-color: rgb(110, 110, 110);
   color: rgb(255, 255, 255);
+  text-decoration: none;
 }
 
 .spectrum-Button--secondary.focus-ring {
@@ -997,12 +998,10 @@ main .default-content-wrapper {
 }
 
 main .default-content-wrapper a {
-  color: rgb(0, 84, 182);
-  text-decoration: unset;
-  font-weight: bold;
+  text-decoration: none;
 }
 
-main .default-content-wrapper a:hover{
+main .default-content-wrapper a:hover , main a:hover , main strong a:hover{
   text-decoration: underline;
 }
 
@@ -1062,9 +1061,13 @@ main:not(:has(.onthispage-wrapper)) .code-wrapper {
   width: 100%;
 }
 
-main a{
+main a , main strong a, main .default-content-wrapper a strong{
   color: rgb(0, 84, 182);
   text-decoration: none;
+}
+
+main strong a {
+  font-weight: bold;
 }
 
 main div p{
