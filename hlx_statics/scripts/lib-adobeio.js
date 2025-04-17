@@ -331,6 +331,7 @@ export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
     subParent.style.paddingLeft = "32px";
     subParent.style.paddingRight = "32px";
     subParent.style.maxWidth = hasSideNav ? "1000px" : width;  
+    footer.style.margin = "0 auto";
     footer.style.paddingLeft = "32px";
     footer.style.paddingRight = "32px";
     footer.style.maxWidth = hasSideNav ? "1000px" : width;  
