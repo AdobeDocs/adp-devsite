@@ -12,6 +12,10 @@
 
 @import url('./spectrum/spectrum.min.css');
 
+* {
+  outline: 1px solid magenta;
+}
+
 html,
 body {
   margin: 0;
