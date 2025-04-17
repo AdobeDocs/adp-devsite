@@ -75,6 +75,8 @@ window.addEventListener('error', (event) => {
 
 window.addEventListener('resize', toggleScale);
 
+const range = document.createRange();
+
 function loadHeader(header) {
   const headerBlock = buildBlock('header', '');
   header.append(headerBlock);
@@ -191,6 +193,7 @@ async function loadEager(doc) {
     buildBreadcrumbs(main);
   }
 
+  document.body.classList.add('appear');
   loadConfig();
 }
 
@@ -521,6 +524,8 @@ function loadPrism(document) {
 }
 
 async function loadPage() {
+  document.body.style.display = 'none';
+
   await loadEager(document);
   await loadLazy(document);
   loadPrism(document);
