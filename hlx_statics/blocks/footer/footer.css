@@ -3,11 +3,13 @@ footer {
   padding-bottom: 32px;
   background-color: rgb(255, 255, 255);
   margin: auto;
+  width: 100%;
+  max-width: 1000px;
 }
 
-footer > .footer-links-container {
+/* footer > .footer-links-container {
   padding: 0 3%;
-}
+} */
 
 @media screen and (max-width: 768px) {
   footer {
