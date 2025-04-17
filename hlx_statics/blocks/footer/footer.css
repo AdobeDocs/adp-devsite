@@ -2,7 +2,11 @@ footer {
   position: relative;
   padding-bottom: 32px;
   background-color: rgb(255, 255, 255);
-  width: 100%;
+  margin: auto;
+}
+
+footer > .footer-links-container {
+  padding: 0 3%;
 }
 
 @media screen and (max-width: 768px) {
@@ -35,7 +39,7 @@ footer h3.spectrum-Heading--XS {
 
 footer>div ul.spectrum-Body--sizeS {
   padding-top: 40px;
-  padding-right: 16px;
+  padding: 16px 0;
 }
 
 footer>div ul.spectrum-Body--sizeS>li {
@@ -58,7 +62,6 @@ footer .footer-links-container-inner {
   footer .footer-links-container-inner {
     display: flex;
     flex-direction: column;
-    padding: 16px;
     margin: 0 auto;
   }
 }
@@ -130,10 +133,7 @@ footer .footer-legal {
 footer .footer-legal ul {
   display: inline-flex;
   color: rgb(70, 70, 70);
-}
-
-footer .footer-legal ul>li {
-  margin-right: 32px;
+  gap: 32px;
 }
 
 footer .footer-divider {
@@ -144,7 +144,7 @@ footer .footer-divider {
   footer .footer-legal {
     flex-direction: column;
     align-items: flex-start;
-    padding: 16px;
+    padding: 16px 0;
     margin: 0 auto;
   }
 }
@@ -172,15 +172,7 @@ footer .footer-legal p {
 
   footer .footer-legal ul {
     flex-direction: column;
-  }
-
-  footer .footer-horizontal {
-    width: 85% !important;
-  }
-
-  footer {
-    padding-left: 40px;
-    width: 85%;
+    gap: 0;
   }
 
   footer h3 {
@@ -204,12 +196,6 @@ footer .footer-legal p {
 }
 
 @media screen and (min-width : 768px) and (max-width : 1024px) {
-
-  footer {
-    padding-left: 40px;
-    width: 94%;
-  }
-
   footer .footer-divider {
     display: none;
   }
@@ -221,14 +207,13 @@ footer .footer-legal p {
   footer .footer-legal {
     flex-direction: column !important;
     align-items: baseline !important;
-    width: 100%;
   }
 
 }
 
 footer .footer-horizontal {
   margin-top: 56px;
-  width: 100% !important;
+  width: 100%;
 }
 
 footer .spectrum-Link {
