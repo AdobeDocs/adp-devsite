@@ -12,7 +12,14 @@
 
 @import url('./spectrum/spectrum.min.css');
 
-* {
+/* * {
+  outline: 1px solid magenta;
+} */
+
+.herosimple-wrapper > .herosimple > div,
+.sub-parent,
+.footer-wrapper
+{
   outline: 1px solid magenta;
 }
 
