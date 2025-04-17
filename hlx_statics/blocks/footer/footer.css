@@ -110,9 +110,7 @@ footer .footer-services-container ul {
   padding-top: 60px !important;
 }
 
-footer div.footer-links-container-inner>div
-{
-  /* outline: 1px solid magenta; */
+footer div.footer-links-container-inner>div {
   padding: 16px;
 }
 

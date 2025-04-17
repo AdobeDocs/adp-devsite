@@ -23,8 +23,8 @@
 }
 
 .herosimple-wrapper > .herosimple > div,
-.sub-parent
-/* .footer-wrapper */
+.sub-parent,
+.footer-wrapper
 {
   outline: 1px solid magenta;
 }
