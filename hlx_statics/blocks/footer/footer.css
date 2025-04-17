@@ -53,7 +53,6 @@ footer .footer-links-container-inner {
   display: grid;
   grid-template-areas: "apis blogs support developer";
   grid-template-columns: 25%;
-  gap: 32px;
 }
 
 @media screen and (max-width: 320px) {
@@ -109,6 +108,12 @@ footer .footer-services-container {
 
 footer .footer-services-container ul {
   padding-top: 60px !important;
+}
+
+footer div.footer-links-container-inner>div
+{
+  /* outline: 1px solid magenta; */
+  padding: 16px;
 }
 
 footer div.footer-links-container-inner>div:nth-child(2) {
