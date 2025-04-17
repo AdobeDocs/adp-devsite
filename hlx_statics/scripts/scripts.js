@@ -269,6 +269,33 @@ window.adobeIMSMethods = {
 
 export async function loadAep() {
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
+
+  const intervalId = setInterval(watchVariable, 1000);
+  function watchVariable() {
+    // wait for _satellite to become available and track page
+    // eslint-disable-next-line no-undef
+    if (typeof window._satellite !== 'undefined') {
+      console.log(`Route tracking page name as: ${location.href}`);
+
+      // eslint-disable-next-line no-undef
+      _satellite.track('state',
+        {
+          xdm: {},
+          data: {
+            _adobe_corpnew: {
+              web: {
+                webPageDetails: {
+                  customPageName: location.href
+                }
+              }
+            }
+          }
+        }
+      );
+
+      clearInterval(intervalId);
+    }
+  }
 }
 
 export async function loadIms() {
