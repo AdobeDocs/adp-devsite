@@ -344,8 +344,14 @@ export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
     footer.style.paddingRight = "32px";
     footer.style.maxWidth = hasSideNav ? "1000px" : width;  
   } else {
-    gridAreaMain.style.margin = "0 64px";
+    gridAreaMain.style.margin = "0 auto";
     gridAreaMain.style.maxWidth = width;
+    gridAreaMain.style.paddingLeft = "32px";
+    gridAreaMain.style.paddingRight = "32px";
+    footer.style.margin = "0 auto";
+    footer.style.maxWidth = width;  
+    footer.style.paddingLeft = "32px";
+    footer.style.paddingRight = "32px";
   }
 }
 

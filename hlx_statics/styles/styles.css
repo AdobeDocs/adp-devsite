@@ -24,7 +24,9 @@
 
 .herosimple-wrapper > .herosimple > div,
 .sub-parent,
-.footer-wrapper
+/* .footer-wrapper, */
+.footer-links-container,
+main > div[style*="grid-area: main"]
 {
   outline: 1px solid magenta;
 }
