@@ -321,16 +321,20 @@ export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
     gridAreaMain.appendChild(subParent);
   }
   const width = "1280px";
-  const heroSimpleDiv = herosimpleWrapper?.querySelector('.herosimple > div');
-  if(!hasSideNav && heroSimpleDiv){
-    heroSimpleDiv.style.maxWidth = width;
+  const heroSimpleDivs = herosimpleWrapper?.querySelectorAll('.herosimple > div');
+  if(!hasSideNav && heroSimpleDivs?.length > 0){
+    heroSimpleDivs.forEach(div => {
+      div.style.maxWidth = width;
+    })
   }
   const footer = main.querySelector('.footer-wrapper');
   if (hasHero) {
-    heroSimpleDiv.style.margin = "0 auto";
-    heroSimpleDiv.style.paddingLeft = "32px";
-    heroSimpleDiv.style.paddingRight = "32px";
-    heroSimpleDiv.style.maxWidth = hasSideNav ? "1000px" : width;  
+    heroSimpleDivs.forEach(div => {
+      div.style.margin = "0 auto";
+      div.style.paddingLeft = "32px";
+      div.style.paddingRight = "32px";
+      div.style.maxWidth = hasSideNav ? "1000px" : width;  
+    });
     subParent.style.margin = "0 auto";
     subParent.style.paddingLeft = "32px";
     subParent.style.paddingRight = "32px";
