@@ -16,6 +16,12 @@
   outline: 1px solid magenta;
 } */
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .herosimple-wrapper > .herosimple > div,
 .sub-parent,
 .footer-wrapper
