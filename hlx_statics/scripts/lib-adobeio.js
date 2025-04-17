@@ -328,8 +328,11 @@ export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
   const footer = main.querySelector('.footer-wrapper');
   if (hasHero) {
     subParent.style.margin = "0 auto";
-    subParent.style.padding = "0 32px";
+    subParent.style.paddingLeft = "32px";
+    subParent.style.paddingRight = "32px";
     subParent.style.maxWidth = hasSideNav ? "1000px" : width;  
+    footer.style.paddingLeft = "32px";
+    footer.style.paddingRight = "32px";
     footer.style.maxWidth = hasSideNav ? "1000px" : width;  
   } else {
     gridAreaMain.style.margin = "0 64px";
