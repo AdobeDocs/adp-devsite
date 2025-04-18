@@ -74,6 +74,126 @@ window.addEventListener('resize', toggleScale);
 
 const range = document.createRange();
 
+const store = new (class {
+  constructor() {
+    this._json = {
+      _l: {},
+    };
+    this._emitted = {};
+    // this.branch = getBranch();
+    // this.env = getEnv();
+    // this.docsOrigin = DOCS_ORIGINS[this.env];
+    // this.pageTemplate = getMetadata('template');
+    // this.additionalBooks = [];
+    // if (this.pageTemplate === 'book') {
+    //   this.article = {};
+    //   const adocArticle = getMetadata('adoc-article') !== 'false';
+    //   this.initSPANavigation();
+    //   this.initBook(adocArticle);
+    // }
+
+    // // allow setting body class from page metadata
+    // // used for simulating templates from documents
+    // const style = getMetadata('style');
+    // if (style) {
+    //   addClasses(document.body, style);
+    // }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  on(ev, handler) {
+    const fn = (e) => {
+      handler.call(null, e.detail);
+    };
+    const rm = () => document.removeEventListener(ev, fn);
+    document.addEventListener(ev, fn);
+    return rm;
+  }
+
+  once(ev, handler) {
+    let rm = () => {};
+    if (this.wasEmitted(ev)) {
+      Promise.resolve().then(() => handler.call(null, this._emitted[ev]));
+    } else {
+      const fn = (data) => {
+        handler.call(null, data);
+        rm();
+      };
+      rm = this.on(ev, fn);
+    }
+    return rm;
+  }
+
+  emit(ev, data) {
+    document.dispatchEvent(new CustomEvent(ev, { detail: data }));
+    this._emitted[ev] = data || null;
+  }
+
+  wasEmitted(ev) {
+    return this._emitted[ev] !== undefined;
+  }
+
+  /**
+   * @param {string} path
+   * @param {string|string[]} [sheets]
+   * @param {Record<string, string|number>} [filters]
+   */
+  async fetchJSON(path, sheets, filters = {}) {
+    let url;
+    try {
+      url = new URL(`${path}.json`);
+    } catch (_) {
+      url = new URL(`${window.location.origin}${path}.json`);
+    }
+    if (url.pathname.endsWith('.json.json')) {
+      url.pathname = url.pathname.replace(/\.json\.json$/, '.json');
+    }
+
+    if (sheets) {
+      // eslint-disable-next-line no-param-reassign
+      sheets = Array.isArray(sheets) ? [...sheets] : [sheets];
+      sheets.sort().forEach((sheet) => {
+        url.searchParams.append('sheet', sheet);
+      });
+    }
+
+    if (filters) {
+      Object.entries(filters).forEach(([filter, value]) => {
+        url.searchParams.append(filter, value);
+      });
+    }
+
+    const j = this._json;
+    const p = url.toString();
+
+    const loaded = j[p];
+    if (loaded) {
+      return loaded;
+    }
+
+    const pending = j._l[p];
+    if (pending) {
+      return pending;
+    }
+
+    j._l[p] = fetch(p)
+      .then((resp) => {
+        if (!resp.ok) throw Error(`JSON sheet not found: ${p}`);
+        return resp.json();
+      })
+      .then((json) => {
+        j[p] = json;
+        delete j._l[p];
+        return j[p];
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+    return j._l[p];
+  }
+})();
+window.store = store;
+
 function loadHeader(header) {
   const headerBlock = buildBlock('header', '');
   header.append(headerBlock);
@@ -83,7 +203,7 @@ function loadHeader(header) {
   if (document.querySelector('.breadcrumbs')?.clientWidth > 750) {
     contentHeader.classList.add('block-display');
   }
-
+  store.emit('headerLoad');
 }
 
 function loadFooter(footer) {
