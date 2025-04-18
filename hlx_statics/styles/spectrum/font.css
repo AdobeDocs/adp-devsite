@@ -19,30 +19,6 @@
 @import url("https://p.typekit.net/p.css?s=1&k=uma8ayv&ht=tk&f=7180.7181.7182.7184.22747&a=9025710&app=typekit&e=css");
 
 @font-face {
-font-family:"adobe-clean";
-src:url("../fonts/AdobeClean-Medium.otf") format("opentype");
-font-display:swap;font-style:normal;font-weight:400;font-stretch:normal;
-}
-
-@font-face {
-font-family:"adobe-clean";
-src:url("../fonts/AdobeClean-It.otf") format("opentype");
-font-display:swap;font-style:italic;font-weight:400;font-stretch:normal;
-}
-
-@font-face {
-font-family:"adobe-clean";
-src:url("../fonts/AdobeClean-Bold.otf") format("opentype");
-font-display:swap;font-style:normal;font-weight:700;font-stretch:normal;
-}
-
-@font-face {
-font-family:"adobe-clean";
-src:url("../fonts/AdobeClean-Light.otf") format("opentype");
-font-display:swap;font-style:normal;font-weight:300;font-stretch:normal;
-}
-
-@font-face {
 font-family:"adobe-clean-serif";
 src:url("https://use.typekit.net/af/505d17/00000000000000003b9aee44/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n9&v=3") format("woff2"),url("https://use.typekit.net/af/505d17/00000000000000003b9aee44/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n9&v=3") format("woff"),url("https://use.typekit.net/af/505d17/00000000000000003b9aee44/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n9&v=3") format("opentype");
 font-display:swap;font-style:normal;font-weight:900;font-stretch:normal;
