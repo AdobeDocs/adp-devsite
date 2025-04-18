@@ -1,12 +1,7 @@
 footer {
   position: relative;
-  padding-bottom: 32px;
   background-color: rgb(255, 255, 255);
-  margin: auto;
-}
-
-footer > .footer-links-container {
-  padding: 0 3%;
+  width: 100%;
 }
 
 @media screen and (max-width: 768px) {
@@ -55,7 +50,6 @@ footer .footer-links-container-inner {
   grid-template-areas: "apis blogs support developer";
   grid-template-columns: 25%;
   gap: 32px;
-  padding: 32px;
 }
 
 @media screen and (max-width: 320px) {
@@ -111,6 +105,11 @@ footer .footer-services-container {
 
 footer .footer-services-container ul {
   padding-top: 60px !important;
+}
+
+footer div.footer-links-container-inner>div {
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 footer div.footer-links-container-inner>div:nth-child(2) {

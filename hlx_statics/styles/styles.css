@@ -12,6 +12,12 @@
 
 @import url('./spectrum/spectrum.min.css');
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   margin: 0;
@@ -119,6 +125,20 @@ main.no-sidenav > div.onthispage-wrapper {
   display: none;
 }
 
+.layout-block {
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.layout-block-with-side-nav {
+  max-width: 1000px;
+}
+
+.layout-block-without-side-nav {
+  max-width: 1280px;
+}
+
 main div.accordion-wrapper,
 main div.announcement-wrapper,
 main div.api-browser-wrapper,
@@ -136,6 +156,7 @@ main div.detailsblock-wrapper,
 main div.discoverblock-wrapper,
 main div.edition-wrapper,
 main div.embed-wrapper,
+footer.footer-wrapper,
 main div.github-actions-wrapper,
 main div.hr-wrapper,
 main div.image-text-wrapper,
