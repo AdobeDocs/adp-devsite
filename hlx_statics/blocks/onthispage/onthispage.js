@@ -18,8 +18,7 @@ export default async function decorate(block) {
     Object.assign(aside.style, {
         display: 'flex',
         flexDirection: 'column',
-        rowGap: '10px',
-        width: '200px'
+        rowGap: '10px'
     });
 
     const onthispageHeader = document.createElement('h4');
