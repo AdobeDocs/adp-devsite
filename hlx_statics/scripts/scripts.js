@@ -55,6 +55,9 @@ export {
  * ------------------------------------------------------------
  */
 
+window.hlx = window.hlx || {};
+window.adobeid = window.adobeid || {};
+
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 window.hlx.RUM_GENERATION = 'project-1'; // add your RUM generation information here
 
