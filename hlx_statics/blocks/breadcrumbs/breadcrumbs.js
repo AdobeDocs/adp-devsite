@@ -14,9 +14,12 @@ const chevronRightIcon = `
 `;
 
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  let link = Array.from(navParser.querySelectorAll('a')).find(a => a.href === url);
-  let menuItem = link?.closest('li');
+  let link = Array.from(navParser.querySelectorAll('a')).find(a => {
+    const hrefPath = new URL(a.href, window.location.origin).pathname;
+    return hrefPath === url;
+  }); 
 
+  let menuItem = link?.closest('li');
   const crumbs = [];
   while(menuItem) {
     link = menuItem.querySelector(':scope > a');
@@ -30,7 +33,7 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
-  const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
+  const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.pathname);
 
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");

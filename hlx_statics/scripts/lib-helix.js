@@ -770,6 +770,10 @@ export function githubActionsBlock(doc) {
       `;
     const contentHeader = doc.querySelector('.content-header');
     contentHeader?.append(newContent);
+    const isBreadCrumbs = doc.querySelector('.breadcrumbs-container');
+    if(!isBreadCrumbs){
+      contentHeader.style.justifyContent = 'end';
+    }
   }
 };
 
