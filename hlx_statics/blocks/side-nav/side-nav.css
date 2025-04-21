@@ -235,13 +235,12 @@ main div.section.side-nav-container {
   }
 
   main div.side-nav-wrapper div.side-nav {
-    transform: translateX(-100%);
+    transform: translateX(-256px);
     transition: transform 0.3s ease-out;
     position: fixed;
     top: 64px;
     left: 0;
     bottom: 0;
-    width: 100vw !important;
     background: #fafafa;
     z-index: 1000;
     overflow-y: auto;
