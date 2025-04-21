@@ -75,7 +75,7 @@ main div.columns-wrapper div.columns div.first-column {
 }
 
 main div.columns-wrapper div.columns div.first-column img {
-    max-width: 100%;
+    /* max-width: 100%; */
     max-height: 350px;
     height: auto;
     width: auto;
@@ -147,6 +147,13 @@ main div.columns-wrapper div.second-column div.product-link-container {
     }
     main div.columns div.first-column {
         width: 100% !important;
+    }
+    main div.columns-wrapper div.columns div.first-column img {
+        max-width: 100%;
+        max-height: 350px;
+        height: auto;
+        width: auto;
+        object-fit: contain;
     }
 }
 
