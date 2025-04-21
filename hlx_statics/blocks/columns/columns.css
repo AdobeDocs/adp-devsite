@@ -20,13 +20,8 @@ main div.columns-wrapper div.columns > div {
     padding: 80px 0;
 }
 
-/* main div.columns-wrapper .first-column-div {
-    width: 75vw;
-} */
-
 main div.columns-wrapper div.columns .first-column-div, main div.columns-wrapper div.columns .last-column-div {
     padding: 0 0;
-    /* margin: auto; */
 }
 
 main div.columns-wrapper  div.columns > div:nth-child(even) {
@@ -75,7 +70,6 @@ main div.columns-wrapper div.columns div.first-column {
 }
 
 main div.columns-wrapper div.columns div.first-column img {
-    /* max-width: 100%; */
     max-height: 350px;
     height: auto;
     width: auto;
@@ -201,10 +195,6 @@ main div.columns-wrapper div.columns.center .button-container {
     margin: 16px 8px;
     margin-bottom: 0;
 }
-
-/* main div.columns-wrapper div.columns div.first-column img {
-    height: 350px !important;
-} */
 
 @media screen and (max-width: 1280px) {
     main div.columns-wrapper  div.columns div.second-column {
