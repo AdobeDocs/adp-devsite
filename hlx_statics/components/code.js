@@ -1,8 +1,7 @@
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre');
   // see https://prismjs.com/plugins/line-numbers/#how-to-use
-  if (pre)
-    pre.classList.add('line-numbers');
+  pre?.classList.add('line-numbers');
 
   const code = block.querySelector('code');
   if (!code.className.match(/language-/)) {

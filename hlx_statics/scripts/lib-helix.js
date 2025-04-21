@@ -772,7 +772,7 @@ export function githubActionsBlock(doc) {
     contentHeader?.append(newContent);
     const isBreadCrumbs = doc.querySelector('.breadcrumbs-container');
     if(!isBreadCrumbs){
-      contentHeader.style.justifyContent = 'end';
+      contentHeader.classList.add('no-breadcrumbs');
     }
   }
 };

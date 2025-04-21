@@ -1095,4 +1095,6 @@ main .content-header.block-display .github-actions-wrapper{
   }
 }
 
-
+main .no-breadcrumbs {
+  justify-content: end;
+}
