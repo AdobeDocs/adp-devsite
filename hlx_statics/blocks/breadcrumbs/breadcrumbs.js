@@ -14,10 +14,19 @@ const chevronRightIcon = `
 `;
 
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  let link = Array.from(navParser.querySelectorAll('a')).find(a => {
-    const hrefPath = new URL(a.href, window.location.origin).pathname;
-    return hrefPath === url;
-  }); 
+  const allLinks = Array.from(navParser.querySelectorAll('a'));
+  const currentPath = new URL(url, window.location.origin).pathname;
+
+  let link = allLinks
+    .filter(link => {
+      const linkPath = new URL(link.href, window.location.origin).pathname;
+      const linkDhref = link.getAttribute('dhref');
+      return currentPath.startsWith(linkPath) || (linkDhref && currentPath.startsWith(linkDhref));
+    })
+    .reduce((longest, link) => {
+      const linkPathLength = new URL(link.href, window.location.origin).pathname.length;
+      return linkPathLength > longest.length ? { link, length: linkPathLength } : longest;
+    }, { link: null, length: 0 }).link;
 
   let menuItem = link?.closest('li');
   const crumbs = [];
@@ -66,7 +75,7 @@ export default async function decorate(block) {
     nav.append(ol);
 
     const crumbs = await buildBreadcrumbs();
-    const lis = crumbs.map(crumb => {
+    const lis = crumbs.map((crumb, i) => {
       const a = document.createElement('a');
       a.classList.add('spectrum-Breadcrumbs-itemLink');
       a.innerText = crumb.title;
@@ -75,14 +84,15 @@ export default async function decorate(block) {
       const li = document.createElement('li');
       li.classList.add('spectrum-Breadcrumbs-item');
       li.append(a);
-      li.insertAdjacentHTML("beforeend", chevronRightIcon);
+      if (i !== crumbs.length - 1 && crumb.title !== '') {
+        li.insertAdjacentHTML("beforeend", chevronRightIcon);
+      }
 
       return li;
     })
-    
+
     ol.append(...lis);
-  } else{
+  } else {
     block.parentElement?.parentElement?.remove();
   }
 }
-  
