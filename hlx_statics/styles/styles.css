@@ -191,7 +191,7 @@ main .inline-code {
   line-height: 1.5rem;
 }
 
-main .header-content a .inline-code , .header-content .inline-code {
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
   font-size: 16px;
 }
 
