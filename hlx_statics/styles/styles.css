@@ -212,6 +212,10 @@ main .inline-code {
   line-height: 1.5rem;
 }
 
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
+  font-size: 16px;
+}
+
 /* animate anchor */
 main .heading2 h2,
 main .heading3 h3,
