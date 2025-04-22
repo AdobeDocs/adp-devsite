@@ -1105,10 +1105,6 @@ main div.default-content-wrapper ul li p {
   margin: 10px 0px 0px 0px;
 }
 
-main a:hover{
-  text-decoration: underline;
-}
-
 main .content-header.block-display .github-actions-wrapper{
   padding-top: 0px;
 }
