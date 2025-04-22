@@ -1,7 +1,6 @@
 footer {
   position: relative;
-  padding-bottom: 32px;
-  background-color: rgb(250, 250, 250);
+  background-color: rgb(255, 255, 255);
   width: 100%;
 }
 
@@ -35,7 +34,7 @@ footer h3.spectrum-Heading--XS {
 
 footer>div ul.spectrum-Body--sizeS {
   padding-top: 40px;
-  padding-right: 16px;
+  padding: 16px 0;
 }
 
 footer>div ul.spectrum-Body--sizeS>li {
@@ -49,16 +48,14 @@ footer>div ul.spectrum-Body--sizeS>li:first-of-type {
 footer .footer-links-container-inner {
   display: grid;
   grid-template-areas: "apis blogs support developer";
-  grid-template-columns: 30% 22% 19%;
+  grid-template-columns: 25%;
   gap: 32px;
-  padding: 16px;
 }
 
 @media screen and (max-width: 320px) {
   footer .footer-links-container-inner {
     display: flex;
     flex-direction: column;
-    padding: 16px;
     margin: 0 auto;
   }
 }
@@ -110,6 +107,11 @@ footer .footer-services-container ul {
   padding-top: 60px !important;
 }
 
+footer div.footer-links-container-inner>div {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
 footer div.footer-links-container-inner>div:nth-child(2) {
   position: relative;
   grid-area: blogs;
@@ -130,10 +132,7 @@ footer .footer-legal {
 footer .footer-legal ul {
   display: inline-flex;
   color: rgb(70, 70, 70);
-}
-
-footer .footer-legal ul>li {
-  margin-right: 32px;
+  gap: 32px;
 }
 
 footer .footer-divider {
@@ -144,7 +143,7 @@ footer .footer-divider {
   footer .footer-legal {
     flex-direction: column;
     align-items: flex-start;
-    padding: 16px;
+    padding: 16px 0;
     margin: 0 auto;
   }
 }
@@ -172,15 +171,7 @@ footer .footer-legal p {
 
   footer .footer-legal ul {
     flex-direction: column;
-  }
-
-  footer .footer-horizontal {
-    width: 85% !important;
-  }
-
-  footer {
-    padding-left: 40px;
-    width: 85%;
+    gap: 0;
   }
 
   footer h3 {
@@ -204,12 +195,6 @@ footer .footer-legal p {
 }
 
 @media screen and (min-width : 768px) and (max-width : 1024px) {
-
-  footer {
-    padding-left: 40px;
-    width: 94%;
-  }
-
   footer .footer-divider {
     display: none;
   }
@@ -221,14 +206,13 @@ footer .footer-legal p {
   footer .footer-legal {
     flex-direction: column !important;
     align-items: baseline !important;
-    width: 100%;
   }
 
 }
 
 footer .footer-horizontal {
   margin-top: 56px;
-  width: 100% !important;
+  width: 100%;
 }
 
 footer .spectrum-Link {

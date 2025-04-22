@@ -45,9 +45,9 @@ function setBackgroundImage(block) {
   const img = block.querySelector('picture img');
 
   if (img) {
-    const announcementContainer = block.closest('.announcement-container');
+    const announcementWrapper = block.closest('.announcement-wrapper');
     const imgParent = img.closest('picture').parentElement;
-    Object.assign(announcementContainer.style, {
+    Object.assign(announcementWrapper.style, {
       backgroundImage: `url('${img.src}')`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
@@ -72,8 +72,11 @@ export default async function decorate(block) {
     p.style.wordBreak = "break-all";
     p.style.whiteSpace = "normal";
   });
-  if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')) {
-    block.classList.add('background-color-gray');
+  const imageExists = block.querySelector('picture img');
+  if (!imageExists) {
+    if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')) {
+      block.classList.add('background-color-gray');
+    }
   }
   decorateButtons(block);
   removeEmptyPTags(block);

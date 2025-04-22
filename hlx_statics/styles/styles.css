@@ -12,11 +12,21 @@
 
 @import url('./spectrum/spectrum.min.css');
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-padding-top: 60px;
 }
 
 .spectrum {
@@ -83,6 +93,22 @@ img {
   font-family: "adobe-clean", sans-serif;
 }
 
+h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+hr {
+  border-radius: 2px;
+  height: 1px;
+  border-color: rgb(213, 213, 213);
+  background-color: rgb(213, 213, 213);
+  border-top: 0;
+  border-left: 0;
+  width: 100%;
+}
+
 main {
   background-color: rgb(245,245,245);
 }
@@ -95,8 +121,63 @@ main.no-sidenav{
   grid-template-columns: 100% 100% !important;
 }
 
-main .section {
-  padding: 20px 0;
+main.no-sidenav > div.onthispage-wrapper {
+  display: none;
+}
+
+.layout-block {
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.layout-block-with-side-nav {
+  max-width: 1000px;
+}
+
+.layout-block-without-side-nav {
+  max-width: 1280px;
+}
+
+main div.accordion-wrapper,
+main div.announcement-wrapper,
+main div.api-browser-wrapper,
+main div.banner-wrapper,
+main div.breadcrumbs-wrapper,
+main div.calendar-wrapper,
+main div.cards-wrapper,
+main div.carousel-wrapper,
+main div.code-wrapper,
+main div.codeblock-wrapper,
+main div.columns-wrapper,
+main div.contributors-wrapper,
+main div.default-content-wrapper img,
+main div.detailsblock-wrapper,
+main div.discoverblock-wrapper,
+main div.edition-wrapper,
+main div.embed-wrapper,
+footer.footer-wrapper,
+main div.github-actions-wrapper,
+main div.hr-wrapper,
+main div.image-text-wrapper,
+main div.info-wrapper,
+main div.info-card-wrapper,
+main div.info-columns-wrapper,
+main div.inline-nested-alert-wrapper,
+main div.inlinealert-wrapper,
+main div.link-wrapper,
+main div.link-block-wrapper,
+main div.list-wrapper,
+main div.nested-code-wrapper,
+main div.mini-resource-card-wrapper,
+main div.product-card-wrapper,
+main div.profile-card-wrapper,
+main div.tab-wrapper,
+main div.table-wrapper,
+main div.text-wrapper,
+main div.title-wrapper {
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
 main .section .section-title {
@@ -639,6 +720,7 @@ main .heading6 h6>span {
   background-color: rgb(110, 110, 110);
   border-color: rgb(110, 110, 110);
   color: rgb(255, 255, 255);
+  text-decoration: none;
 }
 
 .spectrum-Button--secondary.focus-ring {
@@ -696,6 +778,11 @@ main .heading6 h6>span {
 .spectrum-Menu-checkmark {
   padding-left: 8px !important;
   margin-top: 6px !important;
+}
+
+.spectrum-Menu-itemLabel {
+  display: flex;
+  gap: 5px;
 }
 
 .spectrum-UIIcon-Checkmark100 {
@@ -890,6 +977,11 @@ main .heading6 h6>span {
   color: inherit !important;
 }
 
+.svgDisplay {
+  display: block;
+  color: #0265dc;
+}
+
 .help-icon, .info-icon{
   color: rgb(0, 84, 182);
 }
@@ -936,7 +1028,7 @@ main .default-content-wrapper a strong {
   font-weight: bold;
 }
 
-main .default-content-wrapper a:hover{
+main .default-content-wrapper a:hover , main a:hover , main strong a:hover{
   text-decoration: underline;
 }
 
@@ -990,16 +1082,19 @@ main div.default-content-wrapper li {
 
 main .code-wrapper, main .nested-code-wrapper{
   max-width: 60vw;
-  margin: 10px 0px;
 }
 main:not(:has(.onthispage-wrapper)) .code-wrapper {
   max-width: none;
   width: 100%;
 }
 
-main a{
+main a , main strong a, main .default-content-wrapper a strong{
   color: rgb(0, 84, 182);
   text-decoration: none;
+}
+
+main strong a {
+  font-weight: bold;
 }
 
 main div p{

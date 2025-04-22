@@ -83,28 +83,38 @@ const embedTikTok = (url, loop, controls, vidTitle) => {
 }
 
 const embedYoutube = (url, loop, controls, vidTitle) => {
-  const usp = new URLSearchParams(url.search);
-  let vid = encodeURIComponent(usp.get('v'));
+  let vid;
   const embed = url.pathname;
+
+  if (url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com') {
+    const usp = new URLSearchParams(url.search);
+    vid = usp.get('v') || (embed.includes('embed') && embed.split('/')[2]);
+  }
+
+  if (url.hostname === 'youtu.be') {
+    vid = embed.split('/')[1];
+  }
   if (embed.includes('shorts')) {
-    return embedYTShort(url, loop, controls);
+    return embedYTShort(url, loop, controls, vidTitle);
   }
   if (embed.includes('playlist')) {
-    return embedYTPlaylist(usp, loop, controls);
+    return embedYTPlaylist(url, loop, controls, vidTitle);
   }
-  if (url.origin.includes('youtu.be')) {
-    [, vid] = url.pathname.split('/');
-  }
-  const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
-        <iframe src="https://www.youtube-nocookie.com${vid ? `/embed/${vid}?playlist=${vid}&amp;` : embed}loop=${loop}&controls=${controls}" 
-        data-src="https://www.youtube-nocookie.com${vid ? `/embed/${vid}?playlist=${vid}&amp;` : embed}loop=${loop}&controls=${controls}" 
-        allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
-        scrolling="no" ${vidTitle ? `title=${vidTitle}` : `title="Content from YouTube"`} loading="lazy">
-        <p> Sorry, we're having an internal error. Try again later. <//p>
+
+  if (vid) {
+    return `
+      <div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
+        <iframe 
+          src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
+          data-src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
+          allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
+          scrolling="no" ${vidTitle ? `title="${vidTitle}"` : `title="Content from YouTube"`} loading="lazy">
         </iframe>
-    </img>
-  </div>`;
-  return embedHTML;
+      </div>
+    `;
+  }
+
+  return null;
 };
 
 const embedVimeo = (url, loop, controls, vidTitle) => {
@@ -175,10 +185,10 @@ const loadEmbed = (block, link) => {
   const url = new URL(link);
   if (config) {
     block.innerHTML = config.embed(url, loop, controls, vidTitle);
-    block.classList = `block embed embed-${config.match[0]}`;
+    block.classList.add('block', 'embed', `embed-${config.match[0]}`);
   } else {
     block.innerHTML = getDefaultEmbed(url);
-    block.classList = 'block embed';
+    block.classList.add('block', 'embed');
   }
   block.classList.add('embed-is-loaded');
   const videoListener = () => {
@@ -217,7 +227,6 @@ export default function decorate(block) {
   }
   else {
     link = block.querySelector('.embed > div > div').innerText;
-    getParent.parentElement.classList.remove("embed-container");
     block.style.maxWidth = "800px";
   }
 

@@ -174,7 +174,7 @@ header.global-nav-header {
   text-decoration: none;
   background-color: #fff;
   z-index: 1001;
-  padding-left: 8px;
+  padding-left: 32px;
   padding-right: 32px;
   width: 100%;
   box-sizing: border-box;
@@ -227,6 +227,7 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
   transition: transform var(--spectrum-global-animation-duration-100) ease-in-out;
   transform: rotate(-90deg);
 }
+
 
 @media screen and (min-width: 769px) {
   header .nav-dropdown-mobile-popover {
@@ -298,6 +299,26 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
     color: rgb(44, 44, 44);
   }
 
+
+  header.global-nav-header > ul#navigation-links > li.activeTab > a:hover {
+    border-bottom: 3px solid black;
+    display: block;
+    height: 61px;
+  }
+
+  header.global-nav-header > ul#navigation-links > li.activeTab button{
+    border-bottom: 3px solid black;
+    display: block;
+    padding-top: 3px;
+  }
+
+
+  header.global-nav-header > ul#navigation-links > li.activeTab {
+    border-bottom: 2px solid black;
+    display: block;
+    padding-bottom: 3px;
+  }
+
   header.global-nav-header > ul#navigation-links > li.navigation-products a {
     display: block;
     padding: 0 24px;
@@ -353,10 +374,21 @@ header.global-nav-header div.nav-console-right-container {
 
 header.global-nav-header div.nav-console-search-button {
   margin-right: 24px;
-
+  margin-top: 6px;
 }
 
-header.global-nav-header button.nav-dropdown-search {
+header.global-nav-header div.nav-console-search-button button.close-search-button,
+header.global-nav-header div.nav-console-search-button.is-open button.nav-dropdown-search {
+  display:none;
+}
+
+header.global-nav-header div.nav-console-search-button button.nav-dropdown-search,
+header.global-nav-header div.nav-console-search-button.is-open button.close-search-button {
+  display:block;
+}
+
+header.global-nav-header button.nav-dropdown-search,
+header.global-nav-header button.close-search-button {
   border: none;
   background-color: #fff;
   color: rgb(110, 110, 110);
@@ -451,7 +483,7 @@ header iframe {
 
 header div.nav-console-search-frame {
   position: fixed;
-  top: 80px;
+  top: 64px;
   left: 0px;
   right: 0px;
   bottom: 0px;
@@ -565,14 +597,7 @@ header .menu-btn {
     top: 0;
   }
 }
-.svgDisplay {
-  display: block;
-  color: #0265dc;
-}
-.spectrum-Menu-itemLabel {
-  display: flex;
-  gap: 5px;
-}
+
 @media screen and (max-width: 768px) {
   .header-wrapper .spectrum-Menu-itemLabel{
     justify-content: space-between !important;
@@ -582,3 +607,4 @@ header .menu-btn {
       width: 20px !important;
   }
 }
+

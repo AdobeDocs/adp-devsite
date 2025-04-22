@@ -301,11 +301,45 @@ export function buildGrid(main) {
 }
 
 /**
+ * Builds the div with style*="grid-area: main"
+ * @param {*} main The grid container
+ * @param {*} hasSideNav whether main has a side nav
+ */
+export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
+  const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
+  const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
+  const subParent = createTag("div", { class: "sub-parent" });
+  if (herosimpleWrapper) {
+    const children = Array.from(gridAreaMain.children);
+    children.forEach((child) => {
+      if (!child.classList.contains("herosimple-wrapper")) {
+        subParent.appendChild(child);
+      }
+    });
+    gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
+  } else {
+    gridAreaMain.appendChild(subParent);
+  }
+  const heroSimpleDivs = herosimpleWrapper?.querySelectorAll('.herosimple > div');
+  const footer = main.querySelector('.footer-wrapper');
+  if (hasHero) {
+    heroSimpleDivs?.forEach(div => {
+      div.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    });
+    subParent.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+  } else {
+    gridAreaMain.classList.add('layout-block', 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', 'layout-block-without-side-nav');
+  }
+}
+
+/**
  * Builds the side nav
  * @param {*} main The grid container
  */
 export function buildSideNav(main) {
-  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav; visibility: hidden' });
+  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
@@ -328,12 +362,8 @@ export function buildOnThisPage(main) {
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
-  if (!document.querySelector('.herosimple-wrapper')) {
-    main.children[1].appendChild(nextPrevWrapper)
-  }
-  else {
-    main.children[1].children[1].appendChild(nextPrevWrapper)
-  }
+  const gridAreaMain = main.querySelector('div[style*="grid-area: main"]');
+  gridAreaMain.appendChild(nextPrevWrapper)
 }
 
 /**
@@ -374,7 +404,7 @@ export function rearrangeHeroPicture(block, overlayStyle) {
   const div = block.querySelector('div');
   div.setAttribute('style', overlayStyle);
   const img = picture.querySelector('img');
-  img.setAttribute('style', 'width: 100% !important; max-height: 350px');
+  img.setAttribute('style', 'width: 100% !important; height: 350px');
   emptyDiv.remove();
 }
 
@@ -395,11 +425,15 @@ function activeTabTemplate(width, isMainPage = false) {
  */
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
-  const actTab = getActiveTab(nav);
-  if (actTab) {
-    activateTab(actTab);
+  if (nav) {
+    const actTab = getActiveTab(nav);
+    if (actTab) {
+      activateTab(actTab);
+    }
+    if (getMetadata('template') === 'documentation') {
+      activeSubNav(actTab);
+    }
   }
-  activeSubNav(actTab);
 }
 
 export function getActiveTab(nav) {
@@ -407,7 +441,7 @@ export function getActiveTab(nav) {
   let bestMatch = null;
   let bestMatchLength = 0;
 
-  const links = Array.from(nav.querySelectorAll('li > a'));
+  const links = Array.from(nav.querySelectorAll('a'));
   for (const tabItem of links) {
     const hrefPath = new URL(tabItem.href);
     const fullPath = tabItem.getAttribute('fullPath');
@@ -441,8 +475,12 @@ function isSubpath(parentPath, childPath) {
 
 // Function to mark tab as active
 function activateTab(tabItem, isMainPage) {
-  const parentWidth = tabItem.parentElement.offsetWidth;
-  tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
+  let underlineItem = tabItem;
+  if (tabItem.closest('.nav-dropdown-popover')){
+    // if the item is within a dropdown, it needs to find the parent item to be underlined.
+    underlineItem = tabItem.closest('.nav-dropdown-popover');
+  }
+  underlineItem.parentElement.classList.add("activeTab");
 }
 
 function activeSubNav(actTab) {
@@ -466,6 +504,11 @@ function activeSubNav(actTab) {
   }
   if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
     document.querySelector("main").classList.add("no-sidenav");
+    const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
+    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    if(!hasHero) {
+      gridAreaMain.style.margin = "0 auto"
+    }
   }
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";
@@ -508,6 +551,16 @@ export function isStageEnvironment(host) {
 export function isDevEnvironment(host) {
   return host.indexOf('developer-dev') >= 0;
 }
+
+/**
+ * Checks whether the current URL is the prod environment based on host value
+ * @param {*} host The host
+ * @returns True if the current URL is a prod environment, false otherwise
+ */
+export function isProdEnvironment(host) {
+  return host.indexOf('developer.adobe.com') >= 0;
+}
+
 /**
  * Checks whether the current URL is a Franklin website based on host value
  * @param {*} host The host
