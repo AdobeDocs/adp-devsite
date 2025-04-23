@@ -301,9 +301,12 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
 
 
   header.global-nav-header > ul#navigation-links > li.activeTab > a:hover {
-    border-bottom: 3px solid black;
     display: block;
     height: 61px;
+  }
+
+  header.global-nav-header > ul#navigation-links > li.activeTab .menu-item > a:hover {
+    border-bottom: 3px solid black;
   }
 
   header.global-nav-header > ul#navigation-links > li.activeTab button{
