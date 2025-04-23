@@ -137,7 +137,11 @@ export async function fetchRedirectJson() {
   const redirectJSONHash = `${hashCode(redirectFile)}`;
 
   if (sessionStorage.getItem(redirectJSONHash)) {
-    redirectJSON = JSON.parse(sessionStorage.getItem(redirectJSONHash));
+    try {
+      redirectJSON = JSON.parse(sessionStorage.getItem(redirectJSONHash));
+    } catch (error) {
+      console.error('Unable to parse: redirect json');
+    }
   } else {
     redirectJSON = await fetch(redirectFile)
       .then(response => {
