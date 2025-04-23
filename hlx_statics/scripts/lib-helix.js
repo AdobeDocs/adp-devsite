@@ -107,6 +107,11 @@ export function getMetadata(name) {
   return meta || null;
 }
 
+// Normally,we would check for DevDocs is using getMetadata('template') === 'documentation'.
+// However, the first landing pages don't go to documentation mode, which matches the same behavior as Gatsby.
+// To ensure DevDocs layout also gets applied to landing pages, we use Boolean(getMetadata('githubblobpath')) instead. 
+export const IS_DEV_DOCS = Boolean(getMetadata('githubblobpath'));
+
 /**
  * Retrieves the top nav from the config.
  * @returns {string} The top nav HTML
@@ -374,7 +379,7 @@ export function decorateBlock(block) {
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
     const childBlock = blockWrapper.querySelector('div')
-    if(getMetadata('template') === 'documentation'){
+    if(IS_DEV_DOCS){
       // ensure all documentation blocks are having white background.
       childBlock?.classList.add('background-color-white');
     }
