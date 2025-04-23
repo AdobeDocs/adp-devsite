@@ -136,23 +136,23 @@ export async function fetchRedirectJson() {
   const hashCode = (s) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0);
   const redirectJSONHash = `${hashCode(redirectFile)}`;
 
-  if (sessionStorage.getItem(redirectJSONHash)) {
-    redirectJSON = JSON.parse(sessionStorage.getItem(redirectJSONHash));
-  } else {
-    redirectJSON = await fetch(redirectFile)
-      .then(response => {
-        if (response.ok) {
+  redirectJSON = await fetch(redirectFile)
+    .then(response => {
+      if (response.ok) {
+        if (sessionStorage.getItem(redirectJSONHash)) {
+          redirectJSON = JSON.parse(sessionStorage.getItem(redirectJSONHash));
+        } else{
           return response.json();
-        } else {
-          console.warn('Network response was not ok');
         }
-      })
-      .then(data => data)
-      .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
-      });
+      } else {
+        console.warn('Network response was not ok');
+      }
+    })
+    .then(data => data)
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
     sessionStorage.setItem(redirectJSONHash, JSON.stringify(redirectJSON));
-  }
 
   return redirectJSON;
 }
