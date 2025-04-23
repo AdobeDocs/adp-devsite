@@ -132,10 +132,12 @@ main.no-sidenav > div.onthispage-wrapper {
 }
 
 .layout-block-with-side-nav {
+  width: 100%;
   max-width: 1000px;
 }
 
 .layout-block-without-side-nav {
+  width: 100%;
   max-width: 1280px;
 }
 
@@ -1072,14 +1074,6 @@ main li h3{
 
 main div.default-content-wrapper li {
   line-height: 1.8;
-}
-
-main .code-wrapper, main .nested-code-wrapper{
-  max-width: 60vw;
-}
-main:not(:has(.onthispage-wrapper)) .code-wrapper {
-  max-width: none;
-  width: 100%;
 }
 
 main a , main strong a, main .default-content-wrapper a strong{
