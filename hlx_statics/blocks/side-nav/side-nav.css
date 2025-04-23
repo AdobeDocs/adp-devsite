@@ -228,7 +228,7 @@ main div.section.side-nav-container {
 @media screen and (max-width: 768px) {
   /* Adjust grid layout */
   body.template-documentation main {
-    grid-template-columns: 0 auto !important;
+    grid-template-columns: 0 100% !important;
   }
   main div.section.side-nav-container {
       visibility: visible;
