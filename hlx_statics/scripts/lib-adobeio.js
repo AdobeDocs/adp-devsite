@@ -1,4 +1,4 @@
-import { buildBlock, getMetadata, loadCSS } from './lib-helix.js';
+import { buildBlock, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
 import decoratePreformattedCode from '../components/code.js';
 
 /**
@@ -430,7 +430,7 @@ export function setActiveTab(isMainPage) {
     if (actTab) {
       activateTab(actTab);
     }
-    if (getMetadata('template') === 'documentation') {
+    if (IS_DEV_DOCS) {
       activeSubNav(actTab);
     }
   }

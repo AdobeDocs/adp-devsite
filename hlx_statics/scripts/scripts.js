@@ -13,6 +13,7 @@ import {
   loadCSS,
   addFavIcon,
   getMetadata,
+  IS_DEV_DOCS,
   toCamelCase,
   toClassName,
   githubActionsBlock,
@@ -176,20 +177,20 @@ async function loadEager(doc) {
     await waitForLCP(LCP_BLOCKS);
   }
 
-  if (getMetadata('githubblobpath')){
+  if (IS_DEV_DOCS) {
     // check if this page is from dev docs, then change the main container to white background.
     const mainContainer = document.querySelector('main');
     mainContainer.classList.add('white-background');
   }
 
 
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     buildGrid(main);
   }
 
   buildSideNav(main);
 
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     buildBreadcrumbs(main);
   }
 
@@ -437,7 +438,7 @@ async function loadLazy(doc) {
   decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     // rearrange footer and append to main when in doc mode
     const footer = doc.querySelector('footer');
     footer.style.gridArea = 'footer';
@@ -478,7 +479,7 @@ function loadDelayed() {
   // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
   // load anything that can be postponed to the latest here
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     githubActionsBlock(document);
   }
 
