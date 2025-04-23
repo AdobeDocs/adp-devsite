@@ -50,6 +50,7 @@ footer .footer-links-container-inner {
   grid-template-areas: "apis blogs support developer";
   grid-template-columns: 25%;
   gap: 32px;
+  padding:32px;
 }
 
 @media screen and (max-width: 320px) {
@@ -127,6 +128,7 @@ footer .footer-legal {
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
+  padding: 0 16px;
 }
 
 footer .footer-legal ul {
@@ -143,7 +145,7 @@ footer .footer-divider {
   footer .footer-legal {
     flex-direction: column;
     align-items: flex-start;
-    padding: 16px 0;
+    padding: 16px;
     margin: 0 auto;
   }
 }
