@@ -70,7 +70,6 @@ main div.columns-wrapper div.columns div.first-column {
 }
 
 main div.columns-wrapper div.columns div.first-column img {
-    max-width: 100%;
     max-height: 350px;
     height: auto;
     width: auto;
@@ -143,6 +142,13 @@ main div.columns-wrapper div.second-column div.product-link-container {
     main div.columns div.first-column {
         width: 100% !important;
     }
+    main div.columns-wrapper div.columns div.first-column img {
+        max-width: 100%;
+        max-height: 350px;
+        height: auto;
+        width: auto;
+        object-fit: contain;
+    }
 }
 
 main div.columns-wrapper div.second-column div.product-link-container p.icon-container {
@@ -190,14 +196,12 @@ main div.columns-wrapper div.columns.center .button-container {
     margin-bottom: 0;
 }
 
-/* main div.columns-wrapper div.columns div.first-column img {
-    height: 350px !important;
-} */
-
 @media screen and (max-width: 1280px) {
     main div.columns-wrapper  div.columns div.second-column {
-        width: 100%;
-        margin: 40px 0;
+        width: 75%;
+        margin: auto;
+        margin-top: 40px;
+        margin-bottom: 40px;
         text-align: center;
     }
 

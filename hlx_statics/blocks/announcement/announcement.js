@@ -64,12 +64,10 @@ export default async function decorate(block) {
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
-    h.style.wordBreak = "break-all";
     h.style.whiteSpace = "normal";
   });
   block.querySelectorAll('p').forEach((p) => {
     p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
-    p.style.wordBreak = "break-all";
     p.style.whiteSpace = "normal";
   });
   const imageExists = block.querySelector('picture img');
