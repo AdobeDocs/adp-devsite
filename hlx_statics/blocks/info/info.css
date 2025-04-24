@@ -1,9 +1,5 @@
-main div.info-container:has(.info.background-color-white) {
+main div.info-wrapper:has(.info.background-color-white) {
   background-color: white;
-}
-
-main div.info-wrapper div.info.background-color-white {
-  background-color: white !important;
 }
 
 main div.info-wrapper  div.info {

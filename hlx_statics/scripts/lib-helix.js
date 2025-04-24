@@ -107,6 +107,11 @@ export function getMetadata(name) {
   return meta || null;
 }
 
+// Normally,we would check for DevDocs is using getMetadata('template') === 'documentation'.
+// However, the first landing pages don't go to documentation mode, which matches the same behavior as Gatsby.
+// To ensure DevDocs layout also gets applied to landing pages, we use Boolean(getMetadata('githubblobpath')) instead. 
+export const IS_DEV_DOCS = Boolean(getMetadata('githubblobpath'));
+
 /**
  * Retrieves the top nav from the config.
  * @returns {string} The top nav HTML
@@ -124,25 +129,41 @@ export async function fetchSideNavHtml() {
 }
 
 /**
- * Retrieves the side nav from the config.
- * @returns {string} The side nav HTML
+ * Retrieves the redirects json file
+ * @returns {string} The redirect json file
  */
 export async function fetchRedirectJson() {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
-  const redirectHTML = await fetch(redirectFile)
-    .then(response => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        console.warn('Network response was not ok');
-      }
-    })
-    .then(data => data)
-    .catch(error => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-  return redirectHTML;
+  let redirectJSON;
+
+  // use the path to create a hash to store the file
+  const hashCode = (s) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0);
+  const redirectJSONHash = `${hashCode(redirectFile)}`;
+
+  if (sessionStorage.getItem(redirectJSONHash)) {
+    try {
+      redirectJSON = JSON.parse(sessionStorage.getItem(redirectJSONHash));
+    } catch (error) {
+      console.error('Unable to parse: redirect json');
+    }
+  } else {
+    redirectJSON = await fetch(redirectFile)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          console.warn('Network response was not ok');
+        }
+      })
+      .then(data => data)
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+    sessionStorage.setItem(redirectJSONHash, JSON.stringify(redirectJSON));
+  }
+
+  return redirectJSON;
 }
 
 /**
@@ -361,6 +382,11 @@ export function decorateBlock(block) {
     block.setAttribute('data-block-status', 'initialized');
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
+    const childBlock = blockWrapper.querySelector('div')
+    if(IS_DEV_DOCS){
+      // ensure all documentation blocks are having white background.
+      childBlock?.classList.add('background-color-white');
+    }
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
   }
@@ -429,6 +455,7 @@ export function decorateSections(main) {
     wrappers.forEach((wrapper) => section.append(wrapper));
     section.classList.add('section');
     section.setAttribute('data-section-status', 'initialized');
+    section.style.display = 'none';
 
     /* process section metadata */
     const sectionMeta = section.querySelector('div.section-metadata');
@@ -468,6 +495,7 @@ export function updateSectionsStatus(main) {
         break;
       } else {
         section.setAttribute('data-section-status', 'loaded');
+        section.style.display = null;
       }
     }
   }
@@ -706,7 +734,9 @@ export async function waitForLCP(lcpBlocks) {
   const hasLCPBlock = (block && lcpBlocks.includes(block.getAttribute('data-block-name')));
   if (hasLCPBlock) await loadBlock(block, true);
 
+  document.body.style.display = null;
   document.querySelector('body').classList.add('appear');
+
   const lcpCandidate = document.querySelector('main img');
   await new Promise((resolve) => {
     if (lcpCandidate && !lcpCandidate.complete) {
@@ -720,6 +750,7 @@ export async function waitForLCP(lcpBlocks) {
 }
 
 export function initHlx() {
+  document.body.style.display = 'none';
   window.hlx = window.hlx || {};
   window.hlx.lighthouse = new URLSearchParams(window.location.search).get('lighthouse') === 'on';
   window.hlx.codeBasePath = '';

@@ -11,7 +11,7 @@ export default async function decorate(block) {
   block.innerHTML = '';
   const extractMenuData = (element) => [...element]
     .flatMap(links => [...links.querySelectorAll('li a')])
-    .map(link => ({ title: link.getAttribute('title'), href: link.getAttribute('href') , dhref : link.getAttribute('dhref') }))
+    .map(link => ({ title: link.textContent, href: link.getAttribute('href') , dhref : link.getAttribute('dhref') }))
     .filter((value, index, array) => array.findIndex(t => t.href === value.href) === index);
 
   const sideNavContainer = document.querySelector('.side-nav-subpages-section');

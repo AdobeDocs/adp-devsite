@@ -1,4 +1,4 @@
-import { buildBlock, getMetadata, loadCSS } from './lib-helix.js';
+import { buildBlock, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
 import decoratePreformattedCode from '../components/code.js';
 
 /**
@@ -301,6 +301,40 @@ export function buildGrid(main) {
 }
 
 /**
+ * Builds the div with style*="grid-area: main"
+ * @param {*} main The grid container
+ * @param {*} hasSideNav whether main has a side nav
+ */
+export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
+  const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
+  const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
+  const subParent = createTag("div", { class: "sub-parent" });
+  if (herosimpleWrapper) {
+    const children = Array.from(gridAreaMain.children);
+    children.forEach((child) => {
+      if (!child.classList.contains("herosimple-wrapper")) {
+        subParent.appendChild(child);
+      }
+    });
+    gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
+  } else {
+    gridAreaMain.appendChild(subParent);
+  }
+  const heroSimpleDivs = herosimpleWrapper?.querySelectorAll('.herosimple > div');
+  const footer = main.querySelector('.footer-wrapper');
+  if (hasHero) {
+    heroSimpleDivs?.forEach(div => {
+      div.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    });
+    subParent.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+  } else {
+    gridAreaMain.classList.add('layout-block', 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', 'layout-block-without-side-nav');
+  }
+}
+
+/**
  * Builds the side nav
  * @param {*} main The grid container
  */
@@ -328,12 +362,8 @@ export function buildOnThisPage(main) {
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
-  if (!document.querySelector('.herosimple-wrapper')) {
-    main.children[1].appendChild(nextPrevWrapper)
-  }
-  else {
-    main.children[1].children[1].appendChild(nextPrevWrapper)
-  }
+  const gridAreaMain = main.querySelector('div[style*="grid-area: main"]');
+  gridAreaMain.appendChild(nextPrevWrapper)
 }
 
 /**
@@ -374,7 +404,7 @@ export function rearrangeHeroPicture(block, overlayStyle) {
   const div = block.querySelector('div');
   div.setAttribute('style', overlayStyle);
   const img = picture.querySelector('img');
-  img.setAttribute('style', 'width: 100% !important; max-height: 350px');
+  img.setAttribute('style', 'width: 100% !important; height: 350px');
   emptyDiv.remove();
 }
 
@@ -400,7 +430,7 @@ export function setActiveTab(isMainPage) {
     if (actTab) {
       activateTab(actTab);
     }
-    if (getMetadata('template') === 'documentation') {
+    if (IS_DEV_DOCS) {
       activeSubNav(actTab);
     }
   }
@@ -474,8 +504,11 @@ function activeSubNav(actTab) {
   }
   if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
     document.querySelector("main").classList.add("no-sidenav");
-    const sectionDivision = document.querySelector('main > div[style*="grid-area: main"]');
-    sectionDivision.style.margin = "0 auto"
+    const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
+    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    if(!hasHero) {
+      gridAreaMain.style.margin = "0 auto"
+    }
   }
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";

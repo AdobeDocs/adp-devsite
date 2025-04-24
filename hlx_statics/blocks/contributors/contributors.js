@@ -1,8 +1,12 @@
+import insertWrapperContainer from '../../components/wrapperContainer.js';
+
 /**
  * Decorates the contributors block
  * @param {Element} block The contributors block element
  */
 export default async function decorate(block) {
+
+  insertWrapperContainer(block);
 
   const isBorder = block?.parentElement?.parentElement?.getAttribute("data-isborder");
 

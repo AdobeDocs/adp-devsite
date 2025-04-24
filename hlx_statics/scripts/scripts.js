@@ -13,6 +13,7 @@ import {
   loadCSS,
   addFavIcon,
   getMetadata,
+  IS_DEV_DOCS,
   toCamelCase,
   toClassName,
   githubActionsBlock,
@@ -23,6 +24,7 @@ import {
   buildCodes,
   buildEmbeds,
   buildGrid,
+  buildGridAreaMain,
   buildHeadings,
   buildSideNav,
   buildOnThisPage,
@@ -73,6 +75,8 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('resize', toggleScale);
+
+const range = document.createRange();
 
 function loadHeader(header) {
   const headerBlock = buildBlock('header', '');
@@ -173,23 +177,24 @@ async function loadEager(doc) {
     await waitForLCP(LCP_BLOCKS);
   }
 
-  if (getMetadata('githubblobpath')){
+  if (IS_DEV_DOCS) {
     // check if this page is from dev docs, then change the main container to white background.
     const mainContainer = document.querySelector('main');
     mainContainer.classList.add('white-background');
   }
 
 
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     buildGrid(main);
   }
 
   buildSideNav(main);
 
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     buildBreadcrumbs(main);
   }
 
+  document.body.classList.add('appear');
   loadConfig();
 }
 
@@ -268,6 +273,33 @@ window.adobeIMSMethods = {
 
 export async function loadAep() {
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
+
+  const intervalId = setInterval(watchVariable, 1000);
+  function watchVariable() {
+    // wait for _satellite to become available and track page
+    // eslint-disable-next-line no-undef
+    if (typeof window._satellite !== 'undefined') {
+      console.log(`Route tracking page name as: ${location.href}`);
+
+      // eslint-disable-next-line no-undef
+      _satellite.track('state',
+        {
+          xdm: {},
+          data: {
+            _adobe_corpnew: {
+              web: {
+                webPageDetails: {
+                  customPageName: location.href
+                }
+              }
+            }
+          }
+        }
+      );
+
+      clearInterval(intervalId);
+    }
+  }
 }
 
 export async function loadIms() {
@@ -333,6 +365,15 @@ export async function loadIms() {
 function loadConfig() {
   window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTczMjEzNzQzNSwiZSI6MTc1OTI2NTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iXSwicyI6InBvcnRhbCJ9.gf0tCrK+ApckZEqbuOlYJFlt19NU6UEWpiruC4VIMg9ZYUojkyDGde2aEKpBK2cm57r6yNNFNWHyIRljWAQnsg==`;
 
+  // cookie preference
+  window.fedsConfig = {
+    privacy: {
+      // TODO config from adobe.com
+      otDomainId: '7a5eb705-95ed-4cc4-a11d-0cc5760e93db',
+      footerLinkSelector: '#openPrivacy',
+    },
+  };
+
   window.alloy_all = window.alloy_all || {};
   window.alloy_all.data = window.alloy_all.data || {};
   window.alloy_all.data._adobe_corpnew = window.alloy_all.data._adobe_corpnew || {};
@@ -397,16 +438,17 @@ async function loadLazy(doc) {
   decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     // rearrange footer and append to main when in doc mode
     const footer = doc.querySelector('footer');
     footer.style.gridArea = 'footer';
     main.append(footer);
 
     // turn off this page when in doc mode and there's no hero
-    const headings = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
-    const hasSideNav = document.querySelector('.side-nav')?.children;
-    if (!document.querySelector('.hero, .herosimple') && headings.length !== 0 && hasSideNav.length !== 0) {
+    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
+    const hasSideNav = document.querySelector('.side-nav')?.children.length !== 0;
+    if (!hasHero && hasHeading && hasSideNav) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
     }
@@ -414,6 +456,7 @@ async function loadLazy(doc) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
+    buildGridAreaMain({main, hasHero, hasSideNav});
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
@@ -426,15 +469,6 @@ async function loadLazy(doc) {
     // eslint-disable-next-line import/no-cycle
     import('../../tools/preview/experimentation-preview.js');
   }
-
-  // cookie preference
-  window.fedsConfig = {
-    privacy: {
-      // TODO config from adobe.com
-      otDomainId: '7a5eb705-95ed-4cc4-a11d-0cc5760e93db',
-      footerLinkSelector: '#openPrivacy',
-    },
-  };
 }
 
 /**
@@ -445,18 +479,55 @@ function loadDelayed() {
   // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
   // load anything that can be postponed to the latest here
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     githubActionsBlock(document);
   }
+
 }
 
 function loadTitle() {
   document.title = window.location.href;
 }
 
+function loadPrism(document) {
+  const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
+  if (!codeBlocks.length) return;
+
+  let prismLoaded = false;
+  let firstCodeBlock = true;
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(({ isIntersecting, target }) => {
+      if (!isIntersecting) return;
+
+      if (!prismLoaded) {
+        prismLoaded = true;
+        window.Prism = { manual: true };
+        loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
+        import('./prism.js').then(() => {
+          window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
+          window.Prism.highlightAll(true);
+        }).catch(console.error);
+      }
+
+      const pre = target.closest('pre');
+      if (firstCodeBlock && pre) {
+        pre.classList.add('prism-loading');
+        setTimeout(() => pre.classList.remove('prism-loading'), 300);
+        firstCodeBlock = false;
+      }
+
+      observer.unobserve(target);
+    });
+  }, { rootMargin: '200px 0px', threshold: 0.1 });
+
+  codeBlocks.forEach((block) => observer.observe(block));
+}
+
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
+  loadPrism(document);
   loadTitle();
   loadDelayed(document);
 }
