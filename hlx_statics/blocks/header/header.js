@@ -568,5 +568,4 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
-
 }
