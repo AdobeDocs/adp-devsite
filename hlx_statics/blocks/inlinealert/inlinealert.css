@@ -8,13 +8,11 @@ main div.inlinealert-wrapper .spectrum-InLineAlert {
     box-sizing: border-box;
     min-width: 368px;
     min-height: 38px;
-    margin: 8px 0;
     padding: 20px;
     border-width: 2px;
     border-style: solid;
     border-radius: 4px;
     background-color: rgb(255, 255, 255);
-    color: rgb(110, 110, 110);
 }
 
 [dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
@@ -55,12 +53,16 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-header {
 
 main div.inlinealert-wrapper .spectrum-InLineAlert-content {
     font-size: 16px;
-    line-height: 1.3rem;
+    line-height: 24px;
     display: block;
     margin: 0;
     padding: 0;
     word-wrap: break-word;
-    color: rgb(110, 110, 110);
+    color: rgb(44, 44, 44);
+}
+
+main div.inlinealert-wrapper .inlinealert.neutral{
+    border-color:   rgb(44, 44, 44);
 }
 
 [dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-footer {
@@ -84,76 +86,100 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-footer:empty {
     margin-left: 0.75rem;
 }
 
-[dir="rtl"] .spectrum-InLineAlert-footer .spectrum-Button {
+[dir="rtl"] main div.inlinealert-wrapper .spectrum-InLineAlert-footer .spectrum-Button {
     margin-right: 0.75rem;
 }
 
-.spectrum-InLineAlert--info {
+main div.inlinealert-wrapper .spectrum-InLineAlert--info {
     border-color: rgb(20, 122, 243);
 }
 
-.spectrum-InLineAlert--info .spectrum-InLineAlert-icon {
+main div.inlinealert-wrapper .spectrum-InLineAlert--info .spectrum-InLineAlert-icon {
     color: rgb(0, 84, 182);
 }
 
-.spectrum-InLineAlert--help {
+main div.inlinealert-wrapper .spectrum-InLineAlert--neutral {
+    border-color: rgb(110, 110, 110);
+}
+
+main div.inlinealert-wrapper .spectrum-InLineAlert--help {
     border-color: rgb(20, 122, 243);
 }
 
-.spectrum-InLineAlert--help .spectrum-InLineAlert-icon {
+main div.inlinealert-wrapper .spectrum-InLineAlert--help .spectrum-InLineAlert-icon {
     color: rgb(0, 84, 182);
 }
 
-.spectrum-InLineAlert--error {
+main div.inlinealert-wrapper .spectrum-InLineAlert--error {
     border-color: rgb(234, 56, 41);
 }
 
-.spectrum-InLineAlert--error .spectrum-InLineAlert-icon {
+main div.inlinealert-wrapper .spectrum-InLineAlert--error .spectrum-InLineAlert-icon {
     color: rgb(180, 0, 0);
 }
 
-.spectrum-InLineAlert--success {
+main div.inlinealert-wrapper .spectrum-InLineAlert--success {
     border-color: rgb(0, 143, 93);
 }
 
-.spectrum-InLineAlert--success .spectrum-InLineAlert-icon {
+main div.inlinealert-wrapper .spectrum-InLineAlert--success .spectrum-InLineAlert-icon {
     color: rgb(0, 101, 62);
 }
 
-.spectrum-InLineAlert--negative {
+main div.inlinealert-wrapper .spectrum-InLineAlert--negative {
     border-color: rgb(246, 133, 17);
 }
 
-.spectrum-InLineAlert--negative .spectrum-InLineAlert-icon {
+main div.inlinealert-wrapper .spectrum-InLineAlert--negative .spectrum-InLineAlert-icon {
     color: rgb(203, 93, 0);
 }
-main .inlinealert{
+main div.inlinealert-wrapper .inlinealert{
     max-width: 1280px;
     margin: 0 auto;
     font-size: 16px;
     width: 100%;
+    display: inline-flex;
+    flex-direction: column;
+    gap:12px;
 }
 
-main .inlinealert>div{
+main div.inlinealert-wrapper .inlinealert>div{
     width: 100%;
 }
 
-main .inlinealert a {
+main div.inlinealert-wrapper .inlinealert a {
     color: rgb(0, 84, 182);
     text-decoration: unset;
 }
 
-main .inlinealert img {
+main div.inlinealert-wrapper .inlinealert a:hover {
+    text-decoration: underline;
+}
+
+main div.inlinealert-wrapper .inlinealert img {
     margin-top: 10px;
     width: 100%;
     height: 100%;
 }
 
-main .spectrum-InLineAlert--warning{
+main div.inlinealert-wrapper .inlinealert.warning{
     border-color: rgb(246,133,17);
-    color: rgb(246,133,17);
+    color: rgb(203, 93, 0);
 }
 
-main .inlinealert-wrapper{
-    margin: 20px 0px;
+main div.inlinealert-wrapper div.inlinealert > p.spectrum-InLineAlert-content{
+    display: inline-flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+
+main div.inlinealert-wrapper .inlinealert h1,
+main div.inlinealert-wrapper .inlinealert h2,
+main div.inlinealert-wrapper .inlinealert h3,
+main div.inlinealert-wrapper .inlinealert h4,
+main div.inlinealert-wrapper .inlinealert h5,
+main div.inlinealert-wrapper .inlinealert h6
+{
+    margin: 0;
 }

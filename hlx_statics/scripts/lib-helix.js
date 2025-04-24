@@ -107,6 +107,11 @@ export function getMetadata(name) {
   return meta || null;
 }
 
+// Normally,we would check for DevDocs is using getMetadata('template') === 'documentation'.
+// However, the first landing pages don't go to documentation mode, which matches the same behavior as Gatsby.
+// To ensure DevDocs layout also gets applied to landing pages, we use Boolean(getMetadata('githubblobpath')) instead. 
+export const IS_DEV_DOCS = Boolean(getMetadata('githubblobpath'));
+
 /**
  * Retrieves the top nav from the config.
  * @returns {string} The top nav HTML
@@ -124,27 +129,77 @@ export async function fetchSideNavHtml() {
 }
 
 /**
+ * Retrieves the redirects json file
+ * @returns {string} The redirect json file
+ */
+export async function fetchRedirectJson() {
+  let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
+  let redirectFile = `${window.location.origin}/${pathPrefix}/redirects.json`;
+  let redirectJSON;
+
+  // use the path to create a hash to store the file
+  const hashCode = (s) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0);
+  const redirectJSONHash = `${hashCode(redirectFile)}`;
+
+  if (sessionStorage.getItem(redirectJSONHash)) {
+    try {
+      redirectJSON = JSON.parse(sessionStorage.getItem(redirectJSONHash));
+    } catch (error) {
+      console.error('Unable to parse: redirect json');
+    }
+  } else {
+    redirectJSON = await fetch(redirectFile)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          console.warn('Network response was not ok');
+        }
+      })
+      .then(data => data)
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+    sessionStorage.setItem(redirectJSONHash, JSON.stringify(redirectJSON));
+  }
+
+  return redirectJSON;
+}
+
+/**
  * Retrieves the nav with the specified name from the config.
  * @param {string} name The nav name
  * @returns {string} The nav HTML
  */
 async function fetchNavHtml(name) {
-  let pathPrefix = getMetadata('pathprefix').replace('/', '');
+  let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   let navPath = `${window.location.origin}/${pathPrefix}/config`;
   const fragment = await loadFragment(navPath);
 
+  const redirectHTML = await fetchRedirectJson();
+
   let navItems;
   fragment.querySelectorAll("p").forEach((item) => {
-    if(item.innerText === name) {
+    if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
-      navItems.querySelectorAll('li').forEach((liItems) => {
+      const navItemsChild = navItems.querySelectorAll('li');
+      navItemsChild.forEach((liItems) => {
         let p = liItems.querySelector('p');
-        if(p) {
+        if (p) {
           p.replaceWith(p.firstChild);
         }
-        let a = liItems.querySelector('a');
-        a = normalizePaths(a, pathPrefix);
+        let a = liItems.querySelector(':scope > a');
+        if (a) {
+          a = normalizePaths(a, pathPrefix);
+          if (redirectHTML?.data?.length > 0) {
+            redirectHTML.data.forEach((redirect) => {
+              if (a.getAttribute('href') == redirect.Source) {
+                a.setAttribute('dhref', redirect.Destination);
+              }
+            });
+          }
+        }
         // if (!a.getAttribute('href').startsWith(pathPrefix)) {
         //   if (a.getAttribute('href').endsWith('index.md')) {
         //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('index.md', '')}`
@@ -173,21 +228,32 @@ function normalizePaths(anchorElem, pathPrefix) {
   if (href && (href.startsWith('http://') || href.startsWith('https://'))) { // check external link
     anchorElem.target = '_blank';
     anchorElem.href = href;
+    anchorElem.setAttribute("fullPath", true);
   } else {
-    if (!href.startsWith(pathPrefix)) {
-      if (href.endsWith('index.md')) {
-        anchorElem.href = `/${pathPrefix}/${href.replaceAll('index.md', '')}`;
-      } else if (href.endsWith('.md')) {
-        anchorElem.href = `/${pathPrefix}/${href.replaceAll('.md', '')}`;
-      } else if (href === '/src/pages') {
-        anchorElem.href = `/${pathPrefix}/`;
-      } else {
-        anchorElem.href = `/${pathPrefix}/${href}`;
-      }
-    }
+    const path = new URL(href, 'https://example.com');
+    const normalizedPath = cleanMarkdownExtension(path.pathname);
+    anchorElem.pathname = decodeURIComponent(normalizedPath);
+    anchorElem.href = `/${pathPrefix}${normalizedPath}`;
   }
 
   return anchorElem;
+}
+
+function cleanMarkdownExtension(pathName) {
+  return pathName
+    .replace('/src/pages/', '/')
+    .replace('/index.md/', '')
+    .replace('/index.md', '')
+    .replace('index.md', '')
+    .replace('.md/', '')
+    .replace('.md', '');
+};
+
+function trailingSlashFix(pathName) {
+  if (!pathName.endsWith('/')) {
+    return `${pathName}/`;
+  }
+  return pathName;
 }
 
 /**
@@ -316,6 +382,11 @@ export function decorateBlock(block) {
     block.setAttribute('data-block-status', 'initialized');
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
+    const childBlock = blockWrapper.querySelector('div')
+    if(IS_DEV_DOCS){
+      // ensure all documentation blocks are having white background.
+      childBlock?.classList.add('background-color-white');
+    }
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
   }
@@ -384,6 +455,7 @@ export function decorateSections(main) {
     wrappers.forEach((wrapper) => section.append(wrapper));
     section.classList.add('section');
     section.setAttribute('data-section-status', 'initialized');
+    section.style.display = 'none';
 
     /* process section metadata */
     const sectionMeta = section.querySelector('div.section-metadata');
@@ -399,7 +471,7 @@ export function decorateSections(main) {
             }
           });
         } else {
-            section.dataset[toCamelCase(key)] = meta[key];
+          section.dataset[toCamelCase(key)] = meta[key];
         }
       });
       sectionMeta.parentNode.remove();
@@ -423,6 +495,7 @@ export function updateSectionsStatus(main) {
         break;
       } else {
         section.setAttribute('data-section-status', 'loaded');
+        section.style.display = null;
       }
     }
   }
@@ -661,7 +734,9 @@ export async function waitForLCP(lcpBlocks) {
   const hasLCPBlock = (block && lcpBlocks.includes(block.getAttribute('data-block-name')));
   if (hasLCPBlock) await loadBlock(block, true);
 
+  document.body.style.display = null;
   document.querySelector('body').classList.add('appear');
+
   const lcpCandidate = document.querySelector('main img');
   await new Promise((resolve) => {
     if (lcpCandidate && !lcpCandidate.complete) {
@@ -675,6 +750,7 @@ export async function waitForLCP(lcpBlocks) {
 }
 
 export function initHlx() {
+  document.body.style.display = 'none';
   window.hlx = window.hlx || {};
   window.hlx.lighthouse = new URLSearchParams(window.location.search).get('lighthouse') === 'on';
   window.hlx.codeBasePath = '';

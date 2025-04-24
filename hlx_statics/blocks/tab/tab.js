@@ -9,7 +9,9 @@ import { getMetadata } from "../../scripts/scripts.js";
 const createCodeBlock = (codeBlock, language) => {
   const preContainer = document.createElement('div');
   const pre = document.createElement('pre');
-  pre.className = `language-${language.toLowerCase()}`;
+  if (language) {
+    pre.className = `language-${language.toLowerCase()}`;
+  }
   pre.innerHTML = codeBlock.outerHTML;
 
   preContainer.appendChild(pre);
@@ -23,7 +25,7 @@ const handleCode = (contentDiv) => {
   const isTable = contentDiv.querySelector('table');
 
   if (codeBlock && !isTable) {
-    const language = contentDiv.querySelector('p')?.textContent || '';
+    const language = contentDiv.querySelector('p')?.textContent.trim();
     const preContainer = createCodeBlock(codeBlock, language);
     contentDiv.innerHTML = preContainer.innerHTML;
   }
@@ -41,7 +43,7 @@ const createSubTabs = (table) => {
   table.querySelectorAll('tbody tr').forEach((row) => {
     const subTabTitle = row.querySelector('td:first-child')?.textContent.trim();
     const codeBlock = row.querySelector('pre code');
-    const language = row.querySelector('p')?.textContent.trim() || 'none';
+    const language = row.querySelector('p')?.textContent.trim();
 
     if (subTabTitle && codeBlock) {
       subTabCount++;

@@ -1,8 +1,7 @@
-main div.summary-container {
+main div.summary-wrapper {
   background: rgb(245, 245, 245);
   background-position: center;
   background-size: cover;
-  padding: 0;
 }
 
 main div.summary-wrapper div.summary {
@@ -13,7 +12,7 @@ main div.summary-wrapper div.summary {
 
 main div.summary-wrapper div.summary > div {
   box-sizing: border-box;
-  padding: 64px 64px 64px calc((100vw - 1280px)/2);
+  padding: 0px 64px 0px calc((100vw - 1280px)/2);
   width: calc(7 * 100% / 12);
   height: 100%;
   position: absolute;
@@ -24,7 +23,13 @@ main div.summary-wrapper div.summary > div {
 }
 
 main div.summary-wrapper  div.summary.no-image > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
   width: 100%;
+  padding: 0px 64px 0px calc((100vw - 1280px)/2)
+  /* margin: 32px; */
 }
 
 @media screen and (max-width: 1280px) {
@@ -39,6 +44,9 @@ main div.summary-wrapper  div.summary.no-image > div {
   main div.summary-wrapper  div.summary > div {
     padding: 32px;
   }
+  main div.summary-wrapper div.summary.no-image > div {
+    padding: 32px;
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -47,6 +55,9 @@ main div.summary-wrapper  div.summary.no-image > div {
   }
   main div.summary-wrapper div.summary picture{
     height: 500px;
+  }
+  main div.summary-wrapper div.summary img{
+    height: 500px !important;
   }
   main div.summary-wrapper div.summary > div {
     width: 100%;

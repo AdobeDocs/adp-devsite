@@ -106,18 +106,18 @@ main div.side-nav-wrapper div.side-nav {
     z-index: 1;
     height: 100%;
     width: 256px;
-    background-color: rgb(250, 250, 250);
+    background-color: rgb(253, 253, 253);
 }
 
-main div.side-nav-container  {
+main div.side-nav-wrapper {
     padding: 0 !important;
 }
 
-div.side-nav-wrapper .spectrum-SideNav>.has-children>ul {
+main div.side-nav-wrapper .spectrum-SideNav>.has-children>ul {
     padding-left: 10px;
 }
 
-div.side-nav-wrapper .side-nav>nav>div {
+main div.side-nav-wrapper .side-nav>nav>div {
     box-sizing: border-box;
     padding: 32px;
     overflow: auto;
@@ -125,27 +125,27 @@ div.side-nav-wrapper .side-nav>nav>div {
 }
 
 
-div.side-nav-wrapper .spectrum-SideNav--multiLevel .has-children>a {
+main div.side-nav-wrapper .spectrum-SideNav--multiLevel .has-children>a {
     padding-left: 0;
 }
 
-div.side-nav-wrapper .spectrum-SideNav > li.header > a {
+main div.side-nav-wrapper .spectrum-SideNav > li.header > a {
     font-weight: 700 !important;
 }
 
 /* Main menu section styles */
-div.side-nav-wrapper .side-nav-menu-section {
+main div.side-nav-wrapper .side-nav-menu-section {
   margin-bottom: 32px;
   border-bottom: 1px solid #eaeaea;
   padding-bottom: 24px;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .main-menu {
+main div.side-nav-wrapper .side-nav-menu-section .main-menu {
   margin: 0;
   padding: 0;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
   font-size: 14px;
   font-weight: 700;
   color: rgb(70, 70, 70);
@@ -160,12 +160,12 @@ div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spec
   align-items: center;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
   font-weight: 400;
   color: rgb(70, 70, 70);
   text-decoration: none;
@@ -173,21 +173,21 @@ div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-
   padding: 8px 16px 8px 24px;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
   color: #000;
 }
 
 /* Console button styles matching header */
-div.side-nav-wrapper .side-nav-menu-section .nav-console-button {
+main div.side-nav-wrapper .side-nav-menu-section .nav-console-button {
   margin: 16px 16px 0;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Button {
+main div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Button {
   width: auto;
   min-width: 120px;
   height: 32px;
@@ -205,11 +205,16 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   transition: background-color 130ms ease-out, border-color 130ms ease-out, color 130ms ease-out;
 }
 
-div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Button:hover {
+main div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Button:hover {
   background-color: rgb(244, 244, 244);
   border-color: rgb(44, 44, 44);
   color: rgb(44, 44, 44);
 }
+
+main div.section.side-nav-container {
+    visibility: hidden;
+}
+
 
 /* Desktop behavior */
 @media screen and (min-width: 769px) {
@@ -223,17 +228,19 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
 @media screen and (max-width: 768px) {
   /* Adjust grid layout */
   body.template-documentation main {
-    grid-template-columns: 0 auto !important;
+    grid-template-columns: 0 100% !important;
+  }
+  main div.section.side-nav-container {
+      visibility: visible;
   }
 
   main div.side-nav-wrapper div.side-nav {
-    transform: translateX(-100%);
+    transform: translateX(-256px);
     transition: transform 0.3s ease-out;
     position: fixed;
     top: 64px;
     left: 0;
     bottom: 0;
-    width: 100vw !important;
     background: #fafafa;
     z-index: 1000;
     overflow-y: auto;
@@ -270,7 +277,7 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
 
 
 /* Section labels */
-.side-nav-section-label {
+main div.side-nav-wrapper .side-nav-section-label {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -279,7 +286,7 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   padding: 0 8px;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink {
   font-size: 14px;
   font-weight: 700;
   color: rgb(70, 70, 70);
@@ -294,12 +301,12 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   align-items: center;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item > button.spectrum-SideNav-itemLink:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a {
   font-weight: 400;
   color: rgb(70, 70, 70);
   text-decoration: none;
@@ -307,18 +314,23 @@ div.side-nav-wrapper .side-nav-menu-section .nav-console-button a.spectrum-Butto
   padding: 8px 16px 8px 24px;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spectrum-SideNav-item > a:hover {
   background-color: #f0f0f0;
   color: #000;
 }
 
-.side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
+main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
   color: #000;
 }
 
 /* Ensure consistent section header spacing */
-.side-nav-menu-section .side-nav-section-label,
-.side-nav-subpages-section .side-nav-section-label {
+main div.side-nav-wrapper .side-nav-menu-section .side-nav-section-label,
+main div.side-nav-wrapper .side-nav-subpages-section .side-nav-section-label {
   margin: 0 0 12px;
   padding: 0 8px;
 }
+
+main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hide-sidenav {
+    display:none;
+}
+

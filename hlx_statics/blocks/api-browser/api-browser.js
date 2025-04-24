@@ -185,7 +185,7 @@ export default async function decorate(block) {
 
   const config = readBlockConfig(block);
   window.aio = {};
-  const resp = await fetch('/hlx-api-catalog.json');
+  const resp = await fetch('/franklin_assets/hlx-api-catalog.json');
   window.aio.apiCatalog = (await resp.json()).data;
   const catalog = window.aio.apiCatalog;
   let buttons = ['Learn More', 'View Docs'];

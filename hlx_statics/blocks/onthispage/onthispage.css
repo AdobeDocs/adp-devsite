@@ -1,42 +1,37 @@
-
-html {
-  scroll-padding-top: 60px;
-}
-
-.onthispage-wrapper {
+main .onthispage-wrapper {
   position: sticky;
   top: 128px;
   bottom: 0;
   left: 0;
-  width: 330px;
-  margin: 128px 0 0 32px;
+  width: 256px;
+  margin: 128px 32px 0 32px;
   height: calc(100vh - 128px);
   overflow: auto;
   box-sizing: border-box;
   padding-bottom: 16px;
 }
 
-.onthispage-wrapper a {
+main .onthispage-wrapper a {
   text-decoration: none;
   font-size: 16px;
   color: rgb(0, 84, 182);
 }
 
-.onthispage-wrapper a:hover {
+main .onthispage-wrapper a:hover {
   text-decoration: underline;
 }
 
-.onthispage-wrapper .active {
+main .onthispage-wrapper .active {
   font-weight: bold;
   color: black !important;
 }
 
-.onthispage-wrapper .onthispage-header {
+main .onthispage-wrapper .onthispage-header {
   color: rgb(109, 109, 109);
 }
 
-@media screen and (max-width: 1024px) {
-  .onthispage-wrapper {
+@media screen and (max-width: 1228px) {
+  main .onthispage-wrapper {
     display: none !important;
   }
 }

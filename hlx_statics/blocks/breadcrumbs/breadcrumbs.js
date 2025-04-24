@@ -38,6 +38,14 @@ async function buildBreadcrumbs() {
   
   const home = topNavParser.querySelector('a');
 
+  // title needs to added for breadcrumbs to show
+  sideNavParser.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
+
+  topNavParser.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
   return [
     DEFAULT_HOME,
     ...[

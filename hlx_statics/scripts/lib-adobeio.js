@@ -1,4 +1,4 @@
-import { buildBlock, getMetadata, loadCSS } from './lib-helix.js';
+import { buildBlock, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
 import decoratePreformattedCode from '../components/code.js';
 
 /**
@@ -301,11 +301,45 @@ export function buildGrid(main) {
 }
 
 /**
+ * Builds the div with style*="grid-area: main"
+ * @param {*} main The grid container
+ * @param {*} hasSideNav whether main has a side nav
+ */
+export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
+  const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
+  const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
+  const subParent = createTag("div", { class: "sub-parent" });
+  if (herosimpleWrapper) {
+    const children = Array.from(gridAreaMain.children);
+    children.forEach((child) => {
+      if (!child.classList.contains("herosimple-wrapper")) {
+        subParent.appendChild(child);
+      }
+    });
+    gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
+  } else {
+    gridAreaMain.appendChild(subParent);
+  }
+  const heroSimpleDivs = herosimpleWrapper?.querySelectorAll('.herosimple > div');
+  const footer = main.querySelector('.footer-wrapper');
+  if (hasHero) {
+    heroSimpleDivs?.forEach(div => {
+      div.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    });
+    subParent.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+  } else {
+    gridAreaMain.classList.add('layout-block', 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', 'layout-block-without-side-nav');
+  }
+}
+
+/**
  * Builds the side nav
  * @param {*} main The grid container
  */
 export function buildSideNav(main) {
-  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav' });
+  let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
   sideNavWrapper.append(sideNavBlock);
@@ -328,12 +362,8 @@ export function buildOnThisPage(main) {
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
-  if (!document.querySelector('.herosimple-wrapper')) {
-    main.children[1].appendChild(nextPrevWrapper)
-  }
-  else {
-    main.children[1].children[1].appendChild(nextPrevWrapper)
-  }
+  const gridAreaMain = main.querySelector('div[style*="grid-area: main"]');
+  gridAreaMain.appendChild(nextPrevWrapper)
 }
 
 /**
@@ -374,7 +404,7 @@ export function rearrangeHeroPicture(block, overlayStyle) {
   const div = block.querySelector('div');
   div.setAttribute('style', overlayStyle);
   const img = picture.querySelector('img');
-  img.setAttribute('style', 'width: 100% !important; max-height: 350px');
+  img.setAttribute('style', 'width: 100% !important; height: 350px');
   emptyDiv.remove();
 }
 
@@ -395,23 +425,94 @@ function activeTabTemplate(width, isMainPage = false) {
  */
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
+  if (nav) {
+    const actTab = getActiveTab(nav);
+    if (actTab) {
+      activateTab(actTab);
+    }
+    if (IS_DEV_DOCS) {
+      activeSubNav(actTab);
+    }
+  }
+}
+
+export function getActiveTab(nav) {
   let currentPath = window.location.pathname;
+  let bestMatch = null;
+  let bestMatchLength = 0;
 
-  nav.querySelectorAll('li > a').forEach((tabItem) => {
+  const links = Array.from(nav.querySelectorAll('a'));
+  for (const tabItem of links) {
     const hrefPath = new URL(tabItem.href);
+    const fullPath = tabItem.getAttribute('fullPath');
 
-    if (hrefPath && hrefPath.pathname) {
+    if (hrefPath && hrefPath.pathname && !fullPath) {
       // remove trailing slashes before we compare
       const hrefPathname = hrefPath.pathname.replace(/\/$/, '');
       currentPath = currentPath.replace(/\/$/, '');
+      // 1. Exact match
       if (currentPath === hrefPathname) {
-        const parentWidth = tabItem.parentElement.offsetWidth;
-        tabItem.parentElement.innerHTML += activeTabTemplate(parentWidth, isMainPage);
+        bestMatch = tabItem;
+        break;
+      }
+
+      // 2. Check if it's a valid parent (subpath) and prioritize the deepest match
+      if (isSubpath(hrefPathname, currentPath) && hrefPathname.length > bestMatchLength) {
+        bestMatch = tabItem;
+        bestMatchLength = hrefPathname.length;
       }
     }
-  });
+  };
+
+  return bestMatch
 }
 
+// Function to check if `childPath` is a subpath of `parentPath`
+function isSubpath(parentPath, childPath) {
+  return childPath.startsWith(parentPath) &&
+      (childPath.length === parentPath.length || childPath[parentPath.length] === '/');
+}
+
+// Function to mark tab as active
+function activateTab(tabItem, isMainPage) {
+  let underlineItem = tabItem;
+  if (tabItem.closest('.nav-dropdown-popover')){
+    // if the item is within a dropdown, it needs to find the parent item to be underlined.
+    underlineItem = tabItem.closest('.nav-dropdown-popover');
+  }
+  underlineItem.parentElement.classList.add("activeTab");
+}
+
+function activeSubNav(actTab) {
+  if (actTab) {
+    const navLinksUl = document.querySelector(".side-nav-subpages-section");
+    const firstLevelItems = navLinksUl.querySelectorAll(':scope > ul > li');
+    const currentPath = actTab.pathname;
+    firstLevelItems.forEach(li => {
+      const link = li.querySelector(':scope > a');
+      if (link) {
+        const linkPath = new URL(link.href, window.location.origin).pathname;
+        if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
+          li.classList.add('active-sidenav');
+        } else {
+          li.classList.add('hide-sidenav');
+        }
+      } else {
+        li.classList.add('hide-sidenav');
+      }
+    });
+  }
+  if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
+    document.querySelector("main").classList.add("no-sidenav");
+    const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
+    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    if(!hasHero) {
+      gridAreaMain.style.margin = "0 auto"
+    }
+  }
+  const sidecontainer = document.querySelector(".side-nav-container");
+  sidecontainer.style.visibility = "visible";
+}
 /**
  * Checks whether the current URL is one of the top level navigation items
  * @param {*} urlPathname The current URL path name
@@ -450,6 +551,16 @@ export function isStageEnvironment(host) {
 export function isDevEnvironment(host) {
   return host.indexOf('developer-dev') >= 0;
 }
+
+/**
+ * Checks whether the current URL is the prod environment based on host value
+ * @param {*} host The host
+ * @returns True if the current URL is a prod environment, false otherwise
+ */
+export function isProdEnvironment(host) {
+  return host.indexOf('developer.adobe.com') >= 0;
+}
+
 /**
  * Checks whether the current URL is a Franklin website based on host value
  * @param {*} host The host
@@ -811,9 +922,8 @@ export async function applyAnalytic(domObj = document) {
  * @returns Fetches the devsitePath.json file
  */
 export async function getdevsitePathFile() {
-  let devsitePathUrl = 'https://developer.adobe.com/franklin_assets/devsitepaths.json';
-
-  const resp = await fetch(devsitePathUrl);
+  let devsitePath = `${window.location.origin}/franklin_assets/devsitepaths.json`;
+  const resp = await fetch(devsitePath);
   if (resp.ok) {
     const devsitePath = await resp.json();
     return devsitePath;

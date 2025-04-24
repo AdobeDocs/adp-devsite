@@ -337,8 +337,13 @@ function initSearch() {
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
   div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
-      <svg class="spectrum-Icon spectrum-Icon--sizeM" focusable="false" aria-hidden="true" aria-label="Edit">
+      <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true" aria-label="Edit">
         <use href="/hlx_statics/icons/search.svg#spectrum-icon-24-Search"></use>
+      </svg>
+    </button>
+    <button class="close-search-button" aria-label="Close Search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
+      <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true">
+        <use href="/hlx_statics/icons/close.svg#close-icon"></use>
       </svg>
     </button>`;
   return div;
@@ -482,7 +487,7 @@ function decorateSearchIframeContainer(header) {
 
 function globalDistributeButton() {
   const div = createTag('div', { class: 'nav-console-distribute-button' });
-  div.innerHTML = `<a href="/distribute" class="spectrum-Button spectrum-Button--cta spectrum-Button-fill  spectrum-Button--sizeM">
+  div.innerHTML = `<a href="/distribute" class="spectrum-Button spectrum-Button--cta spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM">
     <span class="spectrum-Button-label">
       Distribute
     </span>
@@ -554,7 +559,7 @@ function globalNavLinkItemDropdown(id, name, links) {
 
 function globalNavLinkItemDropdownItem(url, name) {
   return `
-      <li class="spectrum-Menu-item">
+      <li class="spectrum-Menu-item menu-item">
         <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
       </li>
     `;
@@ -731,13 +736,13 @@ export default async function decorate(block) {
       // Add Products link for documentation template
       if (isTopLevelNav(window.location.pathname)) {
         const homeLinkLi = createTag('li', {class: 'navigation-home'});
-        const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+        const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home', 'fullPath': true});
         homeLinkA.innerHTML = 'Products';
         homeLinkLi.append(homeLinkA);
         navigationLinks.append(homeLinkLi);
       } else {
         const productLi = createTag('li', {class: 'navigation-products'});
-        const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+        const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products',  'fullPath': true});
         productA.innerHTML = 'Products';
         productLi.append(productA);
         navigationLinks.append(productLi);
@@ -746,7 +751,7 @@ export default async function decorate(block) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
-        
+
         // Process dropdowns for documentation template navigation
         navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
           let dropdownLinkDropdownHTML = '';
@@ -764,7 +769,7 @@ export default async function decorate(block) {
           );
           dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
         });
-        
+
         header.append(navigationLinks);
       }
     }

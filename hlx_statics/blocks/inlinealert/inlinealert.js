@@ -4,11 +4,6 @@ import {
   } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
-function NeutralMedium() {
-    // no image 
-    return `
-        <svg class="spectrum-Icon"></svg>`
-}
 const infoIcon = `<svg class="spectrum-Icon spectrum-UIIcon-InfoMedium spectrum-InLineAlert-icon" focusable="false" aria-hidden="true" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/info.svg#icon-info"></use></svg>`
 
 function getVariant(classList) {
@@ -19,7 +14,7 @@ function getVariant(classList) {
     };
 
     if(classList.contains('neutral')){
-        classVariant.icon = NeutralMedium();
+        classVariant.class = 'spectrum-InLineAlert--neutral';
     }
     if(classList.contains('info')){
         classVariant.class = 'spectrum-InLineAlert--info';
@@ -51,7 +46,7 @@ function getVariant(classList) {
 export default async function decorate(block) {
     const container = getBlockSectionContainer(block);
 
-        block.classList.add('spectrum-InLineAlert'); 
+        block.classList.add('spectrum-InLineAlert');
         // figure out variant based on parent element or on the block itself
         // TODO: may need to refactor this logic
         let classVariant;

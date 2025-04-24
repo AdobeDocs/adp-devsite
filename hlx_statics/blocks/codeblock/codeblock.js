@@ -109,5 +109,8 @@ export default function decorate(block) {
   });
 
   // initialize by simulating a click on the first tab
-  document.getElementById('tab-0').click();
+    const firstTab = block.querySelector('[role=tab]');
+    if (firstTab) {
+      firstTab.click();
+    }
 }

@@ -12,12 +12,67 @@
 
 @import url('./spectrum/spectrum.min.css');
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+body {
+  display: none;
+}
+
+body.appear {
+  display: block;
+}
+
+html {
+  scroll-padding-top: 60px;
+}
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-Medium.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-It.otf") format("opentype");
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-Bold.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-Light.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+}
+  
 
 .spectrum {
   --spectrum-global-font-family-serif: adobe-clean-serif, adobe-clean-serif-fallback;
@@ -32,7 +87,7 @@ body {
   --spectrum-card-body-content-min-height: 14px;
   --spectrum-card-body-content-margin-top: 6px;
   --spectrum-global-dimension-size-225: 22px;
-  font-family: adobe-clean, "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
+  font-family: "adobe-clean", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
   font-size: 14px;
 }
 
@@ -83,12 +138,93 @@ img {
   font-family: "adobe-clean", sans-serif;
 }
 
+h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+hr {
+  border-radius: 2px;
+  height: 1px;
+  border-color: rgb(213, 213, 213);
+  background-color: rgb(213, 213, 213);
+  border-top: 0;
+  border-left: 0;
+  width: 100%;
+}
+
 main {
   background-color: rgb(245,245,245);
 }
 
-main .section {
-  padding: var(--spectrum-global-dimension-size-400) 0;
+main.white-background {
+  background-color: white;
+}
+main.no-sidenav{
+  grid-template-areas: "main" "footer" !important;
+  grid-template-columns: 100% 100% !important;
+}
+
+main.no-sidenav > div.onthispage-wrapper {
+  display: none;
+}
+
+.layout-block {
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.layout-block-with-side-nav {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.layout-block-without-side-nav {
+  width: 100%;
+  max-width: 1280px;
+}
+
+main div.accordion-wrapper,
+main div.announcement-wrapper,
+main div.api-browser-wrapper,
+main div.banner-wrapper,
+main div.breadcrumbs-wrapper,
+main div.calendar-wrapper,
+main div.cards-wrapper,
+main div.carousel-wrapper,
+main div.code-wrapper,
+main div.codeblock-wrapper,
+main div.columns-wrapper,
+main div.contributors-wrapper,
+main div.default-content-wrapper img,
+main div.detailsblock-wrapper,
+main div.discoverblock-wrapper,
+main div.edition-wrapper,
+main div.embed-wrapper,
+footer.footer-wrapper,
+main div.github-actions-wrapper,
+main div.hr-wrapper,
+main div.image-text-wrapper,
+main div.info-wrapper,
+main div.info-card-wrapper,
+main div.info-columns-wrapper,
+main div.inline-nested-alert-wrapper,
+main div.inlinealert-wrapper,
+main div.link-wrapper,
+main div.link-block-wrapper,
+main div.list-wrapper,
+main div.nested-code-wrapper,
+main div.mini-resource-card-wrapper,
+main div.product-card-wrapper,
+main div.profile-card-wrapper,
+main div.tab-wrapper,
+main div.table-wrapper,
+main div.text-wrapper,
+main div.title-wrapper {
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
 main .section .section-title {
@@ -112,7 +248,7 @@ body.sidekick-library #onetrust-consent-sdk {
 
 main .inline-code {
   font-family: Courier, monospace;
-  font-size: 0.98rem;
+  font-size: 100%;
   background-color: rgb(245, 245, 245);
   padding: 0 2px;
   margin: 0;
@@ -120,6 +256,11 @@ main .inline-code {
   min-width: auto;
   border: 0.8px solid rgb(213, 213, 213);
   border-radius: 3px;
+  line-height: 1.5rem;
+}
+
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
+  font-size: 16px;
 }
 
 /* animate anchor */
@@ -630,6 +771,7 @@ main .heading6 h6>span {
   background-color: rgb(110, 110, 110);
   border-color: rgb(110, 110, 110);
   color: rgb(255, 255, 255);
+  text-decoration: none;
 }
 
 .spectrum-Button--secondary.focus-ring {
@@ -687,6 +829,11 @@ main .heading6 h6>span {
 .spectrum-Menu-checkmark {
   padding-left: 8px !important;
   margin-top: 6px !important;
+}
+
+.spectrum-Menu-itemLabel {
+  display: flex;
+  gap: 5px;
 }
 
 .spectrum-UIIcon-Checkmark100 {
@@ -881,6 +1028,11 @@ main .heading6 h6>span {
   color: inherit !important;
 }
 
+.svgDisplay {
+  display: block;
+  color: #0265dc;
+}
+
 .help-icon, .info-icon{
   color: rgb(0, 84, 182);
 }
@@ -918,12 +1070,10 @@ main .default-content-wrapper {
 }
 
 main .default-content-wrapper a {
-  color: rgb(0, 84, 182);
-  text-decoration: unset;
-  font-weight: bold;
+  text-decoration: none;
 }
 
-main .default-content-wrapper a:hover{
+main .default-content-wrapper a:hover , main a:hover , main strong a:hover{
   text-decoration: underline;
 }
 
@@ -936,6 +1086,10 @@ main .content-header {
   gap: 32px;
   align-items: center;
   justify-content: space-between;
+}
+
+main .content-header.block-display {
+  display: block;
 }
 
 main .github-actions-block{
@@ -967,20 +1121,42 @@ main li h3{
   color: black;
 }
 
-main .code-wrapper, main .nested-code-wrapper{
-  max-width: 60vw;
-  margin: 10px 0px;
-}
-main:not(:has(.onthispage-wrapper)) .code-wrapper {
-  max-width: none;
-  width: 100%;
+main div.default-content-wrapper li {
+  line-height: 1.8;
 }
 
-main a{
+main a , main strong a, main .default-content-wrapper a strong{
   color: rgb(0, 84, 182);
   text-decoration: none;
+}
+
+main strong a {
+  font-weight: bold;
+}
+
+main div p{
+  line-height: 24px;
+}
+
+main div.default-content-wrapper ul li p {
+  margin: 10px 0px 0px 0px;
 }
 
 main a:hover{
   text-decoration: underline;
 }
+
+main .content-header.block-display .github-actions-wrapper{
+  padding-top: 0px;
+}
+
+@media screen and (max-width: 768px) {
+  main .content-header {
+    display: block;
+  }
+  main .content-header .github-actions-wrapper{
+    padding-top: 0px;
+  }
+}
+
+
