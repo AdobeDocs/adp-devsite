@@ -14,20 +14,7 @@ const chevronRightIcon = `
 `;
 
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  const allLinks = Array.from(navParser.querySelectorAll('a'));
-  const currentPath = new URL(url, window.location.origin).pathname;
-
-  let link = allLinks
-    .filter(link => {
-      const linkPath = new URL(link.href, window.location.origin).pathname;
-      const linkDhref = link.getAttribute('dhref');
-      return currentPath.startsWith(linkPath) || (linkDhref && currentPath.startsWith(linkDhref));
-    })
-    .reduce((longest, link) => {
-      const linkPathLength = new URL(link.href, window.location.origin).pathname.length;
-      return linkPathLength > longest.length ? { link, length: linkPathLength } : longest;
-    }, { link: null, length: 0 }).link;
-
+  let link = Array.from(navParser.querySelectorAll('a')).find(a => a.href === url);
   let menuItem = link?.closest('li');
   const crumbs = [];
   while(menuItem) {
@@ -35,26 +22,21 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
     link && crumbs.unshift(link);
     menuItem = menuItem.closest('ul')?.closest('li');
   }
-
   return crumbs;
 }
-
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
   const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
-
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
   const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, sideNavCrumbs[0]?.href);
   
   const home = topNavParser.querySelector('a');
-
   // title needs to added for breadcrumbs to show
   sideNavParser.querySelectorAll('a').forEach((a) => {
     a.title = a.title || a.textContent;
   });
-
   topNavParser.querySelectorAll('a').forEach((a) => {
     a.title = a.title || a.textContent;
   });
@@ -67,7 +49,6 @@ async function buildBreadcrumbs() {
     ].map(a => ({title: a.title, href: a.href}))
   ];
 }
-
 export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
@@ -77,22 +58,19 @@ export default async function decorate(block) {
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
     block.append(nav);
-
     const ol = document.createElement('ol');
     ol.classList.add('spectrum-Breadcrumbs');
     nav.append(ol);
-
     const crumbs = await buildBreadcrumbs();
     const lis = crumbs.map(crumb => {
       const a = document.createElement('a');
       a.classList.add('spectrum-Breadcrumbs-itemLink');
       a.innerText = crumb.title;
       a.href = crumb.href;
-
       const li = document.createElement('li');
       li.classList.add('spectrum-Breadcrumbs-item');
       li.append(a);
-        li.insertAdjacentHTML("beforeend", chevronRightIcon);
+      li.insertAdjacentHTML("beforeend", chevronRightIcon);
 
       return li;
     })
