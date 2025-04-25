@@ -42,7 +42,7 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
-  const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.pathname);
+  const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
 
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
@@ -75,7 +75,7 @@ export default async function decorate(block) {
     nav.append(ol);
 
     const crumbs = await buildBreadcrumbs();
-    const lis = crumbs.map((crumb, i) => {
+    const lis = crumbs.map(crumb => {
       const a = document.createElement('a');
       a.classList.add('spectrum-Breadcrumbs-itemLink');
       a.innerText = crumb.title;
@@ -84,9 +84,7 @@ export default async function decorate(block) {
       const li = document.createElement('li');
       li.classList.add('spectrum-Breadcrumbs-item');
       li.append(a);
-      if (i !== crumbs.length - 1 && crumb.title !== '') {
         li.insertAdjacentHTML("beforeend", chevronRightIcon);
-      }
 
       return li;
     })
