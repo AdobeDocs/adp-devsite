@@ -174,7 +174,7 @@ header.global-nav-header {
   text-decoration: none;
   background-color: #fff;
   z-index: 1001;
-  padding-left: 8px;
+  padding-left: 32px;
   padding-right: 32px;
   width: 100%;
   box-sizing: border-box;
@@ -301,9 +301,12 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
 
 
   header.global-nav-header > ul#navigation-links > li.activeTab > a:hover {
-    border-bottom: 3px solid black;
     display: block;
     height: 61px;
+  }
+
+  header.global-nav-header > ul#navigation-links > li.activeTab .menu-item > a:hover {
+    border-bottom: 3px solid black;
   }
 
   header.global-nav-header > ul#navigation-links > li.activeTab button{

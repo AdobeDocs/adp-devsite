@@ -105,7 +105,7 @@ function globalNavLinkItemDropdown(id, name, links) {
 
 function globalNavLinkItemDropdownItem(url, name) {
   return `
-      <li class="spectrum-Menu-item">
+      <li class="spectrum-Menu-item menu-item">
         <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
       </li>
     `;
@@ -568,5 +568,4 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
-
 }

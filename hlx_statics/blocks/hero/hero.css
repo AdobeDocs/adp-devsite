@@ -106,7 +106,6 @@ main div.hero-wrapper div.hero h1 + p.last-of-type {
 
 @media screen and (max-width: 768px) {
   main div.hero-wrapper div.hero {
-    max-width: calc(100% - 64px) ;
     padding: 32px;
     overflow: hidden;
   }

@@ -45,6 +45,7 @@ main div.announcement-wrapper>.block>div>div {
   gap: 15px;
   width: 95%;
   align-items: center;
+  margin: auto;
 }
 
 main div.announcement-wrapper>.block>div {

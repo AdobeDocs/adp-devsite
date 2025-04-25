@@ -1,4 +1,4 @@
-import { buildBlock, getMetadata, loadCSS } from './lib-helix.js';
+import { buildBlock, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
 import decoratePreformattedCode from '../components/code.js';
 
 /**
@@ -320,17 +320,17 @@ export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
   } else {
     gridAreaMain.appendChild(subParent);
   }
-  const width = "1280px";
-  const heroSimpleDiv = herosimpleWrapper?.querySelector('.herosimple > div');
-  if(!hasSideNav && heroSimpleDiv){
-    heroSimpleDiv.style.maxWidth = width;
-  }
+  const heroSimpleDivs = herosimpleWrapper?.querySelectorAll('.herosimple > div');
+  const footer = main.querySelector('.footer-wrapper');
   if (hasHero) {
-    subParent.style.margin = "0 auto";
-    subParent.style.maxWidth = hasSideNav ? "1000px" : width;  
+    heroSimpleDivs?.forEach(div => {
+      div.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    });
+    subParent.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
   } else {
-    gridAreaMain.style.margin = "0 64px";
-    gridAreaMain.style.maxWidth = width;
+    gridAreaMain.classList.add('layout-block', 'layout-block-without-side-nav');
+    footer.classList.add('layout-block', 'layout-block-without-side-nav');
   }
 }
 
@@ -430,7 +430,7 @@ export function setActiveTab(isMainPage) {
     if (actTab) {
       activateTab(actTab);
     }
-    if (getMetadata('template') === 'documentation') {
+    if (IS_DEV_DOCS) {
       activeSubNav(actTab);
     }
   }

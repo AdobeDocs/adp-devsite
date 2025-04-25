@@ -78,17 +78,17 @@ export default async function decorate(block) {
     const main = document.querySelector("main");
     if (main) {
       if (window.innerWidth <= 768) {
-        main.style.gridTemplateColumns = "0 100vw";
+        main.style.gridTemplateColumns = "0 100%";
       } else {
-        main.style.gridTemplateColumns = "256px auto";
+        main.style.gridTemplateColumns = "256px minmax(0, 1fr)";
       }
 
       // Update grid on window resize
       window.addEventListener("resize", () => {
         if (window.innerWidth <= 768) {
-          main.style.gridTemplateColumns = "0 100vw";
+          main.style.gridTemplateColumns = "0 100%";
         } else {
-          main.style.gridTemplateColumns = "256px auto";
+          main.style.gridTemplateColumns = "256px minmax(0, 1fr)";
         }
       });
     }

@@ -12,6 +12,12 @@
 
 @import url('./spectrum/spectrum.min.css');
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   margin: 0;
@@ -19,9 +25,54 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+  display: none;
+}
+
+body.appear {
+  display: block;
+}
+
 html {
   scroll-padding-top: 60px;
 }
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-Medium.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-It.otf") format("opentype");
+  font-display: swap;
+  font-style: italic;
+  font-weight: 400;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-Bold.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: "adobe-clean";
+  src: url("./fonts/AdobeClean-Light.otf") format("opentype");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 300;
+  font-stretch: normal;
+}
+  
 
 .spectrum {
   --spectrum-global-font-family-serif: adobe-clean-serif, adobe-clean-serif-fallback;
@@ -36,7 +87,7 @@ html {
   --spectrum-card-body-content-min-height: 14px;
   --spectrum-card-body-content-margin-top: 6px;
   --spectrum-global-dimension-size-225: 22px;
-  font-family: adobe-clean, "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
+  font-family: "adobe-clean", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
   font-size: 14px;
 }
 
@@ -119,6 +170,22 @@ main.no-sidenav > div.onthispage-wrapper {
   display: none;
 }
 
+.layout-block {
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.layout-block-with-side-nav {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.layout-block-without-side-nav {
+  width: 100%;
+  max-width: 1280px;
+}
+
 main div.accordion-wrapper,
 main div.announcement-wrapper,
 main div.api-browser-wrapper,
@@ -136,6 +203,7 @@ main div.detailsblock-wrapper,
 main div.discoverblock-wrapper,
 main div.edition-wrapper,
 main div.embed-wrapper,
+footer.footer-wrapper,
 main div.github-actions-wrapper,
 main div.hr-wrapper,
 main div.image-text-wrapper,
@@ -189,6 +257,10 @@ main .inline-code {
   border: 0.8px solid rgb(213, 213, 213);
   border-radius: 3px;
   line-height: 1.5rem;
+}
+
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
+  font-size: 16px;
 }
 
 /* animate anchor */
@@ -1051,14 +1123,6 @@ main li h3{
 
 main div.default-content-wrapper li {
   line-height: 1.8;
-}
-
-main .code-wrapper, main .nested-code-wrapper{
-  max-width: 60vw;
-}
-main:not(:has(.onthispage-wrapper)) .code-wrapper {
-  max-width: none;
-  width: 100%;
 }
 
 main a , main strong a, main .default-content-wrapper a strong{

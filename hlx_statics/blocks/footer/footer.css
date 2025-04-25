@@ -1,12 +1,7 @@
 footer {
   position: relative;
-  padding-bottom: 32px;
   background-color: rgb(255, 255, 255);
-  margin: auto;
-}
-
-footer > .footer-links-container {
-  padding: 0 3%;
+  width: 100%;
 }
 
 @media screen and (max-width: 768px) {
@@ -56,6 +51,10 @@ footer .footer-links-container-inner {
   grid-template-columns: 25%;
   gap: 32px;
   padding: 32px;
+}
+
+footer.layout-block-without-side-nav .footer-links-container-inner{
+  padding: 0px;
 }
 
 @media screen and (max-width: 320px) {
@@ -113,6 +112,11 @@ footer .footer-services-container ul {
   padding-top: 60px !important;
 }
 
+footer div.footer-links-container-inner>div {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
 footer div.footer-links-container-inner>div:nth-child(2) {
   position: relative;
   grid-area: blogs;
@@ -128,6 +132,11 @@ footer .footer-legal {
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
+  padding: 0 32px;
+}
+
+footer.layout-block-without-side-nav .footer-legal{
+  padding: 0px;
 }
 
 footer .footer-legal ul {
@@ -144,8 +153,11 @@ footer .footer-divider {
   footer .footer-legal {
     flex-direction: column;
     align-items: flex-start;
-    padding: 16px 0;
+    padding: 0 32px;
     margin: 0 auto;
+  }
+  footer.layout-block-without-side-nav footer-legal{
+    padding: 0px;
   }
 }
 
