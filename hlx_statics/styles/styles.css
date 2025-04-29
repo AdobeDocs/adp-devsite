@@ -239,7 +239,7 @@ main .section[data-section-status='initialized'] {
 }
 
 body>header {
-  height: 81px;
+  height: 64px;
 }
 
 body.sidekick-library #onetrust-consent-sdk {
