@@ -58,7 +58,7 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-content {
     margin: 0;
     padding: 0;
     word-wrap: break-word;
-    color: rgb(44, 44, 44);
+    color: rgb(0, 0, 0);
 }
 
 main div.inlinealert-wrapper .inlinealert.neutral{

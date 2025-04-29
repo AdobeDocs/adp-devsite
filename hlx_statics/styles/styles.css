@@ -154,6 +154,10 @@ hr {
   width: 100%;
 }
 
+main .hr-wrapper .hr h3 {
+  font-size: 18px;
+}
+
 main {
   background-color: rgb(245,245,245);
 }
@@ -205,7 +209,6 @@ main div.edition-wrapper,
 main div.embed-wrapper,
 footer.footer-wrapper,
 main div.github-actions-wrapper,
-main div.hr-wrapper,
 main div.image-text-wrapper,
 main div.info-wrapper,
 main div.info-card-wrapper,
@@ -257,6 +260,10 @@ main .inline-code {
   border: 0.8px solid rgb(213, 213, 213);
   border-radius: 3px;
   line-height: 1.5rem;
+}
+
+main table .inline-code {
+  font-size: medium;
 }
 
 main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
@@ -611,7 +618,7 @@ main .heading6 h6>span {
 }
 
 .spectrum-Heading--sizeXL {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
 .spectrum-Heading--sizeL {
@@ -619,7 +626,7 @@ main .heading6 h6>span {
 }
 
 .spectrum-Heading--sizeM {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
 .spectrum-Heading--sizeS {
@@ -627,11 +634,11 @@ main .heading6 h6>span {
 }
 
 .spectrum-Heading--sizeXS {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
 .spectrum-Heading--sizeXXS {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
 .spectrum-Heading-sizeXXXL--light {
@@ -763,14 +770,13 @@ main .heading6 h6>span {
 
 .spectrum-Button--secondary {
   background-color: transparent;
-  border-color: rgb(110, 110, 110);
-  color: rgb(110,110,110);
+  border-color: rgb(34,34,34);
+  color: rgb(34,34,34);
 }
 
 .spectrum-Button--secondary:hover {
-  background-color: rgb(110, 110, 110);
-  border-color: rgb(110, 110, 110);
-  color: rgb(255, 255, 255);
+  background-color: rgb(213, 213, 213);
+  border-color: rgb(0, 0, 0);
   text-decoration: none;
 }
 

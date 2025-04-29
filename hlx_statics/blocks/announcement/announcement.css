@@ -10,7 +10,11 @@ main div.announcement-wrapper div.announcement-button-container p {
 main div.announcement-wrapper div.announcement.block {
   margin: auto;
   max-width: 1280px;
-  padding-bottom: 10px;
+  height: calc(160px + 10px);
+}
+
+main div.announcement-wrapper div.announcement > div {
+  height: 100%;
 }
 
 main div.announcement-wrapper div.announcement.background-color-gray{
@@ -45,7 +49,6 @@ main div.announcement-wrapper>.block>div>div {
   gap: 15px;
   width: 95%;
   align-items: center;
-  margin: auto;
 }
 
 main div.announcement-wrapper>.block>div {
