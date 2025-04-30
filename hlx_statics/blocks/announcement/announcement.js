@@ -61,6 +61,7 @@ function setBackgroundImage(block) {
  * @param {Element} block
  */
 export default async function decorate(block) {
+  const background_Exists = block.getAttribute("data-backgroundcolor");
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
@@ -72,8 +73,12 @@ export default async function decorate(block) {
   });
   const imageExists = block.querySelector('picture img');
   if (!imageExists) {
-    if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')) {
-      block.classList.add('background-color-gray');
+    if (getMetadata("template") === "documentation") {
+      if (background_Exists) {
+        block.classList.add(background_Exists);
+      }
+    } else if (!block.classList.matches(".background-color-white, .background-color-navy, .background-color-dark-gray")) {
+      block.classList.add("background-color-gray");
     }
   }
   decorateButtons(block);
