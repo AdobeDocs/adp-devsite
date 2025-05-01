@@ -109,7 +109,7 @@ export function getMetadata(name) {
 
 // Normally,we would check for DevDocs is using getMetadata('template') === 'documentation'.
 // However, the first landing pages don't go to documentation mode, which matches the same behavior as Gatsby.
-// To ensure DevDocs layout also gets applied to landing pages, we use Boolean(getMetadata('githubblobpath')) instead. 
+// To ensure DevDocs layout also gets applied to landing pages, we use Boolean(getMetadata('githubblobpath')) instead.
 export const IS_DEV_DOCS = Boolean(getMetadata('githubblobpath'));
 
 /**
@@ -187,19 +187,6 @@ async function fetchNavHtml(name) {
         if (p) {
           p.replaceWith(p.firstChild);
         }
-        let a = liItems.querySelector(':scope > a');
-        if (a) {
-          a = normalizePaths(a, pathPrefix);
-        }
-        // if (!a.getAttribute('href').startsWith(pathPrefix)) {
-        //   if (a.getAttribute('href').endsWith('index.md')) {
-        //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('index.md', '')}`
-        //   } else if (a.getAttribute('href').endsWith('.md')) {
-        //     a.href = `/${pathPrefix}/${a.getAttribute('href').replaceAll('.md', '')}`
-        //   } else {
-        //     a.href = `/${pathPrefix}/${a.getAttribute('href')}`;
-        //   }
-        // }
       });
     }
   });
