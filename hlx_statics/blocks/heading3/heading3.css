@@ -1,5 +1,5 @@
 main div.heading3-wrapper h3 {
-    color: rgb(0, 0, 0);
+    color: rgb(34, 34, 34);
     margin-top: 28px;
     margin-bottom: 4px;
 
@@ -21,4 +21,8 @@ main div.heading3-wrapper a{
 
 main div.heading3-wrapper a:hover{
   text-decoration: underline;
+}
+
+main div.heading3-wrapper .inline-code {
+  font-size: medium;
 }

@@ -51,14 +51,14 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-header {
     color: rgb(44, 44, 44);
 }
 
-main div.inlinealert-wrapper .spectrum-InLineAlert-content {
+main div.inlinealert-wrapper .spectrum-InLineAlert-content { /* need */
     font-size: 16px;
     line-height: 24px;
     display: block;
     margin: 0;
     padding: 0;
     word-wrap: break-word;
-    color: rgb(0, 0, 0);
+    color: rgb(70,70,70);
 }
 
 main div.inlinealert-wrapper .inlinealert.neutral{

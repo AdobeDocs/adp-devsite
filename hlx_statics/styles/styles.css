@@ -629,8 +629,9 @@ main .heading6 h6>span {
   color: rgb(0, 0, 0);
 }
 
-.spectrum-Heading--sizeS {
-  color: rgb(44, 44, 44);
+.spectrum-Heading--sizeS { 
+  color: rgb(34,34,34)
+
 }
 
 .spectrum-Heading--sizeXS {
