@@ -14,36 +14,16 @@ const chevronRightIcon = `
 </svg>
 `;
 
-function buildBreadcrumbsFromNavTree(navParser, url) {
-  let matchPath = null;
-  let maxDepth = -1;
-
-  navParser.querySelectorAll('a').forEach((a) => {
-    if (a.href === url) {
-      let depth = 0;
-      let listItem = a.closest('li');
-      while (listItem) {
-        depth++;
-        listItem = listItem.closest('ul')?.closest('li');
-      }
-      if (depth > maxDepth) {
-        matchPath = a;
-        maxDepth = depth;
-      }
-    }
-  });
+function extractCrumbsFromNav(url, parser) {
+  const targetLink = parser.querySelector(`a[href="${url}"]`);
+  if (!targetLink) return [];
 
   const crumbs = [];
-  let menuItem = matchPath?.closest('li');
-  while(menuItem) {
-    const link = menuItem.querySelector(':scope > a');
-    link && crumbs.unshift(link);
-    menuItem = menuItem.closest('ul')?.closest('li');
-  }
-
-  // Ensure we include the matchPath itself if it wasn't already added
-  if (matchPath && !crumbs.includes(matchPath)) {
-    crumbs.push(matchPath);
+  let current = targetLink.closest('li');
+  while (current) {
+    const link = current.querySelector(':scope > a');
+    if (link) crumbs.unshift(link);
+    current = current.closest('ul')?.closest('li');
   }
 
   return crumbs;
@@ -52,30 +32,28 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
-  const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
+
+  const sideNavCrumbs = extractCrumbsFromNav(window.location.href, sideNavParser);
 
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
+
   const activeTab = getActiveTab(topNavParser);
-  const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, activeTab?.href);
+  const topNavCrumbs = activeTab ? extractCrumbsFromNav(activeTab.href, topNavParser) : [];
 
   const home = topNavParser.querySelector('a');
 
-  // title needs to added for breadcrumbs to show
-  sideNavParser.querySelectorAll('a').forEach((a) => {
+  // Ensure all links have titles
+  [...sideNavParser.querySelectorAll('a'), ...topNavParser.querySelectorAll('a')].forEach((a) => {
     a.title = a.title || a.textContent;
   });
 
-  topNavParser.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-  });
   return [
     DEFAULT_HOME,
-    ...[
-      ...(home ? [home] : []),
-      ...topNavCrumbs,
-      ...sideNavCrumbs,
-    ].map(a => ({title: a.title, href: a.href}))
+    ...[...(home ? [home] : []), ...topNavCrumbs, ...sideNavCrumbs].map(a => ({
+      title: a.title,
+      href: a.href
+    }))
   ];
 }
 
@@ -83,7 +61,8 @@ export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
-  if(showBreadcrumbs) {
+
+  if (showBreadcrumbs) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
@@ -94,6 +73,7 @@ export default async function decorate(block) {
     nav.append(ol);
 
     const crumbs = await buildBreadcrumbs();
+
     const lis = crumbs.map(crumb => {
       const a = document.createElement('a');
       a.classList.add('spectrum-Breadcrumbs-itemLink');
@@ -106,10 +86,10 @@ export default async function decorate(block) {
       li.insertAdjacentHTML("beforeend", chevronRightIcon);
 
       return li;
-    })
+    });
 
     ol.append(...lis);
-  } else{
+  } else {
     block.parentElement?.parentElement?.remove();
   }
 }
