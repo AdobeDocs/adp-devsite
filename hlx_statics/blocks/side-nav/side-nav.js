@@ -307,12 +307,12 @@ export default async function decorate(block) {
           if (window.location.href === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
             const parentElement = li.parentElement.closest("li");
-            if (parentElement.classList.contains("is-selected")) {
-              // if the header is expanded, make sure it's not selected if there is already a child selected.
-              parentElement.classList.remove("is-selected");
-            } else {
-              li.classList.add("is-selected");
-            }
+            // Remove 'is-selected' from all other elements
+            document.querySelectorAll('.is-selected').forEach(el => {
+              el.classList.remove('is-selected');
+            });
+            // Add 'is-selected' to the matched <li>
+            li.classList.add("is-selected");
             toggleParent(li, true);
           } else {
             window.location.href = getAnchorTag.href;
