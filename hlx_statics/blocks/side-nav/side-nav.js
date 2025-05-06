@@ -306,7 +306,7 @@ export default async function decorate(block) {
 
           if (window.location.href === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
-            if (li.classList.contains("header") && li.classList.contains("is-expanded")) {
+            if (li.classList.contains("is-expanded")) {
               // if the header is expanded, make sure it's not selected if there is already a child selected.
               if (li.querySelector(".is-selected")) {
                 li.classList.remove("is-selected");
