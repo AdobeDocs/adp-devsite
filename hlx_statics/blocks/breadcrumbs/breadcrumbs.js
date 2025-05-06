@@ -14,40 +14,17 @@ const chevronRightIcon = `
 </svg>
 `;
 
-function normalizePath(href) {
-  try {
-    return new URL(href, window.location.origin).pathname;
-  } catch {
-    return href;
-  }
-}
-
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  const normalizedUrl = normalizePath(url);
-  let links = Array.from(navParser.querySelectorAll('a'));
-
-  // Try exact match first
-  let link = links.find(a => normalizePath(a.href) === normalizedUrl);
-
-  // If not found, try partial match (closest ancestor path)
-  if (!link) {
-    link = links
-      .filter(a => normalizePath(a.href).length < normalizedUrl.length)
-      .filter(a => normalizedUrl.startsWith(normalizePath(a.href)))
-      .sort((a, b) => normalizePath(b.href).length - normalizePath(a.href).length)[0];
-
-    if (link) {
-      console.warn(`Exact match not found for ${normalizedUrl}, falling back to parent: ${link.href}`);
-    }
-  }
+  let link = Array.from(navParser.querySelectorAll('a')).find(a => a.href === url);
+  let menuItem = link?.closest('li');
 
   const crumbs = [];
-  let menuItem = link?.closest('li');
-  while (menuItem) {
+  while(menuItem) {
     link = menuItem.querySelector(':scope > a');
     link && crumbs.unshift(link);
     menuItem = menuItem.closest('ul')?.closest('li');
   }
+  console.log('crumbs', crumbs)
 
   return crumbs;
 }
@@ -55,7 +32,9 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
+  console.log('sideNavParser', sideNavParser)
   const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
+  console.log('sideNavCrumbs', sideNavCrumbs)
 
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
@@ -64,22 +43,23 @@ async function buildBreadcrumbs() {
 
   const home = topNavParser.querySelector('a');
 
-  // Ensure all links have a title
-  sideNavParser.querySelectorAll('a').forEach(a => {
+  // title needs to added for breadcrumbs to show
+  sideNavParser.querySelectorAll('a').forEach((a) => {
     a.title = a.title || a.textContent;
   });
 
-  topNavParser.querySelectorAll('a').forEach(a => {
+  console.log('sideNavParser', sideNavParser)
+
+  topNavParser.querySelectorAll('a').forEach((a) => {
     a.title = a.title || a.textContent;
   });
-
   return [
     DEFAULT_HOME,
     ...[
       ...(home ? [home] : []),
       ...topNavCrumbs,
       ...sideNavCrumbs,
-    ].map(a => ({ title: a.title, href: a.href }))
+    ].map(a => ({title: a.title, href: a.href}))
   ];
 }
 
@@ -87,8 +67,7 @@ export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
-
-  if (showBreadcrumbs) {
+  if(showBreadcrumbs) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
@@ -111,10 +90,10 @@ export default async function decorate(block) {
       li.insertAdjacentHTML("beforeend", chevronRightIcon);
 
       return li;
-    });
+    })
 
     ol.append(...lis);
-  } else {
+  } else{
     block.parentElement?.parentElement?.remove();
   }
 }
