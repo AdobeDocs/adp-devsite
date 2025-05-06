@@ -14,26 +14,12 @@ const chevronRightIcon = `
 </svg>
 `;
 
-function normalizeUrl(url) {
-  try {
-    const parsed = new URL(url, window.location.origin);
-    return parsed.pathname.replace(/\/$/, '');
-  } catch {
-    return url;
-  }
-}
-
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  // const normalizedTarget = normalizeUrl(url);
-  const normalizedTarget = url;
-
   let matchPath = null;
   let maxDepth = -1;
 
   navParser.querySelectorAll('a').forEach((a) => {
-    // const href = normalizeUrl(a.href);
-    const href = a.href;
-    if (href === normalizedTarget) {
+    if (a.href === url) {
       let depth = 0;
       let listItem = a.closest('li');
       while (listItem) {
