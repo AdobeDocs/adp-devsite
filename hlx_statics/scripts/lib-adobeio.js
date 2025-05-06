@@ -290,7 +290,7 @@ export function buildGrid(main) {
   if (heroSimpleContainer || headings.length === 0) {
     main.style.gridTemplateAreas = '"sidenav main" "sidenav footer"';
   } else {
-    main.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer aside"';
+    main.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer footer"';
   }
 
   const gridAreaMain = main.querySelector(".section");
