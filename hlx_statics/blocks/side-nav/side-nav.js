@@ -322,7 +322,7 @@ export default async function decorate(block) {
         if (window.location.href === getAnchorTag.href) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
-          const header = li.closest("li");
+          const header = li.parentElement.closest("li");
           // Check to make sure only the child is selected and not the parent.
           if (header) {
             if (header.classList.contains("is-selected")){
