@@ -32,7 +32,7 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
   // If not found, try partial match (closest ancestor path)
   if (!link) {
     link = links
-      .filter(a => normalizePath(normalizePath(a.href)).length < normalizedUrl.length)
+      .filter(a => normalizePath(a.href).length < normalizedUrl.length)
       .filter(a => normalizedUrl.startsWith(normalizePath(a.href)))
       .sort((a, b) => normalizePath(b.href).length - normalizePath(a.href).length)[0];
 
