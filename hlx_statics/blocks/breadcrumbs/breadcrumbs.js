@@ -23,8 +23,8 @@ function normalizeUrl(url) {
   }
 }
 
-function buildBreadcrumbsFromNavTree(navParser, targetUrl) {
-  const normalizedTarget = normalizeUrl(targetUrl);
+function buildBreadcrumbsFromNavTree(navParser, url) {
+  const normalizedTarget = normalizeUrl(url);
 
   let matchPath = null;
   let maxDepth = -1;
@@ -46,11 +46,11 @@ function buildBreadcrumbsFromNavTree(navParser, targetUrl) {
   });
 
   const crumbs = [];
-  let menuItems = matchPath?.closest('li');
-  while (menuItems) {
-    const link = menuItems.querySelector(':scope > a');
-    if (link) crumbs.unshift(link);
-    menuItems = menuItems.closest('ul')?.closest('li');
+  let menuItem = matchPath?.closest('li');
+  while(menuItem) {
+    const link = menuItem.querySelector(':scope > a');
+    link && crumbs.unshift(link);
+    menuItem = menuItem.closest('ul')?.closest('li');
   }
 
   // Ensure we include the matchPath itself if it wasn't already added
@@ -64,32 +64,30 @@ function buildBreadcrumbsFromNavTree(navParser, targetUrl) {
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
-
-  // Ensure all links have titles
-  sideNavParser.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-  });
-
   const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
 
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
-  topNavParser.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-  });
-
   const activeTab = getActiveTab(topNavParser);
   const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, activeTab?.href);
 
   const home = topNavParser.querySelector('a');
 
+  // title needs to added for breadcrumbs to show
+  sideNavParser.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
+
+  topNavParser.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
   return [
     DEFAULT_HOME,
     ...[
       ...(home ? [home] : []),
       ...topNavCrumbs,
       ...sideNavCrumbs,
-    ].map(a => ({ title: a.title, href: a.href }))
+    ].map(a => ({title: a.title, href: a.href}))
   ];
 }
 
@@ -97,8 +95,7 @@ export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
-
-  if (showBreadcrumbs) {
+  if(showBreadcrumbs) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
@@ -119,11 +116,12 @@ export default async function decorate(block) {
       li.classList.add('spectrum-Breadcrumbs-item');
       li.append(a);
       li.insertAdjacentHTML("beforeend", chevronRightIcon);
+
       return li;
-    });
+    })
 
     ol.append(...lis);
-  } else {
+  } else{
     block.parentElement?.parentElement?.remove();
   }
 }
