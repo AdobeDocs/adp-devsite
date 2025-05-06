@@ -28,6 +28,7 @@ async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
   const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
+  console.log('sideNavCrumbs', sideNavCrumbs)
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
   const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, sideNavCrumbs[0]?.href);
