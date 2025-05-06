@@ -14,28 +14,49 @@ const chevronRightIcon = `
 </svg>
 `;
 
-function buildBreadcrumbsFromNavTree(navParser, url) {
-  const currentPath = new URL(url, window.location.origin).pathname;
-  const links = Array.from(navParser.querySelectorAll('a'));
+// Utility to normalize URLs for comparison
+function normalizeUrl(url) {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.pathname.replace(/\/$/, '');
+  } catch {
+    return url;
+  }
+}
 
-  let link = links.find(a => {
-    const aPath = new URL(a.getAttribute('href'), window.location.origin).pathname;
-    return aPath === currentPath;
+function buildBreadcrumbsFromNavTree(navParser, targetUrl) {
+  const normalizedTarget = normalizeUrl(targetUrl);
+
+  let bestMatch = null;
+  let maxDepth = -1;
+
+  navParser.querySelectorAll('a').forEach((a) => {
+    const href = normalizeUrl(a.href);
+    if (href === normalizedTarget) {
+      let depth = 0;
+      let el = a.closest('li');
+      while (el) {
+        depth++;
+        el = el.closest('ul')?.closest('li');
+      }
+      if (depth > maxDepth) {
+        bestMatch = a;
+        maxDepth = depth;
+      }
+    }
   });
 
-  if (!link) {
-    console.warn(`[Breadcrumbs] No match found for path: ${currentPath}`);
-    console.log(`[Breadcrumbs] Available nav links:`, links.map(a => new URL(a.href, window.location.origin).pathname));
-    return [];
+  const crumbs = [];
+  let current = bestMatch?.closest('li');
+  while (current) {
+    const link = current.querySelector(':scope > a');
+    if (link) crumbs.unshift(link);
+    current = current.closest('ul')?.closest('li');
   }
 
-  let menuItem = link.closest('li');
-  const crumbs = [];
-
-  while (menuItem) {
-    const crumbLink = menuItem.querySelector(':scope > a');
-    if (crumbLink) crumbs.unshift(crumbLink);
-    menuItem = menuItem.closest('ul')?.closest('li');
+  // Ensure we include the bestMatch itself if it wasn't already added
+  if (bestMatch && !crumbs.includes(bestMatch)) {
+    crumbs.push(bestMatch);
   }
 
   return crumbs;
@@ -43,20 +64,24 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
 
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
-  const sideNavParser = new DOMParser().parseFromString(sideNavHtml, 'text/html');
+  const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
 
-  const topNavHtml = await fetchTopNavHtml();
-  const topNavParser = new DOMParser().parseFromString(topNavHtml, 'text/html');
-
-  const activeTab = getActiveTab(topNavParser);
-
-  // Add title fallback
-  [...sideNavParser.querySelectorAll('a'), ...topNavParser.querySelectorAll('a')].forEach((a) => {
+  // Ensure all links have titles
+  sideNavParser.querySelectorAll('a').forEach((a) => {
     a.title = a.title || a.textContent;
   });
 
   const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
-  const topNavCrumbs = activeTab?.href ? buildBreadcrumbsFromNavTree(topNavParser, activeTab.href) : [];
+
+  const topNavHtml = await fetchTopNavHtml();
+  const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
+  topNavParser.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
+
+  const activeTab = getActiveTab(topNavParser);
+  const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, activeTab?.href);
+
   const home = topNavParser.querySelector('a');
 
   return [
@@ -65,7 +90,7 @@ async function buildBreadcrumbs() {
       ...(home ? [home] : []),
       ...topNavCrumbs,
       ...sideNavCrumbs,
-    ].map(a => ({ title: a.title, href: a.href })),
+    ].map(a => ({ title: a.title, href: a.href }))
   ];
 }
 
@@ -76,39 +101,29 @@ export default async function decorate(block) {
 
   if (showBreadcrumbs) {
     const nav = document.createElement('nav');
-    nav.setAttribute('aria-label', 'Breadcrumb');
-    nav.setAttribute('role', 'navigation');
+    nav.ariaLabel = "Breadcrumb";
+    nav.role = "navigation";
     block.append(nav);
 
     const ol = document.createElement('ol');
     ol.classList.add('spectrum-Breadcrumbs');
     nav.append(ol);
 
-    try {
-      const crumbs = await buildBreadcrumbs();
+    const crumbs = await buildBreadcrumbs();
+    const lis = crumbs.map(crumb => {
+      const a = document.createElement('a');
+      a.classList.add('spectrum-Breadcrumbs-itemLink');
+      a.innerText = crumb.title;
+      a.href = crumb.href;
 
-      const lis = crumbs.map((crumb, index, arr) => {
-        const a = document.createElement('a');
-        a.classList.add('spectrum-Breadcrumbs-itemLink');
-        a.innerText = crumb.title;
-        a.href = crumb.href;
+      const li = document.createElement('li');
+      li.classList.add('spectrum-Breadcrumbs-item');
+      li.append(a);
+      li.insertAdjacentHTML("beforeend", chevronRightIcon);
+      return li;
+    });
 
-        const li = document.createElement('li');
-        li.classList.add('spectrum-Breadcrumbs-item');
-        li.append(a);
-
-        // Add chevron only if it's not the last crumb
-        if (index < arr.length - 1) {
-          li.insertAdjacentHTML('beforeend', chevronRightIcon);
-        }
-
-        return li;
-      });
-
-      ol.append(...lis);
-    } catch (err) {
-      console.error('Breadcrumbs generation failed:', err);
-    }
+    ol.append(...lis);
   } else {
     block.parentElement?.parentElement?.remove();
   }
