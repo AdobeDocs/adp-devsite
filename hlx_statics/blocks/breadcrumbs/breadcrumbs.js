@@ -14,73 +14,83 @@ const chevronRightIcon = `
 </svg>
 `;
 
+// Utility to normalize URLs for comparison
 function normalizeUrl(url) {
   try {
-    return new URL(url, window.location.origin).pathname.replace(/\/$/, '');
+    const parsed = new URL(url, window.location.origin);
+    return parsed.pathname.replace(/\/$/, '');
   } catch {
     return url;
   }
 }
 
-function buildBreadcrumbsFromNavTree(navParser, url) {
-  let matchedLink = null, maxDepth = -1;
+function buildBreadcrumbsFromNavTree(navParser, targetUrl) {
+  const normalizedTarget = normalizeUrl(targetUrl);
 
-  navParser.querySelectorAll('a').forEach(a => {
+  let bestMatch = null;
+  let maxDepth = -1;
+
+  navParser.querySelectorAll('a').forEach((a) => {
     const href = normalizeUrl(a.href);
-    if (href === url) {
-      let depth = 0, link = a.closest('li');
-      while (link) {
+    if (href === normalizedTarget) {
+      let depth = 0;
+      let el = a.closest('li');
+      while (el) {
         depth++;
-        link = link.closest('ul')?.closest('li');
+        el = el.closest('ul')?.closest('li');
       }
       if (depth > maxDepth) {
-        matchedLink = a;
+        bestMatch = a;
         maxDepth = depth;
       }
     }
   });
 
   const crumbs = [];
-  let menuItem = matchedLink?.closest('li');
-  while(menuItem) {
-    const curmb = menuItem.querySelector(':scope > a');
-    if (curmb) crumbs.unshift(curmb);
-    menuItem = menuItem.closest('ul')?.closest('li');
+  let current = bestMatch?.closest('li');
+  while (current) {
+    const link = current.querySelector(':scope > a');
+    if (link) crumbs.unshift(link);
+    current = current.closest('ul')?.closest('li');
   }
 
-  if (matchedLink && !crumbs.includes(matchedLink)) crumbs.push(matchedLink);
+  // Ensure we include the bestMatch itself if it wasn't already added
+  if (bestMatch && !crumbs.includes(bestMatch)) {
+    crumbs.push(bestMatch);
+  }
 
   return crumbs;
 }
 
-
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
+
+  // Ensure all links have titles
+  sideNavParser.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
+
   const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
 
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
+  topNavParser.querySelectorAll('a').forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
+
   const activeTab = getActiveTab(topNavParser);
   const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, activeTab?.href);
 
   const home = topNavParser.querySelector('a');
 
-  // title needs to added for breadcrumbs to show
-  sideNavParser.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-  });
-
-  topNavParser.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-  });
   return [
     DEFAULT_HOME,
     ...[
       ...(home ? [home] : []),
       ...topNavCrumbs,
       ...sideNavCrumbs,
-    ].map(a => ({title: a.title, href: a.href}))
+    ].map(a => ({ title: a.title, href: a.href }))
   ];
 }
 
@@ -88,7 +98,8 @@ export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
-  if(showBreadcrumbs) {
+
+  if (showBreadcrumbs) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
@@ -109,12 +120,11 @@ export default async function decorate(block) {
       li.classList.add('spectrum-Breadcrumbs-item');
       li.append(a);
       li.insertAdjacentHTML("beforeend", chevronRightIcon);
-
       return li;
-    })
+    });
 
     ol.append(...lis);
-  } else{
+  } else {
     block.parentElement?.parentElement?.remove();
   }
 }
