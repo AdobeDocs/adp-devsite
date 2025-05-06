@@ -19,7 +19,7 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
   let menuItem = link?.closest('li');
 
   const crumbs = [];
-  while(menuItem) {
+  while (menuItem) {
     link = menuItem.querySelector(':scope > a');
     link && crumbs.unshift(link);
     menuItem = menuItem.closest('ul')?.closest('li');
@@ -37,7 +37,9 @@ async function buildBreadcrumbs() {
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
   const activeTab = getActiveTab(topNavParser);
   const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, activeTab?.href);
-
+  console.log('activeTab', activeTab)
+  console.log('sideNavCrumbs', sideNavCrumbs)
+  console.log('sideNavParser', sideNavParser)
   const home = topNavParser.querySelector('a');
 
   // title needs to added for breadcrumbs to show
@@ -54,7 +56,7 @@ async function buildBreadcrumbs() {
       ...(home ? [home] : []),
       ...topNavCrumbs,
       ...sideNavCrumbs,
-    ].map(a => ({title: a.title, href: a.href}))
+    ].map(a => ({ title: a.title, href: a.href }))
   ];
 }
 
@@ -62,7 +64,7 @@ export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
-  if(showBreadcrumbs) {
+  if (showBreadcrumbs) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
@@ -88,7 +90,7 @@ export default async function decorate(block) {
     })
 
     ol.append(...lis);
-  } else{
+  } else {
     block.parentElement?.parentElement?.remove();
   }
 }
