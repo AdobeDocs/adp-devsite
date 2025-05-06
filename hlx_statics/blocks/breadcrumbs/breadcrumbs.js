@@ -14,11 +14,35 @@ const chevronRightIcon = `
 </svg>
 `;
 
+function normalizePath(href) {
+  try {
+    return new URL(href, window.location.origin).pathname;
+  } catch {
+    return href;
+  }
+}
+
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  let link = Array.from(navParser.querySelectorAll('a')).find(a => a.href === url);
-  let menuItem = link?.closest('li');
+  const normalizedUrl = normalizePath(url);
+  let links = Array.from(navParser.querySelectorAll('a'));
+
+  // Try exact match first
+  let link = links.find(a => normalizePath(a.href) === normalizedUrl);
+
+  // If not found, try partial match (closest ancestor path)
+  if (!link) {
+    link = links
+      .filter(a => normalizePath(normalizePath(a.href)).length < normalizedUrl.length)
+      .filter(a => normalizedUrl.startsWith(normalizePath(a.href)))
+      .sort((a, b) => normalizePath(b.href).length - normalizePath(a.href).length)[0];
+
+    if (link) {
+      console.warn(`Exact match not found for ${normalizedUrl}, falling back to parent: ${link.href}`);
+    }
+  }
 
   const crumbs = [];
+  let menuItem = link?.closest('li');
   while (menuItem) {
     link = menuItem.querySelector(':scope > a');
     link && crumbs.unshift(link);
@@ -37,19 +61,18 @@ async function buildBreadcrumbs() {
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
   const activeTab = getActiveTab(topNavParser);
   const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, activeTab?.href);
-  console.log('activeTab', activeTab)
-  console.log('sideNavCrumbs', sideNavCrumbs)
-  console.log('sideNavParser', sideNavParser)
+
   const home = topNavParser.querySelector('a');
 
-  // title needs to added for breadcrumbs to show
-  sideNavParser.querySelectorAll('a').forEach((a) => {
+  // Ensure all links have a title
+  sideNavParser.querySelectorAll('a').forEach(a => {
     a.title = a.title || a.textContent;
   });
 
-  topNavParser.querySelectorAll('a').forEach((a) => {
+  topNavParser.querySelectorAll('a').forEach(a => {
     a.title = a.title || a.textContent;
   });
+
   return [
     DEFAULT_HOME,
     ...[
@@ -64,6 +87,7 @@ export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
+
   if (showBreadcrumbs) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
@@ -87,7 +111,7 @@ export default async function decorate(block) {
       li.insertAdjacentHTML("beforeend", chevronRightIcon);
 
       return li;
-    })
+    });
 
     ol.append(...lis);
   } else {
