@@ -24,13 +24,15 @@ function normalizeUrl(url) {
 }
 
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  const normalizedTarget = normalizeUrl(url);
+  // const normalizedTarget = normalizeUrl(url);
+  const normalizedTarget = url;
 
   let matchPath = null;
   let maxDepth = -1;
 
   navParser.querySelectorAll('a').forEach((a) => {
-    const href = normalizeUrl(a.href);
+    // const href = normalizeUrl(a.href);
+    const href = a.href;
     if (href === normalizedTarget) {
       let depth = 0;
       let listItem = a.closest('li');
