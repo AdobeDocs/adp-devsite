@@ -14,8 +14,19 @@ const chevronRightIcon = `
 </svg>
 `;
 
+function normalizeUrl(url) {
+  try {
+    const u = new URL(url, window.location.origin);
+    return u.pathname.replace(/\/+$/, ''); // remove trailing slash
+  } catch {
+    return url;
+  }
+}
+
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  let link = Array.from(navParser.querySelectorAll('a')).find(a => a.href === url);
+  let link = Array.from(navParser.querySelectorAll('a')).find(a => 
+    normalizeUrl(a.href) === normalizeUrl(url)
+  );
   let menuItem = link?.closest('li');
 
   const crumbs = [];
@@ -24,7 +35,7 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
     link && crumbs.unshift(link);
     menuItem = menuItem.closest('ul')?.closest('li');
   }
-  console.log('crumbs', crumbs)
+  console.log('crumbs', crumbs);
 
   return crumbs;
 }
@@ -32,9 +43,9 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
   const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
-  console.log('sideNavParser', sideNavParser)
+  console.log('sideNavParser', sideNavParser);
   const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
-  console.log('sideNavCrumbs', sideNavCrumbs)
+  console.log('sideNavCrumbs', sideNavCrumbs);
 
   const topNavHtml = await fetchTopNavHtml();
   const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
@@ -48,18 +59,15 @@ async function buildBreadcrumbs() {
     a.title = a.title || a.textContent;
   });
 
-  console.log('sideNavParser', sideNavParser)
+  console.log('sideNavParser', sideNavParser);
 
   topNavParser.querySelectorAll('a').forEach((a) => {
     a.title = a.title || a.textContent;
   });
   return [
     DEFAULT_HOME,
-    ...[
-      ...(home ? [home] : []),
-      ...topNavCrumbs,
-      ...sideNavCrumbs,
-    ].map(a => ({title: a.title, href: a.href}))
+    ...[...(home ? [home] : []), ...topNavCrumbs, ...sideNavCrumbs]
+      .map(a => ({title: a.title, href: a.href}))
   ];
 }
 
@@ -67,7 +75,8 @@ export default async function decorate(block) {
   const hasHero = Boolean(document.querySelector('.herosimple-container') || document.querySelector('.hero-container'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
-  if(showBreadcrumbs) {
+
+  if (showBreadcrumbs) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
@@ -90,10 +99,10 @@ export default async function decorate(block) {
       li.insertAdjacentHTML("beforeend", chevronRightIcon);
 
       return li;
-    })
+    });
 
     ol.append(...lis);
-  } else{
+  } else {
     block.parentElement?.parentElement?.remove();
   }
 }
