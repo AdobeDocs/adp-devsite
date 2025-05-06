@@ -14,7 +14,6 @@ const chevronRightIcon = `
 </svg>
 `;
 
-// Utility to normalize URLs for comparison
 function normalizeUrl(url) {
   try {
     const parsed = new URL(url, window.location.origin);
@@ -27,36 +26,36 @@ function normalizeUrl(url) {
 function buildBreadcrumbsFromNavTree(navParser, targetUrl) {
   const normalizedTarget = normalizeUrl(targetUrl);
 
-  let bestMatch = null;
+  let matchPath = null;
   let maxDepth = -1;
 
   navParser.querySelectorAll('a').forEach((a) => {
     const href = normalizeUrl(a.href);
     if (href === normalizedTarget) {
       let depth = 0;
-      let el = a.closest('li');
-      while (el) {
+      let listItem = a.closest('li');
+      while (listItem) {
         depth++;
-        el = el.closest('ul')?.closest('li');
+        listItem = listItem.closest('ul')?.closest('li');
       }
       if (depth > maxDepth) {
-        bestMatch = a;
+        matchPath = a;
         maxDepth = depth;
       }
     }
   });
 
   const crumbs = [];
-  let current = bestMatch?.closest('li');
-  while (current) {
-    const link = current.querySelector(':scope > a');
+  let menuItems = matchPath?.closest('li');
+  while (menuItems) {
+    const link = menuItems.querySelector(':scope > a');
     if (link) crumbs.unshift(link);
-    current = current.closest('ul')?.closest('li');
+    menuItems = menuItems.closest('ul')?.closest('li');
   }
 
-  // Ensure we include the bestMatch itself if it wasn't already added
-  if (bestMatch && !crumbs.includes(bestMatch)) {
-    crumbs.push(bestMatch);
+  // Ensure we include the matchPath itself if it wasn't already added
+  if (matchPath && !crumbs.includes(matchPath)) {
+    crumbs.push(matchPath);
   }
 
   return crumbs;
