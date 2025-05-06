@@ -16,17 +16,25 @@ const chevronRightIcon = `
 
 function buildBreadcrumbsFromNavTree(navParser, url) {
   const currentPath = new URL(url, window.location.origin).pathname;
-  let link = Array.from(navParser.querySelectorAll('a')).find(a => {
-    const aPath = new URL(a.href, window.location.origin).pathname;
+  const links = Array.from(navParser.querySelectorAll('a'));
+
+  let link = links.find(a => {
+    const aPath = new URL(a.getAttribute('href'), window.location.origin).pathname;
     return aPath === currentPath;
   });
 
-  let menuItem = link?.closest('li');
+  if (!link) {
+    console.warn(`[Breadcrumbs] No match found for path: ${currentPath}`);
+    console.log(`[Breadcrumbs] Available nav links:`, links.map(a => new URL(a.href, window.location.origin).pathname));
+    return [];
+  }
+
+  let menuItem = link.closest('li');
   const crumbs = [];
 
   while (menuItem) {
-    link = menuItem.querySelector(':scope > a');
-    if (link) crumbs.unshift(link);
+    const crumbLink = menuItem.querySelector(':scope > a');
+    if (crumbLink) crumbs.unshift(crumbLink);
     menuItem = menuItem.closest('ul')?.closest('li');
   }
 
@@ -35,24 +43,21 @@ function buildBreadcrumbsFromNavTree(navParser, url) {
 
 async function buildBreadcrumbs() {
   const sideNavHtml = await fetchSideNavHtml();
-  const sideNavParser = new DOMParser().parseFromString(sideNavHtml, "text/html");
-  const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
+  const sideNavParser = new DOMParser().parseFromString(sideNavHtml, 'text/html');
 
   const topNavHtml = await fetchTopNavHtml();
-  const topNavParser = new DOMParser().parseFromString(topNavHtml, "text/html");
+  const topNavParser = new DOMParser().parseFromString(topNavHtml, 'text/html');
+
   const activeTab = getActiveTab(topNavParser);
-  const topNavCrumbs = buildBreadcrumbsFromNavTree(topNavParser, activeTab?.href || '');
 
+  // Add title fallback
+  [...sideNavParser.querySelectorAll('a'), ...topNavParser.querySelectorAll('a')].forEach((a) => {
+    a.title = a.title || a.textContent;
+  });
+
+  const sideNavCrumbs = buildBreadcrumbsFromNavTree(sideNavParser, window.location.href);
+  const topNavCrumbs = activeTab?.href ? buildBreadcrumbsFromNavTree(topNavParser, activeTab.href) : [];
   const home = topNavParser.querySelector('a');
-
-  // Add title if missing
-  sideNavParser.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-  });
-
-  topNavParser.querySelectorAll('a').forEach((a) => {
-    a.title = a.title || a.textContent;
-  });
 
   return [
     DEFAULT_HOME,
@@ -71,30 +76,39 @@ export default async function decorate(block) {
 
   if (showBreadcrumbs) {
     const nav = document.createElement('nav');
-    nav.ariaLabel = "Breadcrumb";
-    nav.role = "navigation";
+    nav.setAttribute('aria-label', 'Breadcrumb');
+    nav.setAttribute('role', 'navigation');
     block.append(nav);
 
     const ol = document.createElement('ol');
     ol.classList.add('spectrum-Breadcrumbs');
     nav.append(ol);
 
-    const crumbs = await buildBreadcrumbs();
-    const lis = crumbs.map(crumb => {
-      const a = document.createElement('a');
-      a.classList.add('spectrum-Breadcrumbs-itemLink');
-      a.innerText = crumb.title;
-      a.href = crumb.href;
+    try {
+      const crumbs = await buildBreadcrumbs();
 
-      const li = document.createElement('li');
-      li.classList.add('spectrum-Breadcrumbs-item');
-      li.append(a);
-      li.insertAdjacentHTML("beforeend", chevronRightIcon);
+      const lis = crumbs.map((crumb, index, arr) => {
+        const a = document.createElement('a');
+        a.classList.add('spectrum-Breadcrumbs-itemLink');
+        a.innerText = crumb.title;
+        a.href = crumb.href;
 
-      return li;
-    });
+        const li = document.createElement('li');
+        li.classList.add('spectrum-Breadcrumbs-item');
+        li.append(a);
 
-    ol.append(...lis);
+        // Add chevron only if it's not the last crumb
+        if (index < arr.length - 1) {
+          li.insertAdjacentHTML('beforeend', chevronRightIcon);
+        }
+
+        return li;
+      });
+
+      ol.append(...lis);
+    } catch (err) {
+      console.error('Breadcrumbs generation failed:', err);
+    }
   } else {
     block.parentElement?.parentElement?.remove();
   }
