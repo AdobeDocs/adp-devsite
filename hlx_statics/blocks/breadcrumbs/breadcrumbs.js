@@ -15,14 +15,35 @@ const chevronRightIcon = `
 `;
 
 function buildBreadcrumbsFromNavTree(navParser, url) {
-  let link = Array.from(navParser.querySelectorAll('a')).find(a => a.href === url);
-  let menuItem = link?.closest('li');
+  let matchPath = null;
+  let maxDepth = -1;
+
+  navParser.querySelectorAll('a').forEach((a) => {
+    if (a.href === url) {
+      let depth = 0;
+      let listItem = a.closest('li');
+      while (listItem) {
+        depth++;
+        listItem = listItem.closest('ul')?.closest('li');
+      }
+      if (depth > maxDepth) {
+        matchPath = a;
+        maxDepth = depth;
+      }
+    }
+  });
 
   const crumbs = [];
+  let menuItem = matchPath?.closest('li');
   while(menuItem) {
-    link = menuItem.querySelector(':scope > a');
+    const link = menuItem.querySelector(':scope > a');
     link && crumbs.unshift(link);
     menuItem = menuItem.closest('ul')?.closest('li');
+  }
+
+  // Ensure we include the matchPath itself if it wasn't already added
+  if (matchPath && !crumbs.includes(matchPath)) {
+    crumbs.push(matchPath);
   }
 
   return crumbs;
@@ -92,4 +113,3 @@ export default async function decorate(block) {
     block.parentElement?.parentElement?.remove();
   }
 }
-
