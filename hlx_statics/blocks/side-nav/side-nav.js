@@ -306,14 +306,13 @@ export default async function decorate(block) {
 
           if (window.location.href === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
-            if (li.classList.contains("header") && li.classList.contains("is-expanded")) {
-              // if the header is expanded, make sure it's not selected if there is already a child selected.
-              if (li.querySelector(".is-selected")) {
-                li.classList.remove("is-selected");
-              }
-            } else {
-              li.classList.add("is-selected");
-            }
+            const parentElement = li.parentElement.closest("li");
+            // Remove 'is-selected' from all other elements
+            document.querySelectorAll('.is-selected').forEach(el => {
+              el.classList.remove('is-selected');
+            });
+            // Add 'is-selected' to the matched <li>
+            li.classList.add("is-selected");
             toggleParent(li, true);
           } else {
             window.location.href = getAnchorTag.href;
@@ -323,7 +322,7 @@ export default async function decorate(block) {
         if (window.location.href === getAnchorTag.href) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
-          const header = li.closest(".header");
+          const header = li.parentElement.closest("li");
           // Check to make sure only the child is selected and not the parent.
           if (header) {
             if (header.classList.contains("is-selected")){
@@ -390,4 +389,14 @@ export default async function decorate(block) {
   }
 
   assignLayerNumbers(navigationLinksUl);
+
+  const sideNav = document.querySelector(".side-nav>nav>div");
+  sideNav.addEventListener('scroll', () => {
+    localStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
+  });
+
+  const savedPos = localStorage.getItem('sidenavScrollPos');
+  if (savedPos !== null) {
+    sideNav.scrollTop = parseInt(savedPos, 10);
+  }
 }
