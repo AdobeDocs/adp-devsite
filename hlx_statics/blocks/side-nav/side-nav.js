@@ -29,6 +29,7 @@ function isMobileView() {
 export default async function decorate(block) {
   // Handle visibility of side nav container based on template and screen size
   const sideNavContainer = block.closest('.side-nav-container');
+  const sideNav = document.querySelector(".side-nav>nav>div");
   if (!isDocumentationTemplate() && sideNavContainer) {
     // For non-documentation pages, only show on mobiles
     const updateVisibility = () => {
@@ -44,7 +45,7 @@ export default async function decorate(block) {
 
   const savedPos = localStorage.getItem('sidenavScrollPos');
   if (savedPos !== null) {
-    document.querySelector('.side-nav').scrollTop = parseInt(savedPos, 10);
+    sideNav.scrollTop = parseInt(savedPos, 10);
   }
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
@@ -394,7 +395,7 @@ export default async function decorate(block) {
 
   assignLayerNumbers(navigationLinksUl);
 
-  const sideNav = document.querySelector(".side-nav>nav>div");
+
   sideNav.addEventListener('scroll', () => {
     localStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
   });
