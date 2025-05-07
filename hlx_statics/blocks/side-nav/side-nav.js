@@ -33,6 +33,10 @@ export default async function decorate(block) {
     // For non-documentation pages, only show on mobiles
     const updateVisibility = () => {
       sideNavContainer.style.display = isMobileView() ? 'block' : 'none';
+      const savedPos = sessionStorage.getItem('sidenavScrollPos');
+      if (savedPos !== null) {
+        document.querySelector('.side-nav').scrollTop = parseInt(savedPos, 10);
+      }
     };
 
     // Initial visibility
@@ -389,4 +393,9 @@ export default async function decorate(block) {
   }
 
   assignLayerNumbers(navigationLinksUl);
+
+  const sideNav = document.querySelector(".side-nav");
+  sideNav.addEventListener('scroll', () => {
+    sessionStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
+  });
 }
