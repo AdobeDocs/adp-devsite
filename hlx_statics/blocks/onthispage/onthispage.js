@@ -35,7 +35,7 @@ export default async function decorate(block) {
     headings.forEach((heading, index) => {
         const anchor = document.createElement('a');
         anchor.href = `#${heading.id}`;
-        anchor.textContent = heading.textContent;
+        anchor.textContent = heading.textContent.trim();
         aside.appendChild(anchor);
         anchors.push(anchor);
 
