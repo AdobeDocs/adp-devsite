@@ -33,18 +33,15 @@ export default async function decorate(block) {
     let isClick = false;
 
     headings.forEach((heading, index) => {
-        const textContent = heading.textContent.trim();
-        const anchorText = textContent.replace(/\s+/g, '-').replace(/[()]/g, '').toLowerCase();
         const anchor = document.createElement('a');
-        anchor.href = `#${anchorText}`;
-        anchor.textContent = textContent;
+        anchor.href = `#${heading.id}`;
+        anchor.textContent = heading.textContent.trim();
         aside.appendChild(anchor);
         anchors.push(anchor);
 
         if (heading.tagName === 'H3') {
             anchor.style.paddingLeft = '16px';
         }
-        heading.id = anchorText;
         if (index === 0) {
             anchor.classList.add('active');
         }
