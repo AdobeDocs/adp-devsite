@@ -154,10 +154,6 @@ hr {
   width: 100%;
 }
 
-main .hr-wrapper .hr h3 {
-  font-size: 18px;
-}
-
 main {
   background-color: rgb(245,245,245);
 }
@@ -251,7 +247,7 @@ body.sidekick-library #onetrust-consent-sdk {
 
 main .inline-code {
   font-family: Courier, monospace;
-  font-size: 100%;
+  /* font-size: 100%; */
   background-color: rgb(245, 245, 245);
   padding: 0 2px;
   margin: 0;
@@ -260,10 +256,6 @@ main .inline-code {
   border: 0.8px solid rgb(213, 213, 213);
   border-radius: 3px;
   line-height: 1.5rem;
-}
-
-main table .inline-code {
-  font-size: medium;
 }
 
 main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
