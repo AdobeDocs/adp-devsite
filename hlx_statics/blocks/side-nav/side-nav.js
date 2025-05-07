@@ -33,10 +33,6 @@ export default async function decorate(block) {
     // For non-documentation pages, only show on mobiles
     const updateVisibility = () => {
       sideNavContainer.style.display = isMobileView() ? 'block' : 'none';
-      const savedPos = localStorage.getItem('sidenavScrollPos');
-      if (savedPos !== null) {
-        document.querySelector('.side-nav').scrollTop = parseInt(savedPos, 10);
-      }
     };
 
     // Initial visibility
@@ -46,6 +42,10 @@ export default async function decorate(block) {
     window.addEventListener('resize', updateVisibility);
   }
 
+  const savedPos = localStorage.getItem('sidenavScrollPos');
+  if (savedPos !== null) {
+    document.querySelector('.side-nav').scrollTop = parseInt(savedPos, 10);
+  }
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
 
