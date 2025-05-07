@@ -22,43 +22,33 @@ function initSearch() {
 
   const searchClient = algoliasearch('E642SEDTHL', '424b546ba7ae75391585a10c6ea38dab');
 
-  // Convert window.index_map to an object
+  // Convert window.adp_search.index_to_product_map to an object
   const indexMap = Object.fromEntries(window.adp_search.index_to_product_map);
 
-  // Extract indices and products
+  // Extract indices and products from window object
   const indices = Object.keys(indexMap);
   const all_products = Array.from(new Set(Object.values(indexMap))); // Unique products
 
-  // Get URL parameters
-  const params = new URLSearchParams(window.location.search);
-  const queryFromURL = params.get("query") || "";
-  console.log("hey" + queryFromURL)
-  const productsFromURL = params.get("products");
+  const urlParams = fetchSearchURLParams();
 
-  let selectedProducts = all_products.slice(); // Default: all selected
-
-  // Determine selected products based on URL
-  if (productsFromURL && productsFromURL !== "all") {
-    selectedProducts = productsFromURL.split(",").filter(product => all_products.includes(product));
-  }
-
-  // Set query box value if available
-  const searchInput = document.querySelector("input[placeholder='Search...']");
-  if (searchInput) {
-    console.log("here")
-    console.log(queryFromURL)
-    searchInput.text = queryFromURL;
-  }
+  // from url params set selected products
+  let selectedProducts = (urlParams.products === "all" || !urlParams.products) 
+  ? all_products.slice() // Select all products when "all" is in the URL or no products (a new search)
+  : urlParams.products.split(",").filter(product => all_products.includes(product));
 
   // Get indices corresponding to selected products
   let selectedIndices = indices.filter(indexName => selectedProducts.includes(indexMap[indexName]));
+  let initialIndex = selectedIndices[0] || indices[0];
 
   // Initialize InstantSearch
   let search = instantsearch({
-    indexName: selectedIndices[0] || indices[0], // Use the first valid index
+    indexName: initialIndex, // Use the first valid index
     searchClient,
-    searchParameters: queryFromURL ? { query: queryFromURL } : undefined, // Pass query if it exists
-  });
+    initialUiState: {
+      initialIndex: {
+        query: urlParams.query, // Set initial state with the URL query
+      },
+    },  });
   
   search.start();
 
@@ -67,66 +57,81 @@ function initSearch() {
   // Function to initialize or update the search
   function updateSearch() {
     console.log("update search")
-    console.log("selected products")
-    console.log(selectedProducts)
-
-
     // Get indices corresponding to selected products
     const selectedIndices = indices.filter((indexName) => {
       const product = indexMap[indexName];
       return selectedProducts.includes(product);
     });
 
-    if (selectedIndices.length === 0) {
-      document.querySelector('.merged-results').innerHTML = '<p>No products selected.</p>';
-      document.querySelector('.filters').innerHTML = '';
-      renderProductCheckboxes();
-      attachCheckboxEventListeners();
-      return;
-    };
-
     // Add common widgets
     search.addWidgets([
       instantsearch.widgets.searchBox({
         container: '#search-box',
         placeholder: 'Search...',
-        searchAsYouType: true,
-        showReset: true,
+        searchAsYouType: false,
         showSubmit: true,
+        queryHook: (query, refine) => {
+          // Check if there's a query in the URL
+          const params = new URLSearchParams(window.location.search);
+          const queryFromURL = params.get("query") || "";
+    
+          // If there's a query in the URL and no user input yet, use the URL query
+          if (queryFromURL && !query) {
+            console.log("refine first")
+            refine(queryFromURL);
+          } else {
+            console.log("refine second")
+            refine(query);
+          }
+        },
       }),
       instantsearch.widgets.configure({
         hitsPerPage: 1,
         attributesToSnippet: ['content:240'],
       }),
-      
-    ]);    
+    ]);
+    
+    // Set query box value if available
+      const searchInput = document.querySelector("#search-box input");
+      console.log("here search input")
+      if (searchInput) {
+        searchInput.value = urlParams.query;
+      }
 
     function renderMergedHits({ indices, widgetParams }, isFirstRendering) {
-      if (!indices || !Array.isArray(indices)) {
-        console.error("indices is undefined or not an array", indices);
-        return;
-      }
-    
-      results = new Map();
-    
-      // Filter the hits first, then iterate through them with forEach
-      indices.flatMap(({ hits }) => hits || [])
-        .filter((hit) => selectedProducts.includes(hit.product)) // Check if the product is selected
-        .forEach((hit) => {
-          // Process each hit
-          results.set(instantsearch.highlight({ hit, attribute: "title" }), {
-            url: hit.url,
-            product: hit.product,
-            content: instantsearch.highlight({ hit, attribute: 'content' }),
-          });
-        });
+      console.log("Current InstantSearch state:", search.helper.state);
+      if (isFirstRendering) {
+          console.log("Initial render only");
+          console.log(searchInput.value)
+          return;
+      }else{
+        console.log("Rendering merged hits...");
+        if (!indices || !Array.isArray(indices)) {
+          console.error("indices is undefined or not an array", indices);
+          return;
+        }
+        console.log("render results")
+        console.log(searchInput.value)
+        results = new Map();
       
-      updateSearchParams();
-      renderResults(); // Call to render the filtered results
+        // Filter the hits first, then iterate through them with forEach
+        indices.flatMap(({ hits }) => hits || [])
+          .filter((hit) => selectedProducts.includes(hit.product)) // Check if the product is selected
+          .forEach((hit) => {
+            // Process each hit
+            results.set(instantsearch.highlight({ hit, attribute: "title" }), {
+              url: hit.url,
+              product: hit.product,
+              content: instantsearch.highlight({ hit, attribute: 'content' }),
+            });
+          });
+          
+        updateSearchParams();
+        renderResults(); // Call to render the filtered results
+      } 
     }
-  
+    
     const customMergedHits = connectAutocomplete(renderMergedHits);
-
     search.addWidgets([
       customMergedHits({
         container: document.querySelector(".merged-results")
@@ -138,13 +143,33 @@ function initSearch() {
       search.addWidgets([
         instantsearch.widgets.index({
           indexName: indexName,
+          initialUiState: {
+            [indexName]: {
+              query: urlParams.query, // Apply the same initial query state to other indices
+            },
+          },
         }),
       ]);
     });
-
+    console.log("before search refresh")
+    console.log(searchInput.value)
     // Start the search
     search.refresh();
+    console.log("after search refresh")
+    console.log(searchInput.value)
   }
+
+  function fetchSearchURLParams() {
+    // Get URL search parameters
+    const params = new URLSearchParams(window.location.search);
+    const queryFromURL = params.get("query") || "";
+    const productsFromURL = params.get("products");
+
+    return {
+        query: queryFromURL,
+        products: productsFromURL
+    };
+}
 
   function updateSearchParams() {
     // Preserve existing URL parameters
@@ -152,7 +177,11 @@ function initSearch() {
   
     // Get the current search query from the input box
     const searchInput = document.querySelector("#search-box input");
-    const query = searchInput ? searchInput.value.trim() : "";
+    console.log("update search params")
+
+    console.log(searchInput.value)
+
+    const query = searchInput ? searchInput.value : null;
   
     // Determine if all products are selected
     const allProductsSelected = selectedProducts.length === all_products.length;
@@ -168,15 +197,15 @@ function initSearch() {
   
     // Update the query parameter
     if (query) {
+      console.log("query exists")
       params.set("query", query);
     } else {
       params.delete("query");
     }
-  
+    console.log(searchInput.value)
     // Prevent clearing existing URL parameters
     window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
   }
-  
 
   function renderProductCheckboxes() {
     const container = document.querySelector('.filters');
@@ -208,7 +237,8 @@ function initSearch() {
       checkbox.type = 'checkbox';
       checkbox.id = checkboxId;
       checkbox.value = product;
-      checkbox.checked = selectedProducts.includes(product); // Check if product is in selectedProducts
+      // don't check products if new tab or if all products are se
+      checkbox.checked = selectedProducts.includes(product) && urlParams.products !== "all" && urlParams.products !== null;
   
       const label = document.createElement('label');
       label.htmlFor = checkboxId;
@@ -219,9 +249,7 @@ function initSearch() {
       container.appendChild(document.createElement('br'));
     });
   }
-  
-  
-
+ 
   function attachCheckboxEventListeners() {
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
     const productCheckboxes = document.querySelectorAll('.filters input[type="checkbox"]:not(#checkbox-all-products)');
@@ -230,15 +258,16 @@ function initSearch() {
     allProductsCheckbox.addEventListener('change', () => {
       if (allProductsCheckbox.checked) {
         selectedProducts = all_products.slice(); // Select all products
-        productCheckboxes.forEach((cb) => (cb.checked = false)); // Uncheck all individual products
-      } else if (!productCheckboxes.some(cb => cb.checked)) {
-        allProductsCheckbox.checked = true; // Recheck "All Products" if no other is selected
-        selectedProducts = all_products.slice();
+        productCheckboxes.forEach((cb) => (cb.checked = false)); // Ensure all products appear checked
+      } else {
+        selectedProducts = [];
+        productCheckboxes.forEach((cb) => (cb.checked = false)); // Uncheck all products
       }
+      console.log("attatch checkbox listeners")
       updateSearchParams();
-      updateSearch(); // Update the search based on selection
+      updateSearch();
     });
-  
+    
     // Event listeners for individual product checkboxes
     productCheckboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
@@ -325,14 +354,11 @@ function initSearch() {
     }
   }
   
-  
   // Initialize the search and render checkboxes
   renderProductCheckboxes();
   attachCheckboxEventListeners();
   updateSearch();
 }
-
-
 
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
@@ -919,6 +945,8 @@ export default async function decorate(block) {
   rightContainer.appendChild(globalSignIn());
   header.append(rightContainer);
   header.append(globalNavSearchDropDown());
+
+  //initialize search
   decorateSearchIframeContainer(header);
   // initSearch();
   block.remove();

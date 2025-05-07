@@ -444,6 +444,7 @@ async function loadLazy(doc) {
     }
   );
 
+  //load search and product map
   window.adp_search = {};
   const resp = await fetch('/franklin_assets/product-index-map.json');
   window.adp_search.product_index_map = (await resp.json()).data;
