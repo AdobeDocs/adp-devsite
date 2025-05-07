@@ -33,7 +33,7 @@ export default async function decorate(block) {
     // For non-documentation pages, only show on mobiles
     const updateVisibility = () => {
       sideNavContainer.style.display = isMobileView() ? 'block' : 'none';
-      const savedPos = sessionStorage.getItem('sidenavScrollPos');
+      const savedPos = localStorage.getItem('sidenavScrollPos');
       if (savedPos !== null) {
         document.querySelector('.side-nav').scrollTop = parseInt(savedPos, 10);
       }
@@ -396,6 +396,6 @@ export default async function decorate(block) {
 
   const sideNav = document.querySelector(".side-nav");
   sideNav.addEventListener('scroll', () => {
-    sessionStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
+    localStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
   });
 }
