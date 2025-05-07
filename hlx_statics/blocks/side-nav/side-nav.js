@@ -394,7 +394,7 @@ export default async function decorate(block) {
 
   assignLayerNumbers(navigationLinksUl);
 
-  const sideNav = document.querySelector(".side-nav");
+  const sideNav = document.querySelector(".side-nav>nav>div");
   sideNav.addEventListener('scroll', () => {
     localStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
   });
