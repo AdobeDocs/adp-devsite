@@ -93,7 +93,7 @@ html {
 
 .spectrum,
 .spectrum-Body {
-  color: rgb(75, 75, 75);
+  color: rgb(34,34,34);
 }
 
 .spectrum--medium {
@@ -239,7 +239,7 @@ main .section[data-section-status='initialized'] {
 }
 
 body>header {
-  height: 81px;
+  height: 64px;
 }
 
 body.sidekick-library #onetrust-consent-sdk {
@@ -1159,4 +1159,6 @@ main .content-header.block-display .github-actions-wrapper{
   }
 }
 
-
+main .no-breadcrumbs {
+  justify-content: end;
+}

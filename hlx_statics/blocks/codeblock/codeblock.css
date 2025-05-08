@@ -55,7 +55,6 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   cursor: pointer;
   background-color: initial;
   border-bottom: 3px solid transparent;
-  padding: 16px 0;
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar select:hover,

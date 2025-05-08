@@ -4,14 +4,14 @@ import { createTag } from "../../scripts/lib-adobeio.js";
 /**
  * decorates the next-prev
  * @param {Element} block The next-prev block element
- * 
+ *
  */
 export default async function decorate(block) {
 
   block.innerHTML = '';
   const extractMenuData = (element) => [...element]
     .flatMap(links => [...links.querySelectorAll('li a')])
-    .map(link => ({ title: link.textContent, href: link.getAttribute('href') , dhref : link.getAttribute('dhref') }))
+    .map(link => ({ title: link.textContent, href: link.getAttribute('href') }))
     .filter((value, index, array) => array.findIndex(t => t.href === value.href) === index);
 
   const sideNavContainer = document.querySelector('.side-nav-subpages-section');
@@ -21,7 +21,7 @@ export default async function decorate(block) {
     const menuData = extractMenuData(sideNavContainer.querySelectorAll('ul'));
     const currentPath = window?.location?.pathname;
 
-    const currentIndex = menuData.findIndex(menu => menu.href === currentPath || menu.dhref === currentPath);
+    const currentIndex = menuData.findIndex(menu => menu.href === currentPath);
     const pages = [menuData[currentIndex - 1], menuData[currentIndex + 1]];
 
     const createIconSvg = (direction) => {

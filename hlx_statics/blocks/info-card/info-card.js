@@ -34,7 +34,9 @@ export default async function decorate(block) {
     const image = row.querySelector('img') || row.querySelector('picture img');
     if (image) {
       const imageDiv = createTag('div', { class: 'cards-card-image' });
-      imageDiv.appendChild(createOptimizedPicture(image.src, image.alt, false, [{ width: '750' }]));
+      imageDiv.appendChild(
+        createOptimizedPicture(image.src, image.alt, false, [{ width: `${image.naturalWidth}` }])
+      );
       a.appendChild(imageDiv);
     }
 

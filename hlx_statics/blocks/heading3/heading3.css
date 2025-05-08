@@ -18,3 +18,7 @@ main div.heading3-wrapper a{
   color: rgb(0, 84, 182);
   text-decoration: none;
 }
+
+main div.heading3-wrapper a:hover{
+  text-decoration: underline;
+}
