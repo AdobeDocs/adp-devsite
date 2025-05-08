@@ -493,7 +493,7 @@ header div.nav-console-search-frame {
     background-color: transparent;
     /* z-index: 10; */
     /* width: 100vh; */
-    height: 100%;
+    height: calc(100% - 64px);
     margin: auto;
     background: white; /* Semi-transparent black */
     display: flex; /* Centers content inside */
@@ -528,12 +528,18 @@ header input.search-input {
   border-width:0px !important;
 }
 
+header .ais-SearchBox-input {
+  min-width: auto;
+  /* width: 100%; */
+  width: 688px;
+}
+
 header div.search-results {
   display: flex;
   flex-direction: row;
   max-width: 1280px;
-  height: 100%; /* Adjust this value based on your needs */
-
+  height: 100%;
+  visibility: hidden;
 }
 
 header div.search-box > div > form {
@@ -562,6 +568,15 @@ header div.merged-results .result-item{
   padding: 10px;
   width: 940px;
   
+}
+
+header div.search-refinement {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: var(--spectrum-global-dimension-size-200);
+  width: var(--spectrum-global-dimension-static-size-3200);
 }
 
 header div.result-item > h1 > a {

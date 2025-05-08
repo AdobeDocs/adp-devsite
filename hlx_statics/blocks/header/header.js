@@ -16,6 +16,18 @@ function isSourceGithub() {
   return getMetadata('source') === 'github';
 }
 
+function fetchSearchURLParams() {
+  // Get URL search parameters
+  const params = new URLSearchParams(window.location.search);
+  const queryFromURL = params.get("query") || "";
+  const productsFromURL = params.get("products");
+  console.log(productsFromURL)
+  return {
+    query: queryFromURL,
+    products: productsFromURL
+  };
+}
+
 function initSearch() {
   const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
@@ -30,7 +42,7 @@ function initSearch() {
   const all_products = Array.from(new Set(Object.values(indexMap))); // Unique products
 
   const urlParams = fetchSearchURLParams();
-
+  let flagQuery = false;
   // from url params set selected products
   let selectedProducts = (urlParams.products === "all" || !urlParams.products) 
   ? all_products.slice() // Select all products when "all" is in the URL or no products (a new search)
@@ -44,11 +56,7 @@ function initSearch() {
   let search = instantsearch({
     indexName: initialIndex, // Use the first valid index
     searchClient,
-    initialUiState: {
-      initialIndex: {
-        query: urlParams.query, // Set initial state with the URL query
-      },
-    },  });
+    });
   
   search.start();
 
@@ -69,49 +77,53 @@ function initSearch() {
         container: '#search-box',
         placeholder: 'Search...',
         searchAsYouType: false,
-        showSubmit: true,
-        queryHook: (query, refine) => {
-          // Check if there's a query in the URL
-          const params = new URLSearchParams(window.location.search);
-          const queryFromURL = params.get("query") || "";
+        showLoadingIndicator: false,
+        // showSubmit: true,
+        // queryHook: (query, refine) => {
+        //   flagQuery = true;
     
-          // If there's a query in the URL and no user input yet, use the URL query
-          if (queryFromURL && !query) {
-            console.log("refine first")
-            refine(queryFromURL);
-          } else {
-            console.log("refine second")
-            refine(query);
-          }
-        },
+        //   // Only refine when a valid query is present
+        //   if (query.trim() !== "") {
+        //     refine(query);
+        //   }
+        // },
       }),
       instantsearch.widgets.configure({
         hitsPerPage: 1,
-        attributesToSnippet: ['content:240'],
+        attributesToSnippet: ['content:50'],
       }),
     ]);
-    
-    // Set query box value if available
-      const searchInput = document.querySelector("#search-box input");
-      console.log("here search input")
-      if (searchInput) {
-        searchInput.value = urlParams.query;
-      }
 
-    function renderMergedHits({ indices, widgetParams }, isFirstRendering) {
-      console.log("Current InstantSearch state:", search.helper.state);
-      if (isFirstRendering) {
-          console.log("Initial render only");
-          console.log(searchInput.value)
-          return;
-      }else{
-        console.log("Rendering merged hits...");
+    
+
+    function renderMergedHits({ indices, widgetParams }) {
+      // console.log("Current InstantSearch state on render merged hits:", search.helper.state);
+      //   console.log("Rendering merged hits...");
         if (!indices || !Array.isArray(indices)) {
           console.error("indices is undefined or not an array", indices);
           return;
         }
-        console.log("render results")
-        console.log(searchInput.value)
+
+        // if(flagQuery) {
+          const searchInput = document.querySelector("#search-box input");
+          const searchResults = document.querySelector("div.search-results");
+          const submitButton = document.querySelector(".ais-SearchBox-submit");
+          
+          document.addEventListener("keydown", (event) => {
+          if (searchInput) {
+            if (event.key === "Enter") {
+              console.log("Enter key pressed!");
+              searchResults.style.visibility = "visible";
+            }
+          }
+        });
+          if (submitButton) {
+            submitButton.addEventListener("click", () => {
+              console.log("Search button clicked!");
+              searchResults.style.visibility = "visible";
+            });
+          }
+        // };
         results = new Map();
       
         // Filter the hits first, then iterate through them with forEach
@@ -122,13 +134,12 @@ function initSearch() {
             results.set(instantsearch.highlight({ hit, attribute: "title" }), {
               url: hit.url,
               product: hit.product,
-              content: instantsearch.highlight({ hit, attribute: 'content' }),
+              content: instantsearch.snippet({ hit, attribute: 'content' }),
             });
           });
           
         updateSearchParams();
         renderResults(); // Call to render the filtered results
-      } 
     }
     
     const customMergedHits = connectAutocomplete(renderMergedHits);
@@ -143,33 +154,15 @@ function initSearch() {
       search.addWidgets([
         instantsearch.widgets.index({
           indexName: indexName,
-          initialUiState: {
-            [indexName]: {
-              query: urlParams.query, // Apply the same initial query state to other indices
-            },
-          },
         }),
       ]);
     });
-    console.log("before search refresh")
-    console.log(searchInput.value)
+   
     // Start the search
     search.refresh();
-    console.log("after search refresh")
-    console.log(searchInput.value)
   }
 
-  function fetchSearchURLParams() {
-    // Get URL search parameters
-    const params = new URLSearchParams(window.location.search);
-    const queryFromURL = params.get("query") || "";
-    const productsFromURL = params.get("products");
-
-    return {
-        query: queryFromURL,
-        products: productsFromURL
-    };
-}
+  
 
   function updateSearchParams() {
     // Preserve existing URL parameters
@@ -177,10 +170,6 @@ function initSearch() {
   
     // Get the current search query from the input box
     const searchInput = document.querySelector("#search-box input");
-    console.log("update search params")
-
-    console.log(searchInput.value)
-
     const query = searchInput ? searchInput.value : null;
   
     // Determine if all products are selected
@@ -197,12 +186,10 @@ function initSearch() {
   
     // Update the query parameter
     if (query) {
-      console.log("query exists")
       params.set("query", query);
     } else {
       params.delete("query");
     }
-    console.log(searchInput.value)
     // Prevent clearing existing URL parameters
     window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
   }
@@ -263,7 +250,6 @@ function initSearch() {
         selectedProducts = [];
         productCheckboxes.forEach((cb) => (cb.checked = false)); // Uncheck all products
       }
-      console.log("attatch checkbox listeners")
       updateSearchParams();
       updateSearch();
     });
@@ -487,8 +473,15 @@ const checkIframeLoaded = (renderedFrame) => {
 function decorateSearchIframeContainer(header) {
   const search_div = header.querySelector('div.nav-console-search-frame');
   const search_button = header.querySelector('button.nav-dropdown-search');
+  const search_results = document.querySelector("div.search-results");
+
   // const escape_search_button = header.querySelector('button.spectrum-ClearButton');
-  const queryString = getQueryString();
+  const urlParams = fetchSearchURLParams();
+  if (urlParams.products) {
+    initSearch();
+    search_div.style.visibility = 'visible';
+    search_button.classList.add('is-open');
+  }
 
   search_button.addEventListener('click', (evt) => {
     if (!evt.currentTarget.classList.contains('is-open')) {
@@ -498,6 +491,7 @@ function decorateSearchIframeContainer(header) {
     } else {
       search_button.classList.remove('is-open');
       search_div.style.visibility = 'hidden';
+      search_results.style.visibility = 'hidden';
     }
   });
   // escape_search_button.addEventListener('click', (evt) => {
