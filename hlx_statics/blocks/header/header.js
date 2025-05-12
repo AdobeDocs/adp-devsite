@@ -455,7 +455,9 @@ function decorateSearchIframeContainer(header) {
 
   // const escape_search_button = header.querySelector('button.spectrum-ClearButton');
   const urlParams = fetchSearchURLParams();
+  console.log(getClosestFranklinSubfolder(window.location.origin,'nav'));
   if (urlParams.products) {
+    console.log("products here")
     initSearch();
     search_div.style.visibility = 'visible';
     search_button.classList.add('is-open');
@@ -472,15 +474,6 @@ function decorateSearchIframeContainer(header) {
       search_results.style.visibility = 'hidden';
     }
   });
-  // escape_search_button.addEventListener('click', (evt) => {
-  //   if(search_button.classList.contains('is-open')){
-  //     search_button.classList.remove('is-open');
-  //     search_div.style.visibility = 'hidden';
-  //   } 
-  // });
-  // if (queryString.has('query')) {
-  //   button.click();
-  // }
 }
 
 function globalDistributeButton() {
