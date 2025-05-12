@@ -21,7 +21,6 @@ function fetchSearchURLParams() {
   const params = new URLSearchParams(window.location.search);
   const queryFromURL = params.get("query") || "";
   const productsFromURL = params.get("products");
-  console.log(productsFromURL)
   return {
     query: queryFromURL,
     products: productsFromURL
@@ -42,7 +41,7 @@ function initSearch() {
   const all_products = Array.from(new Set(Object.values(indexMap))); // Unique products
 
   const urlParams = fetchSearchURLParams();
-  let flagQuery = false;
+
   // from url params set selected products
   let selectedProducts = (urlParams.products === "all" || !urlParams.products) 
   ? all_products.slice() // Select all products when "all" is in the URL or no products (a new search)
@@ -73,57 +72,49 @@ function initSearch() {
 
     // Add common widgets
     search.addWidgets([
-      instantsearch.widgets.searchBox({
-        container: '#search-box',
-        placeholder: 'Search...',
-        searchAsYouType: false,
-        showLoadingIndicator: false,
-        // showSubmit: true,
-        // queryHook: (query, refine) => {
-        //   flagQuery = true;
-    
-        //   // Only refine when a valid query is present
-        //   if (query.trim() !== "") {
-        //     refine(query);
-        //   }
-        // },
-      }),
       instantsearch.widgets.configure({
         hitsPerPage: 1,
         attributesToSnippet: ['content:50'],
       }),
     ]);
 
-    
+    function customSearchBox() {
+      return {
+        init({ helper }) {
+          const searchInput = document.querySelector("#search-box input");
+          const clearButton = document.querySelector("button.clear-button");
+          const searchResults = document.querySelector("div.search-results");
+          const queryFromURL = urlParams.query;
+
+          //detects query in url but no query in input so tab was reloaded
+          if (queryFromURL && !searchInput.value) {
+            searchInput.value = queryFromURL;
+            helper.setQuery(queryFromURL).search();
+            searchResults.style.visibility = "visible";
+          } 
+
+          searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+              helper.setQuery(searchInput.value).search();
+              searchResults.style.visibility = "visible";
+            }
+          });
+
+          clearButton.addEventListener('click', () => {
+            helper.setQuery('').search();
+          });
+        },
+        render() {
+        },
+      };
+    };  
 
     function renderMergedHits({ indices, widgetParams }) {
       // console.log("Current InstantSearch state on render merged hits:", search.helper.state);
-      //   console.log("Rendering merged hits...");
         if (!indices || !Array.isArray(indices)) {
           console.error("indices is undefined or not an array", indices);
           return;
         }
-
-        // if(flagQuery) {
-          const searchInput = document.querySelector("#search-box input");
-          const searchResults = document.querySelector("div.search-results");
-          const submitButton = document.querySelector(".ais-SearchBox-submit");
-          
-          document.addEventListener("keydown", (event) => {
-          if (searchInput) {
-            if (event.key === "Enter") {
-              console.log("Enter key pressed!");
-              searchResults.style.visibility = "visible";
-            }
-          }
-        });
-          if (submitButton) {
-            submitButton.addEventListener("click", () => {
-              console.log("Search button clicked!");
-              searchResults.style.visibility = "visible";
-            });
-          }
-        // };
         results = new Map();
       
         // Filter the hits first, then iterate through them with forEach
@@ -144,6 +135,7 @@ function initSearch() {
     
     const customMergedHits = connectAutocomplete(renderMergedHits);
     search.addWidgets([
+      customSearchBox(),
       customMergedHits({
         container: document.querySelector(".merged-results")
       }),
@@ -161,8 +153,6 @@ function initSearch() {
     // Start the search
     search.refresh();
   }
-
-  
 
   function updateSearchParams() {
     // Preserve existing URL parameters
@@ -361,36 +351,24 @@ function globalNavSearchButton() {
   return div;
 }
 
-{/* <div id="search-box">
-      <input type="text" id="search-input" placeholder="Search..." />
-      <button tabindex="0" aria-label="Clear Search" type="reset" class="spectrum-ClearButton spectrum-Search-clearButton css-wf990j spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
-        <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeM">
-          <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
-        </svg>
-      </button>
-    </div> */}
-
-    // <div class="search-bar-outer">
-    //   <div class="search-bar-inner">
-    //     <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="search-icon spectrum-Textfield-icon spectrum-Icon spectrum-Icon--sizeM"><path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path></svg>
-    //     <input type="text" aria-label="Search" placeholder="Search" class="search-input">
-    //   </div>
-    //   <button tabindex="0" aria-label="Clear Search" type="reset" id="search-button" class="spectrum-ClearButton spectrum-Search-clearButton css-wf990j spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
-    //     <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeM"><path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path></svg>
-    //   </button>
-    // </div>
-
-    // <button tabindex="0" aria-label="Clear Search" type="reset" class="spectrum-ClearButton spectrum-Search-clearButton css-wf990j spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
-    //     <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeM">
-    //       <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
-    //     </svg>
-    //   </button>
-
 const globalNavSearchDropDown = () => {
   const searchDropDown = createTag('div', { class: 'nav-console-search-frame' });
   searchDropDown.innerHTML = `
-    <div id="search-box">
-    
+    <div id="search-box" class="search-box">
+      <form onsubmit="return false;">
+        <div>
+          <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeMd icon-left">
+            <path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path>
+          </svg>
+          <input id="search-input" type="text" placeholder="Search..." autocomplete="off" class="search-input">
+          <button type="reset" aria-label="Clear Search" class="clear-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
+            <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="icon-right spectrum-Icon spectrum-Icon--sizeM">
+              <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
+            </svg>
+          </button>
+        </div>
+        
+      </form>
     </div>
 
     <div class="search-results">

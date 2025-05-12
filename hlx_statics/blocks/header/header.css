@@ -491,47 +491,17 @@ header div.nav-console-search-frame {
     right: 0px;
     bottom: 0px;
     background-color: transparent;
-    /* z-index: 10; */
-    /* width: 100vh; */
     height: calc(100% - 64px);
     margin: auto;
     background: white; /* Semi-transparent black */
     display: flex; /* Centers content inside */
     flex-direction: column;
-    /* justify-content: center; */
     align-items: center;
     visibility: hidden; /* Hidden by default */
 }
 
-header div.search-bar-outer {
-  display: flex;
-  flex-direction: row;
-  min-width: 688px;
-  border: solid;
-  border-color: #333;
-}
-
-header div.search-bar-inner {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-}
-
 header svg.search-icon {
   padding: 1px 11px
-}
-
-header input.search-input {
-  width:100%;
-  border-width:0px !important;
-}
-
-header .ais-SearchBox-input {
-  min-width: auto;
-  /* width: 100%; */
-  width: 688px;
 }
 
 header div.search-results {
@@ -540,12 +510,69 @@ header div.search-results {
   max-width: 1280px;
   height: 100%;
   visibility: hidden;
+  margin: auto;
 }
 
-header div.search-box > div > form {
-  --spectrum-search-quiet-button-offset: calc(var(--spectrum-actionbutton-m-texticon-min-width, var(--spectrum-global-dimension-size-400)) / 2 - var(--spectrum-alias-ui-icon-cross-size-100) / 2);
-    display: inline-block;
-    position: relative;
+header div.search-box{
+  position: relative;
+  margin: 32px auto;
+  width: 688px;
+}
+
+header div.search-box > form {
+  width: 100%;
+  height: 32px;
+  display: inline-block;
+  position: relative;
+}
+
+header input.search-input {
+  width: 100%;
+  padding-left: 40px; /* Space for left icon */
+  padding-right: 40px; /* Space for right icon */
+  height: 32px;
+  font-family: var(--spectrum-textfield-texticon-text-font-family);
+    font-size: var(--spectrum-textfield-texticon-text-size);
+}
+
+header div.search-box > form > div {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+header input[type="text"]:focus {
+  outline: none;
+  border: 1px solid rgb(20, 122, 243); /* Changes the border color */
+}
+
+header svg.icon-left {
+  position: absolute;
+  left: 10px; /* Positions icon inside the left side */
+  width: 18px;
+  height: 18px;
+}
+
+header button.clear-button {
+  position: absolute;
+  right: 10px; /* Position clear button inside input */
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+header button.clear-button:hover {
+  background: transparent; /* Ensures no highlight effect */
+}
+
+header button.clear-button:focus {
+  outline: none; /* Prevents focus outline */
+}
+
+header button.clear-button > svg {
+  width: 18px;
+  height: 18px;
 }
 
 header div.merged-results {
@@ -562,12 +589,9 @@ header div.merged-results {
 }
 
 header div.merged-results .result-item{
-  /* border:1px solid black;  */
-  /* margin: 20px;  */
   display: block;
   padding: 10px;
   width: 940px;
-  
 }
 
 header div.search-refinement {
@@ -575,8 +599,8 @@ header div.search-refinement {
   align-items: flex-start;
   flex-direction: column;
   box-sizing: border-box;
-  padding: var(--spectrum-global-dimension-size-200);
-  width: var(--spectrum-global-dimension-static-size-3200);
+  padding: 16px;
+  width: 256px;
 }
 
 header div.result-item > h1 > a {
