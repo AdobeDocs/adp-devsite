@@ -455,7 +455,8 @@ function decorateSearchIframeContainer(header) {
 
   // const escape_search_button = header.querySelector('button.spectrum-ClearButton');
   const urlParams = fetchSearchURLParams();
-  console.log(getClosestFranklinSubfolder(window.location.origin,'nav'));
+  console.log(window.location.pathname);
+  console.log(getClosestFranklinSubfolder(window.location.origin));
   if (urlParams.products) {
     console.log("products here")
     initSearch();
