@@ -88,11 +88,7 @@ export default function decorate(block) {
   select.id = selectId;
   select.classList.toggle('hidden', !areTabsGrouped);
   select.addEventListener('change', handleSelectChange);
-
-  const selectWrapper = document.createElement('div');
-  selectWrapper.className = 'custom-select';
-  selectWrapper.append(select);
-  controlBar.append(selectWrapper);
+  controlBar.append(select);
 
   tabContents.forEach((tabContent, i) => {
     const option = document.createElement('option');
