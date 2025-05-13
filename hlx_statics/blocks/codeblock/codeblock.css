@@ -57,7 +57,8 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   border-bottom: 3px solid transparent;
 }
 
-/* main div.codeblock-wrapper div.codeblock .control-bar select:hover, */
+main div.codeblock-wrapper div.codeblock .control-bar select:hover selectedcontent,
+main div.codeblock-wrapper div.codeblock .control-bar select:hover::picker-icon,
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover {
   color: rgb(255, 255, 255);
 }
