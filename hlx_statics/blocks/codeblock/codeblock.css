@@ -63,10 +63,10 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover {
   color: rgb(255, 255, 255);
 }
 
-/* main div.codeblock-wrapper div.codeblock .control-bar select:focus-visible
+main div.codeblock-wrapper div.codeblock .control-bar select:focus-visible
 {
   outline: none;
-} */
+}
 
 select,
 ::picker(select) {
@@ -84,6 +84,10 @@ select::picker-icon {
 
 select:open::picker-icon {
   rotate: 180deg;
+}
+
+option::checkmark {
+  color: rgb(102, 156, 232);
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
