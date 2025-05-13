@@ -90,10 +90,24 @@ select,
 }
 
 select {
-  border: 2px solid #ddd;
+  /* border: 2px solid #ddd; */
   background: #eee;
   padding: 10px;
   transition: 0.4s;
+}
+
+select selectedcontent,
+select::picker-icon {
+  border: 1px solid blue;
+  margin: auto;
+}
+
+select::picker-icon {
+  color: #999;
+}
+
+select:open::picker-icon {
+  rotate: 180deg;
 }
 
 select:hover,
