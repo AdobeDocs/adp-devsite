@@ -77,9 +77,16 @@ select {
   border: none;
 }
 
-select selectedcontent,
-select::picker-icon {
+select selectedcontent
+/* select::picker-icon  */
+{
   margin: auto;
+}
+
+select::picker-icon
+{
+  margin: auto;
+  content: "☑️";
 }
 
 select:open::picker-icon {
