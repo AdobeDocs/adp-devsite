@@ -90,6 +90,10 @@ export default function decorate(block) {
   select.addEventListener('change', handleSelectChange);
   controlBar.append(select);
 
+  const selectButton = document.createElement('button');
+  selectButton.append(document.createElement('selectedcontent'));
+  select.append(selectButton);
+
   tabContents.forEach((tabContent, i) => {
     const option = document.createElement('option');
     option.id = `option-${i}`;

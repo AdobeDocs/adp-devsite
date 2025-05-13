@@ -38,7 +38,7 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list {
   margin: 0 16px;
 }
 
-main div.codeblock-wrapper div.codeblock .control-bar select,
+/* main div.codeblock-wrapper div.codeblock .control-bar select, */
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   flex: 0 0 max-content;
   border: 0px;
@@ -57,15 +57,15 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   border-bottom: 3px solid transparent;
 }
 
-main div.codeblock-wrapper div.codeblock .control-bar select:hover,
+/* main div.codeblock-wrapper div.codeblock .control-bar select:hover, */
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover {
   color: rgb(255, 255, 255);
 }
 
-main div.codeblock-wrapper div.codeblock .control-bar select:focus-visible
+/* main div.codeblock-wrapper div.codeblock .control-bar select:focus-visible
 {
   outline: none;
-}
+} */
 
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
   margin: 0;
@@ -82,4 +82,21 @@ main div.codeblock-wrapper div.codeblock .tabs-panel {
 
 main div.codeblock-wrapper div.codeblock .hidden {
   display: none;
+}
+
+select,
+::picker(select) {
+  appearance: base-select;
+}
+
+select {
+  border: 2px solid #ddd;
+  background: #eee;
+  padding: 10px;
+  transition: 0.4s;
+}
+
+select:hover,
+select:focus {
+  background: #ddd;
 }
