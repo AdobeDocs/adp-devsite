@@ -86,7 +86,10 @@ select selectedcontent
 select::picker-icon
 {
   margin: auto;
-  content: "☑️";
+  padding-bottom: 10px;
+  font-size: 20px;
+  /* border: 1px solid blue; */
+  content: "\2304";
 }
 
 select:open::picker-icon {
