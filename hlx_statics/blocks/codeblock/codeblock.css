@@ -38,7 +38,7 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list {
   margin: 0 16px;
 }
 
-/* main div.codeblock-wrapper div.codeblock .control-bar select, */
+main div.codeblock-wrapper div.codeblock .control-bar select,
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   flex: 0 0 max-content;
   border: 0px;
@@ -67,6 +67,24 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover {
   outline: none;
 } */
 
+select,
+::picker(select) {
+  appearance: base-select;
+}
+
+select {
+  border: none;
+}
+
+select selectedcontent,
+select::picker-icon {
+  margin: auto;
+}
+
+select:open::picker-icon {
+  rotate: 180deg;
+}
+
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
   margin: 0;
 }
@@ -82,35 +100,4 @@ main div.codeblock-wrapper div.codeblock .tabs-panel {
 
 main div.codeblock-wrapper div.codeblock .hidden {
   display: none;
-}
-
-select,
-::picker(select) {
-  appearance: base-select;
-}
-
-select {
-  /* border: 2px solid #ddd; */
-  background: #eee;
-  padding: 10px;
-  transition: 0.4s;
-}
-
-select selectedcontent,
-select::picker-icon {
-  border: 1px solid blue;
-  margin: auto;
-}
-
-select::picker-icon {
-  color: #999;
-}
-
-select:open::picker-icon {
-  rotate: 180deg;
-}
-
-select:hover,
-select:focus {
-  background: #ddd;
 }
