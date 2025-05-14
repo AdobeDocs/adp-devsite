@@ -88,6 +88,7 @@ select:open::picker-icon {
 
 option::checkmark {
   color: rgb(102, 156, 232);
+  content: url(../../components/ChevronDown.svg);
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
