@@ -92,15 +92,21 @@ select::picker-icon {
 
 option::checkmark {
   font-weight: bold;
-  color: rgb(84, 163, 246)
+  color: rgb(84, 163, 246);
+}
+
+option:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 ::picker(select) {
   border-radius: 4px;
-  border: 1px solid rgb(209, 209, 209);
-  /* background-color: black;
+  border: 1px solid rgb(112, 112, 112);
+  background-color: rgb(0, 0, 0);
+  color: rgb(209, 209, 209);
+  /* 
   color: rgb(209, 209, 209); */
-  top: calc(anchor(bottom) - 6px);
+  /* top: calc(anchor(bottom) - 6px); */
   /* left: anchor(10%); */
 }
 
