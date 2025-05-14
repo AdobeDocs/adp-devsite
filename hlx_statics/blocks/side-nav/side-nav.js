@@ -288,6 +288,7 @@ export default async function decorate(block) {
       li.setAttribute("role", "treeitem");
       li.setAttribute("aria-level", layer);
 
+      const currentUrl = window.location.href.split('#')[0];
       if (getAnchorTag) {
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
@@ -304,7 +305,7 @@ export default async function decorate(block) {
           updateIcon(getAnchorTag, !isExpanded, Boolean(childUl));
           console.log('getAnchorTag.href', getAnchorTag.href)
 
-          if (window.location.href === getAnchorTag.href) {
+          if (currentUrl === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
             const parentElement = li.parentElement.closest("li");
             // Remove 'is-selected' from all other elements
@@ -319,7 +320,7 @@ export default async function decorate(block) {
           }
         };
 
-        if (window.location.href === getAnchorTag.href) {
+        if (currentUrl === getAnchorTag.href) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
           const header = li.parentElement.closest("li");
