@@ -83,18 +83,23 @@ select selectedcontent {
 
 select::picker-icon {
   content: "⌄";
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+  font-weight: bold;
   transform: scaleX(1.5);
-  margin: auto;
-}
 
-select:open::picker-icon {
-  rotate: 180deg;
+  margin: auto;
 }
 
 option::checkmark {
   font-weight: bold;
   color: rgb(102, 156, 232);
+}
+
+::picker(select) {
+  border-radius: 4px;
+  border: 1px solid rgb(209, 209, 209);
+  /* background-color: black;
+  color: rgb(209, 209, 209); */
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
