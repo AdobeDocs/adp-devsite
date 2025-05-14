@@ -92,7 +92,7 @@ select::picker-icon {
 
 option::checkmark {
   font-weight: bold;
-  color: rgb(102, 156, 232);
+  color: rgb(84, 163, 246)
 }
 
 ::picker(select) {
@@ -100,7 +100,10 @@ option::checkmark {
   border: 1px solid rgb(209, 209, 209);
   /* background-color: black;
   color: rgb(209, 209, 209); */
+  top: calc(anchor(bottom) - 6px);
+  /* left: anchor(10%); */
 }
+
 
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
   margin: 0;
