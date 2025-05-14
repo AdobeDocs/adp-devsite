@@ -77,8 +77,14 @@ select {
   border: none;
 }
 
-select selectedcontent,
+select selectedcontent {
+  margin: auto;
+}
+
 select::picker-icon {
+  content: "⌄";
+  padding-bottom: 4px;
+  transform: scaleX(1.5);
   margin: auto;
 }
 
