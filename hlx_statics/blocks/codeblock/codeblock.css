@@ -93,6 +93,7 @@ select:open::picker-icon {
 }
 
 option::checkmark {
+  font-weight: bold;
   color: rgb(102, 156, 232);
 }
 
