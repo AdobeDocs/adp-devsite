@@ -72,7 +72,7 @@ html {
   font-weight: 300;
   font-stretch: normal;
 }
-  
+
 
 .spectrum {
   --spectrum-global-font-family-serif: adobe-clean-serif, adobe-clean-serif-fallback;
@@ -1161,4 +1161,11 @@ main .content-header.block-display .github-actions-wrapper{
 
 main .no-breadcrumbs {
   justify-content: end;
+}
+
+main div.default-content-wrapper img.badgeImage {
+  display: inline-block;
+  width: 100px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }

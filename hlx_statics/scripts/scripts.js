@@ -39,6 +39,7 @@ import {
   isProdEnvironment,
   addExtraScript,
   decorateHR,
+  decorateBadge,
   buildNextPrev
 } from './lib-adobeio.js';
 
@@ -139,6 +140,7 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decorateBadge(main);
   decorateNestedCodes(main);
   decorateHR(main);
 }

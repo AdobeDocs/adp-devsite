@@ -237,6 +237,13 @@ export function decorateHR(container) {
   });
 }
 
+export function decorateBadge(container) {
+  const badgeImages = container.querySelectorAll('img[alt="badge"]');
+  badgeImages.forEach(img => {
+    img.classList.add('badgeImage');
+  });
+}
+
 /**
  * Builds all embed blocks inside a container
  * @param {*} container The container to inspect
