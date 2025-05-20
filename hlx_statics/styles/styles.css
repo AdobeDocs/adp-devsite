@@ -1163,7 +1163,7 @@ main .no-breadcrumbs {
   justify-content: end;
 }
 
-main div.default-content-wrapper img.badgeImage {
+main div img.badgeImage {
   display: inline-block;
   width: 100px;
   padding-top: 0px;
