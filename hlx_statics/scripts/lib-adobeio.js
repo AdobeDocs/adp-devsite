@@ -239,7 +239,7 @@ export function decorateHR(container) {
 
 export function decorateBadge(container) {
   const badgeImages = container.querySelectorAll('img[alt="badge"]');
-  badgeImages.forEach(img => {
+  badgeImages?.forEach(img => {
     img.classList.add('badgeImage');
   });
 }
