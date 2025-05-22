@@ -38,8 +38,8 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list {
   margin: 0 16px;
 }
 
-main div.codeblock-wrapper div.codeblock .control-bar select,
-main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button,
+main div.codeblock-wrapper div.codeblock .control-bar select {
   flex: 0 0 max-content;
   border: 0px;
   border-radius: 0;
@@ -57,14 +57,10 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   border-bottom: 3px solid transparent;
 }
 
-main div.codeblock-wrapper div.codeblock .control-bar select:hover,
-main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover {
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button:hover,
+main div.codeblock-wrapper div.codeblock .control-bar select:hover selectedcontent,
+main div.codeblock-wrapper div.codeblock .control-bar select:hover::picker-icon {
   color: rgb(255, 255, 255);
-}
-
-main div.codeblock-wrapper div.codeblock .control-bar select:focus-visible
-{
-  outline: none;
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
@@ -73,6 +69,44 @@ main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button p {
 
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button[aria-selected="true"] {
   border-bottom: 3px solid rgb(255, 255, 255);
+}
+
+/* opt in to custom select rendering as described in https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Customizable_select */
+main div.codeblock-wrapper div.codeblock .control-bar select,
+main div.codeblock-wrapper div.codeblock .control-bar select::picker(select) {
+  appearance: base-select;
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar select {
+  border: none;
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar select selectedcontent {
+  margin: auto;
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar select::picker-icon {
+  content: "⌄";
+  margin: auto;
+  padding-bottom: 6px;
+  font-weight: bold;
+  transform: scaleX(1.5);
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar select::picker(select) {
+  border-radius: 4px;
+  border: 1px solid rgb(112, 112, 112);
+  background-color: rgb(0, 0, 0);
+  color: rgb(209, 209, 209);
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar select option::checkmark {
+  font-weight: bold;
+  color: rgb(84, 163, 246);
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar select option:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 main div.codeblock-wrapper div.codeblock .tabs-panel {
