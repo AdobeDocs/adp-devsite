@@ -27,29 +27,81 @@ function fetchSearchURLParams() {
   };
 }
 
+function localSearch() {
+  let subfolderPath = window.location.pathname.split('/')[1];
+
+  // Normalize top-level paths
+  if (subfolderPath === '' || ['apis', 'open', 'developer-support'].includes(subfolderPath)) {
+    subfolderPath = 'franklin_assets';
+  } else {
+    subfolderPath = window.location.pathname.replace(/\/$/, "").replace(/^\//, "");
+  }
+
+  console.log("Subfolder Path:", subfolderPath);
+
+  // Match subfolderPath to indexPathPrefix
+  const completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
+
+  const matchingProduct = Object.entries(completeProductMap).find(([indexName, { indexPathPrefix }]) => 
+    indexPathPrefix === `/${subfolderPath}/`
+  );
+
+  return matchingProduct ? matchingProduct[0] : null; // Return indexName if found
+}
+
 function initSearch() {
   const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
 
   const searchClient = algoliasearch('E642SEDTHL', '424b546ba7ae75391585a10c6ea38dab');
 
-  // Convert window.adp_search.index_to_product_map to an object
-  const indexMap = Object.fromEntries(window.adp_search.index_to_product_map);
+  // Convert window.adp_search.index_mapping to an object
+  const completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
 
-  // Extract indices and products from window object
-  const indices = Object.keys(indexMap);
-  const all_products = Array.from(new Set(Object.values(indexMap))); // Unique products
+ // Extract indices from completeProductMap
+  const indices = Object.keys(completeProductMap);
+
+  // Create a mapping of indices to their respective products
+  const index_to_product = Object.fromEntries(
+    Object.entries(completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
+  );
+
+  // Create a mapping of path prefixes to their respective products
+  const path_prefix_to_product = Object.fromEntries(
+      Object.values(completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+  );
+
+  // Extract unique products
+  const all_products = Array.from(
+      new Set(Object.values(completeProductMap).map(data => data.productName))
+  );
 
   const urlParams = fetchSearchURLParams();
+  const localIndex = localSearch();
 
-  // from url params set selected products
-  let selectedProducts = (urlParams.products === "all" || !urlParams.products) 
-  ? all_products.slice() // Select all products when "all" is in the URL or no products (a new search)
-  : urlParams.products.split(",").filter(product => all_products.includes(product));
+  console.log("Initial index on load:", localIndex);
+  let selectedProducts;
+
+  if (localIndex && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
+    selectedProducts = [index_to_product[localIndex]]
+  }else if (localIndex && urlParams.products && urlParams.products !== "all") {
+    selectedProducts = urlParams.products.split(",").filter(product => all_products.includes(product));
+    selectedProducts.concat(index_to_product[localIndex])
+  }else{
+    // from url params set selected products
+    selectedProducts = (urlParams.products === "all" || !urlParams.products) 
+    ? all_products.slice() // Select all products when "all" is in the URL or no products (a new search)
+    : urlParams.products.split(",").filter(product => all_products.includes(product));
+  }
 
   // Get indices corresponding to selected products
-  let selectedIndices = indices.filter(indexName => selectedProducts.includes(indexMap[indexName]));
-  let initialIndex = selectedIndices[0] || indices[0];
+  let selectedIndices = indices.filter(indexName => selectedProducts.includes(index_to_product[indexName]));
+  let initialIndex = localIndex || selectedIndices[0];
+
+  console.log("inital index after figuring stuff out:")
+  console.log(selectedIndices)
+  console.log(initialIndex)
+
 
   // Initialize InstantSearch
   let search = instantsearch({
@@ -66,7 +118,7 @@ function initSearch() {
     console.log("update search")
     // Get indices corresponding to selected products
     const selectedIndices = indices.filter((indexName) => {
-      const product = indexMap[indexName];
+      const product = index_to_product[indexName];
       return selectedProducts.includes(product);
     });
 
@@ -142,6 +194,8 @@ function initSearch() {
     ]);
 
     // Add indices
+    console.log("updat search selected indices")
+    console.log(selectedIndices)
     selectedIndices.slice(1).forEach((indexName) => {
       search.addWidgets([
         instantsearch.widgets.index({
@@ -214,8 +268,17 @@ function initSearch() {
       checkbox.type = 'checkbox';
       checkbox.id = checkboxId;
       checkbox.value = product;
-      // don't check products if new tab or if all products are se
-      checkbox.checked = selectedProducts.includes(product) && urlParams.products !== "all" && urlParams.products !== null;
+      // don't check products if new tab or if all products are selected
+      console.log("rendering checkboxes")
+      console.log("selected boolean")
+      console.log(product)
+      console.log(localIndex !== null)
+      console.log(selectedProducts.includes(product))
+      checkbox.checked = selectedProducts.includes(product) && urlParams.products !== "all" && localIndex !== null;
+
+      if(checkbox.checked){
+        console.log("its true")
+      }
   
       const label = document.createElement('label');
       label.htmlFor = checkboxId;
@@ -453,12 +516,8 @@ function decorateSearchIframeContainer(header) {
   const search_button = header.querySelector('button.nav-dropdown-search');
   const search_results = document.querySelector("div.search-results");
 
-  // const escape_search_button = header.querySelector('button.spectrum-ClearButton');
   const urlParams = fetchSearchURLParams();
-  console.log(window.location.pathname);
-  console.log(getClosestFranklinSubfolder(window.location.origin));
   if (urlParams.products) {
-    console.log("products here")
     initSearch();
     search_div.style.visibility = 'visible';
     search_button.classList.add('is-open');

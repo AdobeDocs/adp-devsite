@@ -450,11 +450,14 @@ async function loadLazy(doc) {
   window.adp_search.product_index_map = (await resp.json()).data;
 
   // Create a new Map to hold the indexName and productName pairs
-  window.adp_search.index_to_product_map = new Map();
+  window.adp_search.index_mapping = new Map();
 
   // Iterate over the product_index_map array and populate the Map
   window.adp_search.product_index_map.forEach((product) => {
-      window.adp_search.index_to_product_map.set(product.indexName, product.productName);
+    window.adp_search.index_mapping.set(product.indexName, {
+        productName: product.productName,
+        indexPathPrefix: product.indexPathPrefix
+    });
   });
 
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
