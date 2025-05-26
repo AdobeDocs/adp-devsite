@@ -229,11 +229,12 @@ export function buildCodes(container) {
  * @param {*} container The container to inspect
  */
 export function decorateHR(container) {
-  const hrWrappers = container.querySelectorAll('main div.hr-wrapper');
+  const hrWrappers = container.querySelectorAll('main div.horizontalline-wrapper div.horizontalline');
 
   hrWrappers.forEach(hrWrapper => {
     const hr = document.createElement('hr');
-    hrWrapper.insertBefore(hr, hrWrapper.firstChild);
+    hrWrapper.innerHTML = ''
+    hrWrapper.appendChild(hr)
   });
 }
 
