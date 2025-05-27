@@ -485,7 +485,7 @@ header iframe {
 }
 
 header div.nav-console-search-frame {
-    position: fixed; /* Ensures it covers the whole screen */
+    position: fixed;
     top: 64px;
     left: 0px;
     right: 0px;
@@ -493,22 +493,80 @@ header div.nav-console-search-frame {
     background-color: transparent;
     height: calc(100% - 64px);
     margin: auto;
-    background: white; /* Semi-transparent black */
-    display: flex; /* Centers content inside */
+    background: white; 
+    display: flex; 
     flex-direction: column;
     align-items: center;
-    visibility: hidden; /* Hidden by default */
+    visibility: hidden; 
 }
 
 header svg.search-icon {
   padding: 1px 11px
 }
 
+header button.close-search-button {
+  color: rgb(34, 34, 34) !important;
+  cursor: pointer;
+}
+
+header div.suggestion-results {
+  display: flex;
+  min-width: var(--spectrum-global-dimension-size-800);
+  max-height: calc(100vh - var(--spectrum-global-dimension-size-2400));
+  overflow: auto;
+  position: absolute;
+  top: 64px;
+  width: 688px;
+}
+
+header ul.suggestion-results-list {
+  padding: 0;
+}
+
+header hr.search-sugguestions-hr-top {
+  width: 95%;
+  margin-top: 20px;
+}
+
+header hr.search-sugguestions-hr-bottom {
+  width: 95%;
+}
+
+header h4.search-sugguestions-h4 {
+  margin-left: 15px;
+  color: slategray;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+header a.search-sugguestions-a {
+  text-align: left;
+  align-items: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  margin: 0;
+  min-height: 32px;
+  padding: 7px 12px 7px 10px;
+  position: relative;
+  text-decoration: none;
+  left: 24px;
+  width: calc(100% - 18px)
+}
+
+header div.suggestion-product-group > a > span > div {
+  text-align: left;
+}
+
+header div.search-suggestions-link {
+  font-style: italic;
+  margin: 4px 0;
+}
+
 header div.filters {
-  /* display: flex;
-  flex-direction: column;
-  overflow: hidden auto; */
-  /* max-height: 30%; */
   width: var(--spectrum-global-dimension-static-size-3200);
 }
 
@@ -558,8 +616,8 @@ header div.search-box > form {
 
 header input.search-input {
   width: 100%;
-  padding-left: 40px; /* Space for left icon */
-  padding-right: 40px; /* Space for right icon */
+  padding-left: 40px;
+  padding-right: 40px;
   height: 32px;
   font-family: var(--spectrum-textfield-texticon-text-font-family);
     font-size: var(--spectrum-textfield-texticon-text-size);
@@ -574,30 +632,30 @@ header div.search-box > form > div {
 
 header input[type="text"]:focus {
   outline: none;
-  border: 1px solid rgb(20, 122, 243); /* Changes the border color */
+  border: 1px solid rgb(20, 122, 243);
 }
 
 header svg.icon-left {
   position: absolute;
-  left: 10px; /* Positions icon inside the left side */
+  left: 10px;
   width: 18px;
   height: 18px;
 }
 
 header button.clear-button {
   position: absolute;
-  right: 10px; /* Position clear button inside input */
+  right: 10px;
   background: none;
   border: none;
   cursor: pointer;
 }
 
 header button.clear-button:hover {
-  background: transparent; /* Ensures no highlight effect */
+  background: transparent;
 }
 
 header button.clear-button:focus {
-  outline: none; /* Prevents focus outline */
+  outline: none;
 }
 
 header button.clear-button > svg {
@@ -614,8 +672,8 @@ header div.merged-results {
   left: 0px;
   right: 0px;
   bottom: 0px;
-  overflow-y: auto; /* Allow vertical scrolling if content overflows */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 header div.merged-results .result-item{
@@ -633,15 +691,28 @@ header div.search-refinement {
   width: 256px;
 }
 
+header div.result-item > h1 {
+  margin-bottom: 8px;
+}
+
 header div.result-item > h1 > a {
   text-decoration: none;
-  color: rgb(0, 84, 182) !important;
+  color: #0054B6 !important;
 }
 
-header div.result-item .result-url {
+header div.result-item > h1 > a:hover {
+  text-decoration: underline;
+}
+
+header div.result-item > a {
   font-style: italic;
+  color: #222222;
+  text-decoration: none;
 }
 
+header div.result-item > a:hover {
+  text-decoration: underline;
+}
 header div.result-item .result-content {
   display: block;
   margin: var(--spectrum-global-dimension-size-100) 0;

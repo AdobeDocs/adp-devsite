@@ -8,7 +8,6 @@ import {
   getClosestFranklinSubfolder,
   setQueryStringParameter,
   getQueryString,
-  getActiveTab,
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
@@ -43,18 +42,14 @@ function localSearch() {
   // Check progressively up to three levels for a match
   for (let i = 0; i < maxLevels; i++) {
     const subfolderPath = `/${pathSegments.slice(0, i + 1).join('/')}/`; // Build path incrementally
-
     const matchingProduct = Object.entries(window.adp_search.completeProductMap).find(
       ([indexName, { indexPathPrefix }]) => indexPathPrefix === subfolderPath
     );
-
     if (matchingProduct) {
       bestMatch = { indexName: matchingProduct[0], productName: matchingProduct[1].productName };
     }
   }
-
-  // If no match is found, default to a fallback product
-  return bestMatch || { indexName: 'default-index', productName: 'franklin_assets' };
+  return bestMatch;
 }
 
 function initSearch() {
@@ -70,6 +65,14 @@ function initSearch() {
 
   const urlParams = fetchSearchURLParams();
   const localElem = localSearch();
+
+  // set flag to see if suggestions or actual results show
+  const search_results = document.querySelector("div.merged-results")
+  let suggestions_flag = false;
+  console.log(getComputedStyle(search_results).visibility)
+  if (getComputedStyle(search_results).visibility === "hidden") {
+    suggestions_flag = true;
+  }
 
   let selectedProducts;
   if (localElem && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
@@ -129,19 +132,37 @@ function initSearch() {
           const searchInput = document.querySelector("#search-box input");
           const clearButton = document.querySelector("button.clear-button");
           const searchResults = document.querySelector("div.search-results");
+          const searchSuggestions = document.querySelector("div.suggestion-results");
           const queryFromURL = urlParams.query;
 
+          // if (suggestions_flag) {
+          //   search_box_container = ".suggestion-results"
+          // }
+
           //detects query in url but no query in input so tab was reloaded
-          if (queryFromURL && !searchInput.value) {
+          if (queryFromURL && !searchInput.value && !suggestions_flag) {
             searchInput.value = queryFromURL;
             helper.setQuery(queryFromURL).search();
             searchResults.style.visibility = "visible";
           } 
 
+          // Listen for user typing (suggestions appear before Enter is pressed)
+          searchInput.addEventListener('input', () => {
+            if (searchInput.value.trim() !== "") {
+              searchSuggestions.style.display = "block";  
+              searchResults.style.visibility = "hidden"; 
+              helper.setQuery(searchInput.value).search(); 
+            } else {
+              searchSuggestions.style.display = "none"; // Hide if input is empty
+            }
+        });
+
           searchInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
               helper.setQuery(searchInput.value).search();
               searchResults.style.visibility = "visible";
+              suggestions_flag = false;
+              searchSuggestions.style.display = "none";  
             }
           });
 
@@ -155,7 +176,6 @@ function initSearch() {
     };  
 
     function renderMergedHits({ indices }) {
-      // console.log("Current InstantSearch state on render merged hits:", search.helper.state);
         if (!indices || !Array.isArray(indices)) {
           console.error("indices is undefined or not an array", indices);
           return;
@@ -175,14 +195,24 @@ function initSearch() {
           });
           
         updateSearchParams();
-        renderResults(); // Call to render the filtered results
+        if (suggestions_flag){
+          renderSuggestionResults();
+        }else{
+          renderMergedResults(); // Call to render the filtered results
+        }
+    }
+
+    let search_box_container = ".merged-results";
+    if (suggestions_flag) {
+      console.log("sugg container")
+      search_box_container = ".suggestion-results"
     }
     
     const customMergedHits = connectAutocomplete(renderMergedHits);
     search.addWidgets([
       customSearchBox(),
       customMergedHits({
-        container: document.querySelector(".merged-results")
+        container: document.querySelector(search_box_container)
       }),
     ]);
 
@@ -318,7 +348,7 @@ function initSearch() {
     });
   }
   
-  function renderResults() {
+  function renderMergedResults() {
     const container = document.querySelector(".merged-results");
     const allProductsCheckbox = document.getElementById("checkbox-all-products");
   
@@ -365,7 +395,7 @@ function initSearch() {
               <h1 class="spectrum-Body spectrum-Body--sizeM css-1i3xfjj">
                 <a href="${value.url}">${key}</a>
               </h1>
-              <a class="result-url spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>        
+              <a href="${value.url} class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>        
               <p class="result-content spectrum-Body spectrum-Body--sizeS">${value.content}</p>  
             </div>
             <hr>
@@ -384,6 +414,75 @@ function initSearch() {
       container.innerHTML = "<p>No products selected.</p>";
     }
   }
+
+  function renderSuggestionResults() {
+    const ulContainer = document.querySelector("ul.suggestion-results-list");
+    const allProductsCheckbox = document.getElementById("checkbox-all-products");
+
+    ulContainer.innerHTML = ""; // Clear previous results
+
+    // Determine which products to display
+    const productsToShow = allProductsCheckbox.checked ? all_products : selectedProducts;
+
+    // Group results by product
+    const productGroupedResults = new Map();
+    results.forEach((value, key) => {
+        if (!productGroupedResults.has(value.product)) {
+            productGroupedResults.set(value.product, []);
+        }
+        productGroupedResults.get(value.product).push({ key, value });
+    });
+
+    // Separate products into two groups: those with results and those without
+    const productsWithResults = [];
+    const productsWithoutResults = [];
+
+    productsToShow.forEach((product) => {
+        if (productGroupedResults.has(product)) {
+            productsWithResults.push(product);
+        } else {
+            productsWithoutResults.push(product);
+        }
+    });
+
+    // Sort: Products with results appear first
+    const sortedProducts = [...productsWithResults, ...productsWithoutResults];
+
+    // Render results for each product
+    sortedProducts.forEach((product) => {
+        const productDiv = document.createElement("div");
+        productDiv.classList.add("suggestion-product-group");
+
+        // Add separator before each product section
+        productDiv.innerHTML = `<hr class="search-sugguestions-hr-top"><h4 class="search-sugguestions-h4">${product}</h4><hr class="search-sugguestions-hr-bottom">`;
+
+        if (productGroupedResults.has(product)) {
+            // If there are results, render them
+            productGroupedResults.get(product).forEach(({ key, value }) => {
+                productDiv.innerHTML += `
+                    <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-sugguestions-a">
+                      <span class="spectrum-Menu-itemLabel">
+                          <div>
+                              <strong>${key}</strong>
+                              <div class="search-suggestions-link">${value.url}</div>
+                              <div>${value.content}</div>
+                          </div>
+                      </span>
+                    </a>
+                `;
+            });
+        } else {
+            // Even if no results, still display the product section
+            productDiv.innerHTML += `<p>No results found for this product.</p>`;
+        }
+        ulContainer.appendChild(productDiv);
+    });
+
+    // Ensure that at least something appears, even if no results are found
+    if (sortedProducts.length === 0) {
+      ulContainer.innerHTML = "<p>No products selected.</p>";
+    }
+}
   
   // Initialize the search and render checkboxes
   renderProductCheckboxes();
@@ -424,6 +523,10 @@ const globalNavSearchDropDown = () => {
         </div>
         
       </form>
+    </div>
+
+    <div class="suggestion-results spectrum-Popover spectrum-Popover--bottom is-open" style="display: none;">
+      <ul role="menubar" class="suggestion-results-list">
     </div>
 
     <div class="search-results">
@@ -506,6 +609,8 @@ const checkIframeLoaded = (renderedFrame) => {
 function decorateSearchIframeContainer(header) {
   const search_div = header.querySelector('div.nav-console-search-frame');
   const search_button = header.querySelector('button.nav-dropdown-search');
+  const search_suggestions = header.querySelector('div.suggestion-results');
+  const close_search_button = header.querySelector('button.close-search-button');
   const search_results = document.querySelector("div.search-results");
 
   const urlParams = fetchSearchURLParams();
@@ -513,6 +618,8 @@ function decorateSearchIframeContainer(header) {
     initSearch();
     search_div.style.visibility = 'visible';
     search_button.classList.add('is-open');
+    search_button.style.display = 'none';
+    close_search_button.style.display = 'block';
   }
 
   search_button.addEventListener('click', (evt) => {
@@ -520,12 +627,21 @@ function decorateSearchIframeContainer(header) {
       initSearch();
       search_div.style.visibility = 'visible';
       search_button.classList.add('is-open');
-    } else {
-      search_button.classList.remove('is-open');
-      search_div.style.visibility = 'hidden';
-      search_results.style.visibility = 'hidden';
+      search_button.style.display = 'none';
+      close_search_button.style.display = 'block';
     }
   });
+
+  close_search_button.addEventListener('click', () => {
+    search_button.classList.remove('is-open');
+    close_search_button.classList.remove('is-open'); // Ensure close button resets state
+    search_div.style.visibility = 'hidden';
+    search_results.style.visibility = 'hidden';
+    search_button.style.display = 'block';
+    close_search_button.style.display = 'none';
+    search_suggestions.style.display = "none";
+  });
+
 }
 
 function globalDistributeButton() {
