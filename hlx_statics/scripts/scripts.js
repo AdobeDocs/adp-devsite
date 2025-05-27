@@ -460,6 +460,27 @@ async function loadLazy(doc) {
     });
   });
 
+  window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
+
+  // Extract indices
+  window.adp_search.indices = Object.keys(window.adp_search.completeProductMap);
+
+  // Create a mapping of indices to their respective products
+  window.adp_search.index_to_product = Object.fromEntries(
+    Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
+  );
+
+  // Create a mapping of path prefixes to their respective products
+  window.adp_search.path_prefix_to_product = Object.fromEntries(
+      Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+  );
+
+  // Extract unique products
+  window.adp_search.products = Array.from(
+      new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
+  );
+
+
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
   }

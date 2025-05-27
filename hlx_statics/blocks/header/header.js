@@ -8,6 +8,7 @@ import {
   getClosestFranklinSubfolder,
   setQueryStringParameter,
   getQueryString,
+  getActiveTab,
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
@@ -28,25 +29,32 @@ function fetchSearchURLParams() {
 }
 
 function localSearch() {
-  let subfolderPath = window.location.pathname.split('/')[1];
+  // Remove leading/trailing slashes and split the pathname into segments
+  const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
+  // Limit to the first three levels
+  const maxLevels = Math.min(pathSegments.length, 3);
+  let bestMatch = null;
 
   // Normalize top-level paths
-  if (subfolderPath === '' || ['apis', 'open', 'developer-support'].includes(subfolderPath)) {
-    subfolderPath = 'franklin_assets';
-  } else {
-    subfolderPath = window.location.pathname.replace(/\/$/, "").replace(/^\//, "");
+  // if (subfolderPath === '' || ['apis', 'open', 'developer-support'].includes(subfolderPath)) {
+  //   subfolderPath = 'franklin_assets';
+  // }
+
+  // Check progressively up to three levels for a match
+  for (let i = 0; i < maxLevels; i++) {
+    const subfolderPath = `/${pathSegments.slice(0, i + 1).join('/')}/`; // Build path incrementally
+
+    const matchingProduct = Object.entries(window.adp_search.completeProductMap).find(
+      ([indexName, { indexPathPrefix }]) => indexPathPrefix === subfolderPath
+    );
+
+    if (matchingProduct) {
+      bestMatch = { indexName: matchingProduct[0], productName: matchingProduct[1].productName };
+    }
   }
 
-  console.log("Subfolder Path:", subfolderPath);
-
-  // Match subfolderPath to indexPathPrefix
-  const completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
-
-  const matchingProduct = Object.entries(completeProductMap).find(([indexName, { indexPathPrefix }]) => 
-    indexPathPrefix === `/${subfolderPath}/`
-  );
-
-  return matchingProduct ? matchingProduct[0] : null; // Return indexName if found
+  // If no match is found, default to a fallback product
+  return bestMatch || { indexName: 'default-index', productName: 'franklin_assets' };
 }
 
 function initSearch() {
@@ -55,38 +63,20 @@ function initSearch() {
 
   const searchClient = algoliasearch('E642SEDTHL', '424b546ba7ae75391585a10c6ea38dab');
 
-  // Convert window.adp_search.index_mapping to an object
-  const completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
-
- // Extract indices from completeProductMap
-  const indices = Object.keys(completeProductMap);
-
-  // Create a mapping of indices to their respective products
-  const index_to_product = Object.fromEntries(
-    Object.entries(completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
-  );
-
-  // Create a mapping of path prefixes to their respective products
-  const path_prefix_to_product = Object.fromEntries(
-      Object.values(completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
-  );
-
-  // Extract unique products
-  const all_products = Array.from(
-      new Set(Object.values(completeProductMap).map(data => data.productName))
-  );
+  const indices = window.adp_search.indices
+  const index_to_product = window.adp_search.index_to_product;
+  const path_prefix_to_product = window.adp_search.path_prefix_to_product;
+  const all_products = window.adp_search.products;
 
   const urlParams = fetchSearchURLParams();
-  const localIndex = localSearch();
+  const localElem = localSearch();
 
-  console.log("Initial index on load:", localIndex);
   let selectedProducts;
-
-  if (localIndex && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
-    selectedProducts = [index_to_product[localIndex]]
-  }else if (localIndex && urlParams.products && urlParams.products !== "all") {
+  if (localElem && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
+    selectedProducts = [localElem.productName]
+  }else if (localElem && urlParams.products && urlParams.products !== "all") {
     selectedProducts = urlParams.products.split(",").filter(product => all_products.includes(product));
-    selectedProducts.concat(index_to_product[localIndex])
+    selectedProducts.concat(localElem.productName)
   }else{
     // from url params set selected products
     selectedProducts = (urlParams.products === "all" || !urlParams.products) 
@@ -96,12 +86,12 @@ function initSearch() {
 
   // Get indices corresponding to selected products
   let selectedIndices = indices.filter(indexName => selectedProducts.includes(index_to_product[indexName]));
-  let initialIndex = localIndex || selectedIndices[0];
-
-  console.log("inital index after figuring stuff out:")
-  console.log(selectedIndices)
-  console.log(initialIndex)
-
+  let initialIndex;
+  if (localElem){
+    initialIndex = localElem.indexName;
+  }else{
+    initialIndex = selectedIndices[0];
+  }
 
   // Initialize InstantSearch
   let search = instantsearch({
@@ -122,10 +112,13 @@ function initSearch() {
       return selectedProducts.includes(product);
     });
 
+    // number of results displayed per index changes depending on how many products are selected
+    let hits = 1
+
     // Add common widgets
     search.addWidgets([
       instantsearch.widgets.configure({
-        hitsPerPage: 1,
+        hitsPerPage: hits,
         attributesToSnippet: ['content:50'],
       }),
     ]);
@@ -161,7 +154,7 @@ function initSearch() {
       };
     };  
 
-    function renderMergedHits({ indices, widgetParams }) {
+    function renderMergedHits({ indices }) {
       // console.log("Current InstantSearch state on render merged hits:", search.helper.state);
         if (!indices || !Array.isArray(indices)) {
           console.error("indices is undefined or not an array", indices);
@@ -194,8 +187,6 @@ function initSearch() {
     ]);
 
     // Add indices
-    console.log("updat search selected indices")
-    console.log(selectedIndices)
     selectedIndices.slice(1).forEach((indexName) => {
       search.addWidgets([
         instantsearch.widgets.index({
@@ -204,7 +195,6 @@ function initSearch() {
       ]);
     });
    
-    // Start the search
     search.refresh();
   }
 
@@ -246,47 +236,49 @@ function initSearch() {
     const allSelected = selectedProducts.length === all_products.length;
   
     // Add "All Products" checkbox
+    const allProductsDiv = document.createElement('div');
+    allProductsDiv.classList.add('search-checkbox-div');
+
     const allProductsCheckbox = document.createElement('input');
     allProductsCheckbox.type = 'checkbox';
     allProductsCheckbox.id = 'checkbox-all-products';
+    allProductsCheckbox.classList.add('search-checkbox');
     allProductsCheckbox.value = 'all-products';
     allProductsCheckbox.checked = allSelected; // Check if all products are selected
   
     const allProductsLabel = document.createElement('label');
     allProductsLabel.htmlFor = 'checkbox-all-products';
+    allProductsLabel.classList.add('spectrum-Checkbox-label', 'search-label');
     allProductsLabel.innerText = 'All Products';
   
-    container.appendChild(allProductsCheckbox);
-    container.appendChild(allProductsLabel);
-    container.appendChild(document.createElement('br'));
+    allProductsDiv.appendChild(allProductsCheckbox);
+    allProductsDiv.appendChild(allProductsLabel);
+    container.appendChild(allProductsDiv);
   
     // Add individual product checkboxes
     all_products.forEach((product) => {
       const checkboxId = `checkbox-${product.replace(/\s+/g, '-')}`;
+
+      const productDiv = document.createElement('div');
+      productDiv.classList.add('search-checkbox-div');
   
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.id = checkboxId;
       checkbox.value = product;
-      // don't check products if new tab or if all products are selected
-      console.log("rendering checkboxes")
-      console.log("selected boolean")
-      console.log(product)
-      console.log(localIndex !== null)
-      console.log(selectedProducts.includes(product))
-      checkbox.checked = selectedProducts.includes(product) && urlParams.products !== "all" && localIndex !== null;
+      checkbox.classList.add('search-checkbox');
 
-      if(checkbox.checked){
-        console.log("its true")
-      }
-  
+      // don't check products if new tab or if all products are selected
+      checkbox.checked = selectedProducts.includes(product) && urlParams.products !== "all" && localElem !== null;
+      
       const label = document.createElement('label');
       label.htmlFor = checkboxId;
+      label.classList.add('spectrum-Checkbox-label', 'search-label');
       label.innerText = product;
   
-      container.appendChild(checkbox);
-      container.appendChild(label);
-      container.appendChild(document.createElement('br'));
+      productDiv.appendChild(checkbox);
+      productDiv.appendChild(label);
+      container.appendChild(productDiv);
     });
   }
  
@@ -436,7 +428,7 @@ const globalNavSearchDropDown = () => {
 
     <div class="search-results">
       <div class="search-refinement">
-        <h4 class="spectrum-Heading spectrum-Heading--sizeXS css-ctmjql">Filter by Products</h4>
+        <h4 class="spectrum-Heading spectrum-Heading--sizeXS filter-heading">Filter by Products</h4>
         <div class="filters"></div>
       </div>
       <div class="merged-results"></div>
