@@ -1,8 +1,8 @@
-main .detailsblock-wrapper details {
+main .details-wrapper details {
     font-size: 16px ;
 }
 
-main .detailsblock-wrapper details > div > div, 
-main .detailsblock-wrapper {
+main .details-wrapper details > div > div, 
+main .details-wrapper {
     margin: 20px 0px;
 }
