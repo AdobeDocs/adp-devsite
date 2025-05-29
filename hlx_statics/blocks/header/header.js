@@ -16,8 +16,8 @@ function isSourceGithub() {
   return getMetadata('source') === 'github';
 }
 
+// function to Get URL search parameters
 function fetchSearchURLParams() {
-  // Get URL search parameters
   const params = new URLSearchParams(window.location.search);
   const queryFromURL = params.get("query") || "";
   const productsFromURL = params.get("products");
@@ -27,6 +27,7 @@ function fetchSearchURLParams() {
   };
 }
 
+// function to find which index and product to search within
 function localSearch() {
   // Remove leading/trailing slashes and split the pathname into segments
   const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
@@ -57,6 +58,8 @@ function initSearch() {
   const { connectAutocomplete } = instantsearch.connectors;
 
   const searchClient = algoliasearch('E642SEDTHL', '424b546ba7ae75391585a10c6ea38dab');
+  const SUGGESTION_MAX_RESULTS = 50;
+  const SEARCH_MAX_RESULTS = 100;
 
   const indices = window.adp_search.indices
   const index_to_product = window.adp_search.index_to_product;
@@ -67,11 +70,13 @@ function initSearch() {
   const localElem = localSearch();
 
   // set flag to see if suggestions or actual results show
+  let searchExecuted = false; // Flag to track if a full search has been done (enter key has been pressed)
   const search_results = document.querySelector("div.merged-results")
   let suggestions_flag = false;
-  console.log(getComputedStyle(search_results).visibility)
   if (getComputedStyle(search_results).visibility === "hidden") {
     suggestions_flag = true;
+  }else{
+    searchExecuted = true;
   }
 
   let selectedProducts;
@@ -116,7 +121,16 @@ function initSearch() {
     });
 
     // number of results displayed per index changes depending on how many products are selected
-    let hits = 1
+    let hits = 1;
+
+    let search_box_container = ".merged-results";
+    if (suggestions_flag) {
+      console.log("sugg container")
+      // hits = Math.ceil(SUGGESTION_MAX_RESULTS / selectedIndices.length)
+      search_box_container = ".suggestion-results" }
+    // }else{
+    //   hits = Math.ceil(SEARCH_MAX_RESULTS / selectedIndices.length)
+    // }
 
     // Add common widgets
     search.addWidgets([
@@ -128,52 +142,62 @@ function initSearch() {
 
     function customSearchBox() {
       return {
-        init({ helper }) {
-          const searchInput = document.querySelector("#search-box input");
-          const clearButton = document.querySelector("button.clear-button");
-          const searchResults = document.querySelector("div.search-results");
-          const searchSuggestions = document.querySelector("div.suggestion-results");
-          const queryFromURL = urlParams.query;
+          init({ helper }) {
+              const searchInput = document.querySelector("#search-box input");
+              const clearSearchQueryButton = document.querySelector("button.clear-search-query-button");
+              const searchResults = document.querySelector("div.search-results");
+              const searchSuggestions = document.querySelector("div.suggestion-results");
+              const queryFromURL = urlParams.query;
 
-          // if (suggestions_flag) {
-          //   search_box_container = ".suggestion-results"
-          // }
+              
 
-          //detects query in url but no query in input so tab was reloaded
-          if (queryFromURL && !searchInput.value && !suggestions_flag) {
-            searchInput.value = queryFromURL;
-            helper.setQuery(queryFromURL).search();
-            searchResults.style.visibility = "visible";
-          } 
-
-          // Listen for user typing (suggestions appear before Enter is pressed)
-          searchInput.addEventListener('input', () => {
-            if (searchInput.value.trim() !== "") {
-              searchSuggestions.style.display = "block";  
-              searchResults.style.visibility = "hidden"; 
-              helper.setQuery(searchInput.value).search(); 
-            } else {
-              searchSuggestions.style.display = "none"; // Hide if input is empty
-            }
-        });
-
-          searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-              helper.setQuery(searchInput.value).search();
-              searchResults.style.visibility = "visible";
-              suggestions_flag = false;
-              searchSuggestions.style.display = "none";  
-            }
-          });
-
-          clearButton.addEventListener('click', () => {
-            helper.setQuery('').search();
-          });
-        },
-        render() {
-        },
+              // Detects query in URL but no input value (tab was reloaded)
+              if (queryFromURL && !searchInput.value) {
+                console.log("reloaded tab")
+              console.log(queryFromURL)                 
+                  searchInput.value = queryFromURL;
+                  helper.setQuery(queryFromURL).search();
+                  suggestions_flag = false;
+                  searchResults.style.visibility = "visible";
+                  searchExecuted = true; // Mark search as executed
+              }
+  
+              // Listen for user typing (suggestions appear before Enter is pressed)
+              searchInput.addEventListener('input', () => {
+                  if (!searchExecuted && searchInput.value.trim() !== "") {
+                      searchSuggestions.style.display = "block";  
+                      searchResults.style.visibility = "hidden"; 
+                      helper.setQuery(searchInput.value).search(); 
+                  } else if (searchInput.value.trim() === "") {
+                      searchSuggestions.style.display = "none"; // Hide if input is empty
+                  }
+              });
+  
+              // When Enter is pressed, execute full search and prevent suggestions from reappearing
+              searchInput.addEventListener('keypress', (event) => {
+                  if (event.key === 'Enter') {
+                    console.log("enter is pressed")
+                      helper.setQuery(searchInput.value).search();
+                      searchResults.style.visibility = "visible";
+                      searchSuggestions.style.display = "none";
+                      suggestions_flag = false;
+                      searchExecuted = true; // Prevent suggestions from overriding search results
+                  }
+              });
+  
+              // Clear search query when clear button is clicked
+              clearSearchQueryButton.addEventListener('click', () => {
+                  searchInput.value = "";
+                  helper.setQuery('').search();
+                  searchResults.style.visibility = "hidden";
+                  // searchSuggestions.style.display = "none";
+                  // searchExecuted = false; // Reset flag on clear
+              });
+          },
+          render() {},
       };
-    };  
+  }
+   
 
     function renderMergedHits({ indices }) {
         if (!indices || !Array.isArray(indices)) {
@@ -193,19 +217,13 @@ function initSearch() {
               content: instantsearch.snippet({ hit, attribute: 'content' }),
             });
           });
-          
+        console.log("yuh")
         updateSearchParams();
         if (suggestions_flag){
           renderSuggestionResults();
         }else{
           renderMergedResults(); // Call to render the filtered results
         }
-    }
-
-    let search_box_container = ".merged-results";
-    if (suggestions_flag) {
-      console.log("sugg container")
-      search_box_container = ".suggestion-results"
     }
     
     const customMergedHits = connectAutocomplete(renderMergedHits);
@@ -515,7 +533,7 @@ const globalNavSearchDropDown = () => {
             <path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path>
           </svg>
           <input id="search-input" type="text" placeholder="Search..." autocomplete="off" class="search-input">
-          <button type="reset" aria-label="Clear Search" class="clear-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
+          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
             <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="icon-right spectrum-Icon spectrum-Icon--sizeM">
               <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
             </svg>
@@ -612,8 +630,11 @@ function decorateSearchIframeContainer(header) {
   const search_suggestions = header.querySelector('div.suggestion-results');
   const close_search_button = header.querySelector('button.close-search-button');
   const search_results = document.querySelector("div.search-results");
+  const search_bar = document.querySelector("div.search-box")
 
   const urlParams = fetchSearchURLParams();
+
+  //reloaded tab and should show an initalized search on start
   if (urlParams.products) {
     initSearch();
     search_div.style.visibility = 'visible';
@@ -625,7 +646,9 @@ function decorateSearchIframeContainer(header) {
   search_button.addEventListener('click', (evt) => {
     if (!evt.currentTarget.classList.contains('is-open')) {
       initSearch();
+      // search_bar.style.visibility = 'visible';
       search_div.style.visibility = 'visible';
+      // search_results.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
       search_button.classList.add('is-open');
       search_button.style.display = 'none';
       close_search_button.style.display = 'block';

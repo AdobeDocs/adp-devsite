@@ -595,10 +595,10 @@ header label.search-label {
 header div.search-results {
   display: flex;
   flex-direction: row;
+  justify-content: center;
   max-width: 1280px;
   height: calc(100% - 96px);
   visibility: hidden;
-  margin: auto;
 }
 
 header div.search-box{
@@ -642,7 +642,7 @@ header svg.icon-left {
   height: 18px;
 }
 
-header button.clear-button {
+header button.clear-search-query-button {
   position: absolute;
   right: 10px;
   background: none;
@@ -650,15 +650,15 @@ header button.clear-button {
   cursor: pointer;
 }
 
-header button.clear-button:hover {
+header button.clear-search-query-button:hover {
   background: transparent;
 }
 
-header button.clear-button:focus {
+header button.clear-search-query-button:focus {
   outline: none;
 }
 
-header button.clear-button > svg {
+header button.clear-search-query-button > svg {
   width: 18px;
   height: 18px;
 }
