@@ -365,89 +365,54 @@ export default async function decorate(block) {
   // Handle navigation based on source
   if (isSourceGithub()) {
     // Create navigation for docs from github (desktop only)
-    if (window.innerWidth > 768) {
-      let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
 
-      // Add Products link for documentation template
-      if (isTopLevelNav(window.location.pathname)) {
-        const homeLinkLi = createTag('li', {class: 'navigation-home'});
-        const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home', 'fullPath': true});
-        homeLinkA.innerHTML = 'Products';
-        homeLinkLi.append(homeLinkA);
-        navigationLinks.append(homeLinkLi);
-      } else {
-        const productLi = createTag('li', {class: 'navigation-products'});
-        const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products',  'fullPath': true});
-        productA.innerHTML = 'Products';
-        productLi.append(productA);
-        navigationLinks.append(productLi);
-      }
+    let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
 
-      const topNavHtml = await fetchTopNavHtml();
-      if (topNavHtml) {
-        navigationLinks.innerHTML += topNavHtml;
+    // Add Products link for documentation template
+    if (isTopLevelNav(window.location.pathname)) {
+      const homeLinkLi = createTag('li', {class: 'navigation-home'});
+      const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home', 'fullPath': true});
+      homeLinkA.innerHTML = 'Products';
+      homeLinkLi.append(homeLinkA);
+      navigationLinks.append(homeLinkLi);
+    } else {
+      const productLi = createTag('li', {class: 'navigation-products'});
+      const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products',  'fullPath': true});
+      productA.innerHTML = 'Products';
+      productLi.append(productA);
+      navigationLinks.append(productLi);
+    }
 
-        // Process dropdowns for documentation template navigation
-        navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
-          let dropdownLinkDropdownHTML = '';
-          let dropdownLinksHTML = '';
+    const topNavHtml = await fetchTopNavHtml();
+    if (topNavHtml) {
+      navigationLinks.innerHTML += topNavHtml;
 
-          dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
-            dropdownLinksHTML
-              += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
-          });
+      // Process dropdowns for documentation template navigation
+      navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
+        let dropdownLinkDropdownHTML = '';
+        let dropdownLinksHTML = '';
 
-          dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
-            index,
-            dropDownList.parentElement.firstChild.textContent.trim(),
-            dropdownLinksHTML,
-          );
-          dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
+        dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
+          dropdownLinksHTML
+            += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
         });
 
-        header.append(navigationLinks);
-      }
+        dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
+          index,
+          dropDownList.parentElement.firstChild.textContent.trim(),
+          dropdownLinksHTML,
+        );
+        dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
+      });
+
+      header.append(navigationLinks);
     }
+    
 
     // Handle mobile menu button for side nav
-    if (window.innerWidth <= 768) {
-      handleMenuButton(header);
-    }
+    handleMenuButton(header);
+    
 
-    // Update navigation visibility on resize
-    window.addEventListener('resize', async () => {
-      let navigationLinks = header.querySelector('#navigation-links');
-      if (window.innerWidth > 768) {
-        if (!navigationLinks) {
-          navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
-
-          // Add Products link for documentation template
-          if (isTopLevelNav(window.location.pathname)) {
-            const homeLinkLi = createTag('li', {class: 'navigation-home'});
-            const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
-            homeLinkA.innerHTML = 'Products';
-            homeLinkLi.append(homeLinkA);
-            navigationLinks.append(homeLinkLi);
-          } else {
-            const productLi = createTag('li', {class: 'navigation-products'});
-            const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
-            productA.innerHTML = 'Products';
-            productLi.append(productA);
-            navigationLinks.append(productLi);
-          }
-
-          const topNavHtml = await fetchTopNavHtml();
-          if (topNavHtml) {
-            navigationLinks.innerHTML += topNavHtml;
-            header.append(navigationLinks);
-          }
-        }
-      } else {
-        if (navigationLinks) {
-          navigationLinks.remove();
-        }
-      }
-    });
   } else {
     // Create navigation for non-documentation pages
     let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu', style: 'list-style-type: none;'});
