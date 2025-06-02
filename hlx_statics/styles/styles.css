@@ -252,7 +252,9 @@ main .inline-code {
   background-color: rgb(245, 245, 245);
   padding: 0 2px;
   margin: 0;
-  display: inline-block;
+  display: inline;
+  word-wrap: break-word;
+  white-space: pre-wrap;
   min-width: auto;
   border: 0.8px solid rgb(213, 213, 213);
   border-radius: 3px;
