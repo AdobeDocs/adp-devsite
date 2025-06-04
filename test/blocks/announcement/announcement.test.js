@@ -3,8 +3,6 @@
 
 import { readFile } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
-import decorate from '../../../hlx_statics/blocks/fragment/fragment.js';
-import { decorateBlock } from '../../../hlx_statics/scripts/lib-helix.js';
 
 document.body.innerHTML = await readFile({ path: 'announcement.html' });
 const { loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
