@@ -13,24 +13,23 @@ await loadBlock(accordionBlock);
 
 describe('Accordion block', () => {
   it('Builds accordion block', async () => {
-    await import('../../../hlx_statics/scripts/scripts.js');
+    // await import('../../../hlx_statics/scripts/scripts.js');
     
-    const accordion = document.querySelector('.accordion');
-    expect(accordion).to.exist;
-    expect(accordion.classList.contains('block')).to.be.true;
-    expect(accordion.classList.contains('accordion')).to.be.true;
-    expect(accordion.getAttribute('daa-lh')).to.equal('accordion');
+    expect(accordionBlock).to.exist;
+    expect(accordionBlock.classList.contains('block')).to.be.true;
+    expect(accordionBlock.classList.contains('accordion')).to.be.true;
+    expect(accordionBlock.getAttribute('daa-lh')).to.equal('accordion');
 
     //general title
-    const title = accordion.querySelector('h1, h2');
+    const title = accordionBlock.querySelector('h1, h2');
     expect(title).to.exist;
 
     //accordion title
-    const accordion_title = accordion.querySelector('.accordion-title');
+    const accordion_title = accordionBlock.querySelector('.accordion-title');
     expect(accordion_title.querySelector('h1')).to.exist;
 
     //accordion div
-    const accordion_div = accordion.querySelector('.accordion-div');
+    const accordion_div = accordionBlock.querySelector('.accordion-div');
     expect(accordion_div).to.exist;
 
     //accordion items
