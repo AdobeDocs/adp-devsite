@@ -496,10 +496,10 @@ function activeSubNav(actTab) {
         if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
           li.classList.add('active-sidenav');
         } else {
-          li.classList.add('hide-sidenav');
+          li.classList.add('hidden');
         }
       } else {
-        li.classList.add('hide-sidenav');
+        li.classList.add('hidden');
       }
     });
   }
