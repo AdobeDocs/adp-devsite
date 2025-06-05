@@ -488,12 +488,12 @@ function activeSubNav(actTab) {
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
     const firstLevelItems = navLinksUl.querySelectorAll(':scope > ul > li');
-    const currentPath = actTab.pathname;
+    const topNavPath = actTab.pathname;
     firstLevelItems.forEach(li => {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
+        if (topNavPath === linkPath || linkPath.startsWith(topNavPath)) {
           li.classList.add('active-sidenav-item');
         } else {
           li.classList.add('hidden');
