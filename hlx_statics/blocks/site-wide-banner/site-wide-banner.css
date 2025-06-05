@@ -1,0 +1,106 @@
+main div.site-wide-banner-container {
+    background-color: #FBF198;
+    color: #222222;
+}
+
+main div.site-wide-banner-wrapper {
+    width: 100%;
+}
+
+main div.site-wide-banner-wrapper .site-wide-banner-content {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+}
+
+main div.site-wide-banner-wrapper .site-wide-banner-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+main div.site-wide-banner-wrapper .site-wide-banner-button-container {
+    display: flex;
+    align-items: center;
+}
+
+main div.site-wide-banner-wrapper .site-wide-banner-close-button {
+    width: 32px;
+    height: 32px;
+    background: transparent url('../../icons/dismiss.svg') no-repeat center;
+    cursor: pointer;
+    border: none;
+    border-left: 2px solid #22222233;
+}
+
+main div.site-wide-banner-wrapper .site-wide-banner-block-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+main .fixed-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: white;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media screen and (min-width:320px) and (max-width:1024px) {
+    main div.site-wide-banner-wrapper .site-wide-banner-content {
+        flex-direction: column;
+        align-items: last baseline;
+        width: 100%;
+        justify-content: end;
+        gap: 12px;
+    }
+
+    main div.site-wide-banner-wrapper .site-wide-banner-text {
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    main div.site-wide-banner-wrapper .site-wide-banner-button-container {
+        margin: unset;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    main div.site-wide-banner-wrapper div.site-wide-banner-block-wrapper {
+        padding: 20px 0;
+    }
+
+    main div.site-wide-banner-wrapper .site-wide-banner-block-wrapper {
+        gap: 10px;
+    }
+
+    main div.site-wide-banner-wrapper .site-wide-banner-close-button {
+        width: 32px;
+        border-left: 2px solid #22222233;
+        background: transparent;
+        cursor: pointer;
+        position: relative;
+    }
+
+    main div.site-wide-banner-wrapper .site-wide-banner-close-button::before {
+        content: '';
+        background: url('../../icons/dismiss.svg') no-repeat center;
+        background-size: 20px 20px;
+        width: 32px;
+        height: 32px;
+        position: absolute;
+        top: 10px;
+        left: 0;
+        z-index: 2;
+    }
+
+}

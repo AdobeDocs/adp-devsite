@@ -285,20 +285,51 @@ export function buildHeadings(container) {
  */
 export function buildGrid(main) {
   main.style.display = 'grid';
+
   const mainContainer = document.querySelector('main');
+  mainContainer.style.display = 'grid';
+  mainContainer.style.gridTemplateColumns = '256px 1fr 300px';
+
   const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
   const heroSimpleContainer = document.querySelector('.herosimple-container');
+
+  let sitewide = document.querySelector('.herosimple-container') || document.querySelector('.site-wide-banner-container');
+  if (!sitewide) {
+    sitewide = createTag('div', { class: 'site-wide-banner-container' });
+    mainContainer.prepend(sitewide);
+  }
+  sitewide.style.gridArea = 'sitewide';
+
   if (heroSimpleContainer || headings.length === 0) {
-    main.style.gridTemplateAreas = '"sidenav main" "sidenav footer"';
+    mainContainer.style.gridTemplateAreas = `
+      "sitewide sitewide sitewide"
+      "sidenav main ."
+      "sidenav footer ."
+    `;
   } else {
-    main.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer ."';
+    mainContainer.style.gridTemplateAreas = `
+      "sitewide sitewide sitewide"
+      "sidenav main aside"
+      "sidenav footer ."
+    `;
   }
 
-  const gridAreaMain = main.querySelector(".section");
-  gridAreaMain.style.gridArea = 'main';
+  const gridAreaMain = main.querySelector('.section');
+  if (gridAreaMain) gridAreaMain.style.gridArea = 'main';
 
-  let contentHeader = createTag('div', { class: 'content-header' });
-  gridAreaMain.prepend(contentHeader)
+  const sideNav = document.querySelector('.side-nav');
+  if (sideNav) sideNav.style.gridArea = 'sidenav';
+
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.gridArea = 'footer';
+
+  const aside = document.querySelector('aside');
+  if (aside) aside.style.gridArea = 'aside';
+
+  if (gridAreaMain) {
+    let contentHeader = createTag('div', { class: 'content-header' });
+    gridAreaMain.prepend(contentHeader);
+  }
 }
 
 /**
@@ -346,6 +377,19 @@ export function buildSideNav(main) {
   sideNavWrapper.append(sideNavBlock);
   sideNavDiv.append(sideNavWrapper);
   main.prepend(sideNavDiv);
+}
+
+/**
+ * Builds the side nav
+ * @param {*} main The sitewidebanner container
+ */
+export function buildSiteWideBanner(main) {
+  let siteWideBannerDiv = createTag('div', { class: 'section site-wide-banner-container fixed-banner', style: 'grid-area: sitewide;' });
+  let siteWideBannerWrapper = createTag('div', { class: 'site-wide-banner-wrapper' });
+  let siteWideBannerBlock = createTag('div', { class: 'site-wide-banner block', 'data-block-name': 'site-wide-banner' });
+  siteWideBannerWrapper.append(siteWideBannerBlock);
+  siteWideBannerDiv.append(siteWideBannerWrapper);
+  main.prepend(siteWideBannerDiv);
 }
 
 /**
