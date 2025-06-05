@@ -487,15 +487,16 @@ function activateTab(tabItem, isMainPage) {
 function activeSubNav(actTab) {
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
-    const firstLevelItems = navLinksUl.querySelectorAll(':scope > ul > li');
+    const items = navLinksUl.querySelectorAll(':scope > ul li');
     const topNavPath = actTab.pathname;
-    firstLevelItems.forEach(li => {
+    items.forEach(li => {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (topNavPath === linkPath || linkPath.startsWith(topNavPath)) {
+        if (linkPath === window.location.pathname) {
           li.classList.add('active-sidenav-item');
-        } else {
+        } 
+        if (!linkPath.startsWith(topNavPath)) {
           li.classList.add('hidden');
         }
       } else {
