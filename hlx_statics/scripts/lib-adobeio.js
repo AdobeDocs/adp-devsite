@@ -494,7 +494,7 @@ function activeSubNav(actTab) {
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
         if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
-          li.classList.add('active-sidenav');
+          li.classList.add('active-sidenav-item');
         } else {
           li.classList.add('hidden');
         }
@@ -503,7 +503,7 @@ function activeSubNav(actTab) {
       }
     });
   }
-  if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
+  if (document.querySelectorAll(".active-sidenav-item")?.length === 0 ) {
     document.querySelector("main").classList.add("no-sidenav");
     const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
     const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
