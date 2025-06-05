@@ -4,17 +4,21 @@
 import { readFile } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
 
-document.body.innerHTML = await readFile({ path: 'announcement.html' });
-const { loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+describe('Announcement block - no image', () => {
+  let announcementBlock;
 
-const announcementBlock = document.querySelector('div.announcement');
-await loadBlock(announcementBlock);
+  before(async () => {
+    document.body.innerHTML = await readFile({ path: 'announcement-noImage.html' });
+    const { loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+    announcementBlock = document.querySelector('div.announcement');
+    await loadBlock(announcementBlock);
+  });
 
-describe('Announcement block', () => {
   it('Builds announcement block', async () => {
     expect(announcementBlock).to.exist;
+  });
 
-    // headings
+  it("announcement > heading", () => {
     const headings = announcementBlock.querySelectorAll('h1, h2, h3, h4, h5, h6');
     expect(headings).to.exist;
     headings.forEach((heading) => {
@@ -23,8 +27,9 @@ describe('Announcement block', () => {
       expect(heading.classList.contains('announcement-heading')).to.be.true;
       expect(heading.style.whiteSpace).to.equal('normal');
     });
+  });
 
-    // paragraphs
+  it("announcement > paragraphs", () => {
     const paragraphs = announcementBlock.querySelectorAll('p');
     expect(paragraphs).to.exist;
     paragraphs.forEach((paragraph) => {
@@ -32,16 +37,31 @@ describe('Announcement block', () => {
       expect(paragraph.classList.contains('spectrum-Body--sizeL')).to.be.true;
       expect(paragraph.style.whiteSpace).to.equal('normal');
     });
+  });
 
-    //picture img
-    const image = announcementBlock.querySelector('picture img');
-    if(!image){
+  it("announcement > image", () => {
+    const img = announcementBlock.querySelector('picture img');
+    if (!img) {
       if (!announcementBlock.classList.contains('background-color-white') && !announcementBlock.classList.contains('background-color-navy') && !announcementBlock.classList.contains('background-color-dark-gray')) {
         expect(announcementBlock.classList.contains('background-color-gray')).to.be.true;
       }
     }
+  });
 
-    //buttons
-    // expect(buttonIsDecorated(announcementBlock)).to.be.true;
+});
+
+describe('Announcement block - image', () => {
+  let announcementBlock;
+
+  before(async () => {
+    document.body.innerHTML = await readFile({ path: 'announcement-image.html' });
+    const { loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+    announcementBlock = document.querySelector('div.announcement');
+    await loadBlock(announcementBlock);
+  });
+
+  it("announcement > picture img", () => {
+    const img = announcementBlock.querySelector('picture img');
+    expect(img).to.exist;
   });
 });
