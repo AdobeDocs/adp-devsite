@@ -330,7 +330,7 @@ main div.side-nav-wrapper .side-nav-subpages-section .side-nav-section-label {
   padding: 0 8px;
 }
 
-main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hide-sidenav {
+main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hidden {
     display:none;
 }
 
