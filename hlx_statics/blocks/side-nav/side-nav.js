@@ -4,37 +4,13 @@ import {
 import {
   fetchSideNavHtml,
   fetchTopNavHtml,
-  getMetadata,
 } from "../../scripts/lib-helix.js";
-
-function isDocumentationTemplate() {
-  return getMetadata("template") === "documentation";
-}
-
-function isMobileView() {
-  return window.innerWidth <= 768;
-}
 
 /**
  * Decorates the side-nav
  * @param {Element} block The site-nav block element
  */
 export default async function decorate(block) {
-  // Handle visibility of side nav container based on template and screen size
-  const sideNavContainer = block.closest('.side-nav-container');
-  if (!isDocumentationTemplate() && sideNavContainer) {
-    // For non-documentation pages, only show on mobiles
-    const updateVisibility = () => {
-      sideNavContainer.style.display = isMobileView() ? 'block' : 'none';
-    };
-
-    // Initial visibility
-    updateVisibility();
-
-    // Update visibility on resize
-    window.addEventListener('resize', updateVisibility);
-  }
-
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
 
