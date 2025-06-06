@@ -181,16 +181,9 @@ async function loadEager(doc) {
     // check if this page is from dev docs, then change the main container to white background.
     const mainContainer = document.querySelector('main');
     mainContainer.classList.add('white-background');
-  }
 
-
-  if (IS_DEV_DOCS) {
     buildGrid(main);
-  }
-
-  buildSideNav(main);
-
-  if (IS_DEV_DOCS) {
+    buildSideNav(main);
     buildBreadcrumbs(main);
   }
 
