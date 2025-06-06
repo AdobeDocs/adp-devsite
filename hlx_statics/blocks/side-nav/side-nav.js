@@ -42,25 +42,6 @@ export default async function decorate(block) {
   navigationLinksContainer.append(subPagesSection);
   subPagesSection.append(navigationLinksUl);
 
-  // Set grid layout based on screen size
-  const main = document.querySelector("main");
-  if (main) {
-    if (window.innerWidth <= 768) {
-      main.style.gridTemplateColumns = "0 100%";
-    } else {
-      main.style.gridTemplateColumns = "256px minmax(0, 1fr)";
-    }
-
-    // Update grid on window resize
-    window.addEventListener("resize", () => {
-      if (window.innerWidth <= 768) {
-        main.style.gridTemplateColumns = "0 100%";
-      } else {
-        main.style.gridTemplateColumns = "256px minmax(0, 1fr)";
-      }
-    });
-  }
-
   const rightIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
     <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" />
     <path class="fill" d="M12,9a.994.994,0,0,1-.2925.7045l-3.9915,3.99a1,1,0,1,1-1.4355-1.386l.0245-.0245L9.5905,9,6.3045,5.715A1,1,0,0,1,7.691,4.28l.0245.0245,3.9915,3.99A.994.994,0,0,1,12,9Z" />

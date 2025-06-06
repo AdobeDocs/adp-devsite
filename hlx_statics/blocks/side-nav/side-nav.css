@@ -226,10 +226,6 @@ main div.section.side-nav-container {
 
 /* Mobile behavior */
 @media screen and (max-width: 768px) {
-  /* Adjust grid layout */
-  body.template-documentation main {
-    grid-template-columns: 0 100% !important;
-  }
   main div.section.side-nav-container {
       visibility: visible;
   }
