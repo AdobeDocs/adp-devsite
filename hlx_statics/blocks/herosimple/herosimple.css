@@ -4,7 +4,7 @@ main div.herosimple-wrapper {
 main div.herosimple-wrapper div.herosimple {
   height: 272px;
   overflow: hidden;
-  color: rgb(255, 255, 255);
+  /* color: rgb(255, 255, 255); */
   position: relative;
 }
 
@@ -21,6 +21,41 @@ main div.herosimple-wrapper div.herosimple > div {
 main div.herosimple-wrapper div.herosimple > div > div{
   width: calc(5* 100% / 12);
   font-size: 20px;
+}
+
+main div.herosimple-wrapper div.herosimple .hero-left-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main div.herosimple-wrapper div.herosimple div.hero-left-content>div {
+  display: flex;
+  gap: 30px;
+  flex-direction: column;
+}
+
+main div.herosimple-wrapper div.herosimple div.hero-left-content,
+main div.herosimple-wrapper div.herosimple div.hero-right-image {
+  width: 50%;
+}
+
+main div.herosimple-wrapper div.herosimple div.hero-right-image img {
+  width: 600px;
+}
+
+main div.herosimple-wrapper div.halfWidth {
+  height: unset;
+}
+
+main div.herosimple-wrapper div.halfWidth>div.herosimple-container-wrapper {
+  flex-direction: row;
+}
+
+@media screen and (min-width: 320px) and (max-width: 767px) {
+  main div.herosimple-wrapper div.herosimple div.hero-right-image img {
+    width: 300px;
+  }
 }
 
 @media screen and (max-width: 1280px) {
