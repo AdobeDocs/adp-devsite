@@ -485,25 +485,28 @@ function activateTab(tabItem, isMainPage) {
 }
 
 function activeSubNav(actTab) {
+  let showSidenav = false;
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
-    const firstLevelItems = navLinksUl.querySelectorAll(':scope > ul > li');
-    const currentPath = actTab.pathname;
-    firstLevelItems.forEach(li => {
+    const sidenavItems = navLinksUl.querySelectorAll(':scope > ul li');
+    const topNavPath = actTab.pathname;
+    const pagePath = window.location.pathname;
+    sidenavItems.forEach(li => {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
-          li.classList.add('active-sidenav');
-        } else {
-          li.classList.add('hide-sidenav');
+        if (linkPath === pagePath) {
+          showSidenav = true;
+        } 
+        if (!linkPath.startsWith(topNavPath)) {
+          li.classList.add('hidden');
         }
       } else {
-        li.classList.add('hide-sidenav');
+        li.classList.add('hidden');
       }
     });
   }
-  if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
+  if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
     const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
     const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
