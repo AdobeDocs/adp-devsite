@@ -67,7 +67,6 @@ describe('Product card block', () => {
 
     it('product card > spectrum-Card', () => {
         const childDivs = productCardBlock.querySelectorAll(':scope > div');
-        // console.log(childDivs.length);
         childDivs.forEach((child) => {
             expect(child.classList.contains('spectrum-Card')).to.be.true;
         });
@@ -75,7 +74,6 @@ describe('Product card block', () => {
 
     it('product card > spectrum-Card-body', () => {
         const bodyDiv = document.getElementsByClassName('spectrum-Card');
-        console.log(bodyDiv[0]);
         const childbody = bodyDiv[0].querySelectorAll(':scope > div');
         
         childbody.forEach((child, index) => {
