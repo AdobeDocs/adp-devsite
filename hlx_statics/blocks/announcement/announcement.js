@@ -72,10 +72,11 @@ export default async function decorate(block) {
     p.style.whiteSpace = "normal";
   });
   const imageExists = block.querySelector('picture img');
+  const allowed = ["background-color-white", "background-color-navy", "background-color-dark-gray"];
   if (!imageExists) {
     if (getMetadata("template") === "documentation" && background_Exists) {
-        block.classList.add(background_Exists);
-    } else if (!block.classList.matches(".background-color-white, .background-color-navy, .background-color-dark-gray")) {
+      block.classList.add(background_Exists);
+    } else if (!allowed.some(cls => block.classList.contains(cls))) {
       block.classList.add("background-color-gray");
     }
   }
