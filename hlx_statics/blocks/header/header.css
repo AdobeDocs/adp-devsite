@@ -567,7 +567,8 @@ header div.search-suggestions-link {
 }
 
 header div.filters {
-  width: var(--spectrum-global-dimension-static-size-3200);
+  width: 256px;
+  overflow-y: auto;
 }
 
 header div.search-checkbox-div {
@@ -689,6 +690,7 @@ header div.search-refinement {
   box-sizing: border-box;
   padding: 16px;
   width: 256px;
+  height: 750px;
 }
 
 header div.result-item > h1 {
