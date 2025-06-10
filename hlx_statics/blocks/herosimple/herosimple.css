@@ -52,6 +52,25 @@ main div.herosimple-wrapper div.halfWidth>div.herosimple-container-wrapper {
   flex-direction: row;
 }
 
+main div.herosimple-wrapper div.fullWidth>div {
+  align-items: center;
+  text-align: center;
+}
+
+main div.herosimple-wrapper div.fullWidth>div>div {
+  width: unset;
+}
+
+main div.herosimple-wrapper div.button-container > p ,
+main div.herosimple-wrapper .all-button-container > p {
+  margin: 0;
+}
+
+main div.herosimple-wrapper .all-button-container {
+  display: inline-flex;
+  gap: 16px;
+}
+
 @media screen and (min-width: 320px) and (max-width: 767px) {
   main div.herosimple-wrapper div.herosimple div.hero-right-image img {
     width: 300px;

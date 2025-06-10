@@ -1,14 +1,30 @@
-import { createTag } from "../../scripts/lib-adobeio.js";
+import { createTag, decorateButtons } from "../../scripts/lib-adobeio.js";
 
 /**
  * decorates the herosimple
  * @param {Element} block The herosimple block element
  */
+
+function normalizeButtonContainer(block) {
+  block.querySelectorAll('a').forEach((anchor, i) => {
+    const p = createTag('p');
+    const node = i === 0 ? createTag('strong') : p;
+    node.appendChild(anchor.cloneNode(true));
+    p.appendChild(node === p ? node.firstChild : node);
+    anchor.replaceWith(p);
+  });
+
+  const lastGroup = block.lastElementChild?.lastElementChild;
+  if (lastGroup && [...lastGroup.children].every(child => child.tagName === 'P')) {
+    lastGroup.classList.add('all-button-container');
+  }
+}
+
 export default async function decorate(block) {
   const background = block.getAttribute('data-background') || 'rgb(29, 125, 238)';
   block.style.background = background;
 
-  const variant = block.getAttribute('data-variant') || 'fullWidth';
+  const variant = block.getAttribute('data-variant') || 'default';
   block.classList.add(variant);
 
   const textColor = block.getAttribute('data-textcolor') || 'rgb(44, 44, 44)';
@@ -22,6 +38,7 @@ export default async function decorate(block) {
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     const fontFamily = block?.parentElement?.parentElement?.getAttribute('data-font-family');
     const headerFontSize = block?.parentElement?.parentElement?.getAttribute('data-HeaderFontSize');
+    h.style.color = textColor;
     if (fontFamily) {
       h.style.fontFamily = fontFamily;
       h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
@@ -38,9 +55,13 @@ export default async function decorate(block) {
   const srcsetValue = sourceElement ? sourceElement?.getAttribute('srcset') : null;
   const url = srcsetValue?.split(' ')[0];
   const pictureElement = block.querySelector('picture');
-  if (pictureElement && variant === "fullWidth") {
-    const parentDiv = pictureElement.parentElement;
-    parentDiv.remove();
+
+  if (pictureElement && variant === "fullWidth" || variant === "default") {
+    const parentDiv = pictureElement?.parentElement;
+
+    if (parentDiv)
+      parentDiv.remove();
+    
     Object.assign(block.style, {
       backgroundImage: `url(${url})`,
       backgroundSize: 'cover',
@@ -60,5 +81,8 @@ export default async function decorate(block) {
     layoutWrapper.append(contentContainer, imageContainer);
     block.appendChild(layoutWrapper);
   }
+
+  normalizeButtonContainer(block);
+  decorateButtons(block);
 
 }
