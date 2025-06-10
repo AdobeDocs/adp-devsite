@@ -61,7 +61,7 @@ function setBackgroundImage(block) {
  * @param {Element} block
  */
 export default async function decorate(block) {
-  const background_Exists = block.getAttribute("data-backgroundcolor");
+  const backgroundColor = block.getAttribute("data-backgroundcolor");
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
@@ -72,11 +72,11 @@ export default async function decorate(block) {
     p.style.whiteSpace = "normal";
   });
   const imageExists = block.querySelector('picture img');
-  const allowed = ["background-color-white", "background-color-navy", "background-color-dark-gray"];
+  const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray"];
   if (!imageExists) {
-    if (getMetadata("template") === "documentation" && background_Exists) {
-      block.classList.add(background_Exists);
-    } else if (!allowed.some(cls => block.classList.contains(cls))) {
+    if (getMetadata("template") === "documentation" && Boolean(backgroundColor) && allowedBackgroundColors.includes(backgroundColor)) {
+      block.classList.add(backgroundColor);
+    } else if (!allowedBackgroundColors.includes(backgroundColor)) {
       block.classList.add("background-color-gray");
     }
   }
