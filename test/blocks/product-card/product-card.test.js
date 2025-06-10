@@ -6,7 +6,7 @@ const { loadBlock, decorateBlock } = await import('../../../hlx_statics/scripts/
 
 
 const productCardBlock = document.querySelector('div.product-card');
-await decorateBlock(productCardBlock); // todo: should figure out why this is required for this block only
+await decorateBlock(productCardBlock);
 await loadBlock(productCardBlock);
 
 describe('Product card block', () => {
