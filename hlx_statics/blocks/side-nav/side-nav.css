@@ -326,6 +326,7 @@ main div.side-nav-wrapper .side-nav-subpages-section .side-nav-section-label {
   padding: 0 8px;
 }
 
+main.no-sidenav div.side-nav-wrapper .side-nav .side-nav-subpages-section,
 main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hidden {
     display:none;
 }
