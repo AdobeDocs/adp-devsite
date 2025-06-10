@@ -43,10 +43,10 @@ describe('Link block', () => {
     });
   });
 
-  it("lick block > sub parent", () => {
+  it("link block > sub parent", () => {
     const subParent = linkBlockBlock.querySelector('.sub-parent');
     const linkBlockWrapper = linkBlockBlock.querySelector('.link-block-wrapper');
-    //todo: can not find subParent and linkBlockWrapper in google docs sample block
+    //FIXME: can not find subParent and linkBlockWrapper in google docs sample block
   });
 
 });
