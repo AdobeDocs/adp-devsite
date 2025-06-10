@@ -27,28 +27,19 @@ export default async function decorate(block) {
   const variant = block.getAttribute('data-variant') || 'default';
   block.classList.add(variant);
 
-  const textColor = block.getAttribute('data-textcolor') || 'rgb(44, 44, 44)';
-  block.style.color = textColor;
+  const textColor = block.getAttribute('data-textcolor') || 'black';
+  block.classList.add(`text-color-${textColor}`);
 
   const layoutWrapper = createTag('div', { class: "herosimple-container-wrapper" });
   const contentContainer = createTag('div', { class: "hero-left-content" });
   const imageContainer = createTag('div', { class: "hero-right-image" });
 
+  const allowedTextColors = { black: 'rgb(0, 0, 0)', white: 'rgb(255, 255, 255)', gray: 'rgb(110, 110, 110)', navy: 'rgb(15, 55, 95)' };
+
   block.setAttribute('daa-lh', 'hero');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-    const fontFamily = block?.parentElement?.parentElement?.getAttribute('data-font-family');
-    const headerFontSize = block?.parentElement?.parentElement?.getAttribute('data-HeaderFontSize');
-    h.style.color = textColor;
-    if (fontFamily) {
-      h.style.fontFamily = fontFamily;
-      h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
-    } else if (headerFontSize) {
-      h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
-      h.style.fontSize = headerFontSize;
-    } else {
-      h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL', 'spectrum-Heading');
-    }
-
+    h.style.color = Object.keys(allowedTextColors).includes(textColor) && allowedTextColors[textColor];
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL', 'spectrum-Heading');
   });
 
   const sourceElement = block.querySelector('source[type="image/webp"]');
@@ -61,7 +52,7 @@ export default async function decorate(block) {
 
     if (parentDiv)
       parentDiv.remove();
-    
+
     Object.assign(block.style, {
       backgroundImage: `url(${url})`,
       backgroundSize: 'cover',

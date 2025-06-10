@@ -4,7 +4,6 @@ main div.herosimple-wrapper {
 main div.herosimple-wrapper div.herosimple {
   height: 272px;
   overflow: hidden;
-  /* color: rgb(255, 255, 255); */
   position: relative;
 }
 
@@ -69,6 +68,22 @@ main div.herosimple-wrapper .all-button-container > p {
 main div.herosimple-wrapper .all-button-container {
   display: inline-flex;
   gap: 16px;
+}
+
+main div.herosimple-wrapper .text-color-white {
+  color: rgb(255, 255, 255);
+}
+
+main div.herosimple-wrapper .text-color-black {
+  color: rgb(0, 0, 0);
+}
+
+main div.herosimple-wrapper .text-color-gray {
+  color: rgb(110, 110, 110);
+}
+
+main div.herosimple-wrapper .text-color-navy {
+  color: rgb(15, 55, 95);
 }
 
 @media screen and (min-width: 320px) and (max-width: 767px) {
