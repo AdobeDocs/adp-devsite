@@ -508,11 +508,6 @@ function activeSubNav(actTab) {
   }
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
-    const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
-    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
-    if(!hasHero) {
-      gridAreaMain.style.margin = "0 auto"
-    }
   }
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";
