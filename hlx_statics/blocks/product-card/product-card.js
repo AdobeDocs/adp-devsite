@@ -37,6 +37,7 @@ export default async function decorate(block) {
         );
     } else {
         cards.forEach(card => {
+            card.querySelector('div').classList.add('spectrum-Card', 'spectrum-Card--sizeM');
             Array.from(card.children).forEach(c => {
                 if (c.querySelector('.spectrum-Card-body') && c.querySelector('.spectrum-Card-footer')) return;
 
