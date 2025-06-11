@@ -162,23 +162,44 @@ main.white-background {
   background-color: white;
 }
 
-body.documentation main {
+main.dev-docs {
+  grid-template-areas:
+    "sidenav main aside"
+    "sidenav footer .";
+  grid-template-columns: 256px minmax(0, 1fr) 256px;
+}
+
+main.dev-docs.no-sidenav {
+  grid-template-areas:
+    "main aside"
+    "footer .";
+  grid-template-columns: minmax(0, 1fr) 256px;
+}
+
+main.dev-docs.no-onthispage {
+  grid-template-areas:
+    "sidenav main"
+    "sidenav footer";
   grid-template-columns: 256px minmax(0, 1fr);
 }
 
+main.dev-docs.no-sidenav.no-onthispage {
+  grid-template-areas:
+    "main"
+    "footer";
+  grid-template-columns: 100%;
+}
+
 @media screen and (max-width: 768px) {
-  body.documentation main {
-    grid-template-columns: 0 100%;
+  main.dev-docs,
+  main.dev-docs.no-sidenav,
+  main.dev-docs.no-onthispage,
+  main.dev-docs.no-sidenav.no-onthispage {
+    grid-template-areas:
+      "main"
+      "footer";
+    grid-template-columns: 100%;
   }
-}
-
-main.no-sidenav{
-  grid-template-areas: "main" "footer" !important;
-  grid-template-columns: 100% 100% !important;
-}
-
-main.no-sidenav > div.onthispage-wrapper {
-  display: none;
 }
 
 .layout-block {

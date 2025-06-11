@@ -285,14 +285,6 @@ export function buildHeadings(container) {
  */
 export function buildGrid(main) {
   main.style.display = 'grid';
-  const mainContainer = document.querySelector('main');
-  const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
-  const heroSimpleContainer = document.querySelector('.herosimple-container');
-  if (heroSimpleContainer || headings.length === 0) {
-    main.style.gridTemplateAreas = '"sidenav main" "sidenav footer"';
-  } else {
-    main.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer ."';
-  }
 
   const gridAreaMain = main.querySelector(".section");
   gridAreaMain.style.gridArea = 'main';

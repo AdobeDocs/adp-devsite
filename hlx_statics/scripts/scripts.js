@@ -180,7 +180,7 @@ async function loadEager(doc) {
   if (IS_DEV_DOCS) {
     // check if this page is from dev docs, then change the main container to white background.
     const mainContainer = document.querySelector('main');
-    mainContainer.classList.add('white-background');
+    mainContainer.classList.add('dev-docs', 'white-background');
 
     buildGrid(main);
     buildSideNav(main);
@@ -444,11 +444,15 @@ async function loadLazy(doc) {
     if (!hasHero && hasHeading && hasSideNav) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+    } else {
+      main.classList.add('no-onthispage');
     }
+
     if(document.querySelector('.side-nav-subpages-section')) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
+    
     buildGridAreaMain({main, hasHero, hasSideNav});
   }
 
