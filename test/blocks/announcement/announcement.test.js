@@ -9,8 +9,9 @@ describe('Announcement block - no image', () => {
 
   before(async () => {
     document.body.innerHTML = await readFile({ path: 'announcement-noImage.html' });
-    const { loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+    const { decorateBlock, loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
     announcementBlock = document.querySelector('div.announcement');
+    await decorateBlock(announcementBlock);
     await loadBlock(announcementBlock);
   });
 
@@ -55,8 +56,9 @@ describe('Announcement block - image', () => {
 
   before(async () => {
     document.body.innerHTML = await readFile({ path: 'announcement-image.html' });
-    const { loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+    const { decorateBlock, loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
     announcementBlock = document.querySelector('div.announcement');
+    await decorateBlock(announcementBlock);
     await loadBlock(announcementBlock);
   });
 
