@@ -296,9 +296,8 @@ export function buildGrid(main) {
 /**
  * Builds the div with style*="grid-area: main"
  * @param {*} main The grid container
- * @param {*} hasSideNav whether main has a side nav
  */
-export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
+export function buildGridAreaMain(main) {
   const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
   const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
   const subParent = createTag("div", { class: "sub-parent" });
@@ -312,18 +311,6 @@ export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
     gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
   } else {
     gridAreaMain.appendChild(subParent);
-  }
-  const heroSimpleDivs = herosimpleWrapper?.querySelectorAll('.herosimple > div');
-  const footer = main.querySelector('.footer-wrapper');
-  if (hasHero) {
-    heroSimpleDivs?.forEach(div => {
-      div.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
-    });
-    subParent.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
-    footer.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
-  } else {
-    gridAreaMain.classList.add('layout-block', 'layout-block-without-side-nav');
-    footer.classList.add('layout-block', 'layout-block-without-side-nav');
   }
 }
 

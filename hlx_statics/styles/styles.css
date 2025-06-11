@@ -202,19 +202,28 @@ main.dev-docs.no-sidenav.no-onthispage {
   }
 }
 
-.layout-block {
+main.dev-docs .herosimple > div,
+main.dev-docs:has(.herosimple) .sub-parent,
+main.dev-docs:has(.herosimple) .footer-wrapper,
+main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs:not(:has(.herosimple)) .footer-wrapper {
   margin: 0 auto;
   padding-left: 32px;
   padding-right: 32px;
+  width: 100%;
 }
 
-.layout-block-with-side-nav {
-  width: 100%;
+main.dev-docs .herosimple > div,
+main.dev-docs:has(.herosimple) .sub-parent,
+main.dev-docs:has(.herosimple) .footer-wrapper {
   max-width: 1000px;
 }
 
-.layout-block-without-side-nav {
-  width: 100%;
+main.dev-docs.no-sidenav .herosimple > div,
+main.dev-docs:has(.herosimple).no-sidenav .sub-parent,
+main.dev-docs:has(.herosimple).no-sidenav .footer-wrapper,
+main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs:not(:has(.herosimple)) .footer-wrapper {
   max-width: 1280px;
 }
 

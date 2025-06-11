@@ -53,7 +53,7 @@ footer .footer-links-container-inner {
   padding: 32px;
 }
 
-footer.layout-block-without-side-nav .footer-links-container-inner{
+main.no-sidenav footer .footer-links-container-inner{
   padding: 0px;
 }
 
@@ -135,7 +135,7 @@ footer .footer-legal {
   padding: 0 32px;
 }
 
-footer.layout-block-without-side-nav .footer-legal{
+main.no-sidenav footer .footer-legal{
   padding: 0px;
 }
 
@@ -156,7 +156,7 @@ footer .footer-divider {
     padding: 0 32px;
     margin: 0 auto;
   }
-  footer.layout-block-without-side-nav footer-legal{
+  main.no-sidenav footer .footer-legal{
     padding: 0px;
   }
 }

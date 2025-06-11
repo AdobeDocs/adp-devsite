@@ -452,8 +452,8 @@ async function loadLazy(doc) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
-    
-    buildGridAreaMain({main, hasHero, hasSideNav});
+
+    buildGridAreaMain(main);
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
