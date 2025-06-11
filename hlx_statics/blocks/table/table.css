@@ -24,10 +24,6 @@ main div.table-wrapper .table table {
   border-collapse: collapse;
 }
 
-main div.table-wrapper .table .inline-code {
-  font-size: 16px;
-}
-
 main div.table-wrapper .table table tbody tr {
   border-bottom: 1px solid;
 }

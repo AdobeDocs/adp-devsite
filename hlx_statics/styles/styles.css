@@ -257,7 +257,7 @@ main .inline-code {
   line-height: 1.5rem;
 }
 
-main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code , div.heading3-wrapper .inline-code , div.table-wrapper .table .inline-code {
   font-size: 16px;
 }
 
@@ -761,15 +761,16 @@ main .heading6 h6>span {
 
 .spectrum-Button--secondary {
   background-color: transparent;
-  border-color: rgb(34,34,34);
-  color: rgb(34,34,34);
+  border-color: rgb(110, 110, 110);
+  color: rgb(110, 110, 110);
 }
 
 .spectrum-Button--secondary:hover {
-  background-color: rgb(213, 213, 213);
-  border-color: rgb(0, 0, 0);
+  background-color: rgb(110, 110, 110);
+  border-color: rgb(110, 110, 110);
+  color: rgb(255, 255, 255);
   text-decoration: none;
-}
+ } 
 
 .spectrum-Button--secondary.focus-ring {
   background-color: rgb(110, 110, 110);
