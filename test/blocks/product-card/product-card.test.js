@@ -2,11 +2,12 @@ import { readFile } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
 
 document.body.innerHTML = await readFile({ path: 'product-card.html' });
-const { loadBlock, decorateBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+const { loadBlock, decorateBlock, decorateButtons } = await import('../../../hlx_statics/scripts/lib-helix.js');
 
 
 const productCardBlock = document.querySelector('div.product-card');
 await decorateBlock(productCardBlock);
+await decorateButtons(productCardBlock);
 await loadBlock(productCardBlock);
 
 describe('Product card block', () => {

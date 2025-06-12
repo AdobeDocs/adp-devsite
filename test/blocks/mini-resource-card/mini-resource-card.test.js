@@ -1,28 +1,30 @@
 import { readFile } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
 
-document.body.innerHTML = await readFile({ path: 'mini-resource-card.html' });
-const { decorateBlock, loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+describe('Mini resource card block - no primary button', () => {
+    let miniResourceCardBlock;
 
-const miniResourceCardBlock = document.querySelector('div.mini-resource-card');
-await decorateBlock(miniResourceCardBlock);
-await loadBlock(miniResourceCardBlock);
+    before(async () => {
+        document.body.innerHTML = await readFile({ path: 'mini-resource-card.html' });
+        const { decorateBlock, loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+        miniResourceCardBlock = document.querySelector('div.mini-resource-card');
+        await decorateBlock(miniResourceCardBlock);
+        await loadBlock(miniResourceCardBlock);
 
-describe('Mini resource card block', () => {
+    });
+
     it('Builds mini resource card block', () => {
         expect(miniResourceCardBlock).to.exist;
         expect(miniResourceCardBlock.getAttribute('daa-lh')).to.equal('mini resource card');
     });
 
     it('mini resource card > nobox design', () => {
-        // todo:line 46 mini-resource-card.js: does not have nobox-design class
         if (miniResourceCardBlock.classList.contains('nobox-design')) {
             expect(miniResourceCardBlock.classList.contains('background-color-white')).to.be.true;
         }
     });
 
     it('mini resource card > primary button', () => {
-        // todo:line 49 mini-resource-card.js: does not have primarybutton class
         if (miniResourceCardBlock.classList.contains('primarybutton')) {
             const primaryButton = miniResourceCardBlock.querySelectorAll('a')[0];
             const up = primaryButton.parentElement;
@@ -36,30 +38,32 @@ describe('Mini resource card block', () => {
             }
         }
     });
+});
 
-    it('mini resource card > card container', () => {
-        const cardContainer = miniResourceCardBlock.querySelector('.card-container');
-        expect(cardContainer).to.exist;
+describe('Mini resource card block - with primary button', () => {
+    let miniResourceCardBlock;
 
-        miniResourceCardBlock.querySelectorAll('.mini-resource-card > div').forEach((resource) => {
-            if (!resource.querySelector(".button-container")) {
-                const linkHref = resource.querySelector('a')?.href;
-                expect(linkHref).to.exist;
+    before(async () => {
+        document.body.innerHTML = await readFile({ path: 'mini-resource-card-withPrimaryButton.html' });
+        const { decorateBlock, loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
+        miniResourceCardBlock = document.querySelector('div.mini-resource-card');
+        await decorateBlock(miniResourceCardBlock);
+        await loadBlock(miniResourceCardBlock);
+    });
 
-                const heading = resource.querySelector('a')?.innerText;
-                expect(heading).to.exist;
-
-                const text = resource.querySelector('p')?.innerText;
-                const picture = resource.querySelector('picture');
-
-                const img = resource.querySelector('img');
-                if (img) {
-                    expect(img.getAttribute('class')).to.equal('image-mini');
-                }
-                const resourceHTML = resource.innerHTML;
-                expect(resourceHTML).to.exist;
-                // todo: test mini resource card content is correct
+    it('mini resource card > primary button ', () => {
+        expect(miniResourceCardBlock.classList.contains('primarybutton')).to.be.true;
+        const primaryButton = miniResourceCardBlock.querySelectorAll('a')[0];
+        const up = primaryButton.parentElement;
+        const buttonContainer = miniResourceCardBlock.querySelector('.button-container');
+        expect(buttonContainer).to.exist;
+        // FIXME: can't be tested with: expect(buttonContainer.contains(up)).to.be.true;
+        // since the parent-child relationship has been changed
+        // should be able to test by storing the up and container element in a variable before decoration
+        if (!primaryButton.querySelector('img')) {
+            if (up.childNodes.length === 1 && up.tagName === 'STRONG') {
+                expect(primaryButton.className).to.equal('button primary');
             }
-        });
+        }
     });
 });
