@@ -449,6 +449,9 @@ async function loadLazy(doc) {
   const resp = await fetch('/franklin_assets/product-index-map.json');
   window.adp_search.product_index_map = (await resp.json()).data;
 
+  window.adp_search.APP_KEY = 'E642SEDTHL';
+  window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
+
   // Create a new Map to hold the indexName and productName pairs
   window.adp_search.index_mapping = new Map();
 

@@ -509,13 +509,24 @@ header button.close-search-button {
   cursor: pointer;
 }
 
-header div.suggestion-results {
+header div.outer-suggestion-results {
+  width: 100%;
+  height: 100%;
   display: flex;
+  align-items: center;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 95px;
+  left: 0;
+}
+
+header div.suggestion-results {
   min-width: var(--spectrum-global-dimension-size-800);
   max-height: calc(100vh - var(--spectrum-global-dimension-size-2400));
   overflow: auto;
   position: absolute;
-  top: 64px;
+  top: -30px;
   width: 688px;
 }
 
@@ -597,20 +608,30 @@ header div.search-results {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  max-width: 1280px;
+  width: 100%;
   height: calc(100% - 96px);
-  visibility: hidden;
+  visibility: hidden;  
+}
+
+header div.search-results.has-results {
+  background-color: white;
+}
+
+header div.outer-search-box {
+  width: 100%;
+  background-color: rgb(255, 255, 255);
 }
 
 header div.search-box{
   position: relative;
   margin: 32px auto;
-  width: 688px;
+  max-width: 688px;
 }
 
 header div.search-box > form {
   width: 100%;
   height: 32px;
+  width: 688px;
   display: inline-block;
   position: relative;
 }
@@ -621,7 +642,7 @@ header input.search-input {
   padding-right: 40px;
   height: 32px;
   font-family: var(--spectrum-textfield-texticon-text-font-family);
-    font-size: var(--spectrum-textfield-texticon-text-size);
+  font-size: var(--spectrum-textfield-texticon-text-size);
 }
 
 header div.search-box > form > div {
@@ -689,8 +710,7 @@ header div.search-refinement {
   flex-direction: column;
   box-sizing: border-box;
   padding: 16px;
-  width: 256px;
-  height: 750px;
+  max-width: 256px;
 }
 
 header div.result-item > h1 {

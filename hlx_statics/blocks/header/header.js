@@ -2,30 +2,16 @@ import {
   createTag,
   setActiveTab,
   focusRing,
-  isLocalHostEnvironment,
   isTopLevelNav,
-  setSearchFrameOrigin,
   getClosestFranklinSubfolder,
-  setQueryStringParameter,
-  getQueryString,
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
 
-// Load environment variables
 const ALGOLIA_CONFIG = {
-  APP_KEY: process.env.ALGOLIA_APP_KEY || '',
-  API_KEY: process.env.ALGOLIA_API_KEY || ''
+  APP_KEY: window.adp_search.APP_KEY || '',
+  API_KEY: window.adp_search.API_KEY || ''
 };
-
-// Validate required environment variables
-function validateEnvVariables() {
-  if (!ALGOLIA_CONFIG.APP_KEY || !ALGOLIA_CONFIG.API_KEY) {
-    console.error('Missing required Algolia environment variables. Please check your .env file.');
-    return false;
-  }
-  return true;
-}
 
 function isSourceGithub() {
   return getMetadata('source') === 'github';
@@ -46,6 +32,7 @@ function fetchSearchURLParams() {
 function localSearch() {
   // Remove leading/trailing slashes and split the pathname into segments
   const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
+  
   // Limit to the first three levels
   const maxLevels = Math.min(pathSegments.length, 3);
   let bestMatch = null;
@@ -69,13 +56,10 @@ function localSearch() {
 }
 
 function initSearch() {
+  // TODO: add loading circle for when still loading
+  // TODO: Don’t allow x button in search bar to appear unless there is a search in it
   const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
-
-  // Use environment variables for Algolia configuration
-  if (!validateEnvVariables()) {
-    return;
-  }
 
   const searchClient = algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
   const SUGGESTION_MAX_RESULTS = 50;
@@ -83,7 +67,6 @@ function initSearch() {
 
   const indices = window.adp_search.indices
   const index_to_product = window.adp_search.index_to_product;
-  // const path_prefix_to_product = window.adp_search.path_prefix_to_product;
   const all_products = window.adp_search.products;
 
   const urlParams = fetchSearchURLParams();
@@ -123,22 +106,20 @@ function initSearch() {
     initialIndex = selectedIndices[0];
   }
 
-  // let productsWithResults = new Set(); // Tracks which products had hits
-
   // Initialize InstantSearch
   let search = instantsearch({
     indexName: initialIndex, // Use the first valid index
     searchClient,
     });
-  
-  search.start();
 
   // Variable to keep track of results to modify how to render them later
   let results = new Map();
+  
+  search.start();
 
   // Function to initialize or update the search
   function updateSearch() {
-    console.log("update search")
+    // console.log("update search")
 
     // Get indices corresponding to selected products
     const selectedIndices = indices.filter((indexName) => {
@@ -146,25 +127,21 @@ function initSearch() {
       return selectedProducts.includes(product);
     });
 
-    // Number of results displayed per index changes depending on how many products are selected
-    let hits = 1;
-
+    // TODO: CHANGE HOW MANY RESULTS ARE SHOWN BASED ON HOW MANY PRODUCTS ARE SELECTED
+    let hits = 3;
     let search_box_container = ".merged-results";
+    // // Number of results displayed per index changes depending on how many products are selected
+    // console.log(suggestions_flag)
     if (suggestions_flag) {
-      console.log("sugg container")
-      // hits = Math.ceil(SUGGESTION_MAX_RESULTS / selectedIndices.length)
-      search_box_container = ".suggestion-results" }
+      search_box_container = ".suggestion-results"; }
     // }else{
-    //   hits = Math.ceil(SEARCH_MAX_RESULTS / selectedIndices.length)
+    //   console.log("sugg container")
+    //    console.log("full results container")
+    //   hits = Math.ceil(SEARCH_MAX_RESULTS / selectedIndices.length);
+    //   hits = Math.ceil(SUGGESTION_MAX_RESULTS / selectedIndices.length);
+    //   
     // }
-
-    // Add common widgets like hits per index and how long results are (content)
-    search.addWidgets([
-      instantsearch.widgets.configure({
-        hitsPerPage: hits,
-        attributesToSnippet: ['content:50'],
-      }),
-    ]);
+    // console.log("num of hits per index: " + Math.ceil(SEARCH_MAX_RESULTS / selectedIndices.length).toString());
 
     // Custom InstantSearch search box to deal with suggestions and full results which depends on user input
     function customSearchBox() { return { init({ helper }) {
@@ -172,46 +149,50 @@ function initSearch() {
       const clearSearchQueryButton = document.querySelector("button.clear-search-query-button");
       const searchResults = document.querySelector("div.search-results");
       const searchSuggestions = document.querySelector("div.suggestion-results");
+      const outerSearchSuggestions = document.querySelector("div.outer-suggestion-results");
+
       const queryFromURL = urlParams.query;
 
       // Detects query in URL but no input value (tab was reloaded)
       if (queryFromURL && !searchInput.value) {
-          searchInput.value = queryFromURL;
-          helper.setQuery(queryFromURL).search();
-          suggestions_flag = false;
-          searchResults.style.visibility = "visible";
-          searchExecuted = true; // Mark search as executed
+        // console.log("suggestions flag is false")
+        searchInput.value = queryFromURL;
+        helper.setQuery(queryFromURL).search();
+        suggestions_flag = false;
+        searchResults.style.visibility = "visible";
+        outerSearchSuggestions.style.display = "none";              
+        searchExecuted = true; // Mark search as executed
       }
 
       // Listen for user typing (suggestions appear before Enter is pressed)
       searchInput.addEventListener('input', () => {
-          if (!searchExecuted && searchInput.value.trim() !== "") {
-              searchSuggestions.style.display = "block";  
-              searchResults.style.visibility = "hidden"; 
-              helper.setQuery(searchInput.value).search(); 
-          } else if (searchInput.value.trim() === "") {
-              searchSuggestions.style.display = "none"; // Hide if input is empty
-          }
+        if (!searchExecuted && searchInput.value.trim() !== "") {
+            searchSuggestions.style.display = "block"; 
+            helper.setQuery(searchInput.value).search(); 
+        }
       });
 
       // When Enter is pressed, execute full search and prevent suggestions from reappearing
       searchInput.addEventListener('keypress', (event) => {
-          if (event.key === 'Enter') {
-            console.log("enter is pressed")
-              helper.setQuery(searchInput.value).search();
-              searchResults.style.visibility = "visible";
-              searchSuggestions.style.display = "none";
-              suggestions_flag = false;
-              searchExecuted = true; // Prevent suggestions from overriding search results
-          }
+        if (event.key === 'Enter') {
+          // console.log("enter is pressed")
+          helper.setQuery(searchInput.value).search();
+          outerSearchSuggestions.style.display = "none";  
+          searchSuggestions.style.display = "none";            
+          suggestions_flag = false; // Prevent suggestions from overriding search results
+          searchResults.style.visibility = "visible";
+          searchResults.classList.add('has-results');
+          searchExecuted = true; // Prevent suggestions from overriding search results
+        }
       });
 
       // Clear search query when clear button is clicked
       clearSearchQueryButton.addEventListener('click', () => {
-          searchInput.value = "";
-          helper.setQuery('').search();
-          searchResults.style.visibility = "hidden";
-          // searchSuggestions.style.display = "none";
+        // console.log("clear search query button pressed");
+        searchInput.value = "";
+        helper.setQuery('').search();
+        searchResults.style.visibility = "hidden";
+        outerSearchSuggestions.style.display = "flex"; 
       });
     }, render() {}, };
   }
@@ -235,7 +216,7 @@ function initSearch() {
             content: instantsearch.snippet({ hit, attribute: 'content' }),
           });
         });
-      console.log("render merged hits func")
+      // console.log("render merged hits func")
       updateSearchParams();
       if (suggestions_flag){
         renderSuggestionResults();
@@ -243,6 +224,14 @@ function initSearch() {
         renderMergedResults(); // Call to render the filtered results
       }
     }
+
+    // Add common widgets like hits per index and how long results are (content)
+    search.addWidgets([
+      instantsearch.widgets.configure({
+        hitsPerPage: hits,
+        attributesToSnippet: ['content:50'],
+      }),
+    ]);
     
     const customMergedHits = connectAutocomplete(mergedHits);
     search.addWidgets([
@@ -252,7 +241,7 @@ function initSearch() {
       }),
     ]);
 
-    // Add indices
+    // Loop through rest of indices
     selectedIndices.slice(1).forEach((indexName) => {
       search.addWidgets([
         instantsearch.widgets.index({
@@ -304,7 +293,7 @@ function initSearch() {
     const allProductsDiv = document.createElement('div');
     allProductsDiv.classList.add('search-checkbox-div');
 
-    // – add a data-all on the "All Products" wrapper (never hide All Products)
+    // Add a data-all on the "All Products" wrapper (never hide All Products)
     allProductsDiv.dataset.all = 'true';
 
     const allProductsCheckbox = document.createElement('input');
@@ -336,10 +325,10 @@ function initSearch() {
       checkbox.id = `checkbox-${product.replace(/\s+/g, '-')}`;
       checkbox.value = product;
       checkbox.classList.add('search-checkbox');
-      checkbox.checked =
-        selectedProducts.includes(product) &&
-        urlParams.products !== 'all' &&
-        localElem !== null;
+      // console.log("in render checkboxes - product: " + product);
+
+      // don't check products if new tab or if all products are selected
+      checkbox.checked = selectedProducts.includes(product) && !allProductsCheckbox.checked;
 
       const label = document.createElement('label');
       label.htmlFor = checkbox.id;
@@ -384,7 +373,7 @@ function initSearch() {
         productCheckboxes.forEach((cb) => (cb.checked = false)); // Uncheck all products
       }
       updateSearchParams();
-      renderMergedResults();
+      updateSearch();
     });
     
     // Event listeners for individual product checkboxes
@@ -401,7 +390,7 @@ function initSearch() {
           selectedProducts = all_products.slice();
         }
         updateSearchParams();
-        renderMergedResults();
+        updateSearch();
       });
     });
   }
@@ -428,9 +417,7 @@ function initSearch() {
 
     // determine display order
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
-    const productsToShow = allProductsCheckbox.checked
-      ? all_products
-      : selectedProducts;
+    const productsToShow = allProductsCheckbox.checked ? all_products : selectedProducts;
 
     const productsWith = [], productsWithout = [];
     productsToShow.forEach((p) =>
@@ -448,17 +435,18 @@ function initSearch() {
         productGroupedResults.get(product).forEach(({ key, value }) => {
           section.innerHTML += `
             <div class="result-item">
-              <h1 class="spectrum-Body spectrum-Body--sizeM">
+              <h1 class="spectrum-Body spectrum-Body--sizeM css-1i3xfjj">
                 <a href="${value.url}">${key}</a>
               </h1>
-              <p class="result-content spectrum-Body--sizeS">${value.content}</p>
+              <a href="${value.url} class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>        
+              <p class="result-content spectrum-Body spectrum-Body--sizeS">${value.content}</p>  
             </div>
-            <hr>`;
+            <hr>
+          `;
         });
       } else {
         section.innerHTML += `<p>No results found for this product.</p>`;
       }
-
       container.appendChild(section);
     });
 
@@ -499,25 +487,31 @@ function initSearch() {
 
     // render each section
     sorted.forEach((product) => {
-      const wrapper = document.createElement('div');
-      wrapper.classList.add('suggestion-product-group');
-      wrapper.innerHTML = `
-        <hr><h4>${product}</h4><hr>`;
+      const productDiv = document.createElement("div");
+        productDiv.classList.add("suggestion-product-group");
 
-      if (productGroupedResults.has(product)) {
-        productGroupedResults.get(product).forEach(({ key, value }) => {
-          wrapper.innerHTML += `
-            <a href="${value.url}" role="menuitem" tabindex="0" class="spectrum-Menu-item">
-              <strong>${key}</strong><br>
-              <small>${value.url}</small><br>
-              ${value.content}
-            </a>`;
-        });
-      } else {
-        wrapper.innerHTML += `<p>No results found for this product.</p>`;
-      }
-
-      ul.appendChild(wrapper);
+        // Add separator before each product section
+        productDiv.innerHTML = `<hr class="search-sugguestions-hr-top"><h4 class="search-sugguestions-h4">${product}</h4><hr class="search-sugguestions-hr-bottom">`;
+        if (productGroupedResults.has(product)) {
+          // If there are results, render them
+          productGroupedResults.get(product).forEach(({ key, value }) => {
+              productDiv.innerHTML += `
+                  <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-sugguestions-a">
+                    <span class="spectrum-Menu-itemLabel">
+                        <div>
+                            <strong>${key}</strong>
+                            <div class="search-suggestions-link">${value.url}</div>
+                            <div>${value.content}</div>
+                        </div>
+                    </span>
+                  </a>
+              `;
+          });
+        } else {
+            // Even if no results, still display the product section
+            productDiv.innerHTML += `<p>No results found for this product.</p>`;
+        }
+      ul.appendChild(productDiv);
     });
 
     // Ensure that at least something appears, even if no results are found
@@ -550,6 +544,7 @@ function globalNavSearchButton() {
 const globalNavSearchDropDown = () => {
   const searchDropDown = createTag('div', { class: 'nav-console-search-frame' });
   searchDropDown.innerHTML = `
+   <div class="outer-search-box">
     <div id="search-box" class="search-box">
       <form onsubmit="return false;">
         <div>
@@ -563,12 +558,13 @@ const globalNavSearchDropDown = () => {
             </svg>
           </button>
         </div>
-        
+        </div>   
       </form>
-    </div>
-
-    <div class="suggestion-results spectrum-Popover spectrum-Popover--bottom is-open" style="display: none;">
-      <ul role="menubar" class="suggestion-results-list">
+      <div class="outer-suggestion-results">
+        <div class="suggestion-results spectrum-Popover spectrum-Popover--bottom is-open" style="display: none;">
+          <ul role="menubar" class="suggestion-results-list">
+        </div>
+      </div>
     </div>
 
     <div class="search-results">
@@ -583,96 +579,70 @@ const globalNavSearchDropDown = () => {
   return searchDropDown;
 };
 
-// const setSearchFrameSource = () => {
-//   const src = isLocalHostEnvironment(window.location.host) ? setSearchFrameOrigin(window.location.host) : `${setSearchFrameOrigin(window.location.host, '/search-frame')}`;
-//   const queryString = getQueryString();
-//   return queryString && queryString.toString().length > 0
-//     ? `${src}?${queryString.toString()}`
-//     : src;
-// };
-
-// const searchFrameOnLoad = (renderedFrame, counter = 0, loaded) => {
-//   renderedFrame.contentWindow.postMessage(JSON.stringify({ localPathName: window.location.pathname }), '*');
-//   if (window.search_path_name_check !== window.location.pathname) {
-//     if (counter > 30) {
-//       console.warn('Loading Search iFrame timed out');
-//       return;
-//     }
-//     window.setTimeout(() => { searchFrameOnLoad(renderedFrame, counter + 1, loaded); }, 100);
-//   }
-//   if (!loaded) {
-//     const queryString = getQueryString();
-//     if (queryString.has('query')) {
-//       const searchIframeContainer = document.querySelector('div.nav-console-search-frame');
-//       if (searchIframeContainer.length > 0) {
-//         searchIframeContainer.style.visibility = 'visible';
-//       }
-//     }
-//   }
-//   loaded = true; 
-// };
-
-// // Referenced https://stackoverflow.com/a/10444444/15028986
-// const checkIframeLoaded = (renderedFrame) => {
-//   // Get a handle to the iframe element
-//   const iframeDoc = renderedFrame.contentDocument || renderedFrame.contentWindow.document;
-
-//   // Check if loading is complete
-//   if (iframeDoc.readyState === 'complete') {
-//     renderedFrame.onload = () => {
-//       searchFrameOnLoad(renderedFrame);
-//     };
-//     // The loading is complete, call the function we want executed once the iframe is loaded
-//     return;
-//   }
-//   // If we are here, it is not loaded.
-//   // Set things up so we check the status again in 100 milliseconds
-//   window.setTimeout(checkIframeLoaded, 100);
-// };
-
-// Referenced https://stackoverflow.com/a/10444444/15028986
-// const checkIframeLoaded = (renderedFrame) => {
-//   // Get a handle to the iframe element
-//   const iframeDoc = renderedFrame.contentDocument || renderedFrame.contentWindow.document;
-
-//   // Check if loading is complete
-//   if (iframeDoc.readyState === 'complete') {
-//     renderedFrame.onload = () => {
-//       searchFrameOnLoad(renderedFrame);
-//     };
-//     // The loading is complete, call the function we want executed once the iframe is loaded
-//     return;
-//   }
-//   // If we are here, it is not loaded.
-//   // Set things up so we check the status again in 100 milliseconds
-//   window.setTimeout(checkIframeLoaded, 100);
-// }
-
 function decorateSearchIframeContainer(header) {
   const search_div = header.querySelector('div.nav-console-search-frame');
   const search_button = header.querySelector('button.nav-dropdown-search');
   const search_suggestions = header.querySelector('div.suggestion-results');
+  const outer_suggestion_div = header.querySelector('div.outer-suggestion-results');
   const close_search_button = header.querySelector('button.close-search-button');
   const search_results = document.querySelector("div.search-results");
-  const search_bar = document.querySelector("div.search-box")
+  const search_bar = document.querySelector("div.outer-search-box");
 
   const urlParams = fetchSearchURLParams();
 
-  //reloaded tab and should show an initalized search on start
-  if (urlParams.products) {
-    initSearch();
+  // Function to hide suggestions
+  function hideSuggestions() {
+    outer_suggestion_div.style.display = "none";              
+    search_suggestions.style.display = "none";
+  }
+
+  // Function to show search with semi-transparent background
+  function showSearchBar() {
+    search_bar.style.visibility = 'visible';
+    outer_suggestion_div.style.display = "flex"; 
+    search_results.classList.remove('has-results');
+  }
+
+  // Function to show search with results and white background
+  function showSearchResults() {
     search_div.style.visibility = 'visible';
+    search_results.style.visibility = 'visible';
+    search_results.classList.add('has-results');
+    hideSuggestions();
+  }
+
+  // Function to hide search completely
+  function hideSearch() {
+    search_bar.style.visibility = 'hidden';
+    search_div.style.visibility = 'hidden';
+    search_results.style.visibility = 'hidden';
+    search_results.classList.remove('has-results');
+    hideSuggestions();
+  }
+
+  // Initialize search based on URL parameters - had both products selected and a query
+  if (urlParams.query) {
+    initSearch();
+    showSearchResults();
     search_button.classList.add('is-open');
     search_button.style.display = 'none';
     close_search_button.style.display = 'block';
   }
 
+  // when there's no query but a search instance has been created - only show search bar instead of full search
+  if (!urlParams.query && urlParams.products) {
+    initSearch();
+    showSearchBar();
+    search_button.classList.add('is-open');
+    search_button.style.display = 'none';
+    close_search_button.style.display = 'block';
+  }
+
+  // open search with mag glass search button
   search_button.addEventListener('click', (evt) => {
     if (!evt.currentTarget.classList.contains('is-open')) {
       initSearch();
-      // search_bar.style.visibility = 'visible';
-      search_div.style.visibility = 'visible';
-      // search_results.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+      showSearchBar();
       search_button.classList.add('is-open');
       search_button.style.display = 'none';
       close_search_button.style.display = 'block';
@@ -682,14 +652,11 @@ function decorateSearchIframeContainer(header) {
   // close search
   close_search_button.addEventListener('click', () => {
     search_button.classList.remove('is-open');
-    close_search_button.classList.remove('is-open'); // Ensure close button resets state
-    search_div.style.visibility = 'hidden';
-    search_results.style.visibility = 'hidden';
+    close_search_button.classList.remove('is-open');
+    hideSearch();
     search_button.style.display = 'block';
     close_search_button.style.display = 'none';
-    search_suggestions.style.display = "none";
   });
-
 }
 
 function globalDistributeButton() {
