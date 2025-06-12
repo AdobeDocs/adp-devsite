@@ -1,0 +1,8 @@
+main .details-wrapper details {
+    font-size: 16px ;
+}
+
+main .details-wrapper details > div > div, 
+main .details-wrapper {
+    margin: 20px 0px;
+}

@@ -90,6 +90,11 @@ export default function decorate(block) {
   select.addEventListener('change', handleSelectChange);
   controlBar.append(select);
 
+  // set up customizable select (as opposed to classic which can't be styled) as described in https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Customizable_select
+  const selectButton = document.createElement('button');
+  selectButton.append(document.createElement('selectedcontent'));
+  select.append(selectButton);
+
   tabContents.forEach((tabContent, i) => {
     const option = document.createElement('option');
     option.id = `option-${i}`;

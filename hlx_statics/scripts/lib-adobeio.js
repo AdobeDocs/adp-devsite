@@ -229,11 +229,12 @@ export function buildCodes(container) {
  * @param {*} container The container to inspect
  */
 export function decorateHR(container) {
-  const hrWrappers = container.querySelectorAll('main div.hr-wrapper');
+  const hrWrappers = container.querySelectorAll('main div.horizontalline-wrapper div.horizontalline');
 
   hrWrappers.forEach(hrWrapper => {
     const hr = document.createElement('hr');
-    hrWrapper.insertBefore(hr, hrWrapper.firstChild);
+    hrWrapper.innerHTML = ''
+    hrWrapper.appendChild(hr)
   });
 }
 
@@ -284,14 +285,6 @@ export function buildHeadings(container) {
  */
 export function buildGrid(main) {
   main.style.display = 'grid';
-  const mainContainer = document.querySelector('main');
-  const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
-  const heroSimpleContainer = document.querySelector('.herosimple-container');
-  if (heroSimpleContainer || headings.length === 0) {
-    main.style.gridTemplateAreas = '"sidenav main" "sidenav footer"';
-  } else {
-    main.style.gridTemplateAreas = '"sidenav main aside" "sidenav footer aside"';
-  }
 
   const gridAreaMain = main.querySelector(".section");
   gridAreaMain.style.gridArea = 'main';
@@ -303,9 +296,8 @@ export function buildGrid(main) {
 /**
  * Builds the div with style*="grid-area: main"
  * @param {*} main The grid container
- * @param {*} hasSideNav whether main has a side nav
  */
-export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
+export function buildGridAreaMain(main) {
   const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
   const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
   const subParent = createTag("div", { class: "sub-parent" });
@@ -319,18 +311,6 @@ export function buildGridAreaMain({ main, hasHero, hasSideNav }) {
     gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
   } else {
     gridAreaMain.appendChild(subParent);
-  }
-  const heroSimpleDivs = herosimpleWrapper?.querySelectorAll('.herosimple > div');
-  const footer = main.querySelector('.footer-wrapper');
-  if (hasHero) {
-    heroSimpleDivs?.forEach(div => {
-      div.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
-    });
-    subParent.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
-    footer.classList.add('layout-block', hasSideNav ? 'layout-block-with-side-nav' : 'layout-block-without-side-nav');
-  } else {
-    gridAreaMain.classList.add('layout-block', 'layout-block-without-side-nav');
-    footer.classList.add('layout-block', 'layout-block-without-side-nav');
   }
 }
 
@@ -484,31 +464,29 @@ function activateTab(tabItem, isMainPage) {
 }
 
 function activeSubNav(actTab) {
+  let showSidenav = false;
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
-    const firstLevelItems = navLinksUl.querySelectorAll(':scope > ul > li');
-    const currentPath = actTab.pathname;
-    firstLevelItems.forEach(li => {
+    const sidenavItems = navLinksUl.querySelectorAll(':scope > ul li');
+    const topNavPath = actTab.pathname;
+    const pagePath = window.location.pathname;
+    sidenavItems.forEach(li => {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (currentPath === linkPath || linkPath.startsWith(currentPath)) {
-          li.classList.add('active-sidenav');
-        } else {
-          li.classList.add('hide-sidenav');
+        if (linkPath === pagePath) {
+          showSidenav = true;
+        } 
+        if (!linkPath.startsWith(topNavPath)) {
+          li.classList.add('hidden');
         }
       } else {
-        li.classList.add('hide-sidenav');
+        li.classList.add('hidden');
       }
     });
   }
-  if (document.querySelectorAll(".active-sidenav")?.length === 0 ) {
+  if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
-    const gridAreaMain = document.querySelector('main > div[style*="grid-area: main"]');
-    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
-    if(!hasHero) {
-      gridAreaMain.style.margin = "0 auto"
-    }
   }
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";

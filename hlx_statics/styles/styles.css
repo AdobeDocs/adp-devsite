@@ -72,7 +72,7 @@ html {
   font-weight: 300;
   font-stretch: normal;
 }
-  
+
 
 .spectrum {
   --spectrum-global-font-family-serif: adobe-clean-serif, adobe-clean-serif-fallback;
@@ -93,7 +93,7 @@ html {
 
 .spectrum,
 .spectrum-Body {
-  color: rgb(75, 75, 75);
+  color: rgb(34,34,34);
 }
 
 .spectrum--medium {
@@ -161,28 +161,94 @@ main {
 main.white-background {
   background-color: white;
 }
-main.no-sidenav{
-  grid-template-areas: "main" "footer" !important;
-  grid-template-columns: 100% 100% !important;
+
+main.dev-docs {
+  grid-template-areas:
+    "sidenav main aside"
+    "sidenav footer .";
+  grid-template-columns: 256px minmax(0, 1fr) 256px;
 }
 
-main.no-sidenav > div.onthispage-wrapper {
-  display: none;
+main.dev-docs.no-sidenav {
+  grid-template-areas:
+    "main aside"
+    "footer .";
+  grid-template-columns: minmax(0, 1fr) 256px;
 }
 
-.layout-block {
-  margin: 0 auto;
+main.dev-docs.no-onthispage {
+  grid-template-areas:
+    "sidenav main"
+    "sidenav footer";
+  grid-template-columns: 256px minmax(0, 1fr);
+}
+
+main.dev-docs.no-sidenav.no-onthispage {
+  grid-template-areas:
+    "main"
+    "footer";
+  grid-template-columns: 100%;
+}
+
+@media screen and (max-width: 1228px) {
+  main.dev-docs .onthispage-wrapper {
+    display: none;
+  }  
+
+  main.dev-docs {
+    grid-template-areas:
+      "sidenav main"
+      "sidenav footer";
+    grid-template-columns: 256px minmax(0, 1fr);
+  }
+
+  main.dev-docs.no-sidenav {
+    grid-template-areas:
+      "main"
+      "footer";
+    grid-template-columns: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  main.dev-docs,
+  main.dev-docs.no-sidenav,
+  main.dev-docs.no-onthispage,
+  main.dev-docs.no-sidenav.no-onthispage {
+    grid-template-areas:
+      "main"
+      "footer";
+    grid-template-columns: 100%;
+  }
+}
+
+main.dev-docs .herosimple > div,
+main.dev-docs:has(.herosimple) .sub-parent,
+main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs .footer-wrapper .footer-links-container-inner {
   padding-left: 32px;
   padding-right: 32px;
 }
 
-.layout-block-with-side-nav {
+main.dev-docs .herosimple > div,
+main.dev-docs:has(.herosimple) .sub-parent,
+main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs .footer-wrapper {
+  margin: 0 auto;
   width: 100%;
+}
+
+main.dev-docs .herosimple > div,
+main.dev-docs:has(.herosimple) .sub-parent,
+main.dev-docs:has(.herosimple) .footer-wrapper {
   max-width: 1000px;
 }
 
-.layout-block-without-side-nav {
-  width: 100%;
+main.dev-docs.no-sidenav .herosimple > div,
+main.dev-docs:has(.herosimple).no-sidenav .sub-parent,
+main.dev-docs:has(.herosimple).no-sidenav .footer-wrapper,
+main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs:not(:has(.herosimple)) .footer-wrapper {
   max-width: 1280px;
 }
 
@@ -199,13 +265,12 @@ main div.codeblock-wrapper,
 main div.columns-wrapper,
 main div.contributors-wrapper,
 main div.default-content-wrapper img,
-main div.detailsblock-wrapper,
+main div.details-wrapper,
 main div.discoverblock-wrapper,
 main div.edition-wrapper,
 main div.embed-wrapper,
 footer.footer-wrapper,
 main div.github-actions-wrapper,
-main div.hr-wrapper,
 main div.image-text-wrapper,
 main div.info-wrapper,
 main div.info-card-wrapper,
@@ -239,7 +304,7 @@ main .section[data-section-status='initialized'] {
 }
 
 body>header {
-  height: 81px;
+  height: 64px;
 }
 
 body.sidekick-library #onetrust-consent-sdk {
@@ -248,18 +313,19 @@ body.sidekick-library #onetrust-consent-sdk {
 
 main .inline-code {
   font-family: Courier, monospace;
-  font-size: 100%;
   background-color: rgb(245, 245, 245);
   padding: 0 2px;
   margin: 0;
-  display: inline-block;
+  display: inline;
+  word-wrap: break-word;
+  white-space: pre-wrap;
   min-width: auto;
   border: 0.8px solid rgb(213, 213, 213);
   border-radius: 3px;
   line-height: 1.5rem;
 }
 
-main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code {
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code , div.heading3-wrapper .inline-code , div.table-wrapper .table .inline-code {
   font-size: 16px;
 }
 
@@ -611,7 +677,7 @@ main .heading6 h6>span {
 }
 
 .spectrum-Heading--sizeXL {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
 .spectrum-Heading--sizeL {
@@ -619,19 +685,19 @@ main .heading6 h6>span {
 }
 
 .spectrum-Heading--sizeM {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
-.spectrum-Heading--sizeS {
-  color: rgb(44, 44, 44);
+.spectrum-Heading--sizeS { 
+  color: rgb(34,34,34)
 }
 
 .spectrum-Heading--sizeXS {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
 .spectrum-Heading--sizeXXS {
-  color: rgb(44, 44, 44);
+  color: rgb(0, 0, 0);
 }
 
 .spectrum-Heading-sizeXXXL--light {
@@ -764,7 +830,7 @@ main .heading6 h6>span {
 .spectrum-Button--secondary {
   background-color: transparent;
   border-color: rgb(110, 110, 110);
-  color: rgb(110,110,110);
+  color: rgb(110, 110, 110);
 }
 
 .spectrum-Button--secondary:hover {
@@ -772,7 +838,7 @@ main .heading6 h6>span {
   border-color: rgb(110, 110, 110);
   color: rgb(255, 255, 255);
   text-decoration: none;
-}
+ } 
 
 .spectrum-Button--secondary.focus-ring {
   background-color: rgb(110, 110, 110);
@@ -1159,4 +1225,6 @@ main .content-header.block-display .github-actions-wrapper{
   }
 }
 
-
+main .no-breadcrumbs {
+  justify-content: end;
+}

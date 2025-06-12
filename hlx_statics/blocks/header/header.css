@@ -1,5 +1,4 @@
 header.main-header {
-  grid-area: header;
   position: fixed;
   height: 64px;
   left: 0;

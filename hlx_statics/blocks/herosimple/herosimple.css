@@ -4,7 +4,6 @@ main div.herosimple-wrapper {
 main div.herosimple-wrapper div.herosimple {
   height: 272px;
   overflow: hidden;
-  color: rgb(255, 255, 255);
   position: relative;
 }
 
@@ -21,6 +20,76 @@ main div.herosimple-wrapper div.herosimple > div {
 main div.herosimple-wrapper div.herosimple > div > div{
   width: calc(5* 100% / 12);
   font-size: 20px;
+}
+
+main div.herosimple-wrapper div.herosimple .hero-left-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main div.herosimple-wrapper div.herosimple div.hero-left-content>div {
+  display: flex;
+  gap: 30px;
+  flex-direction: column;
+}
+
+main div.herosimple-wrapper div.herosimple div.hero-left-content,
+main div.herosimple-wrapper div.herosimple div.hero-right-image {
+  width: 50%;
+}
+
+main div.herosimple-wrapper div.herosimple div.hero-right-image img {
+  width: 600px;
+}
+
+main div.herosimple-wrapper div.halfWidth {
+  height: unset;
+}
+
+main div.herosimple-wrapper div.halfWidth>div.herosimple-container-wrapper {
+  flex-direction: row;
+}
+
+main div.herosimple-wrapper div.fullWidth>div {
+  align-items: center;
+  text-align: center;
+}
+
+main div.herosimple-wrapper div.fullWidth>div>div {
+  width: unset;
+}
+
+main div.herosimple-wrapper div.button-container > p ,
+main div.herosimple-wrapper .all-button-container > p {
+  margin: 0;
+}
+
+main div.herosimple-wrapper .all-button-container {
+  display: inline-flex;
+  gap: 16px;
+}
+
+main div.herosimple-wrapper .text-color-white {
+  color: rgb(255, 255, 255);
+}
+
+main div.herosimple-wrapper .text-color-black {
+  color: rgb(0, 0, 0);
+}
+
+main div.herosimple-wrapper .text-color-gray {
+  color: rgb(110, 110, 110);
+}
+
+main div.herosimple-wrapper .text-color-navy {
+  color: rgb(15, 55, 95);
+}
+
+@media screen and (min-width: 320px) and (max-width: 767px) {
+  main div.herosimple-wrapper div.herosimple div.hero-right-image img {
+    width: 300px;
+  }
 }
 
 @media screen and (max-width: 1280px) {

@@ -1,47 +1,16 @@
 import {
   createTag,
-  getClosestFranklinSubfolder,
 } from "../../scripts/lib-adobeio.js";
 import {
   fetchSideNavHtml,
   fetchTopNavHtml,
-  getMetadata,
-  readBlockConfig,
 } from "../../scripts/lib-helix.js";
-import { loadFragment } from '../fragment/fragment.js';
-
-function isDocumentationTemplate() {
-  return getMetadata("template") === "documentation";
-}
-
-function isSourceGithub() {
-  return getMetadata('source') === 'github';
-}
-
-function isMobileView() {
-  return window.innerWidth <= 768;
-}
 
 /**
  * Decorates the side-nav
  * @param {Element} block The site-nav block element
  */
 export default async function decorate(block) {
-  // Handle visibility of side nav container based on template and screen size
-  const sideNavContainer = block.closest('.side-nav-container');
-  if (!isDocumentationTemplate() && sideNavContainer) {
-    // For non-documentation pages, only show on mobiles
-    const updateVisibility = () => {
-      sideNavContainer.style.display = isMobileView() ? 'block' : 'none';
-    };
-
-    // Initial visibility
-    updateVisibility();
-
-    // Update visibility on resize
-    window.addEventListener('resize', updateVisibility);
-  }
-
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
 
@@ -62,40 +31,16 @@ export default async function decorate(block) {
   });
   navigationLinksUl.setAttribute("aria-label", "Table of contents");
 
-  if (isSourceGithub()) {
-    // Create subpages section (only for documentation template)
-    const subPagesSection = createTag("div", {
-      class: "side-nav-subpages-section",
-    });
-    const subPagesLabel = createTag("h2", { class: "side-nav-section-label" });
-    subPagesLabel.textContent = "Table of Contents";
-    subPagesSection.appendChild(subPagesLabel);
+  // Create subpages section (only for documentation template)
+  const subPagesSection = createTag("div", {
+    class: "side-nav-subpages-section",
+  });
+  const subPagesLabel = createTag("h2", { class: "side-nav-section-label" });
+  subPagesLabel.textContent = "Table of Contents";
+  subPagesSection.appendChild(subPagesLabel);
 
-    navigationLinksContainer.append(subPagesSection);
-    subPagesSection.append(navigationLinksUl);
-
-    // Set grid layout based on screen size
-    const main = document.querySelector("main");
-    if (main) {
-      if (window.innerWidth <= 768) {
-        main.style.gridTemplateColumns = "0 100%";
-      } else {
-        main.style.gridTemplateColumns = "256px minmax(0, 1fr)";
-      }
-
-      // Update grid on window resize
-      window.addEventListener("resize", () => {
-        if (window.innerWidth <= 768) {
-          main.style.gridTemplateColumns = "0 100%";
-        } else {
-          main.style.gridTemplateColumns = "256px minmax(0, 1fr)";
-        }
-      });
-    }
-  } else {
-    // For non-documentation templates, just append the UL to the main menu section
-    mainMenuSection.append(navigationLinksUl);
-  }
+  navigationLinksContainer.append(subPagesSection);
+  subPagesSection.append(navigationLinksUl);
 
   const rightIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
     <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" />
@@ -178,59 +123,18 @@ export default async function decorate(block) {
   }
 
 
-  if (isSourceGithub()) {
-    // Fetch and populate main menu for documentation template
-    // Add Products link first
-    const productLi = createTag('li');
-    const productA = createTag('a', {href: 'https://developer.adobe.com/apis'});
-    productA.innerHTML = 'Products';
-    productLi.append(productA);
-    menuUl.append(productLi);
+  // Fetch and populate main menu for documentation template
+  // Add Products link first
+  const productLi = createTag('li');
+  const productA = createTag('a', {href: 'https://developer.adobe.com/apis'});
+  productA.innerHTML = 'Products';
+  productLi.append(productA);
+  menuUl.append(productLi);
 
-    const topNavHtml = await fetchTopNavHtml();
-    if (topNavHtml) {
-      menuUl.innerHTML += topNavHtml;
-      processNestedNavigation(menuUl);
-    }
-  } else {
-    // Handle regular pages
-    const cfg = readBlockConfig(block);
-    let fragment;
-
-    if (getMetadata('source') === 'github') {
-      const topNavHtml = await fetchTopNavHtml();
-      if (topNavHtml) {
-        menuUl.innerHTML = topNavHtml;
-        processNestedNavigation(menuUl);
-      }
-    } else {
-      const navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin, 'nav');
-      fragment = await loadFragment(navPath);
-      if (fragment == null) {
-        // load the default nav in franklin_assets folder nav
-        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
-      }
-
-      if (fragment) {
-        // Clone and process the fragment's content
-        const fragmentUl = fragment.querySelector("ul");
-        if (fragmentUl) {
-          menuUl.innerHTML = fragmentUl.innerHTML;
-          processNestedNavigation(menuUl);
-
-          // Apply the same layer numbering and styling as table of contents
-          const originalUpdateIcon = updateIcon;
-          updateIcon = (anchorTag, isExpanded, hasChildren) => {
-            const li = anchorTag.closest('li');
-            if (!li.classList.contains('no-chevron')) {
-              originalUpdateIcon(anchorTag, isExpanded, hasChildren);
-            }
-          };
-          assignLayerNumbers(menuUl);
-          updateIcon = originalUpdateIcon;
-        }
-      }
-    }
+  const topNavHtml = await fetchTopNavHtml();
+  if (topNavHtml) {
+    menuUl.innerHTML += topNavHtml;
+    processNestedNavigation(menuUl);
   }
 
   // Add console button
@@ -254,12 +158,10 @@ export default async function decorate(block) {
 
   mainMenuSection.append(menuUl);
 
-  if (isSourceGithub()) {
-    // Fetch and populate subpages
-    const sideNavHtml = await fetchSideNavHtml();
-    if (sideNavHtml) {
-      navigationLinksUl.innerHTML = sideNavHtml;
-    }
+  // Fetch and populate subpages
+  const sideNavHtml = await fetchSideNavHtml();
+  if (sideNavHtml) {
+    navigationLinksUl.innerHTML = sideNavHtml;
   }
 
   block.append(navigationLinks);
@@ -288,6 +190,7 @@ export default async function decorate(block) {
       li.setAttribute("role", "treeitem");
       li.setAttribute("aria-level", layer);
 
+      const currentUrl = window.location.href.split('#')[0];
       if (getAnchorTag) {
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
@@ -304,26 +207,25 @@ export default async function decorate(block) {
           updateIcon(getAnchorTag, !isExpanded, Boolean(childUl));
           console.log('getAnchorTag.href', getAnchorTag.href)
 
-          if (window.location.href === getAnchorTag.href || window.location.pathname ===  getAnchorTag.getAttribute('dhref')) {
+          if (currentUrl === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
-            if (li.classList.contains("header") && li.classList.contains("is-expanded")) {
-              // if the header is expanded, make sure it's not selected if there is already a child selected.
-              if (li.querySelector(".is-selected")) {
-                li.classList.remove("is-selected");
-              }
-            } else {
-              li.classList.add("is-selected");
-            }
+            const parentElement = li.parentElement.closest("li");
+            // Remove 'is-selected' from all other elements
+            document.querySelectorAll('.is-selected').forEach(el => {
+              el.classList.remove('is-selected');
+            });
+            // Add 'is-selected' to the matched <li>
+            li.classList.add("is-selected");
             toggleParent(li, true);
           } else {
             window.location.href = getAnchorTag.href;
           }
         };
 
-        if (window.location.href === getAnchorTag.href || window.location.pathname ===  getAnchorTag.getAttribute('dhref') ) {
+        if (currentUrl === getAnchorTag.href) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
-          const header = li.closest(".header");
+          const header = li.parentElement.closest("li");
           // Check to make sure only the child is selected and not the parent.
           if (header) {
             if (header.classList.contains("is-selected")){
@@ -390,4 +292,14 @@ export default async function decorate(block) {
   }
 
   assignLayerNumbers(navigationLinksUl);
+
+  const sideNav = document.querySelector(".side-nav>nav>div");
+  sideNav.addEventListener('scroll', () => {
+    localStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
+  });
+
+  const savedPos = localStorage.getItem('sidenavScrollPos');
+  if (savedPos !== null) {
+    sideNav.scrollTop = parseInt(savedPos, 10);
+  }
 }

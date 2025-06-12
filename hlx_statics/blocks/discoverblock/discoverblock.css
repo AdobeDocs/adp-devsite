@@ -18,45 +18,13 @@ main div.discoverblock-wrapper div.discover-img-child-container {
     width: 50%;
 }
 
-@media screen and (max-width : 1300px) {
-    main div.discoverblock-wrapper .discoverblock {
-        width: 768px !important;
-    }
-
-    main div.discoverblock-wrapper div.discover-child-container {
-        width: 33.3%;
-        padding: 20px;
-    }
-}
-
-@media screen and (max-width : 800px) {
-    main div.discoverblock-wrapper .discoverblock {
-        width: 600px !important;
-    }
-
-    main div.discoverblock-wrapper div.discover-child-container {
-        width: 50%;
-        padding:20px;
-    }
-}
-
-@media screen and (max-width : 650px) {
-    main div.discoverblock-wrapper .discoverblock {
-        width: 370px !important;
-    }
-
-    main div.discoverblock-wrapper div.discover-child-container {
-        width: 100%;
-        padding: 20px;
-    }
-}
-main div.discoverblock-wrapper div.discoverblock-container-wrapper{
-    max-width: 800px;
+main div.discoverblock-wrapper div.discoverblock-container-wrapper {
     display: flex;
     flex-wrap: wrap;
-    column-gap: 50px;
-    row-gap: 40px;
+    column-gap: 30px;
+    row-gap: 30px;
 }
+
 main div.discoverblock-wrapper div.discoverblock-column .discover-child-container{
     width: 650px;
     display: flex;
