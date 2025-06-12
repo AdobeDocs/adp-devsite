@@ -533,23 +533,23 @@ header ul.suggestion-results-list {
   padding: 0;
 }
 
-header hr.search-sugguestions-hr-top {
+header hr.search-suggestions-hr-top {
   width: 95%;
   margin-top: 20px;
 }
 
-header hr.search-sugguestions-hr-bottom {
+header hr.search-suggestions-hr-bottom {
   width: 95%;
 }
 
-header h4.search-sugguestions-h4 {
+header h4.search-suggestions-h4 {
   margin-left: 15px;
   color: slategray;
   margin-top: 5px;
   margin-bottom: 5px;
 }
 
-header a.search-sugguestions-a {
+header a.search-suggestions-a {
   text-align: left;
   align-items: center;
   box-sizing: border-box;

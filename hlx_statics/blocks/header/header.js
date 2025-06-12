@@ -37,11 +37,6 @@ function localSearch() {
   const maxLevels = Math.min(pathSegments.length, 3);
   let bestMatch = null;
 
-  // Normalize top-level paths
-  // if (subfolderPath === '' || ['apis', 'open', 'developer-support'].includes(subfolderPath)) {
-  //   subfolderPath = 'franklin_assets';
-  // }
-
   // Check progressively up to three levels for a match
   for (let i = 0; i < maxLevels; i++) {
     const subfolderPath = `/${pathSegments.slice(0, i + 1).join('/')}/`; // Build path incrementally
@@ -66,18 +61,18 @@ function initSearch() {
   const SEARCH_MAX_RESULTS = 100;
 
   const indices = window.adp_search.indices
-  const index_to_product = window.adp_search.index_to_product;
-  const all_products = window.adp_search.products;
+  const indexToProduct = window.adp_search.index_to_product;
+  const allProducts = window.adp_search.products;
 
   const urlParams = fetchSearchURLParams();
   const localElem = localSearch();
 
   // set flag to see if suggestions or actual results show
   let searchExecuted = false; // Flag to track if a full search has been done (enter key has been pressed)
-  const search_results = document.querySelector("div.merged-results")
-  let suggestions_flag = false;
-  if (getComputedStyle(search_results).visibility === "hidden") {
-    suggestions_flag = true;
+  const searchResultsDiv = document.querySelector("div.merged-results")
+  let suggestionsFlag = false;
+  if (getComputedStyle(searchResultsDiv).visibility === "hidden") {
+    suggestionsFlag = true;
   }else{
     searchExecuted = true;
   }
@@ -86,17 +81,17 @@ function initSearch() {
   if (localElem && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
     selectedProducts = [localElem.productName]
   }else if (localElem && urlParams.products && urlParams.products !== "all") {
-    selectedProducts = urlParams.products.split(",").filter(product => all_products.includes(product));
+    selectedProducts = urlParams.products.split(",").filter(product => allProducts.includes(product));
     selectedProducts.concat(localElem.productName)
   }else{
     // from url params set selected products
     selectedProducts = (urlParams.products === "all" || !urlParams.products) 
-    ? all_products.slice() // Select all products when "all" is in the URL or no products (a new search)
-    : urlParams.products.split(",").filter(product => all_products.includes(product));
+    ? allProducts.slice() // Select all products when "all" is in the URL or no products (a new search)
+    : urlParams.products.split(",").filter(product => allProducts.includes(product));
   }
 
   // Get indices corresponding to selected products
-  let selectedIndices = indices.filter(indexName => selectedProducts.includes(index_to_product[indexName]));
+  let selectedIndices = indices.filter(indexName => selectedProducts.includes(indexToProduct[indexName]));
   let initialIndex;
 
   // Set initial index to initialize instant search instance
@@ -119,30 +114,18 @@ function initSearch() {
 
   // Function to initialize or update the search
   function updateSearch() {
-    // console.log("update search")
-
     // Get indices corresponding to selected products
     const selectedIndices = indices.filter((indexName) => {
-      const product = index_to_product[indexName];
+      const product = indexToProduct[indexName];
       return selectedProducts.includes(product);
     });
 
-    // TODO: CHANGE HOW MANY RESULTS ARE SHOWN BASED ON HOW MANY PRODUCTS ARE SELECTED
     let hits = 3;
-    let search_box_container = ".merged-results";
+    let searchBoxContainer = ".merged-results";
     // // Number of results displayed per index changes depending on how many products are selected
-    // console.log(suggestions_flag)
-    if (suggestions_flag) {
-      search_box_container = ".suggestion-results"; }
-    // }else{
-    //   console.log("sugg container")
-    //    console.log("full results container")
-    //   hits = Math.ceil(SEARCH_MAX_RESULTS / selectedIndices.length);
-    //   hits = Math.ceil(SUGGESTION_MAX_RESULTS / selectedIndices.length);
-    //   
-    // }
-    // console.log("num of hits per index: " + Math.ceil(SEARCH_MAX_RESULTS / selectedIndices.length).toString());
-
+    if (suggestionsFlag) {
+      searchBoxContainer = ".suggestion-results"; }
+   
     // Custom InstantSearch search box to deal with suggestions and full results which depends on user input
     function customSearchBox() { return { init({ helper }) {
       const searchInput = document.querySelector("#search-box input");
@@ -155,10 +138,9 @@ function initSearch() {
 
       // Detects query in URL but no input value (tab was reloaded)
       if (queryFromURL && !searchInput.value) {
-        // console.log("suggestions flag is false")
         searchInput.value = queryFromURL;
         helper.setQuery(queryFromURL).search();
-        suggestions_flag = false;
+        suggestionsFlag = false;
         searchResults.style.visibility = "visible";
         outerSearchSuggestions.style.display = "none";              
         searchExecuted = true; // Mark search as executed
@@ -175,11 +157,10 @@ function initSearch() {
       // When Enter is pressed, execute full search and prevent suggestions from reappearing
       searchInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
-          // console.log("enter is pressed")
           helper.setQuery(searchInput.value).search();
           outerSearchSuggestions.style.display = "none";  
           searchSuggestions.style.display = "none";            
-          suggestions_flag = false; // Prevent suggestions from overriding search results
+          suggestionsFlag = false; // Prevent suggestions from overriding search results
           searchResults.style.visibility = "visible";
           searchResults.classList.add('has-results');
           searchExecuted = true; // Prevent suggestions from overriding search results
@@ -188,7 +169,6 @@ function initSearch() {
 
       // Clear search query when clear button is clicked
       clearSearchQueryButton.addEventListener('click', () => {
-        // console.log("clear search query button pressed");
         searchInput.value = "";
         helper.setQuery('').search();
         searchResults.style.visibility = "hidden";
@@ -216,9 +196,8 @@ function initSearch() {
             content: instantsearch.snippet({ hit, attribute: 'content' }),
           });
         });
-      // console.log("render merged hits func")
       updateSearchParams();
-      if (suggestions_flag){
+      if (suggestionsFlag){
         renderSuggestionResults();
       }else{
         renderMergedResults(); // Call to render the filtered results
@@ -237,7 +216,7 @@ function initSearch() {
     search.addWidgets([
       customSearchBox(),
       customMergedHits({
-        container: document.querySelector(search_box_container)
+        container: document.querySelector(searchBoxContainer)
       }),
     ]);
 
@@ -263,7 +242,7 @@ function initSearch() {
     const query = searchInput ? searchInput.value : null;
   
     // Determine if all products are selected
-    const allProductsSelected = selectedProducts.length === all_products.length;
+    const allProductsSelected = selectedProducts.length === allProducts.length;
   
     // Update the products parameter
     if (allProductsSelected) {
@@ -301,7 +280,7 @@ function initSearch() {
     allProductsCheckbox.id = 'checkbox-all-products';
     allProductsCheckbox.classList.add('search-checkbox');
     allProductsCheckbox.value = 'all-products';
-    allProductsCheckbox.checked = selectedProducts.length === all_products.length;
+    allProductsCheckbox.checked = selectedProducts.length === allProducts.length;
 
     const allProductsLabel = document.createElement('label');
     allProductsLabel.htmlFor = 'checkbox-all-products';
@@ -313,7 +292,7 @@ function initSearch() {
     container.appendChild(allProductsDiv);
 
     // individual product checkboxes
-    all_products.forEach((product) => {
+    allProducts.forEach((product) => {
       const productDiv = document.createElement('div');
       productDiv.classList.add('search-checkbox-div');
       // – add a data-product attribute on each wrapper for toggling it later
@@ -325,7 +304,6 @@ function initSearch() {
       checkbox.id = `checkbox-${product.replace(/\s+/g, '-')}`;
       checkbox.value = product;
       checkbox.classList.add('search-checkbox');
-      // console.log("in render checkboxes - product: " + product);
 
       // don't check products if new tab or if all products are selected
       checkbox.checked = selectedProducts.includes(product) && !allProductsCheckbox.checked;
@@ -343,7 +321,7 @@ function initSearch() {
 
   // Function that is called after each search render to hide/show product checkboxes
   function updateCheckboxVisibility(productsWithResults) {
-    const allSelected = selectedProducts.length === all_products.length;
+    const allSelected = selectedProducts.length === allProducts.length;
 
     // loop over each product‐wrapper
     document.querySelectorAll('.search-checkbox-div[data-product]').forEach((div) => {
@@ -366,7 +344,7 @@ function initSearch() {
     // Event listener for "All Products" checkbox
     allProductsCheckbox.addEventListener('change', () => {
       if (allProductsCheckbox.checked) {
-        selectedProducts = all_products.slice(); // Select all products
+        selectedProducts = allProducts.slice(); // Select all products
         productCheckboxes.forEach((cb) => (cb.checked = false)); // Ensure all products appear checked
       } else {
         selectedProducts = [];
@@ -387,7 +365,7 @@ function initSearch() {
         if (selectedProducts.length === 0) {
           // If no products selected, revert to "All Products"
           allProductsCheckbox.checked = true;
-          selectedProducts = all_products.slice();
+          selectedProducts = allProducts.slice();
         }
         updateSearchParams();
         updateSearch();
@@ -417,7 +395,7 @@ function initSearch() {
 
     // determine display order
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
-    const productsToShow = allProductsCheckbox.checked ? all_products : selectedProducts;
+    const productsToShow = allProductsCheckbox.checked ? allProducts : selectedProducts;
 
     const productsWith = [], productsWithout = [];
     productsToShow.forEach((p) =>
@@ -476,7 +454,7 @@ function initSearch() {
 
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
     const productsToShow = allProductsCheckbox.checked
-      ? all_products
+      ? allProducts
       : selectedProducts;
 
     const withHits = [], withoutHits = [];
@@ -491,12 +469,12 @@ function initSearch() {
         productDiv.classList.add("suggestion-product-group");
 
         // Add separator before each product section
-        productDiv.innerHTML = `<hr class="search-sugguestions-hr-top"><h4 class="search-sugguestions-h4">${product}</h4><hr class="search-sugguestions-hr-bottom">`;
+        productDiv.innerHTML = `<hr class="search-suggestions-hr-top"><h4 class="search-suggestions-h4">${product}</h4><hr class="search-suggestions-hr-bottom">`;
         if (productGroupedResults.has(product)) {
           // If there are results, render them
           productGroupedResults.get(product).forEach(({ key, value }) => {
               productDiv.innerHTML += `
-                  <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-sugguestions-a">
+                  <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-suggestions-a">
                     <span class="spectrum-Menu-itemLabel">
                         <div>
                             <strong>${key}</strong>
@@ -580,43 +558,43 @@ const globalNavSearchDropDown = () => {
 };
 
 function decorateSearchIframeContainer(header) {
-  const search_div = header.querySelector('div.nav-console-search-frame');
-  const search_button = header.querySelector('button.nav-dropdown-search');
-  const search_suggestions = header.querySelector('div.suggestion-results');
-  const outer_suggestion_div = header.querySelector('div.outer-suggestion-results');
-  const close_search_button = header.querySelector('button.close-search-button');
-  const search_results = document.querySelector("div.search-results");
-  const search_bar = document.querySelector("div.outer-search-box");
+  const searchDiv = header.querySelector('div.nav-console-search-frame');
+  const searchButton = header.querySelector('button.nav-dropdown-search');
+  const searchSuggestionsDiv = header.querySelector('div.suggestion-results');
+  const outerSuggestionDiv = header.querySelector('div.outer-suggestion-results');
+  const closeSearchButton = header.querySelector('button.close-search-button');
+  const searchResultsDiv = document.querySelector("div.search-results");
+  const searchBar = document.querySelector("div.outer-search-box");
 
   const urlParams = fetchSearchURLParams();
 
   // Function to hide suggestions
   function hideSuggestions() {
-    outer_suggestion_div.style.display = "none";              
-    search_suggestions.style.display = "none";
+    outerSuggestionDiv.style.display = "none";              
+    searchSuggestionsDiv.style.display = "none";
   }
 
   // Function to show search with semi-transparent background
   function showSearchBar() {
-    search_bar.style.visibility = 'visible';
-    outer_suggestion_div.style.display = "flex"; 
-    search_results.classList.remove('has-results');
+    searchBar.style.visibility = 'visible';
+    outerSuggestionDiv.style.display = "flex"; 
+    searchResultsDiv.classList.remove('has-results');
   }
 
   // Function to show search with results and white background
   function showSearchResults() {
-    search_div.style.visibility = 'visible';
-    search_results.style.visibility = 'visible';
-    search_results.classList.add('has-results');
+    searchDiv.style.visibility = 'visible';
+    searchResultsDiv.style.visibility = 'visible';
+    searchResultsDiv.classList.add('has-results');
     hideSuggestions();
   }
 
   // Function to hide search completely
   function hideSearch() {
-    search_bar.style.visibility = 'hidden';
-    search_div.style.visibility = 'hidden';
-    search_results.style.visibility = 'hidden';
-    search_results.classList.remove('has-results');
+    searchBar.style.visibility = 'hidden';
+    searchDiv.style.visibility = 'hidden';
+    searchResultsDiv.style.visibility = 'hidden';
+    searchResultsDiv.classList.remove('has-results');
     hideSuggestions();
   }
 
@@ -624,38 +602,38 @@ function decorateSearchIframeContainer(header) {
   if (urlParams.query) {
     initSearch();
     showSearchResults();
-    search_button.classList.add('is-open');
-    search_button.style.display = 'none';
-    close_search_button.style.display = 'block';
+    searchButton.classList.add('is-open');
+    searchButton.style.display = 'none';
+    closeSearchButton.style.display = 'block';
   }
 
   // when there's no query but a search instance has been created - only show search bar instead of full search
   if (!urlParams.query && urlParams.products) {
     initSearch();
     showSearchBar();
-    search_button.classList.add('is-open');
-    search_button.style.display = 'none';
-    close_search_button.style.display = 'block';
+    searchButton.classList.add('is-open');
+    searchButton.style.display = 'none';
+    closeSearchButton.style.display = 'block';
   }
 
   // open search with mag glass search button
-  search_button.addEventListener('click', (evt) => {
+  searchButton.addEventListener('click', (evt) => {
     if (!evt.currentTarget.classList.contains('is-open')) {
       initSearch();
       showSearchBar();
-      search_button.classList.add('is-open');
-      search_button.style.display = 'none';
-      close_search_button.style.display = 'block';
+      searchButton.classList.add('is-open');
+      searchButton.style.display = 'none';
+      closeSearchButton.style.display = 'block';
     }
   });
 
   // close search
-  close_search_button.addEventListener('click', () => {
-    search_button.classList.remove('is-open');
-    close_search_button.classList.remove('is-open');
+  closeSearchButton.addEventListener('click', () => {
+    searchButton.classList.remove('is-open');
+    closeSearchButton.classList.remove('is-open');
     hideSearch();
-    search_button.style.display = 'block';
-    close_search_button.style.display = 'none';
+    searchButton.style.display = 'block';
+    closeSearchButton.style.display = 'none';
   });
 }
 
