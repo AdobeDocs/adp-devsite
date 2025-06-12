@@ -3,7 +3,7 @@ main .onthispage-wrapper {
   top: 128px;
   bottom: 0;
   left: 0;
-  width: 256px;
+  width: 224px;
   margin: 128px 32px 0 32px;
   height: calc(100vh - 128px);
   overflow: auto;
