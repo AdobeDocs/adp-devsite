@@ -50,11 +50,7 @@ footer .footer-links-container-inner {
   grid-template-areas: "apis blogs support developer";
   grid-template-columns: 25%;
   gap: 32px;
-  padding: 32px;
-}
-
-main.no-sidenav footer .footer-links-container-inner{
-  padding: 0px;
+  padding: 0 32px;
 }
 
 @media screen and (max-width: 320px) {
@@ -135,10 +131,6 @@ footer .footer-legal {
   padding: 0 32px;
 }
 
-main.no-sidenav footer .footer-legal{
-  padding: 0px;
-}
-
 footer .footer-legal ul {
   display: inline-flex;
   color: rgb(70, 70, 70);
@@ -155,9 +147,6 @@ footer .footer-divider {
     align-items: flex-start;
     padding: 0 32px;
     margin: 0 auto;
-  }
-  main.no-sidenav footer .footer-legal{
-    padding: 0px;
   }
 }
 
