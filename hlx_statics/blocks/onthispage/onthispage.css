@@ -29,9 +29,3 @@ main .onthispage-wrapper .active {
 main .onthispage-wrapper .onthispage-header {
   color: rgb(109, 109, 109);
 }
-
-@media screen and (max-width: 1228px) {
-  main .onthispage-wrapper {
-    display: none !important;
-  }
-}

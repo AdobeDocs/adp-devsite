@@ -190,6 +190,26 @@ main.dev-docs.no-sidenav.no-onthispage {
   grid-template-columns: 100%;
 }
 
+@media screen and (max-width: 1228px) {
+  main.dev-docs .onthispage-wrapper {
+    display: none;
+  }  
+
+  main.dev-docs {
+    grid-template-areas:
+      "sidenav main"
+      "sidenav footer";
+    grid-template-columns: 256px minmax(0, 1fr);
+  }
+
+  main.dev-docs.no-sidenav {
+    grid-template-areas:
+      "main"
+      "footer";
+    grid-template-columns: 100%;
+  }
+}
+
 @media screen and (max-width: 768px) {
   main.dev-docs,
   main.dev-docs.no-sidenav,
