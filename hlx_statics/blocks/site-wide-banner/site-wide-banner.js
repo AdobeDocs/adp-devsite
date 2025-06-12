@@ -26,10 +26,20 @@ export default async function decorate(block) {
     bannerData = await fetchSiteWideBanner();
   } else {
     const bannerPath = getClosestFranklinSubfolder(window.location.origin, 'site-wide-banner');
-    let fragment = await loadFragment(bannerPath) || await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'site-wide-banner', true));
+    let fragment = await loadFragment(bannerPath);
+
+    if (!fragment) {
+      fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'site-wide-banner', true));
+    }
+
     if (fragment) {
       try {
-        const jsonString = Array.from(fragment.querySelectorAll("main p")).map(p => p.innerText).join("");
+        const paragraphs = Array.from(fragment.querySelectorAll("main p"));
+        let jsonString = paragraphs.map(p => p.innerText.trim()).filter(Boolean).join("");
+
+        jsonString = jsonString.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+        jsonString = jsonString.replace(/"([^"]+)\s*:\s*"/g, (_, key) => `${key.trim()} : ''`);
+
         bannerData = JSON.parse(jsonString);
       } catch (err) {
         console.error("Invalid JSON format:", err.message);
@@ -37,12 +47,12 @@ export default async function decorate(block) {
     }
   }
 
-  if (!bannerData) {
+  if (!bannerData || !bannerData?.data[0]) {
     siteParent.style.display = "none";
     return;
   }
 
-  const { text, icon, buttonLink, button, isClose } = bannerData.data[0] || {};
+  const { text, icon, buttonLink, button, isClose } = bannerData?.data[0] || {};
   const parentHeight = siteParent.getBoundingClientRect().height;
   const paddingValue = `${parentHeight + (isMobile ? 50 : 0)}px`;
   const nextHeroSpan = siteParent.nextElementSibling?.nextElementSibling;
@@ -60,7 +70,7 @@ export default async function decorate(block) {
   const buttonWrap = createTag("p", { class: "site-wide-banner-button-container" });
 
   if (icon) {
-    const iconContainer = createTag("div", { class: `site-wide-banner-icon ${icon}` });
+    const iconContainer = createTag("div", { class: `site-wide-banner-icon ${icon} ` });
     const variant = getVariant(iconContainer.classList);
     if (variant) {
       iconContainer.classList.add(variant.class || "spectrum-InLineAlert--info");
@@ -106,7 +116,6 @@ export default async function decorate(block) {
   block.appendChild(wrapper);
   decorateButtons(block);
 
-  // Mobile-specific styling
   if (isMobile && isClose) {
     requestAnimationFrame(() => {
       const closeBtn = block.querySelector(".site-wide-banner-close-button");
