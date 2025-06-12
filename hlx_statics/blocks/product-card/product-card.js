@@ -15,11 +15,6 @@ export default async function decorate(block) {
             el.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
         }
     });
-    block.querySelectorAll('a').forEach((a) => {
-        if (a.title === "View docs") {
-            a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM"
-        }
-    });
     const width = block?.parentElement?.parentElement?.getAttribute('data-width');
     Array.from(block.children).forEach(div => {
         div.style.width = width;
