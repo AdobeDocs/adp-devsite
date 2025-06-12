@@ -437,11 +437,9 @@ async function loadLazy(doc) {
     footer.style.gridArea = 'footer';
     main.append(footer);
 
-    // turn off this page when in doc mode and there's no hero
     const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
-    const hasSideNav = document.querySelector('.side-nav')?.children.length !== 0;
-    if (!hasHero && hasHeading && hasSideNav) {
+    if (!hasHero && hasHeading) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
     } else {
