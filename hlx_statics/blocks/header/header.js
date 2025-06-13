@@ -2,18 +2,506 @@ import {
   createTag,
   setActiveTab,
   focusRing,
-  isLocalHostEnvironment,
   isTopLevelNav,
-  setSearchFrameOrigin,
   getClosestFranklinSubfolder,
-  setQueryStringParameter,
-  getQueryString,
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
 
+const ALGOLIA_CONFIG = {
+  APP_KEY: window.adp_search.APP_KEY || '',
+  API_KEY: window.adp_search.API_KEY || ''
+};
+
 function isSourceGithub() {
   return getMetadata('source') === 'github';
+}
+
+// function to Get URL search parameters
+function fetchSearchURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  const queryFromURL = params.get("query") || "";
+  const productsFromURL = params.get("products");
+  return {
+    query: queryFromURL,
+    products: productsFromURL
+  };
+}
+
+// function to find which index and product to search within
+function localSearch() {
+  // Remove leading/trailing slashes and split the pathname into segments
+  const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
+  
+  // Limit to the first three levels
+  const maxLevels = Math.min(pathSegments.length, 3);
+  let bestMatch = null;
+
+  // Check progressively up to three levels for a match
+  for (let i = 0; i < maxLevels; i++) {
+    const subfolderPath = `/${pathSegments.slice(0, i + 1).join('/')}/`; // Build path incrementally
+    const matchingProduct = Object.entries(window.adp_search.completeProductMap).find(
+      ([indexName, { indexPathPrefix }]) => indexPathPrefix === subfolderPath
+    );
+    if (matchingProduct) {
+      bestMatch = { indexName: matchingProduct[0], productName: matchingProduct[1].productName };
+    }
+  }
+  return bestMatch;
+}
+
+function initSearch() {
+  // TODO: add loading circle for when still loading
+  // TODO: Don’t allow x button in search bar to appear unless there is a search in it
+  const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+  const { connectAutocomplete } = instantsearch.connectors;
+
+  const searchClient = algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
+  const SUGGESTION_MAX_RESULTS = 50;
+  const SEARCH_MAX_RESULTS = 100;
+
+  const indices = window.adp_search.indices
+  const indexToProduct = window.adp_search.index_to_product;
+  const allProducts = window.adp_search.products;
+
+  const urlParams = fetchSearchURLParams();
+  const localElem = localSearch();
+
+  // set flag to see if suggestions or actual results show
+  let searchExecuted = false; // Flag to track if a full search has been done (enter key has been pressed)
+  const searchResultsDiv = document.querySelector("div.merged-results")
+  let suggestionsFlag = false;
+  if (getComputedStyle(searchResultsDiv).visibility === "hidden") {
+    suggestionsFlag = true;
+  }else{
+    searchExecuted = true;
+  }
+
+  let selectedProducts;
+  if (localElem && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
+    selectedProducts = [localElem.productName]
+  }else if (localElem && urlParams.products && urlParams.products !== "all") {
+    selectedProducts = urlParams.products.split(",").filter(product => allProducts.includes(product));
+    selectedProducts.concat(localElem.productName)
+  }else{
+    // from url params set selected products
+    selectedProducts = (urlParams.products === "all" || !urlParams.products) 
+    ? allProducts.slice() // Select all products when "all" is in the URL or no products (a new search)
+    : urlParams.products.split(",").filter(product => allProducts.includes(product));
+  }
+
+  // Get indices corresponding to selected products
+  let selectedIndices = indices.filter(indexName => selectedProducts.includes(indexToProduct[indexName]));
+  let initialIndex;
+
+  // Set initial index to initialize instant search instance
+  if (localElem){
+    initialIndex = localElem.indexName;
+  }else{
+    initialIndex = selectedIndices[0];
+  }
+
+  // Initialize InstantSearch
+  let search = instantsearch({
+    indexName: initialIndex, // Use the first valid index
+    searchClient,
+    });
+
+  // Variable to keep track of results to modify how to render them later
+  let results = new Map();
+  
+  search.start();
+
+  // Function to initialize or update the search
+  function updateSearch() {
+    // Get indices corresponding to selected products
+    const selectedIndices = indices.filter((indexName) => {
+      const product = indexToProduct[indexName];
+      return selectedProducts.includes(product);
+    });
+
+    let hits = 3;
+    let searchBoxContainer = ".merged-results";
+    // // Number of results displayed per index changes depending on how many products are selected
+    if (suggestionsFlag) {
+      searchBoxContainer = ".suggestion-results"; }
+   
+    // Custom InstantSearch search box to deal with suggestions and full results which depends on user input
+    function customSearchBox() { return { init({ helper }) {
+      const searchInput = document.querySelector("#search-box input");
+      const clearSearchQueryButton = document.querySelector("button.clear-search-query-button");
+      const searchResults = document.querySelector("div.search-results");
+      const searchSuggestions = document.querySelector("div.suggestion-results");
+      const outerSearchSuggestions = document.querySelector("div.outer-suggestion-results");
+
+      const queryFromURL = urlParams.query;
+
+      // Detects query in URL but no input value (tab was reloaded)
+      if (queryFromURL && !searchInput.value) {
+        searchInput.value = queryFromURL;
+        helper.setQuery(queryFromURL).search();
+        suggestionsFlag = false;
+        searchResults.style.visibility = "visible";
+        outerSearchSuggestions.style.display = "none";              
+        searchExecuted = true; // Mark search as executed
+      }
+
+      // Listen for user typing (suggestions appear before Enter is pressed)
+      searchInput.addEventListener('input', () => {
+        if (!searchExecuted && searchInput.value.trim() !== "") {
+            searchSuggestions.style.display = "block"; 
+            helper.setQuery(searchInput.value).search(); 
+        }
+      });
+
+      // When Enter is pressed, execute full search and prevent suggestions from reappearing
+      searchInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+          helper.setQuery(searchInput.value).search();
+          outerSearchSuggestions.style.display = "none";  
+          searchSuggestions.style.display = "none";            
+          suggestionsFlag = false; // Prevent suggestions from overriding search results
+          searchResults.style.visibility = "visible";
+          searchResults.classList.add('has-results');
+          searchExecuted = true; // Prevent suggestions from overriding search results
+        }
+      });
+
+      // Clear search query when clear button is clicked
+      clearSearchQueryButton.addEventListener('click', () => {
+        searchInput.value = "";
+        helper.setQuery('').search();
+        searchResults.style.visibility = "hidden";
+        outerSearchSuggestions.style.display = "flex"; 
+      });
+    }, render() {}, };
+  }
+   
+    // Custom InstantSearch function to merge hits from multiple indices
+    function mergedHits({ indices }) {
+      if (!indices || !Array.isArray(indices)) {
+        console.error("indices is undefined or not an array", indices);
+        return;
+      }
+      results = new Map();
+    
+      // Filter the hits first, then iterate through them with forEach
+      indices.flatMap(({ hits }) => hits || [])
+        .filter((hit) => selectedProducts.includes(hit.product)) // Check if the product is selected
+        .forEach((hit) => {
+          // Process each hit
+          results.set(instantsearch.highlight({ hit, attribute: "title" }), {
+            url: hit.url,
+            product: hit.product,
+            content: instantsearch.snippet({ hit, attribute: 'content' }),
+          });
+        });
+      updateSearchParams();
+      if (suggestionsFlag){
+        renderSuggestionResults();
+      }else{
+        renderMergedResults(); // Call to render the filtered results
+      }
+    }
+
+    // Add common widgets like hits per index and how long results are (content)
+    search.addWidgets([
+      instantsearch.widgets.configure({
+        hitsPerPage: hits,
+        attributesToSnippet: ['content:50'],
+      }),
+    ]);
+    
+    const customMergedHits = connectAutocomplete(mergedHits);
+    search.addWidgets([
+      customSearchBox(),
+      customMergedHits({
+        container: document.querySelector(searchBoxContainer)
+      }),
+    ]);
+
+    // Loop through rest of indices
+    selectedIndices.slice(1).forEach((indexName) => {
+      search.addWidgets([
+        instantsearch.widgets.index({
+          indexName: indexName,
+        }),
+      ]);
+    });
+   
+    search.refresh();
+  }
+
+  // Function to update search parameters in URL like products and query
+  function updateSearchParams() {
+    // Preserve existing URL parameters
+    const params = new URLSearchParams(window.location.search);
+  
+    // Get the current search query from the input box
+    const searchInput = document.querySelector("#search-box input");
+    const query = searchInput ? searchInput.value : null;
+  
+    // Determine if all products are selected
+    const allProductsSelected = selectedProducts.length === allProducts.length;
+  
+    // Update the products parameter
+    if (allProductsSelected) {
+      params.set("products", "all");
+    } else if (selectedProducts.length > 0) {
+      params.set("products", selectedProducts.join(","));
+    } else {
+      params.delete("products");
+    }
+  
+    // Update the query parameter
+    if (query) {
+      params.set("query", query);
+    } else {
+      params.delete("query");
+    }
+    // Prevent clearing existing URL parameters
+    window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
+  }
+
+  // Function that renders the checkboxes
+  function renderProductCheckboxes() {
+    const container = document.querySelector('.filters');
+    container.innerHTML = '';
+
+    // "All Products" checkbox
+    const allProductsDiv = document.createElement('div');
+    allProductsDiv.classList.add('search-checkbox-div');
+
+    // Add a data-all on the "All Products" wrapper (never hide All Products)
+    allProductsDiv.dataset.all = 'true';
+
+    const allProductsCheckbox = document.createElement('input');
+    allProductsCheckbox.type = 'checkbox';
+    allProductsCheckbox.id = 'checkbox-all-products';
+    allProductsCheckbox.classList.add('search-checkbox');
+    allProductsCheckbox.value = 'all-products';
+    allProductsCheckbox.checked = selectedProducts.length === allProducts.length;
+
+    const allProductsLabel = document.createElement('label');
+    allProductsLabel.htmlFor = 'checkbox-all-products';
+    allProductsLabel.classList.add('spectrum-Checkbox-label', 'search-label');
+    allProductsLabel.innerText = 'All Products';
+
+    allProductsDiv.appendChild(allProductsCheckbox);
+    allProductsDiv.appendChild(allProductsLabel);
+    container.appendChild(allProductsDiv);
+
+    // individual product checkboxes
+    allProducts.forEach((product) => {
+      const productDiv = document.createElement('div');
+      productDiv.classList.add('search-checkbox-div');
+      // – add a data-product attribute on each wrapper for toggling it later
+      productDiv.dataset.product = product;
+      productDiv.id = `filter-wrapper-${product.replace(/\s+/g, '-')}`;
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = `checkbox-${product.replace(/\s+/g, '-')}`;
+      checkbox.value = product;
+      checkbox.classList.add('search-checkbox');
+
+      // don't check products if new tab or if all products are selected
+      checkbox.checked = selectedProducts.includes(product) && !allProductsCheckbox.checked;
+
+      const label = document.createElement('label');
+      label.htmlFor = checkbox.id;
+      label.classList.add('spectrum-Checkbox-label', 'search-label');
+      label.innerText = product;
+
+      productDiv.appendChild(checkbox);
+      productDiv.appendChild(label);
+      container.appendChild(productDiv);
+    });
+  }
+
+  // Function that is called after each search render to hide/show product checkboxes
+  function updateCheckboxVisibility(productsWithResults) {
+    const allSelected = selectedProducts.length === allProducts.length;
+
+    // loop over each product‐wrapper
+    document.querySelectorAll('.search-checkbox-div[data-product]').forEach((div) => {
+      const product = div.dataset.product;
+      if (allSelected) {
+        // only show those with results
+        div.style.display = productsWithResults.has(product) ? '' : 'none';
+      } else {
+        // specific‐product mode: show all product checkboxes
+        div.style.display = '';
+      }
+    });
+  }
+ 
+  // Function that attaches event listeners to each checkbox
+  function attachCheckboxEventListeners() {
+    const allProductsCheckbox = document.getElementById('checkbox-all-products');
+    const productCheckboxes = document.querySelectorAll('.filters input[type="checkbox"]:not(#checkbox-all-products)');
+  
+    // Event listener for "All Products" checkbox
+    allProductsCheckbox.addEventListener('change', () => {
+      if (allProductsCheckbox.checked) {
+        selectedProducts = allProducts.slice(); // Select all products
+        productCheckboxes.forEach((cb) => (cb.checked = false)); // Ensure all products appear checked
+      } else {
+        selectedProducts = [];
+        productCheckboxes.forEach((cb) => (cb.checked = false)); // Uncheck all products
+      }
+      updateSearchParams();
+      updateSearch();
+    });
+    
+    // Event listeners for individual product checkboxes
+    productCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', () => {
+        allProductsCheckbox.checked = false; // Uncheck "All Products"
+        selectedProducts = Array.from(productCheckboxes)
+          .filter((cb) => cb.checked) // Get checked product checkboxes
+          .map((cb) => cb.value);
+  
+        if (selectedProducts.length === 0) {
+          // If no products selected, revert to "All Products"
+          allProductsCheckbox.checked = true;
+          selectedProducts = allProducts.slice();
+        }
+        updateSearchParams();
+        updateSearch();
+      });
+    });
+  }
+  
+  // Function that sorts results and makes the custom html for each result
+  function renderMergedResults() {
+    const container = document.querySelector('.merged-results');
+    container.innerHTML = '';
+
+    // group hits by product
+    const productGroupedResults = new Map();
+    results.forEach((value, key) => {
+      if (!productGroupedResults.has(value.product)) {
+        productGroupedResults.set(value.product, []);
+      }
+      productGroupedResults.get(value.product).push({ key, value });
+    });
+
+    // figure out which products have at least one hit
+    const productsWithResults = new Set(productGroupedResults.keys());
+
+    // hide/show checkboxes based on current results + mode
+    updateCheckboxVisibility(productsWithResults);
+
+    // determine display order
+    const allProductsCheckbox = document.getElementById('checkbox-all-products');
+    const productsToShow = allProductsCheckbox.checked ? allProducts : selectedProducts;
+
+    const productsWith = [], productsWithout = [];
+    productsToShow.forEach((p) =>
+      productsWithResults.has(p) ? productsWith.push(p) : productsWithout.push(p)
+    );
+    const sorted = [...productsWith, ...productsWithout];
+
+    // render each group
+    sorted.forEach((product) => {
+      const section = document.createElement('div');
+      section.classList.add('product-group');
+      section.innerHTML = `<h2>${product}</h2>`;
+
+      if (productGroupedResults.has(product)) {
+        productGroupedResults.get(product).forEach(({ key, value }) => {
+          section.innerHTML += `
+            <div class="result-item">
+              <h1 class="spectrum-Body spectrum-Body--sizeM css-1i3xfjj">
+                <a href="${value.url}">${key}</a>
+              </h1>
+              <a href="${value.url} class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>        
+              <p class="result-content spectrum-Body spectrum-Body--sizeS">${value.content}</p>  
+            </div>
+            <hr>
+          `;
+        });
+      } else {
+        section.innerHTML += `<p>No results found for this product.</p>`;
+      }
+      container.appendChild(section);
+    });
+
+    // Ensure that at least something appears, even if no results are found
+    if (sorted.length === 0) {
+      container.innerHTML = '<p>No products selected.</p>';
+    }
+  }
+
+  // Function that sorts results and makes the custom html for each result but for suggestions
+  function renderSuggestionResults() {
+    const ul = document.querySelector('ul.suggestion-results-list');
+    ul.innerHTML = '';
+
+    // group by product
+    const productGroupedResults = new Map();
+    results.forEach((value, key) => {
+      if (!productGroupedResults.has(value.product)) {
+        productGroupedResults.set(value.product, []);
+      }
+      productGroupedResults.get(value.product).push({ key, value });
+    });
+
+    // compute who has any suggestions
+    const productsWithResults = new Set(productGroupedResults.keys());
+    updateCheckboxVisibility(productsWithResults);
+
+    const allProductsCheckbox = document.getElementById('checkbox-all-products');
+    const productsToShow = allProductsCheckbox.checked
+      ? allProducts
+      : selectedProducts;
+
+    const withHits = [], withoutHits = [];
+    productsToShow.forEach((p) =>
+      productsWithResults.has(p) ? withHits.push(p) : withoutHits.push(p)
+    );
+    const sorted = [...withHits, ...withoutHits];
+
+    // render each section
+    sorted.forEach((product) => {
+      const productDiv = document.createElement("div");
+        productDiv.classList.add("suggestion-product-group");
+
+        // Add separator before each product section
+        productDiv.innerHTML = `<hr class="search-suggestions-hr-top"><h4 class="search-suggestions-h4">${product}</h4><hr class="search-suggestions-hr-bottom">`;
+        if (productGroupedResults.has(product)) {
+          // If there are results, render them
+          productGroupedResults.get(product).forEach(({ key, value }) => {
+              productDiv.innerHTML += `
+                  <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-suggestions-a">
+                    <span class="spectrum-Menu-itemLabel">
+                        <div>
+                            <strong>${key}</strong>
+                            <div class="search-suggestions-link">${value.url}</div>
+                            <div>${value.content}</div>
+                        </div>
+                    </span>
+                  </a>
+              `;
+          });
+        } else {
+            // Even if no results, still display the product section
+            productDiv.innerHTML += `<p>No results found for this product.</p>`;
+        }
+      ul.appendChild(productDiv);
+    });
+
+    // Ensure that at least something appears, even if no results are found
+    if (sorted.length === 0) {
+      ul.innerHTML = '<p>No products selected.</p>';
+    }
+  }
+  
+  // Initialize the search and render checkboxes
+  renderProductCheckboxes();
+  attachCheckboxEventListeners();
+  updateSearch();
 }
 
 function globalNavSearchButton() {
@@ -29,6 +517,124 @@ function globalNavSearchButton() {
       </svg>
     </button>`;
   return div;
+}
+
+const globalNavSearchDropDown = () => {
+  const searchDropDown = createTag('div', { class: 'nav-console-search-frame' });
+  searchDropDown.innerHTML = `
+   <div class="outer-search-box">
+    <div id="search-box" class="search-box">
+      <form onsubmit="return false;">
+        <div>
+          <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeMd icon-left">
+            <path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path>
+          </svg>
+          <input id="search-input" type="text" placeholder="Search..." autocomplete="off" class="search-input">
+          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
+            <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="icon-right spectrum-Icon spectrum-Icon--sizeM">
+              <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
+            </svg>
+          </button>
+        </div>
+        </div>   
+      </form>
+      <div class="outer-suggestion-results">
+        <div class="suggestion-results spectrum-Popover spectrum-Popover--bottom is-open" style="display: none;">
+          <ul role="menubar" class="suggestion-results-list">
+        </div>
+      </div>
+    </div>
+
+    <div class="search-results">
+      <div class="search-refinement">
+        <h4 class="spectrum-Heading spectrum-Heading--sizeXS filter-heading">Filter by Products</h4>
+        <div class="filters"></div>
+      </div>
+      <div class="merged-results"></div>
+    </div>
+    `;
+
+  return searchDropDown;
+};
+
+function decorateSearchIframeContainer(header) {
+  const searchDiv = header.querySelector('div.nav-console-search-frame');
+  const searchButton = header.querySelector('button.nav-dropdown-search');
+  const searchSuggestionsDiv = header.querySelector('div.suggestion-results');
+  const outerSuggestionDiv = header.querySelector('div.outer-suggestion-results');
+  const closeSearchButton = header.querySelector('button.close-search-button');
+  const searchResultsDiv = document.querySelector("div.search-results");
+  const searchBar = document.querySelector("div.outer-search-box");
+
+  const urlParams = fetchSearchURLParams();
+
+  // Function to hide suggestions
+  function hideSuggestions() {
+    outerSuggestionDiv.style.display = "none";              
+    searchSuggestionsDiv.style.display = "none";
+  }
+
+  // Function to show search with semi-transparent background
+  function showSearchBar() {
+    searchBar.style.visibility = 'visible';
+    outerSuggestionDiv.style.display = "flex"; 
+    searchResultsDiv.classList.remove('has-results');
+  }
+
+  // Function to show search with results and white background
+  function showSearchResults() {
+    searchDiv.style.visibility = 'visible';
+    searchResultsDiv.style.visibility = 'visible';
+    searchResultsDiv.classList.add('has-results');
+    hideSuggestions();
+  }
+
+  // Function to hide search completely
+  function hideSearch() {
+    searchBar.style.visibility = 'hidden';
+    searchDiv.style.visibility = 'hidden';
+    searchResultsDiv.style.visibility = 'hidden';
+    searchResultsDiv.classList.remove('has-results');
+    hideSuggestions();
+  }
+
+  // Initialize search based on URL parameters - had both products selected and a query
+  if (urlParams.query) {
+    initSearch();
+    showSearchResults();
+    searchButton.classList.add('is-open');
+    searchButton.style.display = 'none';
+    closeSearchButton.style.display = 'block';
+  }
+
+  // when there's no query but a search instance has been created - only show search bar instead of full search
+  if (!urlParams.query && urlParams.products) {
+    initSearch();
+    showSearchBar();
+    searchButton.classList.add('is-open');
+    searchButton.style.display = 'none';
+    closeSearchButton.style.display = 'block';
+  }
+
+  // open search with mag glass search button
+  searchButton.addEventListener('click', (evt) => {
+    if (!evt.currentTarget.classList.contains('is-open')) {
+      initSearch();
+      showSearchBar();
+      searchButton.classList.add('is-open');
+      searchButton.style.display = 'none';
+      closeSearchButton.style.display = 'block';
+    }
+  });
+
+  // close search
+  closeSearchButton.addEventListener('click', () => {
+    searchButton.classList.remove('is-open');
+    closeSearchButton.classList.remove('is-open');
+    hideSearch();
+    searchButton.style.display = 'block';
+    closeSearchButton.style.display = 'none';
+  });
 }
 
 function globalDistributeButton() {
@@ -109,95 +715,6 @@ function globalNavLinkItemDropdownItem(url, name) {
         <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
       </li>
     `;
-}
-
-const globalNavSearchDropDown = () => createTag('div', { class: 'nav-console-search-frame' });
-
-const setSearchFrameSource = () => {
-  const src = isLocalHostEnvironment(window.location.host) ? setSearchFrameOrigin(window.location.host) : `${setSearchFrameOrigin(window.location.host, '/search-frame')}`;
-  const queryString = getQueryString();
-  return queryString && queryString.toString().length > 0
-    ? `${src}?${queryString.toString()}`
-    : src;
-};
-
-const searchFrameOnLoad = (renderedFrame, counter = 0, loaded) => {
-  renderedFrame.contentWindow.postMessage(JSON.stringify({ localPathName: window.location.pathname }), '*');
-  if (window.search_path_name_check !== window.location.pathname) {
-    // attempt to establish connection for 3 seconds then time out
-    if (counter > 30) {
-      // eslint-disable-next-line no-console
-      console.warn('Loading Search iFrame timed out');
-      return;
-    }
-    window.setTimeout(() => { searchFrameOnLoad(renderedFrame, counter + 1, loaded); }, 100);
-  }
-
-  // Past this point we successfully passed the local pathname
-  // and received a confirmation from the iframe
-  if (!loaded) {
-    const queryString = getQueryString();
-
-    if (queryString.has('query')) {
-      const searchIframeContainer = document.querySelector('div.nav-console-search-frame');
-      if (searchIframeContainer.length > 0) {
-        searchIframeContainer.style.visibility = 'visible';
-      }
-    }
-  }
-
-  loaded = true; // eslint-disable-line no-param-reassign
-};
-
-// Referenced https://stackoverflow.com/a/10444444/15028986
-const checkIframeLoaded = (renderedFrame) => {
-  // Get a handle to the iframe element
-  const iframeDoc = renderedFrame.contentDocument || renderedFrame.contentWindow.document;
-
-  // Check if loading is complete
-  if (iframeDoc.readyState === 'complete') {
-    renderedFrame.onload = () => {
-      searchFrameOnLoad(renderedFrame);
-    };
-    // The loading is complete, call the function we want executed once the iframe is loaded
-    return;
-  }
-  // If we are here, it is not loaded.
-  // Set things up so we check the status again in 100 milliseconds
-  window.setTimeout(checkIframeLoaded, 100);
-};
-
-function decorateSearchIframeContainer(header) {
-  const searchIframeContainer = header.querySelector('div.nav-console-search-frame');
-  const button = header.querySelector('button.nav-dropdown-search');
-  const searchButtonDiv = header.querySelector('.nav-console-search-button');
-  const closeButton = header.querySelector('button.close-search-button');
-  const queryString = getQueryString();
-
-  button.addEventListener('click', (evt) => {
-    if (!evt.currentTarget.classList.contains('is-open')) {
-      const searchFrame = createTag('iframe');
-      searchFrame.id = 'nav-search-iframe';
-      searchFrame.src = setSearchFrameSource();
-      searchIframeContainer.appendChild(searchFrame);
-      searchButtonDiv.classList.add('is-open');
-      /* Loading Iframe */
-      checkIframeLoaded(searchIframeContainer.firstChild);
-      searchIframeContainer.style.visibility = 'visible';
-      document.body.style.overflow = 'hidden';
-    }
-  });
-
-  closeButton.addEventListener('click', (evt) => {
-      searchButtonDiv.classList.remove('is-open');
-      searchIframeContainer.style.visibility = 'hidden';
-      document.body.style.overflow = 'auto';
-      searchIframeContainer.firstChild.remove();
-  });
-  // to load search if query string is present
-  if (queryString.has('query')) {
-    button.click();
-  }
 }
 
 function handleButtons(header) {
@@ -510,6 +1027,7 @@ export default async function decorate(block) {
 
   // Add right container for all templates
   const rightContainer = createTag('div', { class: 'nav-console-right-container' });
+
   rightContainer.appendChild(globalNavSearchButton());
   if (window.location.pathname.includes('/developer-distribution')) {
     rightContainer.appendChild(globalDistributeButton());
@@ -518,6 +1036,8 @@ export default async function decorate(block) {
   rightContainer.appendChild(globalSignIn());
   header.append(rightContainer);
   header.append(globalNavSearchDropDown());
+
+  //initialize search
   decorateSearchIframeContainer(header);
   block.remove();
 
@@ -533,4 +1053,4 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
-}
+  }

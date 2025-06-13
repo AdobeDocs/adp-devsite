@@ -38,6 +38,7 @@ import {
   isStageEnvironment,
   isProdEnvironment,
   addExtraScript,
+  addExtraScriptWithLoad,
   decorateHR,
   buildNextPrev
 } from './lib-adobeio.js';
@@ -412,6 +413,69 @@ async function loadLazy(doc) {
 
   loadIms();
   loadAep();
+  
+  // Load Algolia search scripts
+  addExtraScriptWithLoad(
+    document.body,
+    "https://cdn.jsdelivr.net/npm/algoliasearch@5.20.1/dist/lite/builds/browser.umd.js",
+    () => {
+      addExtraScriptWithLoad(
+        document.body,
+        "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
+        () => {
+          const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+          // const searchClient = algoliasearch("E642SEDTHL", "424b546ba7ae75391585a10c6ea38dab");
+
+          if (!algoliasearch || !instantsearch) {
+            console.error("Required search libraries not loaded");
+            return;
+          }else{
+            console.log("Algolia InstantSearch loaded successfully!")
+          }
+        }
+      );
+    }
+  );
+
+  //load search and product map
+  window.adp_search = {};
+  const resp = await fetch('/franklin_assets/product-index-map.json');
+  window.adp_search.product_index_map = (await resp.json()).data;
+
+  window.adp_search.APP_KEY = 'E642SEDTHL';
+  window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
+
+  // Create a new Map to hold the indexName and productName pairs
+  window.adp_search.index_mapping = new Map();
+
+  // Iterate over the product_index_map array and populate the Map
+  window.adp_search.product_index_map.forEach((product) => {
+    window.adp_search.index_mapping.set(product.indexName, {
+        productName: product.productName,
+        indexPathPrefix: product.indexPathPrefix
+    });
+  });
+
+  window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
+
+  // Extract indices
+  window.adp_search.indices = Object.keys(window.adp_search.completeProductMap);
+
+  // Create a mapping of indices to their respective products
+  window.adp_search.index_to_product = Object.fromEntries(
+    Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
+  );
+
+  // Create a mapping of path prefixes to their respective products
+  window.adp_search.path_prefix_to_product = Object.fromEntries(
+      Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+  );
+
+  // Extract unique products
+  window.adp_search.products = Array.from(
+      new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
+  );
+
 
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
