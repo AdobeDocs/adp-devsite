@@ -8,7 +8,7 @@ describe('Summary block', () => {
     let summaryBlock;
 
     before(async () => {
-        document.body.innerHTML = await readFile({ path: 'summary-picture.html' });
+        document.body.innerHTML = await readFile({ path: 'summary-withPicture.html' });
         summaryBlock = document.querySelector('div.summary');
         const { loadBlock, decorateBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
         await decorateBlock(summaryBlock);
