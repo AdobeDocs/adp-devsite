@@ -76,8 +76,10 @@ export default async function decorate(block) {
   if (!imageExists) {
     if (getMetadata("template") === "documentation" && Boolean(backgroundColor) && allowedBackgroundColors.includes(backgroundColor)) {
       block.classList.add(backgroundColor);
-    } else if (!allowedBackgroundColors.includes(backgroundColor)) {
+    } else if (!allowedBackgroundColors.includes(backgroundColor) && getMetadata("template") === "documentation") {
       block.classList.add("background-color-gray");
+    } else {
+      block.classList.add("background-color-white");
     }
   }
   decorateButtons(block);
