@@ -6,17 +6,20 @@ import { createTag, decorateButtons } from "../../scripts/lib-adobeio.js";
  */
 
 function normalizeButtonContainer(block) {
-  block.querySelectorAll('a').forEach((anchor, i) => {
-    const p = createTag('p');
-    const node = i === 0 ? createTag('strong') : p;
-    node.appendChild(anchor.cloneNode(true));
-    p.appendChild(node === p ? node.firstChild : node);
-    anchor.replaceWith(p);
-  });
+  const anchorElement = Array.from(block.querySelectorAll('a'));
+  if (anchorElement.length > 0) {
+    anchorElement.forEach((anchor, i) => {
+      const p = createTag('p');
+      const node = i === 0 ? createTag('strong') : p;
+      node.appendChild(anchor.cloneNode(true));
+      p.appendChild(node === p ? node.firstChild : node);
+      anchor.replaceWith(p);
+    });
 
-  const lastGroup = block.lastElementChild?.lastElementChild;
-  if (lastGroup && [...lastGroup.children].every(child => child.tagName === 'P')) {
-    lastGroup.classList.add('all-button-container');
+    const lastGroup = block.lastElementChild?.lastElementChild;
+    if (lastGroup && [...lastGroup.children].every(child => child.tagName === 'P')) {
+      lastGroup.classList.add('all-button-container');
+    }
   }
 }
 
@@ -27,7 +30,7 @@ export default async function decorate(block) {
   const variant = block.getAttribute('data-variant') || 'default';
   block.classList.add(variant);
 
-  const textColor = block.getAttribute('data-textcolor') || 'black';
+  const textColor = block.getAttribute('data-textcolor') || 'white';
   block.classList.add(`text-color-${textColor}`);
 
   const layoutWrapper = createTag('div', { class: "herosimple-container-wrapper" });
