@@ -1,4 +1,4 @@
-import { createTag, decorateButtons } from '../../scripts/lib-adobeio.js';
+import { createTag } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
 /**
@@ -6,14 +6,12 @@ import { getMetadata } from '../../scripts/scripts.js';
  * @param {Element} block The title block element {Parameter Type} Name of the Parameter
  */
 export default async function decorate(block) {
-    console.log("block--", block)
     block.setAttribute('daa-lh', 'product-card');
     block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
         h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'title-heading');
     });
     block.querySelectorAll('p, div').forEach(p => {
         if (p.textContent.trim() || p.tagName === 'P') {
-            console.log("p :) :)", p)
             p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
         }
     });
