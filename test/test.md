@@ -60,4 +60,13 @@
     - The `if(padding)` will always be false
 - line 9 & 19 - 21:
     - No element has attribute `data-ContentAlign`
-    - The `if(contentAlign)` will always be false
+
+**info-columns.js**
+- line 29 - 37:
+    - The div `info-column` does not have any `<p>` child
+    - The  `querySelectorAll('p')` will get null in line 29
+    - Can't run through the forEach()
+- line 42 - 48:
+    - The `querySelectorAll('div > div.info-column')` statement are inside the forEach of `info-column`
+    - The querySelector will get null
+    - Should move this outside of `info-column`'s forEach and do querySelector for block instead of column
