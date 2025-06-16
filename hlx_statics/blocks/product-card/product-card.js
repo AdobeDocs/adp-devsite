@@ -1,4 +1,5 @@
-import { decorateButtons } from '../../scripts/lib-adobeio.js';
+import { createTag } from '../../scripts/lib-adobeio.js';
+import { getMetadata } from '../../scripts/scripts.js';
 
 /**
  * decorates the title
@@ -6,48 +7,75 @@ import { decorateButtons } from '../../scripts/lib-adobeio.js';
  */
 export default async function decorate(block) {
     block.setAttribute('daa-lh', 'product-card');
-    decorateButtons(block);
     block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
         h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'title-heading');
     });
-    block.querySelectorAll('p').forEach((p) => {
-        p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-    });
-    block.querySelectorAll('a').forEach((a) => {
-        if (a.title === "View docs") {
-            a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM"
+    block.querySelectorAll('p, div').forEach(p => {
+        if (p.textContent.trim() || p.tagName === 'P') {
+            p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
         }
     });
+
     const width = block?.parentElement?.parentElement?.getAttribute('data-width');
     Array.from(block.children).forEach(div => {
         div.style.width = width;
     })
 
-    Array.from(block.children).forEach((div) => {
-        const newDiv = document.createElement('div');
-        newDiv.classList.add('all-button-container')
+    if (getMetadata('template') === 'documentation') {
+        Array.from(block.children).forEach((card) => {
+            const bodyWrapper = createTag('div', { class: 'spectrum-Card-body' });
+            const footerWrapper = createTag('div', { class: 'spectrum-Card-footer' });
+            const allButtonContainer = createTag('div', { class: 'all-button-container' });
 
-        div.lastElementChild.querySelectorAll('.button-container').forEach((p) => {
-            newDiv.append(p);
+            const buttons = [];
+
+            Array.from(card.children).forEach((child) => {
+                const aTags = child.querySelectorAll('a');
+                if (aTags.length > 0) {
+                    aTags.forEach((a) => buttons.push(a));
+                    child.remove();
+                } else {
+                    bodyWrapper.appendChild(child);
+                }
+            });
+
+            buttons.forEach((a) => {
+                allButtonContainer.appendChild(a);
+            });
+
+            if (buttons.length > 0) {
+                footerWrapper.appendChild(allButtonContainer);
+                card.append(bodyWrapper, footerWrapper);
+            } else {
+                card.append(bodyWrapper);
+            }
+
+            card.classList.add('spectrum-Card', 'spectrum-Card--sizeM');
+        });
+    } else {
+        Array.from(block.children).forEach((div) => {
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('all-button-container')
+
+            div.lastElementChild.querySelectorAll('.button-container').forEach((p) => {
+                newDiv.append(p);
+            })
+            newDiv.append(div.lastElementChild);
+            div.append(newDiv);
         })
+    }
 
-        div.lastElementChild.append(newDiv)
-    })
-
-    const parentDiv = document.getElementsByClassName('product-card');
-    const childDivs = parentDiv[0].querySelectorAll(':scope > div');
-    childDivs.forEach((child) => {
-        child.classList.add("spectrum-Card", "spectrum-Card--sizeM")
-    });
-
-    const bodyDiv = document.getElementsByClassName('spectrum-Card');
-    const childbody = bodyDiv[0].querySelectorAll(':scope > div');
-    childbody.forEach((child, index) => {
-        if (index === 0) {
-            child.classList.add("spectrum-Card-body")
-        }
-        else if (index === 1) {
-            child.classList.add("spectrum-Card-footer");
-        }
+    Array.from(block.children).forEach((card) => {
+        const anchors = card.querySelectorAll('a');
+        anchors.forEach((a, index) => {
+            const isWrappedInStrong = a.parentElement.tagName === 'STRONG';
+            if ((index === 0 || index === 1) && isWrappedInStrong || index === 1) {
+                a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM";
+            } else if (!isWrappedInStrong) {
+                a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM";
+            } else {
+                a.className = "spectrum-Button spectrum-Button--sizeM spectrum-Button--outline spectrum-Button--secondary";
+            }
+        });
     });
 }
