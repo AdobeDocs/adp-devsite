@@ -1,6 +1,29 @@
-main div.site-wide-banner-container {
+main div.site-wide-banner-container.background-notice {
     background-color: #FBF198;
-    color: #222222;
+}
+
+main div.site-wide-banner-container.background-info {
+    background-color: rgb(20, 122, 243);
+    color: white;
+}
+
+main div.site-wide-banner-container.background-warning {
+    background-color: rgb(246, 133, 17);
+    color: white;
+}
+
+main div.site-wide-banner-container.background-light {
+    background-color: #ffffff;
+}
+
+main div.site-wide-banner-container.background-success {
+    background-color: rgb(0, 143, 93);
+    color: white;
+}
+
+main div.site-wide-banner-container.background-neutral {
+    background-color: rgb(44, 44, 44);
+    color: white;
 }
 
 main div.site-wide-banner-wrapper {
@@ -33,6 +56,22 @@ main div.site-wide-banner-wrapper .site-wide-banner-close-button {
     cursor: pointer;
     border: none;
     border-left: 2px solid #22222233;
+}
+
+main div.site-wide-banner-container.background-warning .site-wide-banner-close-button,
+main div.site-wide-banner-container.background-info .site-wide-banner-close-button,
+main div.site-wide-banner-container.background-neutral .site-wide-banner-close-button,
+main div.site-wide-banner-container.background-success .site-wide-banner-close-button {
+    border-left: 2px solid #ffffff;
+    background: transparent url('../../icons/dismiss-white.svg') no-repeat center;
+}
+
+main div.site-wide-banner-container.background-warning .site-wide-banner-button-container a,
+main div.site-wide-banner-container.background-info .site-wide-banner-button-container a,
+main div.site-wide-banner-container.background-neutral .site-wide-banner-button-container a,
+main div.site-wide-banner-container.background-success .site-wide-banner-button-container a {
+    border-color: #ffffff;
+    color: #ffffff;
 }
 
 main div.site-wide-banner-wrapper .site-wide-banner-block-wrapper {

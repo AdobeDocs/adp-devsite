@@ -20,8 +20,8 @@ export default async function decorate(block) {
   const sidenavArea = document.querySelector('[style*="grid-area: sidenav"]');
   const isDocTemplate = getMetadata("template") === "documentation";
   const isMobile = window.innerWidth < 1025;
-
   let bannerData;
+
   if (isDocTemplate) {
     bannerData = await fetchSiteWideBanner();
   } else {
@@ -52,7 +52,7 @@ export default async function decorate(block) {
     return;
   }
 
-  const { text, icon, buttonLink, button, isClose } = bannerData?.data[0] || {};
+  const { text, icon, buttonLink, button, isClose, bgColor = "notice" } = bannerData?.data[0] || {};
   const parentHeight = siteParent.getBoundingClientRect().height;
   const paddingValue = `${parentHeight + (isMobile ? 50 : 0)}px`;
   const nextHeroSpan = siteParent.nextElementSibling?.nextElementSibling;
@@ -111,6 +111,13 @@ export default async function decorate(block) {
       }
     });
     wrapper.appendChild(closeBtn);
+  }
+
+  if (bgColor) {
+    const allowedColors = ["warning", "success", "info", "neutral", "notice", "light"];
+    if (allowedColors.includes(bgColor))
+      siteParent.classList.add(`background-${bgColor}`)
+
   }
 
   block.appendChild(wrapper);
