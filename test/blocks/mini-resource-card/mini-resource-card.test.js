@@ -15,7 +15,7 @@ describe('Mini resource card block - no primary button', () => {
 
     it('Builds mini resource card block', () => {
         expect(miniResourceCardBlock).to.exist;
-        expect(miniResourceCardBlock.getAttribute('daa-lh')).to.equal('mini resource card');
+        expect(miniResourceCardBlock.getAttribute('daa-lh')).to.equal('mini-resource-card');
     });
 
     it('mini resource card > nobox design', () => {

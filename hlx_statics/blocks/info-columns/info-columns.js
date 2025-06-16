@@ -11,7 +11,7 @@ import { decorateLightOrDark } from '../../scripts/lib-helix.js';
  * @param {Element} block The info-columns block element
  */
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'info column');
+  block.setAttribute('daa-lh', 'info-columns');
   block.querySelectorAll('.info-columns > div > div').forEach((column) => {
     column.classList.add('info-column');
   });

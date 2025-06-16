@@ -14,7 +14,7 @@ await loadBlock(linkBlockBlock);
 describe('Link block', () => {
   it('Builds link block', () => {
     expect(linkBlockBlock).to.exist;
-    expect(linkBlockBlock.getAttribute('daa-lh')).to.equal('title');
+    expect(linkBlockBlock.getAttribute('daa-lh')).to.equal('link-block');
   });
 
   it('link block > headings', () => {

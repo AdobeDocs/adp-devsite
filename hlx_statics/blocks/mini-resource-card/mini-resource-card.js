@@ -42,7 +42,7 @@ function getMiniResourceCard(linkHref, heading, text) {
  */
 export default async function decorate(block) {
     let containerParent;
-    block.setAttribute('daa-lh', 'mini resource card');
+    block.setAttribute('daa-lh', 'mini-resource-card');
     if (block.classList.contains('nobox-design')) {
         block.classList.add('background-color-white');
     }
