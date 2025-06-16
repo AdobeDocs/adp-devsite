@@ -24,7 +24,6 @@ describe('Title block', () => {
         expect(heading.classList.contains('title-heading')).to.be.true;
     });
 
-    //todo: line 16 not testable, unit test html does not have preset parentElement
     it('title > padding', async () => {
         const padding = titleBlock.parentElement?.parentElement?.getAttribute('data-Padding');
         if (padding) {
@@ -33,7 +32,6 @@ describe('Title block', () => {
         }
     });
 
-    //FIXME: line 19 not testable, unit test html does not have preset parentElement
     it('title > content align', async () => {
         const contentAlign = titleBlock.parentElement?.parentElement?.getAttribute('data-ContentAlign');
         if (contentAlign) {

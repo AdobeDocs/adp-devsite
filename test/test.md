@@ -53,3 +53,11 @@
     - Class `pirmarybutton` is assigned to block
     - The block with `primaybutton` does not have `<p>` tag, so cann't go through the forEach at line 34
     - Should check `block.classList.contains('primarybutton')` outside any contional statement
+
+**title.js**:
+- line 8 & 16 - 18:
+    - No element has attribute `data-Padding`
+    - The `if(padding)` will always be false
+- line 9 & 19 - 21:
+    - No element has attribute `data-ContentAlign`
+    - The `if(contentAlign)` will always be false
