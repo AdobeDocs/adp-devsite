@@ -1,0 +1,8 @@
+main div.button-wrapper div.all-button-wrapper {
+    display: flex;
+    gap: 16px;
+}
+
+main div.button-wrapper div.center div.all-button-wrapper {
+    justify-content: center;
+}
