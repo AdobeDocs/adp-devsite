@@ -52,4 +52,4 @@
 - line 34 - 35, 42, 45:
     - Class `pirmarybutton` is assigned to block
     - The block with `primaybutton` does not have `<p>` tag, so cann't go through the forEach at line 34
-    - Should check `(block.classList.contains('primarybutton')` outside any contional statement
+    - Should check `block.classList.contains('primarybutton')` outside any contional statement
