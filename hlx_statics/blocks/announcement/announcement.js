@@ -1,3 +1,4 @@
+
 import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
@@ -75,8 +76,11 @@ export default async function decorate(block) {
   const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray"];
 
   if (!imageExists) {
-    if (getMetadata("template") === "documentation" && ( allowedBackgroundColors.includes(backgroundColor) || !allowedBackgroundColors.includes(backgroundColor))) {
-      block.classList.add(backgroundColor);
+    if (getMetadata("template") === "documentation") {
+      if (Boolean(backgroundColor) && [...allowedBackgroundColors, "background-color-gray"].includes(backgroundColor)) {
+        block.className = block.className.replace(/\bbackground-color-[^\s]+/g, '').trim();
+        block.classList.add(backgroundColor);
+      }
     }
     if (!allowedBackgroundColors.some(allowedBackgroundColor => block.classList.contains(allowedBackgroundColor))) {
       block.classList.add("background-color-gray");
