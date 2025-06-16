@@ -180,17 +180,10 @@ async function loadEager(doc) {
   if (IS_DEV_DOCS) {
     // check if this page is from dev docs, then change the main container to white background.
     const mainContainer = document.querySelector('main');
-    mainContainer.classList.add('white-background');
-  }
+    mainContainer.classList.add('dev-docs', 'white-background');
 
-
-  if (IS_DEV_DOCS) {
     buildGrid(main);
-  }
-
-  buildSideNav(main);
-
-  if (IS_DEV_DOCS) {
+    buildSideNav(main);
     buildBreadcrumbs(main);
   }
 
@@ -444,19 +437,21 @@ async function loadLazy(doc) {
     footer.style.gridArea = 'footer';
     main.append(footer);
 
-    // turn off this page when in doc mode and there's no hero
     const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
-    const hasSideNav = document.querySelector('.side-nav')?.children.length !== 0;
-    if (!hasHero && hasHeading && hasSideNav) {
+    if (!hasHero && hasHeading) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+    } else {
+      main.classList.add('no-onthispage');
     }
+
     if(document.querySelector('.side-nav-subpages-section')) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
-    buildGridAreaMain({main, hasHero, hasSideNav});
+
+    buildGridAreaMain(main);
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
