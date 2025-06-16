@@ -13,7 +13,7 @@ describe('Info-columns block', () => {
     it('should be a div with class info-columns', () => {
         expect(infoColumnsBlock).to.exist;
         expect(infoColumnsBlock.classList.contains('info-columns')).to.be.true;
-        expect(infoColumnsBlock.getAttribute('daa-lh')).to.equal('info column');
+        expect(infoColumnsBlock.getAttribute('daa-lh')).to.equal('info-columns');
     });
 
     it('info-columns > info-column', () => {
