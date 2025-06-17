@@ -25,7 +25,7 @@ export default async function decorate(block) {
   if (!isLink) {
     decorateButtons(block);
   }
-  block.setAttribute('daa-lh', 'card');
+  block.setAttribute('daa-lh', 'cards');
   block.querySelectorAll('.cards > div').forEach((card, index, array) => {
 
     decorateLightOrDark(block);
