@@ -7,17 +7,21 @@ main div.image-text-wrapper-container > .image-text-wrapper {
   margin: auto;
 }
 
-main div.image-text-wrapper > .image-text {
+main div.image-text-wrapper>div.image-text:not(.center),
+main div.image-text-wrapper>div.image-text div.wrapper-division {
   display: flex;
   gap: 100px;
   justify-content: center;
 }
 
-main
-  div.image-text-wrapper
-  > .image-text
-  > div
-  > div:last-child {
+main div.image-text-wrapper>div.image-text:is(.center) {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+}
+
+main div.image-text-wrapper>.image-text:not(.center)>div>div:last-child,
+main div.image-text-wrapper>.image-text div.wrapper-division>div>div:last-child {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -35,11 +39,6 @@ main div.image-text-wrapper .image-text-button-container {
   gap: 20px;
 }
 
-main div.image-text-wrapper > .image-text > div > div {
-  display: flex;
-  justify-content: center;
-}
-
 main div.image-text-wrapper-container p {
   text-align: center;
 }
@@ -52,8 +51,25 @@ main div.image-text-wrapper-container p {
 }
 
 @media screen and (min-width: 320px) and (max-width: 1023px) {
-  main div.image-text-wrapper > .image-text {
+
+  main div.image-text-wrapper>div.image-text:not(.center),
+  main div.image-text-wrapper>div.image-text div.wrapper-division {
     flex-direction: column !important;
     gap: 50px;
+    align-items: center;
   }
+
+  main div.image-text-wrapper>.image-text:not(.center)>div>div:last-child,
+  main div.image-text-wrapper>.image-text div.wrapper-division>div>div:last-child {
+    text-align: center;
+  }
+
+  main div.image-text-wrapper>.image-text>div,
+  main div.image-text-wrapper>div.image-text div.wrapper-division>div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
 }
