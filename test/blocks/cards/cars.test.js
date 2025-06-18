@@ -6,11 +6,31 @@ describe('Cards block - three cards', () => {
     let cardsBlock;
 
     before(async () => {
+        let observerCallback;
+        let disconnectCalled = false;
+        
+        // Mock IntersectionObserver before loading block
+        window.IntersectionObserver = class {
+            constructor(callback) {
+                observerCallback = callback;
+                this.disconnect = () => {
+                    disconnectCalled = true;
+                };
+            }
+            observe() {} 
+        };
+
         document.body.innerHTML = await readFile({ path: 'cards-threeCards.html' });
         cardsBlock = document.querySelector('div.cards');
         const { loadBlock, decorateBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
         await decorateBlock(cardsBlock);
         await loadBlock(cardsBlock);
+
+        // Store the callback and disconnect function for tests
+        cardsBlock.testHelpers = {
+            triggerIntersection: () => observerCallback([{ isIntersecting: true }]),
+            wasDisconnected: () => disconnectCalled
+        };
     });
 
     it('Builds cards block', async () => {
@@ -36,13 +56,26 @@ describe('Cards block - three cards', () => {
             });
 
             expect(card.classList.contains('three-card')).to.be.true;
-            // FIXME: the target div is located at .three-card > div > div
-            // .three > div is their parent container and the length is 1
-            card.querySelectorAll('.three-card > div').forEach((font, index) => {
-                if (index === 1) {
-                    expect(font.style.getPropertyValue('font-size')).to.equal('16px');
-                }
-            });
+        });
+    });
+
+    it('Processes images when scrolled into view', async () => {
+        // Get initial image state
+        const initialImages = cardsBlock.querySelectorAll('picture > img');
+        const initialSrcs = Array.from(initialImages).map(img => img.src);
+
+        // Trigger intersection using stored callback
+        cardsBlock.testHelpers.triggerIntersection();
+
+        // Verify observer was disconnected
+        expect(cardsBlock.testHelpers.wasDisconnected()).to.be.true;
+
+        // Verify images were processed
+        const processedImages = cardsBlock.querySelectorAll('picture > img');
+        processedImages.forEach((img, index) => {
+            expect(img.getAttribute('loading')).to.equal('lazy');
+            // The width and height are not preserved by createOptimizedPicture
+            expect(img.src).to.equal(initialSrcs[index]);
         });
     });
 

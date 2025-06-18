@@ -73,4 +73,4 @@
 
 **card.js**:
 - line 58 - 62:
-    - The `card.querySelectorAll('.three-card > div')` is inside the forEach statement of card array
+    - This can be safely deleted without effecting the display of block
