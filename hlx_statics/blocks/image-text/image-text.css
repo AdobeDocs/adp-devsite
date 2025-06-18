@@ -16,7 +16,7 @@ main div.image-text-wrapper>div.image-text div.wrapper-division {
 
 main div.image-text-wrapper>div.image-text:is(.center) {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   align-items: center;
 }
 

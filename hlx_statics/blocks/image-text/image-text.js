@@ -40,27 +40,38 @@ export default async function decorate(block) {
   });
 
   if (block.classList.contains('center')) {
-    const firstChild = block.firstElementChild;
-    firstChild.querySelectorAll('a').forEach(anchor => {
-      const parent = anchor.parentElement;
-      const p = createTag('p');
-  
-      if (parent?.classList.contains('button-container')) {
-        p.appendChild(anchor);
-        parent.appendChild(p);
-      } else if (parent?.tagName === 'STRONG') {
-        parent.replaceWith(p);
-        p.appendChild(parent);
-      }
-  
-      anchor.closest('div')?.classList.add('all-button-wrapper');
-    });
-  
     const children = Array.from(block.children);
-    if (children.length > 1) {
-      const wrapper = createTag('div', { class: 'wrapper-division' });
-      children.slice(1).forEach(child => wrapper.appendChild(child));
-      block.insertBefore(wrapper, block.children[1]);
+
+    const lastWithAnchor = children.slice().reverse().find(el => el.querySelector('a'));
+    if (!lastWithAnchor) return;
+
+    const firstTwoElements = children.slice(0, 2);
+    if (firstTwoElements.length < 2) return;
+
+    const wrapper = createTag('div', { class: 'wrapper-division' });
+    block.insertBefore(wrapper, firstTwoElements[0]);
+
+    firstTwoElements.forEach(el => wrapper.appendChild(el));
+    wrapper.appendChild(lastWithAnchor);
+
+    const lastChild = wrapper.lastElementChild;
+    if (lastChild) {
+      lastChild.querySelectorAll('a').forEach(anchor => {
+        const parent = anchor.parentElement;
+        const p = createTag('p');
+
+        if (parent?.classList.contains('button-container')) {
+          p.appendChild(anchor);
+          parent.appendChild(p);
+        } else if (parent?.tagName === 'STRONG') {
+          parent.replaceWith(p);
+          p.appendChild(parent);
+        }
+
+        anchor.closest('div')?.classList.add('all-button-wrapper');
+      });
+
+      block.insertBefore(lastChild, wrapper.nextSibling);
     }
   }
 
