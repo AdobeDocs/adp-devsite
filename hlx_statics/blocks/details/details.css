@@ -6,3 +6,7 @@ main .details-wrapper details > div > div,
 main .details-wrapper {
     margin: 20px 0px;
 }
+
+main div.details-wrapper img {
+    max-width: 100%;
+}
