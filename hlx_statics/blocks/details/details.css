@@ -8,11 +8,5 @@ main .details-wrapper {
 }
 
 main div.details-wrapper img {
-    max-width: 1280px;
-}
-
-@media screen and (min-width : 320px) and (max-width : 1023px) {
-    main div.details-wrapper img {
-        max-width: 100%;
-    }
+    max-width: 100%;
 }
