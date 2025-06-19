@@ -69,7 +69,7 @@ export default async function decorate(block) {
         const anchors = card.querySelectorAll('a');
         anchors.forEach((a, index) => {
             const isWrappedInStrong = a.parentElement.tagName === 'STRONG';
-            if ((index === 0 || index === 1) && isWrappedInStrong || index === 1) {
+            if (isWrappedInStrong || (getMetadata('template') === 'documentation') && index === 1) {
                 a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM";
             } else if (!isWrappedInStrong) {
                 a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM";
