@@ -76,11 +76,11 @@ export default async function decorate(block) {
   const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray", "background-color-gray"];
 
   if (!imageExists) {
-    if (getMetadata("template") === "documentation" && Boolean(backgroundColor) && allowedBackgroundColors.includes(backgroundColor)) {
+    if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
       block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
       block.classList.add(backgroundColor);
     }
-    if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')) {
+    if (!allowedBackgroundColors.some(allowedBackgroundColor => block.classList.contains(allowedBackgroundColor))) {
       block.classList.add("background-color-gray");
     }
   }
