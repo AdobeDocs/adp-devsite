@@ -1,3 +1,4 @@
+
 import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
@@ -72,11 +73,14 @@ export default async function decorate(block) {
     p.style.whiteSpace = "normal";
   });
   const imageExists = block.querySelector('picture img');
-  const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray"];
+  const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray", "background-color-gray"];
+
   if (!imageExists) {
-    if (getMetadata("template") === "documentation" && Boolean(backgroundColor) && allowedBackgroundColors.includes(backgroundColor)) {
+    if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
+      block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
       block.classList.add(backgroundColor);
-    } else if (!allowedBackgroundColors.includes(backgroundColor)) {
+    }
+    if (!allowedBackgroundColors.some(allowedBackgroundColor => block.classList.contains(allowedBackgroundColor))) {
       block.classList.add("background-color-gray");
     }
   }
