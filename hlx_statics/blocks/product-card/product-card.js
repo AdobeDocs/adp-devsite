@@ -7,26 +7,30 @@ import { getMetadata } from '../../scripts/scripts.js';
  */
 export default async function decorate(block) {
     block.setAttribute('daa-lh', 'product-card');
+
+    const template = getMetadata('template');
+    const width = block?.parentElement?.parentElement?.getAttribute('data-width');
+
     block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
         h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'title-heading');
     });
-    block.querySelectorAll('p, div').forEach(p => {
-        if (p.textContent.trim() || p.tagName === 'P') {
-            p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-        }
-    });
 
-    const width = block?.parentElement?.parentElement?.getAttribute('data-width');
-    Array.from(block.children).forEach(div => {
-        div.style.width = width;
-    })
+    Array.from(block.children).forEach((card) => {
+        card.style.width = width;
 
-    if (getMetadata('template') === 'documentation') {
-        Array.from(block.children).forEach((card) => {
-            const bodyWrapper = createTag('div', { class: 'spectrum-Card-body' });
-            const footerWrapper = createTag('div', { class: 'spectrum-Card-footer' });
-            const allButtonContainer = createTag('div', { class: 'all-button-container' });
+        card.querySelectorAll('p, div').forEach(p => {
+            if (p.textContent.trim() || p.tagName === 'P') {
+                p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+            }
+        });
 
+        card.classList.add('spectrum-Card', 'spectrum-Card--sizeM');
+
+        const body = createTag('div', { class: 'spectrum-Card-body' });
+        const footer = createTag('div', { class: 'spectrum-Card-footer' });
+        const btnWrap = createTag('div', { class: 'all-button-container' });
+
+        if (template === 'documentation') {
             const buttons = [];
 
             Array.from(card.children).forEach((child) => {
@@ -35,47 +39,32 @@ export default async function decorate(block) {
                     aTags.forEach((a) => buttons.push(a));
                     child.remove();
                 } else {
-                    bodyWrapper.appendChild(child);
+                    body.appendChild(child);
                 }
             });
 
-            buttons.forEach((a) => {
-                allButtonContainer.appendChild(a);
-            });
+            buttons.forEach(a => btnWrap.appendChild(a));
+            if (buttons.length) footer.appendChild(btnWrap);
+            card.append(body, ...(buttons.length ? [footer] : []));
+        } else {
+            card.lastElementChild?.querySelectorAll('.button-container')?.forEach(p => btnWrap.append(p));
+            btnWrap.append(card.lastElementChild);
+            footer.append(btnWrap);
 
-            if (buttons.length > 0) {
-                footerWrapper.appendChild(allButtonContainer);
-                card.append(bodyWrapper, footerWrapper);
-            } else {
-                card.append(bodyWrapper);
-            }
+            card.firstElementChild?.children && [...card.firstElementChild.children].forEach(ele => body.appendChild(ele));
+            card.prepend(body);
+            card.append(footer);
+        }
+    });
 
-            card.classList.add('spectrum-Card', 'spectrum-Card--sizeM');
+    Array.from(block.children).forEach(card => {
+        card.querySelectorAll('a').forEach((a, index) => {
+            const isStrong = a.parentElement.tagName === 'STRONG';
+            a.className = `spectrum-Button spectrum-Button--outline spectrum-Button--${isStrong || (template === 'documentation' && index === 1) ? 'accent' : 'secondary'} spectrum-Button--sizeM`;
         });
-    } else {
-        Array.from(block.children).forEach((div) => {
-            const newDiv = document.createElement('div');
-            newDiv.classList.add('all-button-container')
+    });
 
-            div.lastElementChild.querySelectorAll('.button-container').forEach((p) => {
-                newDiv.append(p);
-            })
-            newDiv.append(div.lastElementChild);
-            div.append(newDiv);
-        })
-    }
-
-    Array.from(block.children).forEach((card) => {
-        const anchors = card.querySelectorAll('a');
-        anchors.forEach((a, index) => {
-            const isWrappedInStrong = a.parentElement.tagName === 'STRONG';
-            if (isWrappedInStrong || (getMetadata('template') === 'documentation') && index === 1) {
-                a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM";
-            } else if (!isWrappedInStrong) {
-                a.className = "spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM";
-            } else {
-                a.className = "spectrum-Button spectrum-Button--sizeM spectrum-Button--outline spectrum-Button--secondary";
-            }
-        });
+    block.querySelectorAll('p, div').forEach(el => {
+        if (!el.innerHTML.trim()) el.remove();
     });
 }
