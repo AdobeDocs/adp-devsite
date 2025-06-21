@@ -70,3 +70,7 @@
     - The `querySelectorAll('div > div.info-column')` statement are inside the forEach of `info-column`
     - The querySelector will get null
     - Should move this outside of `info-column`'s forEach and do querySelector for block instead of column
+
+**card.js**:
+- line 58 - 62:
+    - This can be safely deleted without effecting the display of block
