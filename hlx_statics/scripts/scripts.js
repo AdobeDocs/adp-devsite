@@ -486,7 +486,9 @@ function loadDelayed() {
 }
 
 function loadTitle() {
-  document.title = window.location.href;
+  if (!document.title || document.title === '') {
+    document.title = window.location.href;
+  }
 }
 
 function loadPrism(document) {
