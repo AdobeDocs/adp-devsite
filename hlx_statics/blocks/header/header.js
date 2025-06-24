@@ -51,8 +51,6 @@ function localSearch() {
 }
 
 function initSearch() {
-  // TODO: add loading circle for when still loading
-  // TODO: Don’t allow x button in search bar to appear unless there is a search in it
   const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
 
@@ -71,6 +69,7 @@ function initSearch() {
   let searchExecuted = false; // Flag to track if a full search has been done (enter key has been pressed)
   const searchResultsDiv = document.querySelector("div.merged-results")
   let suggestionsFlag = false;
+  let searchCleared = false; // Flag to track if search was cleared
   if (getComputedStyle(searchResultsDiv).visibility === "hidden") {
     suggestionsFlag = true;
   }else{
@@ -80,9 +79,6 @@ function initSearch() {
   let selectedProducts;
   if (localElem && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
     selectedProducts = [localElem.productName]
-  }else if (localElem && urlParams.products && urlParams.products !== "all") {
-    selectedProducts = urlParams.products.split(",").filter(product => allProducts.includes(product));
-    selectedProducts.concat(localElem.productName)
   }else{
     // from url params set selected products
     selectedProducts = (urlParams.products === "all" || !urlParams.products) 
@@ -95,7 +91,7 @@ function initSearch() {
   let initialIndex;
 
   // Set initial index to initialize instant search instance
-  if (localElem){
+  if (localElem && !urlParams.products){ //the only unique case is when initially doing local search and not selecting other products
     initialIndex = localElem.indexName;
   }else{
     initialIndex = selectedIndices[0];
@@ -111,6 +107,23 @@ function initSearch() {
   let results = new Map();
   
   search.start();
+
+  //while search is loading or stalled a loading circle indicator appears
+  search.on('render', () => {
+    const container = document.querySelector('#search-loading-indicator');
+    const mergedResults = document.querySelector("div.merged-results");
+    const status = search.status;
+    
+    if (!suggestionsFlag){ //in full results mode
+      if (status === 'loading' || status === 'stalled') {
+        container.classList.remove('search-hidden');
+        mergedResults.style.visibility = "hidden";
+      } else {
+        container.classList.add('search-hidden');
+        mergedResults.style.visibility = "visible";
+      }
+    }
+  });  
 
   // Function to initialize or update the search
   function updateSearch() {
@@ -133,8 +146,21 @@ function initSearch() {
       const searchResults = document.querySelector("div.search-results");
       const searchSuggestions = document.querySelector("div.suggestion-results");
       const outerSearchSuggestions = document.querySelector("div.outer-suggestion-results");
+      const mergedResults = document.querySelector("div.merged-results");
 
       const queryFromURL = urlParams.query;
+
+      // Function to toggle clear button visibility
+      function toggleClearButton() {
+        if (searchInput.value.trim() !== "") {
+          clearSearchQueryButton.style.display = "block";
+        } else {
+          clearSearchQueryButton.style.display = "none";
+        }
+      }
+
+      // Initialize clear button visibility
+      toggleClearButton();
 
       // Detects query in URL but no input value (tab was reloaded)
       if (queryFromURL && !searchInput.value) {
@@ -144,10 +170,13 @@ function initSearch() {
         searchResults.style.visibility = "visible";
         outerSearchSuggestions.style.display = "none";              
         searchExecuted = true; // Mark search as executed
+        toggleClearButton(); // Update clear button visibility
       }
 
       // Listen for user typing (suggestions appear before Enter is pressed)
       searchInput.addEventListener('input', () => {
+        toggleClearButton(); // Update clear button visibility on input
+        searchCleared = false; // Reset cleared flag when user starts typing
         if (!searchExecuted && searchInput.value.trim() !== "") {
             searchSuggestions.style.display = "block"; 
             helper.setQuery(searchInput.value).search(); 
@@ -157,6 +186,7 @@ function initSearch() {
       // When Enter is pressed, execute full search and prevent suggestions from reappearing
       searchInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
+          searchCleared = false; // Reset cleared flag when user presses Enter
           helper.setQuery(searchInput.value).search();
           outerSearchSuggestions.style.display = "none";  
           searchSuggestions.style.display = "none";            
@@ -169,10 +199,16 @@ function initSearch() {
 
       // Clear search query when clear button is clicked
       clearSearchQueryButton.addEventListener('click', () => {
+        outerSearchSuggestions.style.display = "flex"; 
+        searchResults.classList.remove('has-results');
+        searchResults.style.visibility = "hidden";
+        mergedResults.style.visibility = "hidden";
         searchInput.value = "";
         helper.setQuery('').search();
-        searchResults.style.visibility = "hidden";
-        outerSearchSuggestions.style.display = "flex"; 
+        searchCleared = true; // Mark that search was cleared
+        searchExecuted = false; // Reset search executed flag
+        suggestionsFlag = true; // Switch back to suggestions mode
+        toggleClearButton(); // Update clear button visibility after clearing
       });
     }, render() {}, };
   }
@@ -197,6 +233,13 @@ function initSearch() {
           });
         });
       updateSearchParams();
+      
+      // Don't render results if search was cleared
+      if (searchCleared) {
+        searchCleared = false; // Reset the flag
+        return;
+      }
+      
       if (suggestionsFlag){
         renderSuggestionResults();
       }else{
@@ -543,6 +586,10 @@ const globalNavSearchDropDown = () => {
           <ul role="menubar" class="suggestion-results-list">
         </div>
       </div>
+    </div>
+
+    <div id="search-loading-indicator" class="search-loading search-loading-hidden">
+      <div class="search-spinner"></div>
     </div>
 
     <div class="search-results">
