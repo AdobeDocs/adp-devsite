@@ -116,11 +116,23 @@ function initSearch() {
       return selectedProducts.includes(product);
     });
 
-    let hits = 3;
     let searchBoxContainer = ".merged-results";
     // // Number of results displayed per index changes depending on how many products are selected
     if (suggestionsFlag) {
-      searchBoxContainer = ".suggestion-results"; }
+      searchBoxContainer = ".suggestion-results"; 
+    }
+
+     // Calculate hits dynamically based number of selected indices
+    const hits = Math.min(15, Math.max(3, Math.floor(SUGGESTION_MAX_RESULTS / selectedIndices.length)));
+ 
+     // Add common widgets like hits per index and how long results are (content)
+     search.addWidgets([
+       instantsearch.widgets.configure({
+         hitsPerPage: hits,
+         attributesToHighlight: ['title', 'content'],
+         attributesToSnippet: ['content:50'],
+       }),
+     ]);
    
     // Custom InstantSearch search box to deal with suggestions and full results which depends on user input
     function customSearchBox() { return { init({ helper }) {
@@ -181,13 +193,16 @@ function initSearch() {
       // Clear search query when clear button is clicked
       clearSearchQueryButton.addEventListener('click', () => {
         outerSearchSuggestions.style.display = "flex"; 
-        searchResults.classList.remove('has-results');
-        searchResults.style.visibility = "hidden";
         searchInput.value = "";
         helper.setQuery('').search();
+        // which results are removed depends on which mode we are in
+        if(suggestionsFlag){
+          searchSuggestions.style.display = "none";    
+        }else{
+          searchResults.classList.remove('has-results');
+          searchResults.style.visibility = "hidden";
+        }
         searchCleared = true; // Mark that search was cleared
-        searchExecuted = false; // Reset search executed flag
-        suggestionsFlag = true; // Switch back to suggestions mode
         toggleClearButton(); // Update clear button visibility after clearing
       });
     }, render() {}, };
@@ -206,6 +221,7 @@ function initSearch() {
         .filter((hit) => selectedProducts.includes(hit.product)) // Check if the product is selected
         .forEach((hit) => {
           // Process each hit
+          // 
           results.set(instantsearch.highlight({ hit, attribute: "title" }), {
             url: hit.url,
             product: hit.product,
@@ -226,14 +242,6 @@ function initSearch() {
         renderMergedResults(); // Call to render the filtered results
       }
     }
-
-    // Add common widgets like hits per index and how long results are (content)
-    search.addWidgets([
-      instantsearch.widgets.configure({
-        hitsPerPage: hits,
-        attributesToSnippet: ['content:50'],
-      }),
-    ]);
     
     const customMergedHits = connectAutocomplete(mergedHits);
     search.addWidgets([
@@ -625,7 +633,6 @@ function decorateSearchIframeContainer(header) {
   if (urlParams.query) {
     initSearch();
     showSearchResults();
-    console.log("why does this happen")
     searchButton.classList.add('is-open');
     searchButton.style.display = 'none';
     closeSearchButton.style.display = 'block';
