@@ -5,7 +5,7 @@
         "lint": "eslint .",
         "buildCss": "mkdir -p hlx_statics/styles/spectrum/ && postcss -o hlx_statics/styles/spectrum/spectrum.min.css styles-includes.css",
         "dev:aem": "npx @adobe/aem-cli --no-open --port 3001 up",
-        "dev:markup": "node ./dev.js & open http://127.0.0.1:3000",
+        "dev:markup": "node ./dev.mjs & open http://127.0.0.1:3000",
         "dev": "concurrently -k \"npm:dev:*\""
     },
     "devDependencies": {
@@ -13,6 +13,7 @@
         "@babel/core": "7.13.10",
         "@babel/eslint-parser": "7.13.10",
         "concurrently": "9.1.2",
+        "cors": "2.8.5",
         "cssnano": "^6.0.1",
         "eslint": "7.15.0",
         "eslint-plugin-header": "3.1.0",
