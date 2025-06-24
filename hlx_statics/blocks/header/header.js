@@ -126,10 +126,10 @@ function initSearch() {
     function customSearchBox() { return { init({ helper }) {
       const searchInput = document.querySelector("#search-box input");
       const clearSearchQueryButton = document.querySelector("button.clear-search-query-button");
+      const searchDiv = document.querySelector('div.nav-console-search-frame');
       const searchResults = document.querySelector("div.search-results");
       const searchSuggestions = document.querySelector("div.suggestion-results");
       const outerSearchSuggestions = document.querySelector("div.outer-suggestion-results");
-      const mergedResults = document.querySelector("div.merged-results");
 
       const queryFromURL = urlParams.query;
 
@@ -182,10 +182,10 @@ function initSearch() {
 
       // Clear search query when clear button is clicked
       clearSearchQueryButton.addEventListener('click', () => {
+        searchDiv.style.visibility = "hidden";
         outerSearchSuggestions.style.display = "flex"; 
         searchResults.classList.remove('has-results');
         searchResults.style.visibility = "hidden";
-        // mergedResults.style.visibility = "hidden";
         searchInput.value = "";
         helper.setQuery('').search();
         searchCleared = true; // Mark that search was cleared
