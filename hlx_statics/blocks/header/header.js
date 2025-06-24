@@ -1069,7 +1069,9 @@ export default async function decorate(block) {
   header.append(globalNavSearchDropDown());
 
   //initialize search
-  decorateSearchIframeContainer(header);
+  if(window.adp_search.map_found){
+    decorateSearchIframeContainer(header);
+  }
   block.remove();
 
   handleButtons(header);
