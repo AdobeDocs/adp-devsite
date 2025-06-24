@@ -123,7 +123,7 @@ function initSearch() {
     }
 
      // Calculate hits dynamically based number of selected indices
-    const hits = Math.min(15, Math.max(3, Math.floor(SUGGESTION_MAX_RESULTS / selectedIndices.length)));
+    const hits = Math.min(15, Math.max(4, Math.floor(SUGGESTION_MAX_RESULTS / selectedIndices.length)));
  
      // Add common widgets like hits per index and how long results are (content)
      search.addWidgets([
