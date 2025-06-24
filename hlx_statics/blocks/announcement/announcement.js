@@ -1,3 +1,4 @@
+
 import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
@@ -61,6 +62,7 @@ function setBackgroundImage(block) {
  * @param {Element} block
  */
 export default async function decorate(block) {
+  const backgroundColor = block.getAttribute("data-backgroundcolor");
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
@@ -71,9 +73,15 @@ export default async function decorate(block) {
     p.style.whiteSpace = "normal";
   });
   const imageExists = block.querySelector('picture img');
+  const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray", "background-color-gray"];
+
   if (!imageExists) {
-    if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')) {
-      block.classList.add('background-color-gray');
+    if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
+      block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
+      block.classList.add(backgroundColor);
+    }
+    if (!allowedBackgroundColors.some(allowedBackgroundColor => block.classList.contains(allowedBackgroundColor))) {
+      block.classList.add("background-color-gray");
     }
   }
   decorateButtons(block);

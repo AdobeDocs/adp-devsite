@@ -38,6 +38,7 @@ import {
   isStageEnvironment,
   isProdEnvironment,
   addExtraScript,
+  addExtraScriptWithLoad,
   decorateHR,
   buildNextPrev
 } from './lib-adobeio.js';
@@ -180,17 +181,10 @@ async function loadEager(doc) {
   if (IS_DEV_DOCS) {
     // check if this page is from dev docs, then change the main container to white background.
     const mainContainer = document.querySelector('main');
-    mainContainer.classList.add('white-background');
-  }
+    mainContainer.classList.add('dev-docs', 'white-background');
 
-
-  if (IS_DEV_DOCS) {
     buildGrid(main);
-  }
-
-  buildSideNav(main);
-
-  if (IS_DEV_DOCS) {
+    buildSideNav(main);
     buildBreadcrumbs(main);
   }
 
@@ -419,6 +413,89 @@ async function loadLazy(doc) {
 
   loadIms();
   loadAep();
+  
+  // Load Algolia search scripts
+  addExtraScriptWithLoad(
+    document.body,
+    "https://cdn.jsdelivr.net/npm/algoliasearch@5.20.1/dist/lite/builds/browser.umd.js",
+    () => {
+      addExtraScriptWithLoad(
+        document.body,
+        "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
+        () => {
+          const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+          // const searchClient = algoliasearch("E642SEDTHL", "424b546ba7ae75391585a10c6ea38dab");
+
+          if (!algoliasearch || !instantsearch) {
+            console.error("Required search libraries not loaded");
+            return;
+          }else{
+            console.log("Algolia InstantSearch loaded successfully!")
+          }
+        }
+      );
+    }
+  );
+
+  //load search and product map
+  window.adp_search = {};
+  try {
+    const resp = await fetch('/franklin_assets/product-index-map.json');
+
+    if (!resp.ok) {
+      // Server responded but with an error status
+      console.error(`Failed to load product map: ${resp.status} ${resp.statusText}`);
+      window.adp_search.completeProductMap = null;
+    } else {
+      const json = await resp.json();
+      window.adp_search.product_index_map = json.data;
+
+      // Create a new Map to hold the indexName and productName pairs
+      window.adp_search.index_mapping = new Map();
+
+      // Iterate over the product_index_map array and populate the Map
+      window.adp_search.product_index_map.forEach((product) => {
+        window.adp_search.index_mapping.set(product.indexName, {
+            productName: product.productName,
+            indexPathPrefix: product.indexPathPrefix
+        });
+      });
+
+      window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
+
+    }
+  } catch (error) {
+    // Network error or JSON parsing error
+    window.adp_search.completeProductMap = null;
+    console.error('Error fetching product map:', error);
+  }
+
+  window.adp_search.APP_KEY = 'E642SEDTHL';
+  window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
+  window.adp_search.map_found = true;
+
+  //if no map found then don't initialze search at all
+  if(!window.adp_search.completeProductMap){
+    window.adp_search.map_found = false;
+  }else{
+    // Extract indices
+    window.adp_search.indices = Object.keys(window.adp_search.completeProductMap);
+
+    // Create a mapping of indices to their respective products
+    window.adp_search.index_to_product = Object.fromEntries(
+      Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
+    );
+
+    // Create a mapping of path prefixes to their respective products
+    window.adp_search.path_prefix_to_product = Object.fromEntries(
+        Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+    );
+
+    // Extract unique products
+    window.adp_search.products = Array.from(
+        new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
+    );
+  }
 
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
@@ -444,19 +521,21 @@ async function loadLazy(doc) {
     footer.style.gridArea = 'footer';
     main.append(footer);
 
-    // turn off this page when in doc mode and there's no hero
     const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
-    const hasSideNav = document.querySelector('.side-nav')?.children.length !== 0;
-    if (!hasHero && hasHeading && hasSideNav) {
+    if (!hasHero && hasHeading) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+    } else {
+      main.classList.add('no-onthispage');
     }
+
     if(document.querySelector('.side-nav-subpages-section')) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
-    buildGridAreaMain({main, hasHero, hasSideNav});
+
+    buildGridAreaMain(main);
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);

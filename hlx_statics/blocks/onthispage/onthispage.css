@@ -3,7 +3,7 @@ main .onthispage-wrapper {
   top: 128px;
   bottom: 0;
   left: 0;
-  width: 256px;
+  width: 224px;
   margin: 128px 32px 0 32px;
   height: calc(100vh - 128px);
   overflow: auto;
@@ -28,10 +28,4 @@ main .onthispage-wrapper .active {
 
 main .onthispage-wrapper .onthispage-header {
   color: rgb(109, 109, 109);
-}
-
-@media screen and (max-width: 1228px) {
-  main .onthispage-wrapper {
-    display: none !important;
-  }
 }

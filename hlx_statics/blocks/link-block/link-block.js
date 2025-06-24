@@ -5,7 +5,7 @@ import { createTag} from '../../scripts/lib-adobeio.js';
  * @param {Element} block link block component
  */
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'title');
+  block.setAttribute('daa-lh', 'link-block');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'title-heading');
   });

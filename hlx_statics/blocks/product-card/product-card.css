@@ -35,7 +35,8 @@ main div.product-card-wrapper div.product-card>div>div:first-child img {
     border-radius: 10%;
 }
 
-main div.product-card-wrapper div.all-button-container {
+main div.product-card-wrapper div.all-button-container ,
+main div.product-card-wrapper div.button-container  {
     display: flex;
     justify-content: flex-end;
     gap: 10px;

@@ -108,6 +108,27 @@ export default async function decorate(block) {
 
   /* Stop here when metadata is `style: center` */
   if (block.classList.contains('center')) {
+
+    if (block.classList.contains('text-align-center')) {
+      block.querySelectorAll('p').forEach(paragraph => {
+        if (paragraph.querySelector('img')) {
+          paragraph.classList.add('paragraph-wrapper');
+        }
+      });
+
+    }
+
+    const columnWrapper = block.querySelector('.first-column-div.last-column-div');
+    if (columnWrapper) {
+      columnWrapper.querySelectorAll(':scope > div').forEach(section => {
+        if (!section.querySelector('h3')) {
+          const emptyHeading = document.createElement('h3');
+          emptyHeading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header', 'without-content');
+          section.prepend(emptyHeading);
+        }
+      });
+    }
+
     return;
   }
 
