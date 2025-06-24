@@ -492,7 +492,6 @@ header div.nav-console-search-frame {
     background-color: transparent;
     height: calc(100% - 64px);
     margin: auto;
-    background: white; 
     display: flex; 
     flex-direction: column;
     align-items: center;
@@ -577,7 +576,7 @@ header div.search-suggestions-link {
 }
 
 header div.filters {
-  width: 256px;
+  width: 235px;
   overflow-y: auto;
 }
 

@@ -439,43 +439,63 @@ async function loadLazy(doc) {
 
   //load search and product map
   window.adp_search = {};
-  const resp = await fetch('/franklin_assets/product-index-map.json');
-  window.adp_search.product_index_map = (await resp.json()).data;
+  try {
+    const resp = await fetch('/franklin_assets/product-index-map.json');
+
+    if (!resp.ok) {
+      // Server responded but with an error status
+      console.error(`Failed to load product map: ${resp.status} ${resp.statusText}`);
+      window.adp_search.completeProductMap = null;
+    } else {
+      const json = await resp.json();
+      window.adp_search.product_index_map = json.data;
+
+      // Create a new Map to hold the indexName and productName pairs
+      window.adp_search.index_mapping = new Map();
+
+      // Iterate over the product_index_map array and populate the Map
+      window.adp_search.product_index_map.forEach((product) => {
+        window.adp_search.index_mapping.set(product.indexName, {
+            productName: product.productName,
+            indexPathPrefix: product.indexPathPrefix
+        });
+      });
+
+      window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
+
+    }
+  } catch (error) {
+    // Network error or JSON parsing error
+    window.adp_search.completeProductMap = null;
+    console.error('Error fetching product map:', error);
+  }
 
   window.adp_search.APP_KEY = 'E642SEDTHL';
   window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
+  window.adp_search.map_found = true;
 
-  // Create a new Map to hold the indexName and productName pairs
-  window.adp_search.index_mapping = new Map();
+  //if no map found then don't initialze search at all
+  if(!window.adp_search.completeProductMap){
+    window.adp_search.map_found = false;
+  }else{
+    // Extract indices
+    window.adp_search.indices = Object.keys(window.adp_search.completeProductMap);
 
-  // Iterate over the product_index_map array and populate the Map
-  window.adp_search.product_index_map.forEach((product) => {
-    window.adp_search.index_mapping.set(product.indexName, {
-        productName: product.productName,
-        indexPathPrefix: product.indexPathPrefix
-    });
-  });
+    // Create a mapping of indices to their respective products
+    window.adp_search.index_to_product = Object.fromEntries(
+      Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
+    );
 
-  window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
+    // Create a mapping of path prefixes to their respective products
+    window.adp_search.path_prefix_to_product = Object.fromEntries(
+        Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+    );
 
-  // Extract indices
-  window.adp_search.indices = Object.keys(window.adp_search.completeProductMap);
-
-  // Create a mapping of indices to their respective products
-  window.adp_search.index_to_product = Object.fromEntries(
-    Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
-  );
-
-  // Create a mapping of path prefixes to their respective products
-  window.adp_search.path_prefix_to_product = Object.fromEntries(
-      Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
-  );
-
-  // Extract unique products
-  window.adp_search.products = Array.from(
-      new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
-  );
-
+    // Extract unique products
+    window.adp_search.products = Array.from(
+        new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
+    );
+  }
 
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
