@@ -570,6 +570,12 @@ header div.suggestion-product-group > a > span > div {
   text-align: left;
 }
 
+header div.suggestion-product-group .no-suggestions-result{
+  font-weight: normal;
+  font-size: 14px;
+  padding-left: 34px;
+}
+
 header div.search-suggestions-link {
   font-style: italic;
   margin: 4px 0;
@@ -700,6 +706,12 @@ header div.merged-results .result-item{
   display: block;
   padding: 10px;
   width: 940px;
+}
+
+header div.merged-results .no-merged-result{
+  font-weight: normal;
+  font-size: 14px;
+  padding: 0px 0px 10px 10px;
 }
 
 header div.search-refinement {

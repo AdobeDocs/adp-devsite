@@ -454,7 +454,7 @@ function initSearch() {
           `;
         });
       } else {
-        section.innerHTML += `<p>No results found for this product.</p>`;
+        section.innerHTML += `<p class="no-merged-result">No results found for this product.</p> <hr>`;
       }
       container.appendChild(section);
     });
@@ -518,7 +518,7 @@ function initSearch() {
           });
         } else {
             // Even if no results, still display the product section
-            productDiv.innerHTML += `<p>No results found for this product.</p>`;
+            productDiv.innerHTML += `<p class="no-suggestions-result" >No results found for this product.</p>`;
         }
       ul.appendChild(productDiv);
     });
