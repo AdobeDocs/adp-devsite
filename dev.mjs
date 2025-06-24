@@ -46,7 +46,8 @@ app.use(async (req, res) => {
 
   let upstreamUrl;
   let source;
-  if (prefix && prefix !== 'undefined' && !req.path.endsWith('/config.plain.html')) {
+
+  if (prefix) {
     source = 'docs';
     upstreamUrl = `http://127.0.0.1:3002${req.path}`;
   } else {
@@ -54,6 +55,7 @@ app.use(async (req, res) => {
     upstreamUrl = `http://127.0.0.1:3001${req.path}`;
   }
 
+  console.log(`Fetching upstream url: ${upstreamUrl}`);
   const resp = await fetch(upstreamUrl);
   let body;
   const headers = new Map(resp.headers.entries());
