@@ -106,24 +106,7 @@ function initSearch() {
   // Variable to keep track of results to modify how to render them later
   let results = new Map();
   
-  search.start();
-
-  //while search is loading or stalled a loading circle indicator appears
-  search.on('render', () => {
-    const container = document.querySelector('#search-loading-indicator');
-    const mergedResults = document.querySelector("div.merged-results");
-    const status = search.status;
-    
-    if (!suggestionsFlag){ //in full results mode
-      if (status === 'loading' || status === 'stalled') {
-        container.classList.remove('search-hidden');
-        mergedResults.style.visibility = "hidden";
-      } else {
-        container.classList.add('search-hidden');
-        mergedResults.style.visibility = "visible";
-      }
-    }
-  });  
+  search.start(); 
 
   // Function to initialize or update the search
   function updateSearch() {
@@ -202,7 +185,7 @@ function initSearch() {
         outerSearchSuggestions.style.display = "flex"; 
         searchResults.classList.remove('has-results');
         searchResults.style.visibility = "hidden";
-        mergedResults.style.visibility = "hidden";
+        // mergedResults.style.visibility = "hidden";
         searchInput.value = "";
         helper.setQuery('').search();
         searchCleared = true; // Mark that search was cleared
@@ -586,10 +569,6 @@ const globalNavSearchDropDown = () => {
           <ul role="menubar" class="suggestion-results-list">
         </div>
       </div>
-    </div>
-
-    <div id="search-loading-indicator" class="search-loading search-loading-hidden">
-      <div class="search-spinner"></div>
     </div>
 
     <div class="search-results">

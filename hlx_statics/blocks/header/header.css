@@ -508,33 +508,6 @@ header button.close-search-button {
   cursor: pointer;
 }
 
-header div.search-loading {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 999;
-}
-
-header div.search-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top-color: #0054B6;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-header div.search-hidden {
-  display: none;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 header div.outer-suggestion-results {
   width: 100%;
   height: 100%;
