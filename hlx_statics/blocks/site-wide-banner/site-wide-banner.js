@@ -1,13 +1,12 @@
 import {
   createTag,
   decorateButtons,
-  getClosestFranklinSubfolder,
 } from "../../scripts/lib-adobeio.js";
 import {
   fetchSiteWideBanner,
   getMetadata,
+  readBlockConfig,
 } from "../../scripts/lib-helix.js";
-import { loadFragment } from "../fragment/fragment.js";
 import { getVariant } from "../inlinealert/inlinealert.js";
 
 /**
@@ -22,29 +21,33 @@ export default async function decorate(block) {
   const isMobile = window.innerWidth < 1025;
   let bannerData;
 
+  block.setAttribute('daa-lh', 'site-wide-banner');
+
+   const config = readBlockConfig(block);
+
   if (isDocTemplate) {
     bannerData = await fetchSiteWideBanner();
   } else {
-    const bannerPath = getClosestFranklinSubfolder(window.location.origin, 'site-wide-banner');
-    let fragment = await loadFragment(bannerPath);
+    try {
+      const resp = await fetch('https://main--adobe-io-website--adobe.hlx.page/franklin_assets/site-wide-banner.json');
+      if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
 
-    if (!fragment) {
-      fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'site-wide-banner', true));
-    }
+      const { data, ...meta } = await resp.json();
 
-    if (fragment) {
-      try {
-        const paragraphs = Array.from(fragment.querySelectorAll("main p"));
-        let jsonString = paragraphs.map(p => p.innerText.trim()).filter(Boolean).join("");
+      const bannerObj = data.reduce((acc, { key, value }) => {
+        try {
+          acc[key] = JSON.parse(value);
+        } catch {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
 
-        jsonString = jsonString.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
-        jsonString = jsonString.replace(/"([^"]+)\s*:\s*"/g, (_, key) => `${key.trim()} : ''`);
+      if (typeof bannerObj.isClose === 'string') bannerObj.isClose = bannerObj.isClose.toLowerCase() === 'true';
 
-        bannerData = JSON.parse(jsonString);
-      } catch (err) {
-        console.error("Invalid JSON format:", err.message);
-      }
-    }
+      bannerData = { ...meta, data: [bannerObj] };
+    } catch (e) { console.error('Fetch error:', e); };
+
   }
 
   if (!bannerData || !bannerData?.data[0]) {
