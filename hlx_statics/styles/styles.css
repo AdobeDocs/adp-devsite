@@ -325,7 +325,7 @@ main .inline-code {
   line-height: 1.5rem;
 }
 
-main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code , div.heading3-wrapper .inline-code , div.table-wrapper .table .inline-code {
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code , div.block .inline-code {
   font-size: 16px;
 }
 
