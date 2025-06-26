@@ -2,21 +2,79 @@ main div.banner-wrapper {
   background-color: rgb(9, 90, 186);
 }
 
+main div.banner-wrapper.black {
+  background-color: black;
+}
+
 main div.banner-wrapper div.banner {
   width: 90%;
   max-width: 1280px;
   text-align: left;
-  height: 210px;
   margin: 0 auto;
+  color: #fff;
+}
+
+main div.banner-wrapper div.banner h1,
+main div.banner-wrapper div.banner p,
+main div.banner-wrapper div.banner div {
+  color: #fff;
 }
 
 main div.banner-wrapper div.banner h1 {
-  line-height: 210px;
-  color: rgb(255, 255, 255);
+  line-height: unset;
 }
 
-@media screen and (max-width:768px) {
+main div.banner-wrapper div.banner div {
+  height: 100%;
+}
+
+main div.banner-wrapper div.banner.isH {
+  height: 210px;
+}
+
+main div.banner-wrapper div.banner.isH h1,
+main div.banner-wrapper div.banner:not(.isP) h1 {
+  line-height: 210px;
+}
+
+main div.banner-wrapper div.banner.isP h1 {
+  line-height: unset;
+}
+
+main div.banner-wrapper p.button-container a {
+  border-color: #fff;
+  color: #696969;
+  background-color: #fff;
+}
+
+main div.banner-wrapper div.banner>div>div {
+  display: inline-flex;
+  gap: 10px;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+}
+
+main div.banner-wrapper div.banner:not(.isH)>div>div {
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+}
+
+@media screen and (max-width: 768px) {
   main div.banner-wrapper div.banner h1 {
     line-height: 60px;
+  }
+
+  main div.banner-wrapper.black div.banner:not(.isH)>div>div,
+  main div.banner-wrapper div.banner:not(.isH)>div>div {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+  }
+
+  main div.banner-wrapper div.banner>div>div {
+    align-items: center;
   }
 }
