@@ -2,7 +2,7 @@ main div.banner-wrapper {
   background-color: rgb(9, 90, 186);
 }
 
-main div.banner-wrapper.black-banner {
+main div.banner-wrapper.black {
   background-color: black;
 }
 
@@ -66,7 +66,7 @@ main div.banner-wrapper div.banner:not(.isH)>div>div {
     line-height: 60px;
   }
 
-  main div.banner-wrapper.black-banner div.banner:not(.isH)>div>div,
+  main div.banner-wrapper.black div.banner:not(.isH)>div>div,
   main div.banner-wrapper div.banner:not(.isH)>div>div {
     flex-direction: column;
     align-items: center;

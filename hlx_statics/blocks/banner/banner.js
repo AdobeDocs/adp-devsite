@@ -6,7 +6,7 @@ import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js'
  */
 export default async function decorate(block) {
   block.classList.forEach(clr => {
-    if (clr.startsWith('black-banner')) {
+    if (clr.startsWith('black')) {
       block.parentElement.classList.add(clr);
     }
   });
