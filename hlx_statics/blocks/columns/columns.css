@@ -252,3 +252,40 @@ main div.columns-wrapper div.center div.first-column-div {
     }
 
 }
+
+main div.columns-wrapper div.vertical {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+main div.columns-wrapper div.vertical div.first-column-div,
+main div.columns-wrapper div.vertical div.last-column-div {
+    flex-direction: column;
+    align-items: baseline;
+}
+
+main div.columns-wrapper div.vertical .first-column {
+    justify-content: left;
+}
+
+main div.columns-wrapper div.columns.vertical div.first-column img {
+    max-height: 150px;
+}
+
+main div.columns-wrapper div.columns.vertical div.second-column {
+    padding: 0;
+}
+
+main div.columns-wrapper div.columns.vertical div.second-column {
+    width: 75%;
+}
+
+main div.columns-wrapper div.columns.vertical p+p {
+    margin-top: 0;
+}
+
+main div.columns-wrapper div.columns.vertical>div:nth-child(even) ,
+main div.columns-wrapper div.columns.vertical>div:nth-child(odd) {
+    flex-direction: column;
+}

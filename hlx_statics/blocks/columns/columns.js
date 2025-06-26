@@ -10,6 +10,7 @@ import {
 import {
   createOptimizedPicture,
   decorateLightOrDark,
+  getMetadata,
 } from '../../scripts/lib-helix.js';
 
 /**
@@ -32,10 +33,14 @@ function processImages(block) {
  */
 export default async function decorate(block) {
   const container = getBlockSectionContainer(block);
+  const variant = block.getAttribute('data-variant')
+  const isDocs = getMetadata('template') === "documentation";
+
+  isDocs && block.classList.add('isDocs')
+  variant === "vertical" && block.classList.add(variant);
 
   block.setAttribute('daa-lh', 'column');
   decorateLightOrDark(block);
-  decorateButtons(block);
 
   if (!container.classList.contains('columns-container')) {
     // eslint-disable-next-line no-console
@@ -66,6 +71,19 @@ export default async function decorate(block) {
     }
   });
 
+  if (isDocs) {
+    Array.from(block.children).forEach((data) => {
+      const imageSlot = data.querySelector('img');
+      if (imageSlot) {
+        const wrapperImage = imageSlot.parentElement.closest('div');
+        const newWrapper = createTag('div');
+
+        Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
+        data.appendChild(newWrapper);
+      }
+    });
+  }
+
   const columnList = block.querySelectorAll('.columns > div');
   if (columnList.length > 0) {
     columnList[0].classList.add("first-column-div");
@@ -87,23 +105,39 @@ export default async function decorate(block) {
     });
   });
 
-  block.querySelectorAll('a').forEach((a) => {
-    if (!a.classList.contains('button') && !a.classList.contains('spectrum-Button')) {
-      a.classList.add('spectrum-Link', 'spectrum-Link--quiet');
-    }
-    if (!a.classList.contains('anchor-link')) {
-      checkExternalLink(a);
-    }
-  });
+  if (!block.classList.contains('link')) {
+    block.querySelectorAll('a').forEach((a) => {
+      if (!a.classList.contains('button') && !a.classList.contains('spectrum-Button')) {
+        a.classList.add('spectrum-Link', 'spectrum-Link--quiet');
+      }
+      if (!a.classList.contains('anchor-link')) {
+        checkExternalLink(a);
+      }
+    });
 
-  block.querySelectorAll('.button').forEach((button) => {
-    button.classList.add('spectrum-Button', 'spectrum-Button--sizeM');
-    if (button.parentElement.tagName.toLowerCase() !== 'strong') {
-      button.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
-    } else {
-      button.parentElement.replaceWith(button);
-      button.classList.add('spectrum-Button--fill', 'spectrum-Button--accent');
-    }
+    block.querySelectorAll('.button').forEach((button) => {
+      button.classList.add('spectrum-Button', 'spectrum-Button--sizeM');
+      if (button.parentElement.tagName.toLowerCase() !== 'strong') {
+        button.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
+      } else {
+        button.parentElement.replaceWith(button);
+        button.classList.add('spectrum-Button--fill', 'spectrum-Button--accent');
+      }
+    });
+  }
+
+  // in devdocs , slot have the lists
+  block.querySelectorAll('div.listing').forEach(data => {
+    data.closest('div')?.classList.add('button-group-container');
+  
+    const a = data.querySelector('a');
+    if (!a) return;
+  
+    a.className = '';
+    const p = createTag('p', { class: 'button-container' });
+    p.append(a);
+  
+    data.replaceChildren(p);
   });
 
   /* Stop here when metadata is `style: center` */
@@ -157,6 +191,16 @@ export default async function decorate(block) {
       prevElement.after(productLinkContainer);
     }
   });
+
+  //add the class for the p and div tag
+  if (isDocs) {
+    block.querySelectorAll('p, div').forEach(p => {
+      if (p.textContent.trim() || p.tagName === 'P') {
+        p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+      }
+    });
+  }
+
   const observer = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {
       observer.disconnect();
