@@ -107,6 +107,14 @@ main div.announcement-wrapper .announcement.secondary-border-white .spectrum-But
   border-color: white !important;
 }
 
+main div.announcement-wrapper p.button-container.over-gradiant a {
+  font-size: 16px;
+}
+
+main div.announcement-wrapper p.button-container.over-gradiant a:hover {
+  background: rgb(213,213,213);
+}
+
 @media screen and (max-width: 1024px) {
   main .announcement-wrapper>.block>div {
     margin: 0 !important;
