@@ -33,7 +33,7 @@ function processImages(block) {
 export default async function decorate(block) {
   const container = getBlockSectionContainer(block);
 
-  block.setAttribute('daa-lh', 'column');
+  block.setAttribute('daa-lh', 'columns');
   decorateLightOrDark(block);
   decorateButtons(block);
 
@@ -128,8 +128,6 @@ export default async function decorate(block) {
         }
       });
     }
-
-    return;
   }
 
   block.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
