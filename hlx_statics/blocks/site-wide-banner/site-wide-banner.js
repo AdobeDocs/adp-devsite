@@ -8,10 +8,6 @@ import {
 } from "../../scripts/lib-helix.js";
 import { getVariant } from "../inlinealert/inlinealert.js";
 
-/**
- * Decorates the site-wide banner block
- * @param {Element} block The site-wide-banner block element
- */
 export default async function decorate(block) {
   const siteParent = block.parentElement.parentElement;
   const mainArea = document.querySelector('[style*="grid-area: main"]');
@@ -21,24 +17,25 @@ export default async function decorate(block) {
   const isMobile = window.innerWidth < 1025;
   const paddingTargets = isDocTemplate ? [mainArea, sidenavArea] : [siteParent.nextElementSibling?.nextElementSibling];
   block.setAttribute('daa-lh', 'site-wide-banner');
+  const allowedColors = ["warning", "success", "info", "neutral", "notice", "light"];
 
   let banner;
   try {
     const bannerSource = isDocTemplate
       ? await fetchSiteWideBanner()
       : await fetch(`https://main--adobe-io-website--adobe.hlx.page/franklin_assets/${productName ? `${productName}-` : ''}site-wide-banner.json`).then(resp => {
-        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-        return resp.json();
-      }).then(({ data, ...meta }) => ({
-        ...meta,
-        data: [Object.fromEntries(data.map(({ key, value }) => {
-          try {
-            return [key, JSON.parse(value)];
-          } catch {
-            return [key, value];
-          }
-        }))]
-      }));
+          if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+          return resp.json();
+        }).then(({ data, ...meta }) => ({
+          ...meta,
+          data: [Object.fromEntries(data.map(({ key, value }) => {
+            try {
+              return [key, JSON.parse(value)];
+            } catch {
+              return [key, value];
+            }
+          }))]
+        }));
 
     banner = bannerSource?.data?.[0];
     if (typeof banner?.isClose === 'string') {
@@ -54,7 +51,7 @@ export default async function decorate(block) {
   }
 
   const { text, icon, buttonLink, button, isClose, bgColor = "notice" } = banner;
-  const padding = `${siteParent.getBoundingClientRect().height + (isMobile ? 100 : 0)}px`;
+  const padding = `${siteParent.getBoundingClientRect().height + (isMobile ? 0 : 0)}px`;
   paddingTargets.forEach(el => el && (el.style.paddingTop = padding));
 
   const wrapper = createTag("div", { class: "site-wide-banner-block-wrapper" });
@@ -63,13 +60,13 @@ export default async function decorate(block) {
   const buttonWrap = createTag("p", { class: "site-wide-banner-button-container" });
 
   if (icon) {
-    const iconContainer = createTag("div", { class: `site-wide-banner-icon ${icon} ` });
-    const variant = getVariant(iconContainer.classList);
+    const iconEl = createTag("div", { class: `site-wide-banner-icon ${icon}` });
+    const variant = getVariant(iconEl.classList);
     if (variant) {
-      iconContainer.classList.add(variant.class || "spectrum-InLineAlert--info");
-      iconContainer.insertAdjacentHTML("afterbegin", variant.icon || "");
+      iconEl.classList.add(variant.class || "spectrum-InLineAlert--info");
+      iconEl.insertAdjacentHTML("afterbegin", variant.icon || "");
     }
-    textWrap.appendChild(iconContainer);
+    textWrap.appendChild(iconEl);
   }
 
   if (Array.isArray(text)) {
@@ -109,11 +106,9 @@ export default async function decorate(block) {
     }
   }
 
-
-  const allowedColors = ["warning", "success", "info", "neutral", "notice", "light"];
-  if (allowedColors.includes(bgColor))
-    siteParent.classList.add(`background-${bgColor}`)
-
+  if (allowedColors.includes(bgColor)) {
+    siteParent.classList.add(`background-${bgColor}`);
+  }
 
   block.appendChild(wrapper);
   decorateButtons(block);
