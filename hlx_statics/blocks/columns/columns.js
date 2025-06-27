@@ -128,8 +128,6 @@ export default async function decorate(block) {
         }
       });
     }
-
-    return;
   }
 
   block.querySelectorAll('.columns > div > div:first-child').forEach((column) => {

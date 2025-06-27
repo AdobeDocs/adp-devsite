@@ -1,17 +1,25 @@
 import { readFile } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
 
-document.body.innerHTML = await readFile({ path: 'columns.html' });
-const { decorateBlock, loadBlock, decorateSections } = await import('../../../hlx_statics/scripts/lib-helix.js');
-
-const main = document.querySelector('main');
-//must decorateSection before decorateBlock so that `columns-container` is added to the parent of wrapper div
-await decorateSections(main);
-const columnsBlock = document.querySelector('div.columns');
-await decorateBlock(columnsBlock);
-await loadBlock(columnsBlock);
+const setup = async (path) => {
+    document.body.innerHTML = await readFile({ path });
+    const main = document.querySelector('main');
+    const { loadBlock, decorateBlock, decorateSections, decorateButtons } = await import('../../../hlx_statics/scripts/lib-helix.js');
+    await decorateSections(main);
+    const columnsBlock = main.querySelector('div.columns');
+    await decorateButtons(columnsBlock);
+    await decorateBlock(columnsBlock);
+    await loadBlock(columnsBlock);
+    return columnsBlock;
+}
 
 describe('Columns block', () => {
+    let columnsBlock;
+
+    before(async () => {
+        columnsBlock = await setup('columns.html');
+    });
+
     it('Builds columns block', async () => {
         expect(columnsBlock).to.exist;
         expect(columnsBlock.getAttribute('daa-lh')).to.equal('columns');
@@ -34,7 +42,7 @@ describe('Columns block', () => {
         columnsBlock.querySelectorAll('p').forEach((p) => {
             if (p.classList.contains('icon-container')) {
                 expect(p.querySelector('span.icon')).to.exist;
-            }else{
+            } else {
                 expect(p.classList.contains('spectrum-Body')).to.be.true;
                 expect(p.classList.contains('spectrum-Body--sizeM')).to.be.true;
             }
@@ -98,6 +106,37 @@ describe('Columns block', () => {
         });
     });
 
+    it('Columns > child numbers', async () => {
+        columnsBlock.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
+            expect(column.classList.contains('first-column')).to.be.true;
+        });
+
+        columnsBlock.querySelectorAll('.columns > div > div:nth-child(2)').forEach((column) => {
+            expect(column.classList.contains('second-column')).to.be.true;
+
+            const p = column.querySelector('p');
+            expect(p).to.exist;
+            expect(p.classList.contains('spectrum-Body')).to.be.true;
+            expect(p.classList.contains('spectrum-Body--sizeM')).to.be.true;
+        });
+
+        columnsBlock.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
+            const prevElement = secondColumn.querySelector('p.icon-container')?.previousElementSibling;
+            if (prevElement) {
+                const productLinkContainer = secondColumn.querySelector('.product-link-container');
+                expect(productLinkContainer).to.exist;
+            }
+        });
+    });
+});
+
+describe('Columns block - center', () => {
+    let columnsBlock;
+
+    before(async () => {
+        columnsBlock = await setup('columns-center.html');
+    });
+
     it('Columns > center style', async () => {
         if (columnsBlock.classList.contains('center')) {
             if (columnsBlock.classList.contains('text-align-center')) {
@@ -123,32 +162,10 @@ describe('Columns block', () => {
             }
         }
     });
+});
 
-    it('Columns > child numbers', async () => {
-        columnsBlock.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
-            expect(column.classList.contains('first-column')).to.be.true;
-        });
-
-        columnsBlock.querySelectorAll('.columns > div > div:nth-child(2)').forEach((column) => {
-            expect(column.classList.contains('second-column')).to.be.true;
-            
-            const p = column.querySelector('p');
-            expect(p).to.exist;
-            expect(p.classList.contains('spectrum-Body')).to.be.true;
-            expect(p.classList.contains('spectrum-Body--sizeM')).to.be.true;
-        });
-
-        columnsBlock.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
-            const prevElement = secondColumn.querySelector('p.icon-container')?.previousElementSibling;
-            if (prevElement) {
-                const productLinkContainer = secondColumn.querySelector('.product-link-container');
-                expect(productLinkContainer).to.exist;
-            }
-        });
-    });
-
+describe('Columns block - image processing', () => {
     it('Columns > processes images when intersecting', async () => {
-        // Mock IntersectionObserver before importing the block code
         const originalIntersectionObserver = window.IntersectionObserver;
         let observerCallback;
         window.IntersectionObserver = class {
@@ -156,16 +173,13 @@ describe('Columns block', () => {
                 observerCallback = callback;
                 this.callback = callback;
             }
-            observe() {}
-            disconnect() {}
+            observe() { }
+            disconnect() { }
         };
-        const { decorateBlock, loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
-        await decorateBlock(columnsBlock);
-        await loadBlock(columnsBlock);
 
+        const columnsBlock = await setup('columns.html');
         const originalPictureCount = columnsBlock.querySelectorAll('p.spectrum-Body.spectrum-Body--sizeM picture').length;
-        
-        // Trigger intersection
+
         observerCallback([{
             isIntersecting: true,
             target: columnsBlock
