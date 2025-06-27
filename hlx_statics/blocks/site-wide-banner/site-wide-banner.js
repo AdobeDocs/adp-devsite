@@ -5,7 +5,6 @@ import {
 import {
   fetchSiteWideBanner,
   getMetadata,
-  readBlockConfig,
 } from "../../scripts/lib-helix.js";
 import { getVariant } from "../inlinealert/inlinealert.js";
 
@@ -18,54 +17,45 @@ export default async function decorate(block) {
   const mainArea = document.querySelector('[style*="grid-area: main"]');
   const sidenavArea = document.querySelector('[style*="grid-area: sidenav"]');
   const isDocTemplate = getMetadata("template") === "documentation";
+  const productName = getMetadata('product');
   const isMobile = window.innerWidth < 1025;
-  let bannerData;
-
+  const paddingTargets = isDocTemplate ? [mainArea, sidenavArea] : [siteParent.nextElementSibling?.nextElementSibling];
   block.setAttribute('daa-lh', 'site-wide-banner');
 
-   const config = readBlockConfig(block);
+  let banner;
+  try {
+    const bannerSource = isDocTemplate
+      ? await fetchSiteWideBanner()
+      : await fetch(`https://main--adobe-io-website--adobe.hlx.page/franklin_assets/${productName ? `${productName}-` : ''}site-wide-banner.json`).then(resp => {
+        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+        return resp.json();
+      }).then(({ data, ...meta }) => ({
+        ...meta,
+        data: [Object.fromEntries(data.map(({ key, value }) => {
+          try {
+            return [key, JSON.parse(value)];
+          } catch {
+            return [key, value];
+          }
+        }))]
+      }));
 
-  if (isDocTemplate) {
-    bannerData = await fetchSiteWideBanner();
-  } else {
-    try {
-      const resp = await fetch('https://main--adobe-io-website--adobe.hlx.page/franklin_assets/site-wide-banner.json');
-      if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-
-      const { data, ...meta } = await resp.json();
-
-      const bannerObj = data.reduce((acc, { key, value }) => {
-        try {
-          acc[key] = JSON.parse(value);
-        } catch {
-          acc[key] = value;
-        }
-        return acc;
-      }, {});
-
-      if (typeof bannerObj.isClose === 'string') bannerObj.isClose = bannerObj.isClose.toLowerCase() === 'true';
-
-      bannerData = { ...meta, data: [bannerObj] };
-    } catch (e) { console.error('Fetch error:', e); };
-
+    banner = bannerSource?.data?.[0];
+    if (typeof banner?.isClose === 'string') {
+      banner.isClose = banner.isClose.toLowerCase() === 'true';
+    }
+  } catch (e) {
+    console.error("Fetch error:", e);
   }
 
-  if (!bannerData || !bannerData?.data[0]) {
+  if (!banner || Object.keys(banner).length === 0) {
     siteParent.style.display = "none";
     return;
   }
 
-  const { text, icon, buttonLink, button, isClose, bgColor = "notice" } = bannerData?.data[0] || {};
-  const parentHeight = siteParent.getBoundingClientRect().height;
-  const paddingValue = `${parentHeight + (isMobile ? 50 : 0)}px`;
-  const nextHeroSpan = siteParent.nextElementSibling?.nextElementSibling;
-
-  if (isDocTemplate) {
-    mainArea.style.paddingTop = paddingValue;
-    sidenavArea.style.paddingTop = paddingValue;
-  } else if (nextHeroSpan) {
-    nextHeroSpan.style.paddingTop = paddingValue;
-  }
+  const { text, icon, buttonLink, button, isClose, bgColor = "notice" } = banner;
+  const padding = `${siteParent.getBoundingClientRect().height + (isMobile ? 100 : 0)}px`;
+  paddingTargets.forEach(el => el && (el.style.paddingTop = padding));
 
   const wrapper = createTag("div", { class: "site-wide-banner-block-wrapper" });
   const content = createTag("div", { class: "site-wide-banner-content" });
@@ -84,7 +74,7 @@ export default async function decorate(block) {
 
   if (Array.isArray(text)) {
     const textBlock = createTag("div");
-    text.forEach(t => textBlock.innerHTML += `<div>${t}</div>`);
+    text.forEach(t => textBlock.innerHTML += `<div class="spectrum-Body spectrum-Body--sizeS">${t}</div>`);
     textWrap.appendChild(textBlock);
   }
 
@@ -102,36 +92,29 @@ export default async function decorate(block) {
     block.classList.add("closable");
     closeBtn.addEventListener("click", () => {
       siteParent.style.display = "none";
-      if (isDocTemplate) {
-        mainArea.style.paddingTop = "0px";
-        sidenavArea.style.paddingTop = "0px";
-      } else if (nextHeroSpan) {
-        nextHeroSpan.style.paddingTop = "0px";
-      }
+      paddingTargets.forEach(el => el && (el.style.paddingTop = "0px"));
       if (isMobile) {
         const sibling = siteParent.nextElementSibling;
         if (sibling) sibling.style.paddingTop = "0px";
       }
     });
     wrapper.appendChild(closeBtn);
+
+    if (isMobile) {
+      requestAnimationFrame(() => {
+        const height = wrapper.getBoundingClientRect().height;
+        closeBtn.style.height = `${height}px`;
+        closeBtn.style.setProperty('--before-top', `${height / 2 - 25}px`);
+      });
+    }
   }
 
-  if (bgColor) {
-    const allowedColors = ["warning", "success", "info", "neutral", "notice", "light"];
-    if (allowedColors.includes(bgColor))
-      siteParent.classList.add(`background-${bgColor}`)
 
-  }
+  const allowedColors = ["warning", "success", "info", "neutral", "notice", "light"];
+  if (allowedColors.includes(bgColor))
+    siteParent.classList.add(`background-${bgColor}`)
+
 
   block.appendChild(wrapper);
   decorateButtons(block);
-
-  if (isMobile && isClose) {
-    requestAnimationFrame(() => {
-      const closeBtn = block.querySelector(".site-wide-banner-close-button");
-      if (closeBtn) {
-        closeBtn.style.height = `${wrapper.getBoundingClientRect().height}px`;
-      }
-    });
-  }
 }

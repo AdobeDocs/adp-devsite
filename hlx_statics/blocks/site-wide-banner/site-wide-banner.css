@@ -1,15 +1,17 @@
+main div.site-wide-banner-wrapper {
+    width: 100%;
+}
+
 main div.site-wide-banner-container.background-notice {
     background-color: #FBF198;
 }
 
 main div.site-wide-banner-container.background-info {
     background-color: rgb(20, 122, 243);
-    color: white;
 }
 
 main div.site-wide-banner-container.background-warning {
     background-color: rgb(246, 133, 17);
-    color: white;
 }
 
 main div.site-wide-banner-container.background-light {
@@ -18,16 +20,17 @@ main div.site-wide-banner-container.background-light {
 
 main div.site-wide-banner-container.background-success {
     background-color: rgb(0, 143, 93);
-    color: white;
 }
 
 main div.site-wide-banner-container.background-neutral {
     background-color: rgb(44, 44, 44);
-    color: white;
 }
 
-main div.site-wide-banner-wrapper {
-    width: 100%;
+main div.site-wide-banner-container.background-info div,
+main div.site-wide-banner-container.background-warning div,
+main div.site-wide-banner-container.background-success div,
+main div.site-wide-banner-container.background-neutral div {
+    color: white;
 }
 
 main div.site-wide-banner-wrapper .site-wide-banner-content {
@@ -36,17 +39,15 @@ main div.site-wide-banner-wrapper .site-wide-banner-content {
     align-items: center;
     width: 100%;
     justify-content: center;
+    padding: 8px 0;
 }
 
-main div.site-wide-banner-wrapper .site-wide-banner-text {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
+main div.site-wide-banner-wrapper .site-wide-banner-text,
+main div.site-wide-banner-wrapper .site-wide-banner-block-wrapper,
 main div.site-wide-banner-wrapper .site-wide-banner-button-container {
     display: flex;
     align-items: center;
+    gap: 12px;
 }
 
 main div.site-wide-banner-wrapper .site-wide-banner-close-button {
@@ -74,12 +75,6 @@ main div.site-wide-banner-container.background-success .site-wide-banner-button-
     color: #ffffff;
 }
 
-main div.site-wide-banner-wrapper .site-wide-banner-block-wrapper {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
 main .fixed-banner {
     position: fixed;
     left: 0;
@@ -95,7 +90,7 @@ main .fixed-banner {
 }
 
 @media screen and (min-width:320px) and (max-width:1024px) {
-    main div.site-wide-banner-wrapper .site-wide-banner-content {
+    main div.site-wide-banner-wrapper div.site-wide-banner-content {
         flex-direction: column;
         align-items: last baseline;
         width: 100%;
@@ -103,12 +98,12 @@ main .fixed-banner {
         gap: 12px;
     }
 
-    main div.site-wide-banner-wrapper .site-wide-banner-text {
+    main div.site-wide-banner-wrapper div.site-wide-banner-text {
         gap: 8px;
         align-items: flex-start;
     }
 
-    main div.site-wide-banner-wrapper .site-wide-banner-button-container {
+    main div.site-wide-banner-wrapper div.site-wide-banner-button-container {
         margin: unset;
         width: 100%;
         justify-content: flex-end;
@@ -116,13 +111,10 @@ main .fixed-banner {
 
     main div.site-wide-banner-wrapper div.site-wide-banner-block-wrapper {
         padding: 20px 0;
-    }
-
-    main div.site-wide-banner-wrapper .site-wide-banner-block-wrapper {
         gap: 10px;
     }
 
-    main div.site-wide-banner-wrapper .site-wide-banner-close-button {
+    main div.site-wide-banner-wrapper div.site-wide-banner-close-button {
         width: 32px;
         border-left: 2px solid #22222233;
         background: transparent;
@@ -130,16 +122,20 @@ main .fixed-banner {
         position: relative;
     }
 
-    main div.site-wide-banner-wrapper .site-wide-banner-close-button::before {
+    main div.site-wide-banner-wrapper div.site-wide-banner-close-button {
+        --before-top: 0px;
+        position: relative;
+    }
+
+    main div.site-wide-banner-wrapper div.site-wide-banner-close-button::before {
         content: '';
-        background: url('../../icons/dismiss.svg') no-repeat center;
-        background-size: 20px 20px;
+        position: absolute;
+        top: var(--before-top, 0);
+        left: 0;
         width: 32px;
         height: 32px;
-        position: absolute;
-        top: 10px;
-        left: 0;
-        z-index: 2;
+        background: url('../../icons/dismiss.svg') no-repeat center;
+        background-size: 20px 20px;
     }
 
 }
