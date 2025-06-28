@@ -85,7 +85,7 @@ export default async function decorate(block) {
     }
   }
   if( block.querySelectorAll('.button-container')?.length > 0){
-    block.querySelectorAll('.button-container').forEach((btn)=>btn.classList.add('over-gradiant'))
+    block.querySelectorAll('.button-container').forEach((btn)=>btn.classList.add('over-gradient'))
   }
   const isOverGradient = block.classList.contains('over-gradient');
   const color = isOverGradient ? 'white' : undefined;
