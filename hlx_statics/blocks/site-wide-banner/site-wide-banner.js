@@ -21,9 +21,15 @@ export default async function decorate(block) {
 
   let banner;
   try {
+    const isProd = location.hostname.includes('adobedocs.aem.live');
+    const baseURL = isProd
+      ? 'https://main--adp-devsite--adobedocs.aem.live'
+      : '`https://main--adp-devsite-stage--adobedocs.aem.page`';
+
+    const url = `${baseURL}/franklin_assets/${productName ? `${productName}-` : ''}site-wide-banner.json`;
     const bannerSource = isDocTemplate
       ? await fetchSiteWideBanner()
-      : await fetch(`https://main--adobe-io-website--adobe.hlx.page/franklin_assets/${productName ? `${productName}-` : ''}site-wide-banner.json`).then(resp => {
+      : await fetch(url).then(resp => {
           if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
           return resp.json();
         }).then(({ data, ...meta }) => ({
