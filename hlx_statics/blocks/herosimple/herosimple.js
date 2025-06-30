@@ -6,19 +6,21 @@ import { createTag, decorateButtons } from "../../scripts/lib-adobeio.js";
  */
 
 function normalizeButtonContainer(block) {
-  const anchorElement = Array.from(block.querySelectorAll('a'));
-  if (anchorElement.length > 0) {
-    anchorElement.forEach((anchor, i) => {
-      const p = createTag('p');
-      const node = i === 0 ? createTag('strong') : p;
-      node.appendChild(anchor.cloneNode(true));
-      p.appendChild(node === p ? node.firstChild : node);
-      anchor.replaceWith(p);
-    });
-
-    const lastGroup = block.lastElementChild?.lastElementChild;
-    if (lastGroup && [...lastGroup.children].every(child => child.tagName === 'P')) {
-      lastGroup.classList.add('all-button-container');
+  if(block.getAttribute('data-slots').split(' ').includes('buttons')){
+    const anchorElement = Array.from(block.querySelectorAll('a'));
+    if (anchorElement.length > 0) {
+      anchorElement.forEach((anchor, i) => {
+        const p = createTag('p');
+        const node = i === 0 ? createTag('strong') : p;
+        node.appendChild(anchor.cloneNode(true));
+        p.appendChild(node === p ? node.firstChild : node);
+        anchor.replaceWith(p);
+      });
+  
+      const lastGroup = block.lastElementChild?.lastElementChild;
+      if (lastGroup && [...lastGroup.children].every(child => child.tagName === 'P')) {
+        lastGroup.classList.add('all-button-container');
+      }
     }
   }
 }
