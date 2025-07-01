@@ -289,3 +289,11 @@ main div.columns-wrapper div.columns.vertical>div:nth-child(even) ,
 main div.columns-wrapper div.columns.vertical>div:nth-child(odd) {
     flex-direction: column;
 }
+
+main div.columns-wrapper div.columns.wide {
+    padding: 40px 0;
+}
+
+main div.columns-wrapper div.columns.wide h3.column-header {
+    font-size: 38px;
+}

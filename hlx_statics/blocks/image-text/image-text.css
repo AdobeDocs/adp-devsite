@@ -2,7 +2,7 @@ main div.image-text-wrapper-container:has(.image-text.background-color-white) {
   background-color: white;
 }
 
-main div.image-text-wrapper-container > .image-text-wrapper {
+main div.image-text-wrapper-container>.image-text-wrapper {
   width: 80%;
   margin: auto;
 }
@@ -43,6 +43,18 @@ main div.image-text-wrapper-container p {
   text-align: center;
 }
 
+main div.image-text-wrapper div.wrapper-division>div {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+main div.image-text-wrapper div.wrapper-division>div > div:last-child {
+  width: 75%;
+  text-align: center;
+}
+
 @media screen and (min-width: 320px) and (max-width: 767px) {
   main div.image-text-wrapper img {
     width: 350px;
@@ -70,6 +82,7 @@ main div.image-text-wrapper-container p {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
   }
 
 }
