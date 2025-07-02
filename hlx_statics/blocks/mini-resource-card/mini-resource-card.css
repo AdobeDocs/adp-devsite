@@ -58,7 +58,7 @@ main div.mini-resource-card-wrapper div.mini-resource-card .mini-resource-card-b
   display: flex;
   flex-direction: column;
   justify-content: center;
-
+  gap: 10px;
   border: none !important;
   height: 100px !important;
   width: 320px !important;

@@ -56,6 +56,13 @@ export default async function decorate(block) {
     }
 
   });
+
+  Array.from(block.querySelectorAll('div')).forEach((div) => {
+    if(div.textContent.trim() !== '') {
+      div.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    }
+  });
+
   const observer = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {
       observer.disconnect();

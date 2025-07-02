@@ -100,6 +100,7 @@ main div.columns-wrapper div.columns h3.column-header {
     margin-top: 0!important;
     margin-bottom: 16px!important;
     scroll-margin-top:100px;
+    text-align: start;
 }
 
 main div.columns-wrapper div.columns h3.column-header a {
@@ -294,6 +295,11 @@ main div.columns-wrapper div.columns.wide {
     padding: 40px 0;
 }
 
-main div.columns-wrapper div.columns.wide h3.column-header {
+main div.columns-wrapper div.columns.wide.large-font h3.column-header {
     font-size: 38px;
+}
+
+main div.columns-wrapper div.columns.text-align-center.large-font p.paragraph-wrapper {
+    font-size: 18px;
+    font-weight: 600;
 }
