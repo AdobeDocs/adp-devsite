@@ -79,7 +79,7 @@ export default async function decorate(block) {
   if (!imageExists) {
     if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
       if (hasBorder === "true") {
-        block.classList.add("hasBorder");
+        block.classList.add("hasborder");
       }
       block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
       block.classList.add(backgroundColor);
