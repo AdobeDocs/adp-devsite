@@ -8,7 +8,7 @@ main div.columns-wrapper {
 }
 
 main div.columns-wrapper div.columns {
-    width: 1280px;
+    max-width: 1280px;
     box-sizing: border-box;
     margin: auto;
 }
