@@ -39,4 +39,5 @@ main div.discoverblock-wrapper .discover-child-container{
     display: flex;
     flex-direction: column;
     gap: 10px;
+    max-width: 100%;
 }
