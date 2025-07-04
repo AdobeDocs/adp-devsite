@@ -1,4 +1,4 @@
-main div.hero-wrapper div.hero {
+main div.hero-wrapper div.hero.halfwidth {
   background: rgb(255, 255, 255);
   height: 500px;
   width: 100%;
@@ -7,29 +7,29 @@ main div.hero-wrapper div.hero {
   justify-content: center;
 }
 
-main div.hero-wrapper div.hero.full-width-background img {
+main div.hero-wrapper div.hero.halfwidth.full-width-background img {
   width: 100% !important;
   height: 350px !important;
   object-fit: cover !important;
 }
 
-main div.hero-wrapper div.hero p.spectrum-Body--sizeL {
+main div.hero-wrapper div.hero.halfwidth p.spectrum-Body--sizeL {
   margin-top: 0 !important;
   color: rgb(80, 80, 80) !important;
 }
 
-main div.hero-wrapper div.hero.font-white h1,
-main div.hero-wrapper div.hero.font-white h2,
-main div.hero-wrapper div.hero.font-white h3,
-main div.hero-wrapper div.hero.font-white p {
+main div.hero-wrapper div.hero.halfwidth.font-white h1,
+main div.hero-wrapper div.hero.halfwidth.font-white h2,
+main div.hero-wrapper div.hero.halfwidth.font-white h3,
+main div.hero-wrapper div.hero.halfwidth.font-white p {
   color: white !important;
 }
 
-main div.hero-wrapper div.hero {
+main div.hero-wrapper div.hero.halfwidth {
   padding: 0;
 }
 
-main div.hero-wrapper div.hero > div:first-child {
+main div.hero-wrapper div.hero.halfwidth > div:first-child {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -39,11 +39,11 @@ main div.hero-wrapper div.hero > div:first-child {
   margin-right: 32px;
 }
 
-main div.hero-wrapper div.hero div:nth-child(2) {
+main div.hero-wrapper div.hero.halfwidth div:nth-child(2) {
   flex: 1;
 }
 
-main div.hero-wrapper div.hero div:nth-child(2) > div {
+main div.hero-wrapper div.hero.halfwidth div:nth-child(2) > div {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,7 +51,7 @@ main div.hero-wrapper div.hero div:nth-child(2) > div {
   margin-top: 0;
 }
 
-main div.hero-wrapper div.hero div:nth-child(2) > div img {
+main div.hero-wrapper div.hero.halfwidth div:nth-child(2) > div img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
@@ -59,35 +59,35 @@ main div.hero-wrapper div.hero div:nth-child(2) > div img {
   min-height: 500px !important;
 }
 
-main div.hero-wrapper:has(.full-width-background) div:nth-child(2) > div img {
+main div.hero-wrapper:has(.full-width-background) div.hero.halfwidth div:nth-child(2) > div img {
   display:none;
 }
-main div.hero-wrapper div.hero .icon-container {
+main div.hero-wrapper div.hero.halfwidth .icon-container {
   height: 48px;
   width: 48px;
   margin-top: 0 !important;
   margin-bottom: 24px !important;
 }
 
-main div.hero-wrapper div.hero span.icon {
+main div.hero-wrapper div.hero.halfwidth span.icon {
   display: none;
 }
 
-main div.hero-wrapper div.hero .icon {
+main div.hero-wrapper div.hero.halfwidth .icon {
   height: 100%;
   object-fit: contain;
 }
 
-main div.hero-wrapper div.hero h3 {
+main div.hero-wrapper div.hero.halfwidth h3 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-main div.hero-wrapper div.hero h1 + p.last-of-type {
+main div.hero-wrapper div.hero.halfwidth h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
-main div.hero-wrapper div.hero .hero-button-container {
+main div.hero-wrapper div.hero.halfwidth .hero-button-container {
   display: flex;
   flex-wrap: wrap;
   margin-top: 24px;
@@ -95,40 +95,40 @@ main div.hero-wrapper div.hero .hero-button-container {
   margin-bottom: 10px;
 }
 
-main div.hero-wrapper div.hero h3 {
+main div.hero-wrapper div.hero.halfwidth h3 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-main div.hero-wrapper div.hero h1 + p.last-of-type {
+main div.hero-wrapper div.hero.halfwidth h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
 @media screen and (max-width: 768px) {
-  main div.hero-wrapper div.hero {
+  main div.hero-wrapper div.hero.halfwidth {
     padding: 32px;
     overflow: hidden;
   }
 
-  main div.hero-wrapper div.hero > div:first-child {
+  main div.hero-wrapper div.hero.halfwidth > div:first-child {
     margin-left: 64px;
     margin-right: 32px;
     width: 100%;
     margin: 0;
   }
 
-  main div.hero-wrapper div.hero div:nth-child(2) {
+  main div.hero-wrapper div.hero.halfwidth div:nth-child(2) {
     display: none;
   }
-  main div.hero-wrapper div.hero .spectrum-Heading--sizeXXL {
+  main div.hero-wrapper div.hero.halfwidth .spectrum-Heading--sizeXXL {
     font-size: 36px;
   }
 
-  main div.hero-wrapper div.hero picture {
+  main div.hero-wrapper div.hero.halfwidth picture {
     display: none;
   }
 
-  main div.hero-wrapper div.hero div:nth-child(2) > div div {
+  main div.hero-wrapper div.hero.halfwidth div:nth-child(2) > div div {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -136,14 +136,14 @@ main div.hero-wrapper div.hero h1 + p.last-of-type {
     margin-top: 0;
   }
 
-  main div.hero-wrapper div.hero div:nth-child(2) > div img {
+  main div.hero-wrapper div.hero.halfwidth div:nth-child(2) > div img {
     width: 100% !important;
     min-width: 320px !important;
   }
 }
 
 @media screen and (max-width: 425px) {
-  main div.hero-wrapper div.hero div:nth-child(2) > div img {
+  main div.hero-wrapper div.hero.halfwidth div:nth-child(2) > div img {
     min-height: 0px;
   }
 }
