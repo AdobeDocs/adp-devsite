@@ -24,8 +24,8 @@ function rearrangeLinks(block) {
  * @param {Element} block The hero block element
  */
 export default async function decorate(block) {
+  block.setAttribute('daa-lh', 'hero');
   if(block.classList.contains('halfwidth')) {
-    block.setAttribute('daa-lh', 'hero');
     // Block decoration
     decorateLightOrDark(block, true);
     // H1 decoration
@@ -73,8 +73,7 @@ export default async function decorate(block) {
         });
       });
     }
-  } else if(block.classList.contains('site-hero')) {
-    block.setAttribute('daa-lh', 'site hero');
+  } else if(block.classList.contains('site') || block.classList.contains('site-xl')) {
     removeEmptyPTags(block);
     decorateButtons(block);
   
