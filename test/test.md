@@ -93,3 +93,7 @@
 - line 124 - 128:
     - All section have at least a `<h3>` tag
     - The if statement always get false
+
+**edition.js**
+- line 19 - 22:
+    - `contentElement` has no attributre
