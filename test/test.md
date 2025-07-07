@@ -70,3 +70,11 @@
     - The `querySelectorAll('div > div.info-column')` statement are inside the forEach of `info-column`
     - The querySelector will get null
     - Should move this outside of `info-column`'s forEach and do querySelector for block instead of column
+
+**contributors.js**
+- line 11 & 13 - 15:
+    - No element has attribute `data-isborder`
+    - Variable `isBordar` is null
+- line 47 - 51 & 53:
+    - resources are hard coded
+    - should accept inputs from google drive table
