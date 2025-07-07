@@ -19,7 +19,7 @@ export default async function decorate(block) {
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
     h.style.color = "white";
-    h.parentElement.classList.add('site-hero-content');
+    h.parentElement.classList.add('hero-content');
     h.parentElement.append(button_div);
   });
 
