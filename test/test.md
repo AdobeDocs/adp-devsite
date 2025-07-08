@@ -94,6 +94,9 @@
     - All section have at least a `<h3>` tag
     - The if statement always get false
 
+**edition.js**
+- line 19 - 22:
+    - `contentElement` has no attributre
 **embed.js**:
 - line 8 - 17:
     - Function `loadScript()` not covered
