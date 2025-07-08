@@ -1,81 +1,83 @@
 import { createTag } from "../../scripts/lib-adobeio.js";
 
 /**
- * decorates the title
- * @param {Element} block The title block element {Parameter Type} Name of the Parameter
+ * decorates the discover block
+ * @param {Element} block The discover block element
  */
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'discover');
-  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'title-heading');
-  });
-  block.querySelectorAll('p').forEach((p) => {
-    p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-  });
-  // block.parentElement.style.display = 'flex';
-  // block.parentElement.style.justifyContent = 'center';
-  // const position = block?.parentElement?.parentElement?.getAttribute('data-position');
-  // if(position) {
-  //   const discoverPosition = document.querySelector('.discover-wrapper');
-  //   discoverPosition.style.justifyContent = position;   
-  // }
+   block.setAttribute('daa-lh', 'discover');
 
-  const width = block.getAttribute('data-width')
-  if(width === '100%'){
-    block.classList.add('discoverblock-column');
-  }else {
-    let existingWrapper = document.querySelector('.discoverblock-container-wrapper') || null;
-    if (!existingWrapper) {
-      existingWrapper = createTag('div', { class: 'discoverblock-container-wrapper' });
-      const parentElement = block.parentElement;
-      parentElement.appendChild(existingWrapper);
+  // Set width based on data-width attribute
+  const width = block.getAttribute('data-width');
+  const wrapper = block.closest('.discoverblock-wrapper');
+
+  // If there's an image, set the block width to 2*1280/12 and position image on the left
+  const hasImage = block.querySelector('img') !== null;
+  if (hasImage) {
+    let imageWidth = (2 * 1280) / 12;
+    imageWidth = imageWidth + 156;
+    wrapper.style.width = imageWidth + 'px';
+
+    // Get the image
+    const image = block.querySelector('img');
+
+    // Set image width to 100px and move it to the beginning
+    image.style.width = '100px';
+    image.style.height = 'auto';
+    image.style.flexShrink = '0';
+    image.style.position = 'absolute';
+
+    // Move the image to be the first child (leftmost position)
+    block.insertBefore(image, block.firstChild);
+
+    // Find button-container's parent and give it a class name
+    const buttonContainer = block.querySelector('.button-container');
+    if (buttonContainer && buttonContainer.parentElement) {
+      buttonContainer.parentElement.classList.add('discover-content-with-image');
     }
-    existingWrapper.appendChild(block);
-    const firstHeading = existingWrapper.querySelector('h2, h3');
-    if (firstHeading) {
-      Array.from(existingWrapper.children).forEach((child,index) => {
-        if(index > 0) {
-          child.style.marginTop = '35px';
-        } 
-      });
-    }
-    const children = Array.from(existingWrapper.children);
-    children.forEach(child => {
-      child.style.maxWidth = '290px';
-    });
-    const discoverBlocks = document.querySelectorAll('.discoverblock-wrapper');
-    discoverBlocks.forEach(div => {
-      if (div.childElementCount === 0) {
-        div.remove();
-      }
-    });
+  } else if (width) {
+    // if data-width exists, override the default width with the data-width.
+    wrapper.style.width = width;
   }
-  
-  Array.from(block.children).forEach(div => {
-    const containsHeading = div.querySelector('h1, h2, h3, h4, h5, h6') !== null;
-    if (containsHeading) {
-      var breakDiv = createTag('div', { class: 'break' });
 
-      block.insertBefore(breakDiv, div);
+  const heading = block.querySelector('h1, h2, h3, h4, h5, h6');
+  if (heading) {
+    // Check if block has image and add class to heading if it does
+    if (hasImage) {
+      heading.classList.add('discover-heading-with-image');
     }
-    else {
-      div.classList.add('discover-nonheading-child-container')
+    const headingClone = heading.cloneNode(true);
+
+    // Add anchor link if it's h2 or h3
+    if (headingClone.tagName === 'H2' || headingClone.tagName === 'H3') {
+      const headingText = headingClone.textContent.trim();
+      const anchorId = headingText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+      // Add id to the heading
+      headingClone.id = anchorId;
+
+      // Create anchor link
+      const anchorLink = createTag('a', {
+        class: 'anchor-link spectrum-Link spectrum-Link--quiet',
+        href: `#${anchorId}`,
+        'aria-label': headingText
+      });
+
+      // Add anchor link icon
+      anchorLink.innerHTML = `
+        <svg aria-hidden="true" height="18" viewBox="0 0 16 16" width="18">
+          <path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+        </svg>
+      `;
+
+      // Add anchor link to heading
+      headingClone.appendChild(anchorLink);
     }
 
-    div.classList.add('discover-child-container')
+    // Insert heading before the wrapper
+    wrapper.parentElement.insertBefore(headingClone, wrapper);
 
-    if (div?.firstElementChild?.firstElementChild?.querySelector('img')) {
-      const newDiv = document.createElement('div');
-
-      Array.from(div.firstElementChild.children).forEach((ele, index) => {
-        if (index > 0) {
-          newDiv.append(ele)
-        }
-      })
-
-      div.firstElementChild.append(newDiv);
-      div.firstElementChild.classList.add('discover-child-inner-container')
-      div.classList.add('discover-img-child-container')
-    }
-  })
+    // Remove the original heading from the block content
+    heading.remove();
+  }
 }
