@@ -27,6 +27,13 @@ main div.discoverblock-wrapper {
   padding-top:0px;
 }
 
+/* Responsive design for mobile and tablet */
+@media (max-width: 768px) {
+  main div.discoverblock-wrapper {
+    width: 100% !important;
+  }
+}
+
 main div.discoverblock-container div.heading2-wrapper{
   margin-bottom: 5px;
 }
