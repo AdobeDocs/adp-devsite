@@ -88,7 +88,12 @@ export default async function decorate(block) {
       block.classList.add("background-color-gray");
     }
   }
-  decorateButtons(block);
+  if( block.querySelectorAll('.button-container')?.length > 0){
+    block.querySelectorAll('.button-container').forEach((btn)=>btn.classList.add('over-gradient'))
+  }
+  const isOverGradient = block.classList.contains('over-gradient');
+  const color = isOverGradient ? 'white' : undefined;
+  decorateButtons(block, color, color);
   removeEmptyPTags(block);
   rearrangeLinks(block);
   setBackgroundImage(block);

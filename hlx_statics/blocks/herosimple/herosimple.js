@@ -76,7 +76,9 @@ export default async function decorate(block) {
     block.appendChild(layoutWrapper);
   }
 
-  normalizeButtonContainer(block);
-  decorateButtons(block);
+  if (block.getAttribute('data-slots').split(' ').includes('buttons')) {
+    normalizeButtonContainer(block);
+    decorateButtons(block);
+  }
 
 }
