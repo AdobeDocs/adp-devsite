@@ -25,7 +25,7 @@ export default async function decorate(block) {
   if (!isLink) {
     decorateButtons(block);
   }
-  block.setAttribute('daa-lh', 'card');
+  block.setAttribute('daa-lh', 'cards');
   block.querySelectorAll('.cards > div').forEach((card, index, array) => {
 
     decorateLightOrDark(block);
@@ -55,11 +55,6 @@ export default async function decorate(block) {
       card.classList.add('four-card');
     }
 
-    card.querySelectorAll('.three-card > div').forEach((font, index) => {
-      if (index === 1) {
-        font.style.setProperty('font-size', '16px');
-      }
-    });
   });
   const observer = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {

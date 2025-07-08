@@ -71,6 +71,32 @@
     - The querySelector will get null
     - Should move this outside of `info-column`'s forEach and do querySelector for block instead of column
 
+**card.js**:
+- line 58 - 62:
+    - This can be safely deleted without effecting the display of block
+
+**columns.js**
+- line 40 - 43:
+    - Class name 'columns-container' is assigned by the wrapper function
+    - If remove the parent div of the block, the console.error will trigger
+
+- line 60 - 64:
+    - The if statement always gets false
+
+- line 99 - 106:
+    - No element had class name "button"
+    - `querySelectorAll('.button')` gets empty list
+
+- line 112 - 119:
+    - Block class list does not contain 'test-align-center'
+
+- line 124 - 128:
+    - All section have at least a `<h3>` tag
+    - The if statement always get false
+
+**edition.js**
+- line 19 - 22:
+    - `contentElement` has no attributre
 **carousel.js**
 - line 90 - 103:
     - There is no ancor tag outside of img tag in the source html
