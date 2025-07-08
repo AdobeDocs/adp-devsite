@@ -93,3 +93,20 @@
 - line 124 - 128:
     - All section have at least a `<h3>` tag
     - The if statement always get false
+
+**info-card.js**
+- line 14 & 85
+    - No element has class name `primarybutton`
+- line 45
+    - uncessary `row.querySelector('a')`
+- line 47
+    - Inappropriate naming `anchorHref`, should be `anchor` instead
+- line 54
+    - `row.querySelector('a')` never gets `null`
+    - Unreachable `else` statement
+-line 60
+    - unnecessary `row.querySelector('.info-card > div > div:last-child');`
+- line 77 - 83
+    - No element has class name `icon`
+
+
