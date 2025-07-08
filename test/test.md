@@ -97,3 +97,9 @@
 **edition.js**
 - line 19 - 22:
     - `contentElement` has no attributre
+
+**site-hero.js**
+- line 27
+    - unused variable `hasLinks`
+-line 33
+    - No `<p>` tag contains class name `button-container`
