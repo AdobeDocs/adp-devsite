@@ -93,3 +93,48 @@
 - line 124 - 128:
     - All section have at least a `<h3>` tag
     - The if statement always get false
+
+**embed.js**:
+- line 8 - 17:
+    - Function `loadScript()` not covered
+    - Used by embedIG() and embedTwitter() which are not tested
+
+- line 20 - 28:
+    - Function `getDefaultEmbed()` not covered
+    - Only used when no matching embed type is found
+
+- line 30 - 38:
+    - Function `embedIG()` not covered
+    - No Instagram embed example in test cases
+
+- line 41 - 52:
+    - Function `embedYTShort()` not covered
+    - No YouTube Shorts example in test cases
+
+- line 54 - 63:
+    - Function `embedMP4()` not covered
+    - No MP4 video example in test cases
+
+- line 64 - 70:
+    - Function `embedYTPlaylist()` not covered
+    - No YouTube playlist example in test cases
+
+- line 89 - 93, 96 - 97:
+    - YouTube embed branches not covered
+    - No youtu.be or YouTube shorts/playlist examples
+
+- line 170 - 174:
+    - Function `embedVimeo()` not covered
+    - No Vimeo video example in test cases
+
+- line 175 - 180:
+    - Function `embedTwitter()` not covered
+    - No Twitter embed example in test cases
+
+- line 186 - 192:
+    - Data attributes handling not covered
+    - No examples with data-loop or data-controls attributes
+
+- line 210 - 213:
+    - Custom width handling not covered
+    - No examples with data-width attribute
