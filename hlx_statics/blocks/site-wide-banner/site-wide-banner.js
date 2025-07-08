@@ -24,7 +24,7 @@ export default async function decorate(block) {
     const isProd = location.hostname.includes('adobedocs.aem.live');
     const baseURL = isProd
       ? 'https://main--adp-devsite--adobedocs.aem.live'
-      : '`https://main--adp-devsite-stage--adobedocs.aem.page`';
+      : 'https://main--adp-devsite-stage--adobedocs.aem.page';
 
     const url = `${baseURL}/franklin_assets/${productName ? `${productName}-` : ''}site-wide-banner.json`;
     const bannerSource = isDocTemplate
