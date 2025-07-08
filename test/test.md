@@ -85,3 +85,7 @@
 -line 250 - 270:
     - `block.querySelectorAll("div.embed.block > div > div > a")` gets empty list
     - Can't run through forEac
+
+**info.js**
+- line 26 - 28:
+    - No longer using `<ul>` in source html
