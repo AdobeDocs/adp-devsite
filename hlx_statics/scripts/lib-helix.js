@@ -181,8 +181,8 @@ async function fetchNavHtml(name) {
     if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
-      const navItemsChild = navItems.querySelectorAll('li');
-      navItemsChild.forEach((liItems) => {
+      const navItemsChild = navItems?.querySelectorAll('li');
+      navItemsChild?.forEach((liItems) => {
         let p = liItems.querySelector('p');
         if (p) {
           p.replaceWith(p.firstChild);
@@ -191,7 +191,7 @@ async function fetchNavHtml(name) {
     }
   });
 
-  return navItems ? navItems.innerHTML : Promise.reject(navItems.innerHTML);
+  return navItems?.innerHTML ? navItems.innerHTML : Promise.reject(navItems?.innerHTML);
 }
 
 /**

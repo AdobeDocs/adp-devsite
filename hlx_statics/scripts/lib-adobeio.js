@@ -467,7 +467,7 @@ function activeSubNav(actTab) {
   let showSidenav = false;
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
-    const sidenavItems = navLinksUl.querySelectorAll(':scope > ul li');
+    const sidenavItems = navLinksUl?.querySelectorAll(':scope > ul li') || [];
     const topNavPath = actTab.pathname;
     const pagePath = window.location.pathname;
     sidenavItems.forEach(li => {
