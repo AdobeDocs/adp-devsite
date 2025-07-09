@@ -81,8 +81,8 @@ main div.tab-wrapper .tab-button {
 }
 
 main div.tab-wrapper .tab-icon img {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 24px;
 }
 
 main div.tab-wrapper .tab-content,
@@ -141,7 +141,8 @@ main div.tab-wrapper .tab.vertical>.content-wrapper {
 }
 
 main div.tab-wrapper .tab {
-    width: 100%;
+    margin: auto auto 5%;
+    width: 60%;
 }
 
 main div.tab-wrapper .sub-tab-button.active {
@@ -155,6 +156,36 @@ main div.tab-wrapper .tab-button {
     border: none;
     background: #eee;
     font-size: 16px;
+}
+
+main div.background-color-slateblue-applied, main div.tab-bg-slateblue-applied, main div.code-bg-slateblue-applied {
+    background-color: #1f2a49;
+}
+
+main div.tab-wrapper .code-toolbar pre, main div.code-bg-slateblue-applied {
+    background-color: #111a35;
+    border-radius: 2vh;
+}
+
+main div.background-color-slateblue-applied:not(.tab-bg-slateblue-applied) .tab-title {
+    color: #8194ce;
+}
+
+main div.tab-wrapper .tab-bg-slateblue-applied .tab-button {
+    background-color: #1f2a49;
+    color: #8194ce;
+}
+
+main div.tab-wrapper .tab-bg-slateblue-applied .active, main div.tab-wrapper .tab-bg-slateblue-applied .tab-button:hover {
+    background-color: #2e3c6a;
+}
+
+main div.tab-wrapper .tab-bg-slateblue-applied  .tab-button.active  .tab-title, main div.tab-wrapper .tab-bg-slateblue-applied  .tab-button:hover .tab-title {
+    color: white;
+}
+ 
+main div.sub-content-wrapper .code-toolbar pre {
+    border-radius: 0%;
 }
 
 main div.tab-wrapper .tab-content,

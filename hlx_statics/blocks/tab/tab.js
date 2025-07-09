@@ -9,11 +9,15 @@ import { getMetadata } from "../../scripts/scripts.js";
 const createCodeBlock = (codeBlock, language) => {
   const preContainer = document.createElement('div');
   const pre = document.createElement('pre');
-  if (language) {
-    pre.className = `language-${language.toLowerCase()}`;
-  }
-  pre.innerHTML = codeBlock.outerHTML;
+  const code = document.createElement('code');
 
+  const lang = language.toLowerCase().trim();
+  if (lang) {
+    code.className = `language-${lang}`;
+  }
+
+  code.innerHTML = codeBlock.innerHTML;
+  pre.appendChild(code);
   preContainer.appendChild(pre);
   decoratePreformattedCode(preContainer);
 
@@ -95,6 +99,23 @@ export default async function decorate(block) {
   contentWrapper.className = 'content-wrapper';
 
   let tabCount = 0;
+  
+  const blockClasses = Array.from(block.classList);
+    
+    blockClasses.forEach((cls) => {
+    if (cls.startsWith('background-color-')) {
+      block.classList.add(cls);
+      block.closest('.tab-wrapper')?.classList.add(`${cls}-applied`);
+    }
+
+    if (cls.startsWith('tab-bg-')) {
+      tabsWrapper.classList.add(`${cls}-applied`);
+    }
+
+    if (cls.startsWith('code-bg-')) {
+      contentWrapper.classList.add(`${cls}-applied`);
+    }
+  });
 
   block.querySelectorAll('div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
