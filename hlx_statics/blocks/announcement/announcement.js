@@ -1,3 +1,4 @@
+
 import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
@@ -61,6 +62,8 @@ function setBackgroundImage(block) {
  * @param {Element} block
  */
 export default async function decorate(block) {
+  const backgroundColor = block.getAttribute("data-backgroundcolor");
+  const hasBorder =  block.getAttribute("data-hasborder");
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
@@ -71,12 +74,26 @@ export default async function decorate(block) {
     p.style.whiteSpace = "normal";
   });
   const imageExists = block.querySelector('picture img');
+  const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray", "background-color-gray"];
+
   if (!imageExists) {
-    if (!block.classList.contains('background-color-white') && !block.classList.contains('background-color-navy') && !block.classList.contains('background-color-dark-gray')) {
-      block.classList.add('background-color-gray');
+    if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
+      if (hasBorder === "true") {
+        block.classList.add("hasborder");
+      }
+      block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
+      block.classList.add(backgroundColor);
+    }
+    if (!allowedBackgroundColors.some(allowedBackgroundColor => block.classList.contains(allowedBackgroundColor))) {
+      block.classList.add("background-color-gray");
     }
   }
-  decorateButtons(block);
+  if( block.querySelectorAll('.button-container')?.length > 0){
+    block.querySelectorAll('.button-container').forEach((btn)=>btn.classList.add('over-gradient'))
+  }
+  const isOverGradient = block.classList.contains('over-gradient');
+  const color = isOverGradient ? 'white' : undefined;
+  decorateButtons(block, color, color);
   removeEmptyPTags(block);
   rearrangeLinks(block);
   setBackgroundImage(block);

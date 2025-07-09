@@ -196,6 +196,31 @@ main div.columns-wrapper div.columns.center .button-container {
     margin-bottom: 0;
 }
 
+main div.columns-wrapper div.columns.text-align-center p.paragraph-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 20px;
+}
+
+main div.columns-wrapper div.columns.text-align-center p.paragraph-wrapper img {
+    width: 30px;
+}
+
+main div.columns-wrapper div.columns h3.without-content {
+    margin-bottom: 48px !important;
+}
+
+main div.columns-wrapper div.center {
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+}
+
+main div.columns-wrapper div.center div.first-column-div {
+    width: 1280px !important;
+    justify-content: space-between !important;
+}
+
 @media screen and (max-width: 1280px) {
     main div.columns-wrapper  div.columns div.second-column {
         width: 75%;
@@ -226,4 +251,41 @@ main div.columns-wrapper div.columns.center .button-container {
         align-items: center;
     }
 
+}
+
+main div.columns-wrapper div.vertical {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+main div.columns-wrapper div.vertical div.first-column-div,
+main div.columns-wrapper div.vertical div.last-column-div {
+    flex-direction: column;
+    align-items: baseline;
+}
+
+main div.columns-wrapper div.vertical .first-column {
+    justify-content: left;
+}
+
+main div.columns-wrapper div.columns.vertical div.first-column img {
+    max-height: 150px;
+}
+
+main div.columns-wrapper div.columns.vertical div.second-column {
+    padding: 0;
+}
+
+main div.columns-wrapper div.columns.vertical div.second-column {
+    width: 75%;
+}
+
+main div.columns-wrapper div.columns.vertical p+p {
+    margin-top: 0;
+}
+
+main div.columns-wrapper div.columns.vertical>div:nth-child(even) ,
+main div.columns-wrapper div.columns.vertical>div:nth-child(odd) {
+    flex-direction: column;
 }
