@@ -476,7 +476,7 @@ function activeSubNav(actTab) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
         if (linkPath === pagePath) {
           showSidenav = true;
-        } 
+        }
         if (!linkPath.startsWith(topNavPath)) {
           li.classList.add('hidden');
         }
@@ -815,7 +815,6 @@ export function createAnchorLink(id) {
  */
 export function decorateAnchorLink(header) {
   //  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-  header.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header');
   const anchorLink = createAnchorLink(header.id);
   header.appendChild(anchorLink);
   // });
