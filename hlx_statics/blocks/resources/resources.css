@@ -38,3 +38,9 @@ main div.resources-wrapper div.external-icon {
     margin-top:3px;
     vertical-align: middle;
 }
+
+@media (max-width: 768px) {
+    main div.resources-wrapper {
+        display: none;
+    }
+}
