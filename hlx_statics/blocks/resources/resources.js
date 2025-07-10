@@ -2,7 +2,7 @@ import { createTag, decorateButtons, removeEmptyPTags } from '../../scripts/lib-
 
 /**
  * Decorates the resources block.  This block is only allowed 1 block in the md file.
- * @param {Element} block - The banner resources element
+ * @param {Element} block - The resources element
  */
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'resources');
