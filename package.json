@@ -6,7 +6,7 @@
         "test:watch": "npm test -- --watch",
         "lint": "eslint .",
         "dev:aem": "npx @adobe/aem-cli --no-open --port 3001 up",
-        "dev:markup": "node ./dev.mjs & open http://127.0.0.1:3000",
+        "dev:markup": "node ./dev.mjs & open http://localhost:3000",
         "dev": "concurrently -k \"npm:dev:*\""
     },
     "devDependencies": {

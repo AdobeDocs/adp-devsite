@@ -8,14 +8,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.DEV_PORT || 3000;
 
 const corsOptions = {
-  origin: 'http://127.0.0.1:3000/', // Replace with your frontend origin
-  credentials: true, // Allow credentials
+  origin: 'http://127.0.0.1:3000/',
+  credentials: true,
 };
 
 const app = express();
 app.use(cors(corsOptions));
 
-// TODO: fetch the path prefix map and use that to route the request
+// TODO: use devsitepaths.json instead
 const pathPrefixMap = {
   '/commerce/webapi': {
     pathPrefix: '/commerce/webapi',
@@ -44,10 +44,10 @@ app.use(async (req, res) => {
   // otherwise serve from aem-cli on port 3001
   const prefix = Object.keys(pathPrefixMap).find((prefix) => req.path.startsWith(prefix));
 
+
   let upstreamUrl;
   let source;
-
-  if (prefix) {
+  if (prefix && prefix !== 'undefined' && !req.path.endsWith('/config.plain.html')) {
     source = 'docs';
     upstreamUrl = `http://127.0.0.1:3002${req.path}`;
   } else {
