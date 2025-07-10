@@ -79,7 +79,7 @@ main .fixed-banner {
     position: fixed;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 100000;
     background: white;
     min-height: 60px;
     display: flex;
@@ -134,7 +134,6 @@ main .fixed-banner {
         left: 0;
         width: 32px;
         height: 32px;
-        background: url('../../icons/dismiss.svg') no-repeat center;
         background-size: 20px 20px;
     }
 

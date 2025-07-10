@@ -52,7 +52,7 @@ export default async function decorate(block) {
   }
 
   const { text, icon, buttonLink, button, isClose, bgColor = "notice" } = banner;
-  const padding = `${siteParent.getBoundingClientRect().height + (isMobile ? 0 : 0)}px`;
+  const padding = `${siteParent.getBoundingClientRect().height + (isMobile ? 180 : 16)}px`;
   paddingTargets.forEach(el => el && (el.style.paddingTop = padding));
 
   const wrapper = createTag("div", { class: "site-wide-banner-block-wrapper" });
