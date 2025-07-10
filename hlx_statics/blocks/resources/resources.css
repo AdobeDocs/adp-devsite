@@ -1,0 +1,40 @@
+
+main div.resources-wrapper {
+    position: absolute;
+    right:0;
+    padding-top: 50px;
+    width: 200px;
+}
+
+main div.resources-wrapper a{
+    font-size: 16px;
+}
+
+main div.resources-wrapper ul{
+    list-style: none;
+    padding: 0px;
+}
+main div.resources-wrapper li{
+    margin-top:15px;
+    display:flex;
+}
+
+main div.resources-wrapper h3{
+    font-size: 22px;
+}
+
+main div.resources-wrapper h3{
+    font-size: 18px;
+}
+
+main div.resources-wrapper h4{
+    font-size: 16px;
+}
+
+main div.resources-wrapper div.external-icon {
+    width: 16px;
+    height: 16px;
+    margin-left: 8px;
+    margin-top:3px;
+    vertical-align: middle;
+}
