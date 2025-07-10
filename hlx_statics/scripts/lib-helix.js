@@ -770,6 +770,7 @@ export function githubActionsBlock(doc) {
                           </div>
                           <div>Log an issue</div>
                       </a>
+                      <button type="button" class="spectrum-Button--sizeL copy-markdown-button spectrum-Button spectrum-Button--sizeM spectrum-Button--outline spectrum-Button--primary" data-github-url="${baseUrl}" onclick="copyMarkdownContent(this)"><span class="spectrum-Button-label">Copy as Markdown</span></button>
               </div>
       `;
     const contentHeader = doc.querySelector('.content-header');
@@ -780,6 +781,32 @@ export function githubActionsBlock(doc) {
     }
   }
 };
+
+/**
+ * Copy markdown content from GitHub to clipboard
+ */
+window.copyMarkdownContent = async function(btn) {
+  const baseUrl = btn.dataset.githubUrl;
+  const rawUrl = baseUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+  const label = btn.querySelector('.spectrum-Button-label');
+  const originalText = label.textContent;
+  
+  try {
+    const response = await fetch(rawUrl);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    await navigator.clipboard.writeText(await response.text());
+    label.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { 
+      label.textContent = originalText; 
+      btn.classList.remove('copied'); 
+    }, 3000);
+    console.log('Markdown copied to clipboard!');
+  } catch (error) {
+    console.error('Failed to copy markdown:', error);
+    window.open(rawUrl, '_blank');
+  }
+}
 
 /**
  * parse attributes from row and added to particular blcok
