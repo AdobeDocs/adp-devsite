@@ -1,15 +1,11 @@
 import { createTag, decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
 
 /**
- * Decorates the banner block
- * @param {Element} block - The banner block element
+ * Decorates the resources block.  This block is only allowed 1 block in the md file.
+ * @param {Element} block - The banner resources element
  */
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'resources');
-
-  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM');
-  });
 
   block.querySelectorAll('a').forEach((link) =>{
     link.classList.add('spectrum-Link', 'spectrum-Link--quiet');
