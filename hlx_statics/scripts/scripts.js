@@ -564,12 +564,6 @@ function loadDelayed() {
 
 }
 
-function loadTitle() {
-  if (!document.title || document.title === '') {
-    document.title = window.location.href;
-  }
-}
-
 function loadPrism(document) {
   const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
   if (!codeBlocks.length) return;
