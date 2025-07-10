@@ -1165,17 +1165,6 @@ main .github-actions-block{
   align-items: center;
 }
 
-main .github-actions-block button.copy-markdown-button.copied{
-  border-color: rgb(0, 84, 182);
-  background-color: white;
-  color: rgb(0, 84, 182);
-}
-
-main .github-actions-block button.copy-markdown-button {
-  font-size: 16px;
-  background-color: transparent;
-}
-
 main .action-buttons{
   display: flex;
   gap: 10px;
