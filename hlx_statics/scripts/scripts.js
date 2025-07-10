@@ -27,6 +27,7 @@ import {
   buildGridAreaMain,
   buildHeadings,
   buildSideNav,
+  buildSiteWideBanner,
   buildOnThisPage,
   createTag,
   toggleScale,
@@ -89,6 +90,13 @@ function loadHeader(header) {
     contentHeader.classList.add('block-display');
   }
 
+}
+
+function loadSiteWideBanner(siteWidebanner) {
+  const siteWidebannerBlock = buildBlock('site-wide-banner-container', '');
+  siteWidebanner.append(siteWidebannerBlock);
+  decorateBlock(siteWidebannerBlock);
+  loadBlock(siteWidebannerBlock);
 }
 
 function loadFooter(footer) {
@@ -187,6 +195,8 @@ async function loadEager(doc) {
     buildSideNav(main);
     buildBreadcrumbs(main);
   }
+
+  buildSiteWideBanner(main);
 
   document.body.classList.add('appear');
   loadConfig();
@@ -512,6 +522,7 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header'));
+  loadSiteWideBanner(doc.querySelector('.site-wide-banner-container'));
   decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
