@@ -334,6 +334,13 @@ export function buildSideNav(main) {
 export function buildOnThisPage(main) {
   let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
   main.append(asideWrapper);
+  
+  // Check if there's a resources-wrapper and move it under the onthispage
+  const resourcesWrapper = document.querySelector('.resources-wrapper');
+  if (resourcesWrapper) {
+    resourcesWrapper.classList.add("has-onthispage");
+    asideWrapper.appendChild(resourcesWrapper);
+  }
 }
 
 /**
