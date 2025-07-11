@@ -288,7 +288,6 @@ export function buildGrid(main) {
 
   const mainContainer = document.querySelector('main');
   mainContainer.style.display = 'grid';
-  mainContainer.style.gridTemplateColumns = '256px 1fr 300px';
 
   const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
   const heroSimpleContainer = document.querySelector('.herosimple-container');
@@ -306,12 +305,14 @@ export function buildGrid(main) {
       "sidenav main ."
       "sidenav footer ."
     `;
+  mainContainer.style.gridTemplateColumns = '256px 1fr';
   } else {
     mainContainer.style.gridTemplateAreas = `
       "sitewide sitewide sitewide"
       "sidenav main aside"
       "sidenav footer ."
     `;
+    mainContainer.style.gridTemplateColumns = '256px 1fr 300px';
   }
 
   const gridAreaMain = main.querySelector('.section');
