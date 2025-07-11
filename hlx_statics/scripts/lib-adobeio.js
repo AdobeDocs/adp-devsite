@@ -334,13 +334,32 @@ export function buildSideNav(main) {
 export function buildOnThisPage(main) {
   let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
   main.append(asideWrapper);
-  
-  // Check if there's a resources-wrapper and move it under the onthispage
-  const resourcesWrapper = document.querySelector('.resources-wrapper');
-  if (resourcesWrapper) {
-    resourcesWrapper.classList.add("has-onthispage");
-    asideWrapper.appendChild(resourcesWrapper);
+}
+
+/**
+ * Builds the on this page wrapper
+ * @param {*} main The grid container
+ */
+export function buildResources(main) {
+  let asideWrapper;
+  if (document.querySelector('.onthispage-wrapper') != null) {
+    // if there's onthispage, move it with the onthispage.
+    asideWrapper = document.querySelector('.onthispage-wrapper');
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    if (resourcesWrapper) {
+      asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
+    }
+  } else {
+    // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
+    let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    mainResourcesWrapper.appendChild(resourcesWrapper);
+    const subparent = document.querySelector('.sub-parent');
+    mainResourcesWrapper.insertBefore(subparent, mainResourcesWrapper.firstChild);
+    const resourceContainer = document.querySelector('.resources-container');
+    resourceContainer.append(mainResourcesWrapper);
   }
+
 }
 
 /**

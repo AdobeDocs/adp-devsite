@@ -40,7 +40,8 @@ import {
   addExtraScript,
   addExtraScriptWithLoad,
   decorateHR,
-  buildNextPrev
+  buildNextPrev,
+  buildResources
 } from './lib-adobeio.js';
 
 export {
@@ -413,7 +414,7 @@ async function loadLazy(doc) {
 
   loadIms();
   loadAep();
-  
+
   // Load Algolia search scripts
   addExtraScriptWithLoad(
     document.body,
@@ -522,6 +523,7 @@ async function loadLazy(doc) {
     main.append(footer);
 
     const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     if (!hasHero && hasHeading) {
       buildOnThisPage(main);
@@ -536,6 +538,10 @@ async function loadLazy(doc) {
     }
 
     buildGridAreaMain(main);
+
+    if (hasResources) {
+      buildResources(main);
+    }
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
