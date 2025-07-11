@@ -190,10 +190,17 @@ main.dev-docs.no-sidenav.no-onthispage {
   grid-template-columns: 100%;
 }
 
+main.dev-docs.no-onthispage .main-resources-wrapper {
+  display: flex;
+  flex-direction: row;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
 @media screen and (max-width: 1228px) {
   main.dev-docs .onthispage-wrapper {
     display: none;
-  }  
+  }
 
   main.dev-docs {
     grid-template-areas:
@@ -688,7 +695,7 @@ main .heading6 h6>span {
   color: rgb(0, 0, 0);
 }
 
-.spectrum-Heading--sizeS { 
+.spectrum-Heading--sizeS {
   color: rgb(34,34,34)
 }
 
@@ -838,7 +845,7 @@ main .heading6 h6>span {
   border-color: rgb(110, 110, 110);
   color: rgb(255, 255, 255);
   text-decoration: none;
- } 
+ }
 
 .spectrum-Button--secondary.focus-ring {
   background-color: rgb(110, 110, 110);
