@@ -337,7 +337,7 @@ export function buildOnThisPage(main) {
 }
 
 /**
- * Builds the on this page wrapper
+ * Builds resources component
  * @param {*} main The grid container
  */
 export function buildResources(main) {
