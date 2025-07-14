@@ -364,6 +364,32 @@ export function buildOnThisPage(main) {
 }
 
 /**
+ * Builds resources component
+ * @param {*} main The grid container
+ */
+export function buildResources(main) {
+  let asideWrapper;
+  if (document.querySelector('.onthispage-wrapper') != null) {
+    // if there's onthispage, move it with the onthispage.
+    asideWrapper = document.querySelector('.onthispage-wrapper');
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    if (resourcesWrapper) {
+      asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
+    }
+  } else {
+    // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
+    let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    mainResourcesWrapper.appendChild(resourcesWrapper);
+    const subparent = document.querySelector('.sub-parent');
+    mainResourcesWrapper.insertBefore(subparent, mainResourcesWrapper.firstChild);
+    const resourceContainer = document.querySelector('.resources-container');
+    resourceContainer.append(mainResourcesWrapper);
+  }
+
+}
+
+/**
  * Builds the next-prev wrapper
  * @param {*} main The grid container
  */
