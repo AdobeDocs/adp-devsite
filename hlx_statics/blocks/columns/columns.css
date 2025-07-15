@@ -303,3 +303,7 @@ main div.columns-wrapper div.columns.text-align-center.large-font p.paragraph-wr
     font-size: 18px;
     font-weight: 600;
 }
+
+main div.columns-wrapper div.columns.wide p.button-container a {
+    font-size: 16px;
+}
