@@ -792,6 +792,14 @@ export function githubActionsBlock(doc) {
                           </div>
                           <div>Log an issue</div>
                       </a>
+                      <a role="button" class="copy-markdown-button action-buttons" data-github-url="${baseUrl}" onclick="copyMarkdownContent(this, event)" role="button">
+                        <div>
+                          <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
+                            <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="9" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="7" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="5" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="3" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="14" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="12" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="10" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="8" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="3" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="5" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="7" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="9" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="8" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="10" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="12" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="14" y="11" /><path class="fill" d="M5,6H1.5a.5.5,0,0,0-.5.5v10a.5.5,0,0,0,.5.5h10a.5.5,0,0,0,.5-.5V13H5.5a.5.5,0,0,1-.5-.5Z" />
+                          </svg>
+                        </div>
+                        <div class="copy-markdown-button-label">Copy as Markdown</div>
+                      </a>
               </div>
       `;
     const contentHeader = doc.querySelector('.content-header');
@@ -802,6 +810,37 @@ export function githubActionsBlock(doc) {
     }
   }
 };
+
+/**
+ * Copy markdown content from GitHub to clipboard
+ */
+window.copyMarkdownContent = async function(btn, event) {
+  // Prevent default anchor behavior
+  if (event) {
+    event.preventDefault();
+  }
+  
+  const baseUrl = btn.dataset.githubUrl;
+  const rawUrl = baseUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+  const label = btn.querySelector('.copy-markdown-button-label');
+  const originalText = label.textContent;
+  
+  try {
+    const response = await fetch(rawUrl);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    await navigator.clipboard.writeText(await response.text());
+    label.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { 
+      label.textContent = originalText; 
+      btn.classList.remove('copied'); 
+    }, 3000);
+    console.log('Markdown copied to clipboard!');
+  } catch (error) {
+    console.error('Failed to copy markdown:', error);
+    window.open(rawUrl, '_blank');
+  }
+}
 
 /**
  * parse attributes from row and added to particular blcok
