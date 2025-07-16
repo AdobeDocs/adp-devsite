@@ -129,6 +129,28 @@ export async function fetchSideNavHtml() {
 }
 
 /**
+ * Retrieves the site-wide-banner json file
+ * @returns {string} The site-wide-banner json file
+ */
+export async function fetchSiteWideBanner() {
+  let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+  let siteWideBannerFile = `${window.location.origin}/${pathPrefix}/site-wide-banner.json`;
+  let siteWideBannerJSON = await fetch(siteWideBannerFile)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          console.warn('Network response was not ok');
+        }
+      })
+      .then(data => data)
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+      return siteWideBannerJSON;
+}
+
+/**
  * Retrieves the redirects json file
  * @returns {string} The redirect json file
  */
@@ -181,8 +203,8 @@ async function fetchNavHtml(name) {
     if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
-      const navItemsChild = navItems.querySelectorAll('li');
-      navItemsChild.forEach((liItems) => {
+      const navItemsChild = navItems?.querySelectorAll('li');
+      navItemsChild?.forEach((liItems) => {
         let p = liItems.querySelector('p');
         if (p) {
           p.replaceWith(p.firstChild);
@@ -191,7 +213,7 @@ async function fetchNavHtml(name) {
     }
   });
 
-  return navItems ? navItems.innerHTML : Promise.reject(navItems.innerHTML);
+  return navItems?.innerHTML ? navItems.innerHTML : Promise.reject(navItems?.innerHTML);
 }
 
 /**

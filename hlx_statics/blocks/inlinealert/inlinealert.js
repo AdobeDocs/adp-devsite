@@ -6,7 +6,7 @@ import { getMetadata } from '../../scripts/scripts.js';
 
 const infoIcon = `<svg class="spectrum-Icon spectrum-UIIcon-InfoMedium spectrum-InLineAlert-icon" focusable="false" aria-hidden="true" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/info.svg#icon-info"></use></svg>`
 
-function getVariant(classList) {
+export function getVariant(classList) {
     // variants: neutral, info, help, success, warning, error
     let classVariant = {
         class: '',

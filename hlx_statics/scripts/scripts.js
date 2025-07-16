@@ -27,6 +27,7 @@ import {
   buildGridAreaMain,
   buildHeadings,
   buildSideNav,
+  buildSiteWideBanner,
   buildOnThisPage,
   createTag,
   toggleScale,
@@ -40,7 +41,8 @@ import {
   addExtraScript,
   addExtraScriptWithLoad,
   decorateHR,
-  buildNextPrev
+  buildNextPrev,
+  buildResources
 } from './lib-adobeio.js';
 
 export {
@@ -89,6 +91,13 @@ function loadHeader(header) {
     contentHeader.classList.add('block-display');
   }
 
+}
+
+function loadSiteWideBanner(siteWidebanner) {
+  const siteWidebannerBlock = buildBlock('site-wide-banner-container', '');
+  siteWidebanner.append(siteWidebannerBlock);
+  decorateBlock(siteWidebannerBlock);
+  loadBlock(siteWidebannerBlock);
 }
 
 function loadFooter(footer) {
@@ -187,6 +196,8 @@ async function loadEager(doc) {
     buildSideNav(main);
     buildBreadcrumbs(main);
   }
+
+  buildSiteWideBanner(main);
 
   document.body.classList.add('appear');
   loadConfig();
@@ -413,7 +424,7 @@ async function loadLazy(doc) {
 
   loadIms();
   loadAep();
-  
+
   // Load Algolia search scripts
   addExtraScriptWithLoad(
     document.body,
@@ -512,6 +523,7 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header'));
+  loadSiteWideBanner(doc.querySelector('.site-wide-banner-container'));
   decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
@@ -522,6 +534,7 @@ async function loadLazy(doc) {
     main.append(footer);
 
     const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     if (!hasHero && hasHeading) {
       buildOnThisPage(main);
@@ -536,6 +549,10 @@ async function loadLazy(doc) {
     }
 
     buildGridAreaMain(main);
+
+    if (hasResources) {
+      buildResources(main);
+    }
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
