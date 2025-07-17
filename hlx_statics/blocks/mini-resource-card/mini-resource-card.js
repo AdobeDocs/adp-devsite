@@ -41,7 +41,7 @@ function getMiniResourceCard(linkHref, heading, text , isWide) {
  * @param {Element} block The mini-resource-card block element
  */
 export default async function decorate(block) {
-    const isWide = block.className.split(' ').includes('wide');
+    const isWide = block.classList.includes('wide');
     let containerParent;
     block.setAttribute('daa-lh', 'mini-resource-card');
     if (block.classList.contains('nobox-design')) {
