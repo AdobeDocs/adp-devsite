@@ -89,6 +89,10 @@ main div.accordion-wrapper div.accordion .spectrum-Icon {
     block-size: 10px;
 }
 
+main div.accordion-wrapper div.accordion.large-font .accordion-itemHeader{
+    font-size: 20px !important;
+}
+
 @media screen and (max-width: 1280px) {
     main div.accordion-wrapper div.accordion .accordion-div {
         width: 98vw !important;
