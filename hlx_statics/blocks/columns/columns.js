@@ -39,7 +39,7 @@ export default async function decorate(block) {
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
 
-  block.setAttribute('daa-lh', 'column');
+  block.setAttribute('daa-lh', 'columns');
   decorateLightOrDark(block);
 
   if (!container.classList.contains('columns-container')) {
@@ -162,8 +162,6 @@ export default async function decorate(block) {
         }
       });
     }
-
-    return;
   }
 
   block.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
