@@ -49,6 +49,7 @@ main div.herosimple-wrapper div.halfWidth {
 
 main div.herosimple-wrapper div.halfWidth>div.herosimple-container-wrapper {
   flex-direction: row;
+  gap:30px;
 }
 
 main div.herosimple-wrapper div.fullWidth>div {
