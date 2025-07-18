@@ -97,3 +97,7 @@
 **edition.js**
 - line 19 - 22:
     - `contentElement` has no attributre
+
+**list>js**
+- line 25 - 43
+    - `getMetadata('template')` is null
