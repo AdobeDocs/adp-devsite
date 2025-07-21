@@ -58,7 +58,22 @@ app.use(async (req, res) => {
   console.log(`Fetching upstream url: ${upstreamUrl}`);
   const resp = await fetch(upstreamUrl);
   let body;
+
   const headers = new Map(resp.headers.entries());
+  // setHeaders: function (res, path, stat) {
+  //   if (path.endsWith('.woff')) {
+  //       res.set('Content-Type', 'application/font-woff');
+  //   } else if (path.endsWith('.woff2')) {
+  //       res.set('Content-Type', 'application/font-woff2');
+  //   } // Add more for other font types like .ttf, .otf, .eot, .svg
+  // }
+ 
+  if (req.path.endsWith('.otf')) {
+    console.log('setting otf')
+    res.set('Content-Type', ' application/x-font-opentype');
+    console.log('res');
+    console.log(res)
+  }
 
   if (source === 'docs' && resp.headers.get('content-type')?.includes('text/html')) {
     body = await resp.text();
@@ -72,7 +87,11 @@ app.use(async (req, res) => {
   } else {
     body = await resp.text();
     // may cause problems with other encoded files?
-    headers.delete('content-encoding');
+
+    if (!req.path.endsWith('.otf')) {
+      headers.delete('content-encoding');
+    }
+
   }
 
   res.status(resp.status);
