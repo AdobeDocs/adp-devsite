@@ -36,6 +36,7 @@ import {
   decorateNestedCodes,
   isHlxPath,
   decorateProfile,
+  isLocalHostEnvironment,
   isStageEnvironment,
   isProdEnvironment,
   addExtraScript,
@@ -622,7 +623,30 @@ function loadPrism(document) {
   codeBlocks.forEach((block) => observer.observe(block));
 }
 
+function fixLocalDev(document){
+  if(isLocalHostEnvironment(window.location.host)){
+    // replace all images with eds div structure
+    document.querySelectorAll('img').forEach((img) => {
+      if(img.src.includes('raw.githubusercontent.com')) {
+        const lastDotIndex = img.src.lastIndexOf('.');
+        let imageExtension = '';
+        if (lastDotIndex !== -1) {
+          imageExtension= img.src.substring(lastDotIndex + 1);
+        }
+
+        let picture = createTag('picture');
+        let source = createTag('source', { type: `image/${imageExtension}`, srcset: `${img.src}?width=2000&amp;format=png&amp;optimize=medium`, media: `media="(min-width: 600px)`});
+        let image = createTag('img', { alt: img.alt, src: img.src});
+
+        picture.appendChild(source);
+        picture.appendChild(image);
+        img.replaceWith(picture);
+      }
+    });
+  }
+}
 async function loadPage() {
+  fixLocalDev(document);
   await loadEager(document);
   await loadLazy(document);
   loadPrism(document);
