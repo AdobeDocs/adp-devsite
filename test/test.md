@@ -115,3 +115,11 @@
 **info.js**
 - line 26 - 28:
     - No longer using `<ul>` in source html
+
+**tab.js**
+- line 27 - 31:
+    - Function `handleCode()` branch for `if (codeBlock && !isTable)` not covered
+    - The google drive example does not have a code block without a table
+
+- line 85 - 87:
+    - `getMetadata('template')` gets null
