@@ -75,11 +75,12 @@ export default async function decorate(block) {
 
   else if ((pictureElement || hasVideo) && variant === "halfWidth") {
     let mediaContainer = hasVideo ? videoContainer : imageContainer;
+    let getVideo = video.querySelector('a');
     let excludeElement;
 
     if (hasVideo) {
       const videoTag = createTag('video');
-      videoTag.innerHTML = `<source src="${video.textContent}" type="video/mp4">`;
+      videoTag.innerHTML = `<source src="${getVideo.href}" type="video/mp4" alt="${getVideo.textContent}">`;
       mediaContainer.appendChild(videoTag);
       innerDiv.children[videoIndex].remove();
       excludeElement = videoTag;
