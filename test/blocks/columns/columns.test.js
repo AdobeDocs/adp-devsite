@@ -26,7 +26,7 @@ describe('Columns block', () => {
     });
 
     it('Columns > columns-container', async () => {
-        expect(columnsBlock.parentElement.parentElement.classList.contains('columns-container')).to.be.true;
+        expect(columnsBlock.parentElement.parentElement.parentElement.classList.contains('columns-container')).to.be.true;
     });
 
     it('Columns > headings', async () => {
