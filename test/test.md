@@ -115,3 +115,12 @@
 **info.js**
 - line 26 - 28:
     - No longer using `<ul>` in source html
+
+**text.js**
+- line 56
+    - inappropriate naming `p`, should be `a`
+    
+- line 66 & 68 & 70
+    - line 68 is checking class name `button-container` before it is assigned by`decorateButtons(block)`
+    - `isImageTextBlock` always true
+    - line 77 never reached 
