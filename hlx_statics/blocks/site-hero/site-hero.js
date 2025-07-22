@@ -9,7 +9,7 @@ import {
  * @param {Element} block The site-hero block element
  */
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'site hero');
+  block.setAttribute('daa-lh', 'site-hero');
   removeEmptyPTags(block);
   decorateButtons(block);
 

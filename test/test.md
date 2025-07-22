@@ -115,3 +115,9 @@
 **info.js**
 - line 26 - 28:
     - No longer using `<ul>` in source html
+
+**site-hero.js**
+- line 27
+    - unused variable `hasLinks`
+- line 33
+    - No `<p>` tag contains class name `button-container`
