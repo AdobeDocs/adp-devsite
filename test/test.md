@@ -107,7 +107,7 @@
 
 - line 140 - 146:
     - No `<span>` under `<p>` tag
-    - Line 140 `if(p.querySelector("span")` always gets false
+    - Line 140 `if(p.querySelector("span"))` always gets false
 -line 250 - 270:
     - `block.querySelectorAll("div.embed.block > div > div > a")` gets empty list
     - Can't run through forEac
@@ -115,3 +115,7 @@
 **info.js**
 - line 26 - 28:
     - No longer using `<ul>` in source html
+
+**list.js**
+- line 25 - 43
+    - `getMetadata('template')` is null
