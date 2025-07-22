@@ -54,7 +54,7 @@
     - The block with `primaybutton` does not have `<p>` tag, so cann't go through the forEach at line 34
     - Should check `block.classList.contains('primarybutton')` outside any contional statement
 
-**title.js**:
+**title.js**
 - line 8 & 16 - 18:
     - No element has attribute `data-Padding`
     - The `if(padding)` will always be false
@@ -71,6 +71,50 @@
     - The querySelector will get null
     - Should move this outside of `info-column`'s forEach and do querySelector for block instead of column
 
+**card.js**:
+- line 58 - 62:
+    - This can be safely deleted without effecting the display of block
+
+**columns.js**
+- line 40 - 43:
+    - Class name 'columns-container' is assigned by the wrapper function
+    - If remove the parent div of the block, the console.error will trigger
+
+- line 60 - 64:
+    - The if statement always gets false
+
+- line 99 - 106:
+    - No element had class name "button"
+    - `querySelectorAll('.button')` gets empty list
+
+- line 112 - 119:
+    - Block class list does not contain 'test-align-center'
+
+- line 124 - 128:
+    - All section have at least a `<h3>` tag
+    - The if statement always get false
+
+**edition.js**
+- line 19 - 22:
+    - `contentElement` has no attributre
+**carousel.js**
+- line 90 - 103:
+    - There is no ancor tag outside of img tag in the source html
+    - The if statement always get false and does not run through the statement
+-line 132 - 134:
+    - No`<p>` contains "button-contianer"
+    - line 132 `if (p.classList.contains("button-container")) ` always gets false
+
+- line 140 - 146:
+    - No `<span>` under `<p>` tag
+    - Line 140 `if(p.querySelector("span")` always gets false
+-line 250 - 270:
+    - `block.querySelectorAll("div.embed.block > div > div > a")` gets empty list
+    - Can't run through forEac
+
+**info.js**
+- line 26 - 28:
+    - No longer using `<ul>` in source html
 **contributors.js**
 - line 11 & 13 - 15:
     - No element has attribute `data-isborder`
