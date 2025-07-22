@@ -117,7 +117,7 @@ export default async function decorate(block) {
   //add id to image and add image to left div
   block.querySelectorAll(".video-element").forEach((vid) => {
     //add image to left div
-    vid.id = "media-flex-div-" + vid.parentElement.parentElement.id;
+    vid.id = "media-flex-div-" + vid.parentElement.id;
     vid.classList.add("media-container");
   });
 
