@@ -1169,6 +1169,7 @@ main .github-actions-block{
   display: flex;
   gap: 20px;
   min-width: 250px;
+  align-items: center;
 }
 
 main .action-buttons{
@@ -1234,4 +1235,8 @@ main .content-header.block-display .github-actions-wrapper{
 
 main .no-breadcrumbs {
   justify-content: end;
+}
+
+main .action-buttons.copy-markdown-button{
+  cursor:pointer; 
 }
