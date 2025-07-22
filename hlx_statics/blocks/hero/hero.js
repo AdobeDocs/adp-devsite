@@ -71,4 +71,13 @@ export default async function decorate(block) {
     });
   }
 
+  const videoURL = block.lastElementChild.querySelector('a')?.href;
+  if (videoURL && block.classList.contains('video')) {
+    const videoContainer = document.createElement('div');
+    videoContainer.classList.add('hero-video-container');
+    const videoTag = `<video src=${videoURL} autoplay playsinline muted loop></video>`
+    videoContainer.innerHTML = videoTag;
+    block.lastElementChild.replaceWith(videoContainer);
+  }
+
 }

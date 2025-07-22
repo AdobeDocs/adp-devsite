@@ -132,6 +132,12 @@ main div.hero-wrapper div.hero.over-gradient p.button-container a {
   font-size: 16px;
 }
 
+main div.hero-wrapper div.hero-video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 @media screen and (max-width: 768px) {
   main div.hero-wrapper div.hero {
     padding: 32px;
