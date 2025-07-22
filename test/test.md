@@ -115,3 +115,10 @@
 **info.js**
 - line 26 - 28:
     - No longer using `<ul>` in source html
+**contributors.js**
+- line 11 & 13 - 15:
+    - No element has attribute `data-isborder`
+    - Variable `isBordar` is null
+- line 47 - 51 & 53:
+    - resources are hard coded
+    - should accept inputs from google drive table
