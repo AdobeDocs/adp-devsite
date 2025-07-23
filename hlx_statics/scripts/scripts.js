@@ -165,6 +165,88 @@ function decorateHTML(html) {
 }
 
 /**
+ * Overwrites image optimization done by EDS on image URLs.
+ * 
+ * For example, it replaces:
+ * "./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&format=webply&optimize=medium"
+ * 
+ * with:
+ * "./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=webply&optimize=low"
+ * 
+ * @param {string} url The image URL
+ */
+function optimizeImageUrl(url) {
+  if (!url || !url.includes('?')) {
+    return url;
+  }
+  
+  const [baseUrl, queryString] = url.split('?');
+  const searchParams = new URLSearchParams(queryString);
+  searchParams.delete('width');
+  searchParams.set('optimize', 'low');
+  
+  return baseUrl + '?' + searchParams.toString();
+}
+
+/**
+ * Overwrites image optimization done by EDS on hero blocks.
+ * 
+ * For example, it replaces:
+ *  <picture>
+ *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&amp;format=webply&amp;optimize=medium" media="(min-width: 600px)">
+ *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=750&amp;format=webply&amp;optimize=medium">
+ *    <source type="image/png" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&amp;format=png&amp;optimize=medium" media="(min-width: 600px)">
+ *    <img loading="lazy" alt="" src="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=750&amp;format=png&amp;optimize=medium" width="1600" height="492">
+ *  </picture>
+ *  
+ * with:
+ *  <picture>
+ *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=webply&amp;optimize=low">          
+ *    <source type="image/png" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=png&amp;optimize=low">
+ *    <img loading="eager" alt="" src="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=png&amp;optimize=low">
+ *  </picture>
+ */
+function optimizeHeroPictures() {
+  const heroes = ['hero', 'herosimple', 'site-hero'];
+  const selector = heroes.map(hero => `div.${hero} picture`).join(', ');
+  const pictures = document.querySelectorAll(selector);
+  pictures.forEach(picture => {
+
+    const sources = picture.querySelectorAll('source');
+    sources.forEach(source => {
+      source.removeAttribute('media');
+      const srcset = source.getAttribute('srcset');
+      if (srcset) {
+        source.setAttribute('srcset', optimizeImageUrl(srcset));
+      }
+    });
+
+    const imgs = picture.querySelectorAll('img');
+    imgs.forEach(img => {
+      img.removeAttribute('width');
+      img.removeAttribute('height');
+      const src = img.getAttribute('src');
+      if (src) {
+        img.setAttribute('src', optimizeImageUrl(src));
+      }      
+    });
+
+    // Remove duplicate elements that may have resulted after attribute modifications
+    const seen = new Set();
+    const children = Array.from(picture.children);
+    children.forEach(child => {
+      const outerHtml = child.outerHTML;
+      if (seen.has(outerHtml)) {
+        child.remove();
+      } else {
+        seen.add(outerHtml);
+      }
+    });
+
+  });
+}
+
+/**
  * loads everything needed to get to LCP.
  */
 async function loadEager(doc) {
@@ -175,6 +257,8 @@ async function loadEager(doc) {
     const { runExperiment } = await import('./experimentation.js');
     await runExperiment(experiment, instantExperiment);
   }
+
+  optimizeHeroPictures();
 
   decorateTemplateAndTheme();
   const html = doc.querySelector('html');
