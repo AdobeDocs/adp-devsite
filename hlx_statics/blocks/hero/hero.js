@@ -1,4 +1,5 @@
 import {
+  createTag,
   decorateButtons,
 } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
@@ -71,11 +72,10 @@ export default async function decorate(block) {
     });
   }
 
-  const videoURL = block.lastElementChild.querySelector('a')?.href;
+  const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
-    const videoContainer = document.createElement('div');
-    videoContainer.classList.add('hero-video-container');
-    const videoTag = `<video src=${videoURL} autoplay playsinline muted loop></video>`
+    const videoContainer = createTag('div', { class: 'hero-video-container' });
+    const videoTag = `<video src=${videoURL?.href} alt=${videoURL?.textContent} autoplay playsinline muted loop></video>`
     videoContainer.innerHTML = videoTag;
     block.lastElementChild.replaceWith(videoContainer);
   }
