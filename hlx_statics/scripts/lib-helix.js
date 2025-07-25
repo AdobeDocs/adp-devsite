@@ -679,12 +679,27 @@ export function decorateTemplateAndTheme() {
 }
 
 /**
+ * Returns links that should be decorated as buttons. 
+ * In Franklin, links get turned into buttons. However, in EDS DevBiz, in order to bypass Google Doc's image optimization logic to get sharper images, we also pass images as links. And so to differentiate button and image links, sidekick advises authors to prepend the image link texts with 'aio_image' tag.
+ */
+export function getButtonLinks(element) {
+  const links = element.querySelectorAll('a');
+  const buttonLinks = Array.from(links).filter(link => {
+    const [_, queryString] = link.href.split('?');
+    const searchParams = new URLSearchParams(queryString);
+    return !searchParams.has('aio_type') || searchParams.get('aio_type') === 'button';
+  });
+  return buttonLinks;
+}
+
+/**
  * decorates paragraphs containing a single link as buttons.
  * @param {Element} element container element
  */
 
 export function decorateButtons(element) {
-  element.querySelectorAll('a').forEach((a) => {
+  const buttonLinks = getButtonLinks(element);
+  buttonLinks.forEach((a) => {
     a.title = a.title || a.textContent;
     if (a.href !== a.textContent) {
       const up = a.parentElement;
