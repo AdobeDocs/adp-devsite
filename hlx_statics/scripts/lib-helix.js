@@ -678,11 +678,33 @@ export function decorateTemplateAndTheme() {
   if (theme) addClasses(document.body, theme);
 }
 
+export function decorateImages(element) {
+  const buttonLinks = getButtonLinks(element);
+  buttonLinks.forEach((a) => {
+
+
+    const alt = link.textContent.replace('aio_image ', '');
+
+
+    let picture = createTag('picture');
+    const src = "https://drive.google.com/uc?export=view&id=1J8dQ-tO7VUBD_DCdk7153pi2wEAT_K9m";
+    let image = createTag('img', { alt, src});
+    picture.appendChild(image);
+    link.parentNode.replaceChild(picture, link);
+
+}
+
+function isButtonLink(a) {
+  const [_, queryString] = link.href.split('?');
+  const searchParams = new URLSearchParams(queryString);
+  return !searchParams.has('aio_type') || searchParams.get('aio_type') === 'button';
+}
+
 /**
  * Returns links that should be decorated as buttons. 
  * In Franklin, links get turned into buttons. However, in EDS DevBiz, in order to bypass Google Doc's image optimization logic to get sharper images, we also pass images as links. And so to differentiate button and image links, sidekick advises authors to prepend the image link texts with 'aio_image' tag.
  */
-export function getButtonLinks(element) {
+export function getLinks(element, condition) {
   const links = element.querySelectorAll('a');
   const buttonLinks = Array.from(links).filter(link => {
     const [_, queryString] = link.href.split('?');
@@ -698,7 +720,7 @@ export function getButtonLinks(element) {
  */
 
 export function decorateButtons(element) {
-  const buttonLinks = getButtonLinks(element);
+  const buttonLinks = getLinks(element);
   buttonLinks.forEach((a) => {
     a.title = a.title || a.textContent;
     if (a.href !== a.textContent) {
