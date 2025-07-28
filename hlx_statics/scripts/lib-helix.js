@@ -690,6 +690,17 @@ export function getLinks(element, type) {
   return buttonLinks;
 }
 
+export function decoratePictures(element) {
+  getLinks(element, 'image').forEach((a) => {
+    let img = document.createElement('img');
+    img.src = a.href;
+    img.alt = a.textContent;
+    let picture = document.createElement('picture');
+    picture.appendChild(img);
+    a.parentNode.replaceChild(picture, a);
+  });
+}
+
 /**
  * decorates paragraphs containing a single link as buttons.
  * @param {Element} element container element
