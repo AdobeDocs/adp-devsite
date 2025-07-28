@@ -1,4 +1,4 @@
-import { buildBlock, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
+import { buildBlock, getLinks, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
 import decoratePreformattedCode from '../components/code.js';
 
 /**
@@ -143,7 +143,7 @@ export function removeEmptyPTags(element) {
  * @param {*} block The block to inspect
  */
 export function decorateButtons(block, secondaryButtonBorderColor, secondaryButtonColor) {
-  block.querySelectorAll('a').forEach((a) => {
+  getLinks(block, 'button').forEach((a) => {
     a.innerHTML = `<span class="spectrum-Button-label" >${a.innerHTML}</span>`;
     const up = a.parentElement;
     const twoup = a.parentElement.parentElement;

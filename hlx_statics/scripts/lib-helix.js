@@ -678,13 +678,25 @@ export function decorateTemplateAndTheme() {
   if (theme) addClasses(document.body, theme);
 }
 
+export function getLinks(element, type) {
+  const links = element.querySelectorAll('a');
+  const buttonLinks = Array.from(links).filter(link => {
+    const [_, queryString] = link.href.split('?');
+    const searchParams = new URLSearchParams(queryString);
+    // In Franklin, all links get turned into buttons. However, in EDS DevBiz, we also pass high-res images as links. And so, to support both, we check the aio_type parameter to see if it matches the type we're looking for. Otherwise, we assume it's a button.
+    const aioType = searchParams.get('aio_type');
+    return aioType ? aioType === type : type === 'button';
+  });
+  return buttonLinks;
+}
+
 /**
  * decorates paragraphs containing a single link as buttons.
  * @param {Element} element container element
  */
 
 export function decorateButtons(element) {
-  element.querySelectorAll('a').forEach((a) => {
+  getLinks(element, 'button').forEach((a) => {
     a.title = a.title || a.textContent;
     if (a.href !== a.textContent) {
       const up = a.parentElement;
