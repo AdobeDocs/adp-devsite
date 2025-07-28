@@ -307,3 +307,11 @@ main div.columns-wrapper div.columns.text-align-center.large-font p.paragraph-wr
 main div.columns-wrapper div.columns.wide p.button-container a {
     font-size: 16px;
 }
+
+main div.columns-wrapper div.columns.center li{
+    text-align: initial;
+}
+
+main div.columns-wrapper div.columns.heading-center.center h3.column-header  {
+    text-align: center;
+}

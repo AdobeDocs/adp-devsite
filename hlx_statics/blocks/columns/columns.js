@@ -90,21 +90,6 @@ export default async function decorate(block) {
     columnList[columnList.length - 1].classList.add("last-column-div");
   }
 
-  block.querySelectorAll('.columns > div > div').forEach((column) => {
-    const buttonGroupContainer = createTag('div', { class: 'button-group-container' });
-    column.querySelectorAll('.button-container').forEach((p, key) => {
-      const prevElement = p.previousElementSibling;
-      if (key === 0) {
-        prevElement.insertAdjacentElement('afterend', buttonGroupContainer);
-      }
-      buttonGroupContainer.appendChild(p);
-    });
-    column.querySelectorAll('ul').forEach((ul) => {
-      ul.parentElement.classList.add('listing');
-      ul.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-    });
-  });
-
   if (!block.classList.contains('link')) {
     block.querySelectorAll('a').forEach((a) => {
       if (!a.classList.contains('button') && !a.classList.contains('spectrum-Button')) {
@@ -164,16 +149,35 @@ export default async function decorate(block) {
     }
   }
 
-  block.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
-    column.classList.add('first-column');
-  });
-  block.querySelectorAll('.columns > div > div:nth-child(2)').forEach((column) => {
-    column.classList.add('second-column');
-    const p_text = createTag('p');
-    p_text.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-    p_text.innerHTML = column.innerHTML;
-    column.innerHTML = "";
-    column.append(p_text);
+  if (!block.classList.contains('center')) {
+    block.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
+      column.classList.add('first-column');
+    });
+    block.querySelectorAll('.columns > div > div:last-child').forEach((column) => {
+      column.classList.add('second-column');
+      const p_text = createTag('p');
+      p_text.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+      p_text.innerHTML = column.innerHTML;
+      column.innerHTML = "";
+      column.append(p_text);
+    });
+
+    block.querySelectorAll('.columns > div > div').forEach((column) => {
+      const buttonGroupContainer = createTag('div', { class: 'button-group-container' });
+      column.querySelectorAll('.button-container').forEach((p, key) => {
+        const prevElement = p.previousElementSibling;
+        if (key === 0) {
+          prevElement.insertAdjacentElement('afterend', buttonGroupContainer);
+        }
+        buttonGroupContainer.appendChild(p);
+      });
+    });
+
+  }
+
+  block.querySelectorAll('ul').forEach((ul) => {
+    ul.parentElement.classList.add('listing');
+    ul.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
   });
 
   block.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
