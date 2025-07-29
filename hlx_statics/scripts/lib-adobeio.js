@@ -14,9 +14,14 @@ export const LARGE_SCREEN_WIDTH = 1280;
  */
 export function checkExternalLink(a) {
   const url = a.href;
-  if (url.indexOf('developer.adobe.com') === -1
+  
+  // Parse URL to check for query parameters
+  const urlObj = new URL(url);
+  const hasExternal = urlObj.searchParams.has('aio_external');
+  
+  if ((url.indexOf('developer.adobe.com') === -1
     && url.indexOf('hlx.page') === -1
-    && url.indexOf('hlx.live') === -1) {
+    && url.indexOf('hlx.live') === -1 || hasExternal) ) {
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
   }
