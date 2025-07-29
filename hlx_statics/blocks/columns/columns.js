@@ -111,20 +111,6 @@ export default async function decorate(block) {
     });
   }
 
-  // in devdocs , slot have the lists
-  block.querySelectorAll('div.listing').forEach(data => {
-    data.closest('div')?.classList.add('button-group-container');
-  
-    const a = data.querySelector('a');
-    if (!a) return;
-  
-    a.className = '';
-    const p = createTag('p', { class: 'button-container' });
-    p.append(a);
-  
-    data.replaceChildren(p);
-  });
-
   /* Stop here when metadata is `style: center` */
   if (block.classList.contains('center')) {
 
@@ -201,6 +187,21 @@ export default async function decorate(block) {
         p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
       }
     });
+
+    // in devdocs , slot have the lists
+    block.querySelectorAll('div.listing').forEach(data => {
+      data.closest('div')?.classList.add('button-group-container');
+    
+      const a = data.querySelector('a');
+      if (!a) return;
+    
+      a.className = '';
+      const p = createTag('p', { class: 'button-container' });
+      p.append(a);
+    
+      data.replaceChildren(p);
+    });
+
   }
 
   const observer = new IntersectionObserver((entries) => {
