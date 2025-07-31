@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <g id="Dismiss" transform="translate(-2070 -469.5)">
+    <path id="Placement_Area" data-name="Placement Area" d="M0,0H32V32H0Z" transform="translate(2070 469.5)" fill="red" opacity="0"/>
+    <path id="Shape" d="M7.77,6.709,5.061,4,7.77,1.291A.75.75,0,0,0,6.709.23L4,2.939,1.291.23A.75.75,0,1,0,.23,1.291L2.939,4,.23,6.709A.75.75,0,0,0,1.291,7.77L4,5.061,6.709,7.77A.75.75,0,0,0,7.77,6.709Z" transform="translate(2082 481.5)" fill="#222"/>
+  </g>
+</svg>

@@ -1,4 +1,4 @@
-import { buildBlock, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
+import { buildBlock, getLinks, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
 import decoratePreformattedCode from '../components/code.js';
 
 /**
@@ -143,7 +143,7 @@ export function removeEmptyPTags(element) {
  * @param {*} block The block to inspect
  */
 export function decorateButtons(block, secondaryButtonBorderColor, secondaryButtonColor) {
-  block.querySelectorAll('a').forEach((a) => {
+  getLinks(block, 'button').forEach((a) => {
     a.innerHTML = `<span class="spectrum-Button-label" >${a.innerHTML}</span>`;
     const up = a.parentElement;
     const twoup = a.parentElement.parentElement;
@@ -286,11 +286,25 @@ export function buildHeadings(container) {
 export function buildGrid(main) {
   main.style.display = 'grid';
 
-  const gridAreaMain = main.querySelector(".section");
-  gridAreaMain.style.gridArea = 'main';
+  const mainContainer = document.querySelector('main');
+  mainContainer.style.display = 'grid';
 
-  let contentHeader = createTag('div', { class: 'content-header' });
-  gridAreaMain.prepend(contentHeader)
+  const gridAreaMain = main.querySelector('.section');
+  if (gridAreaMain) gridAreaMain.style.gridArea = 'main';
+
+  const sideNav = document.querySelector('.side-nav');
+  if (sideNav) sideNav.style.gridArea = 'sidenav';
+
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.gridArea = 'footer';
+
+  const aside = document.querySelector('aside');
+  if (aside) aside.style.gridArea = 'aside';
+
+  if (gridAreaMain) {
+    let contentHeader = createTag('div', { class: 'content-header' });
+    gridAreaMain.prepend(contentHeader);
+  }
 }
 
 /**
@@ -328,12 +342,51 @@ export function buildSideNav(main) {
 }
 
 /**
+ * Builds the side nav
+ * @param {*} main The sitewidebanner container
+ */
+export function buildSiteWideBanner(main) {
+  let siteWideBannerDiv = createTag('div', { class: 'section site-wide-banner-container fixed-banner' });
+  let siteWideBannerWrapper = createTag('div', { class: 'site-wide-banner-wrapper' });
+  let siteWideBannerBlock = createTag('div', { class: 'site-wide-banner block', 'data-block-name': 'site-wide-banner' });
+  siteWideBannerWrapper.append(siteWideBannerBlock);
+  siteWideBannerDiv.append(siteWideBannerWrapper);
+  main.prepend(siteWideBannerDiv);
+}
+
+/**
  * Builds the on this page wrapper
  * @param {*} main The grid container
  */
 export function buildOnThisPage(main) {
   let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
   main.append(asideWrapper);
+}
+
+/**
+ * Builds resources component
+ * @param {*} main The grid container
+ */
+export function buildResources(main) {
+  let asideWrapper;
+  if (document.querySelector('.onthispage-wrapper') != null) {
+    // if there's onthispage, move it with the onthispage.
+    asideWrapper = document.querySelector('.onthispage-wrapper');
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    if (resourcesWrapper) {
+      asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
+    }
+  } else {
+    // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
+    let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    mainResourcesWrapper.appendChild(resourcesWrapper);
+    const subparent = document.querySelector('.sub-parent');
+    mainResourcesWrapper.insertBefore(subparent, mainResourcesWrapper.firstChild);
+    const resourceContainer = document.querySelector('.resources-container');
+    resourceContainer.append(mainResourcesWrapper);
+  }
+
 }
 
 /**
@@ -467,7 +520,7 @@ function activeSubNav(actTab) {
   let showSidenav = false;
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
-    const sidenavItems = navLinksUl.querySelectorAll(':scope > ul li');
+    const sidenavItems = navLinksUl?.querySelectorAll(':scope > ul li') || [];
     const topNavPath = actTab.pathname;
     const pagePath = window.location.pathname;
     sidenavItems.forEach(li => {
@@ -476,7 +529,7 @@ function activeSubNav(actTab) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
         if (linkPath === pagePath) {
           showSidenav = true;
-        } 
+        }
         if (!linkPath.startsWith(topNavPath)) {
           li.classList.add('hidden');
         }
@@ -815,7 +868,6 @@ export function createAnchorLink(id) {
  */
 export function decorateAnchorLink(header) {
   //  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-  header.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header');
   const anchorLink = createAnchorLink(header.id);
   header.appendChild(anchorLink);
   // });

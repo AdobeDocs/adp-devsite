@@ -190,10 +190,17 @@ main.dev-docs.no-sidenav.no-onthispage {
   grid-template-columns: 100%;
 }
 
+main.dev-docs.no-onthispage .main-resources-wrapper {
+  display: flex;
+  flex-direction: row;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
 @media screen and (max-width: 1228px) {
   main.dev-docs .onthispage-wrapper {
     display: none;
-  }  
+  }
 
   main.dev-docs {
     grid-template-areas:
@@ -325,7 +332,7 @@ main .inline-code {
   line-height: 1.5rem;
 }
 
-main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code , div.heading3-wrapper .inline-code , div.table-wrapper .table .inline-code {
+main .default-content-wrapper .header-content a .inline-code , .default-content-wrapper .header-content .inline-code , div.block .inline-code {
   font-size: 16px;
 }
 
@@ -688,7 +695,7 @@ main .heading6 h6>span {
   color: rgb(0, 0, 0);
 }
 
-.spectrum-Heading--sizeS { 
+.spectrum-Heading--sizeS {
   color: rgb(34,34,34)
 }
 
@@ -838,7 +845,7 @@ main .heading6 h6>span {
   border-color: rgb(110, 110, 110);
   color: rgb(255, 255, 255);
   text-decoration: none;
- } 
+ }
 
 .spectrum-Button--secondary.focus-ring {
   background-color: rgb(110, 110, 110);
@@ -1074,7 +1081,6 @@ main .heading6 h6>span {
 
 .spectrum-Link {
   background-color: transparent;
-  font-size: 14px;
   cursor: pointer;
   outline: none;
   text-decoration: underline;
@@ -1162,6 +1168,7 @@ main .github-actions-block{
   display: flex;
   gap: 20px;
   min-width: 250px;
+  align-items: center;
 }
 
 main .action-buttons{
@@ -1227,4 +1234,8 @@ main .content-header.block-display .github-actions-wrapper{
 
 main .no-breadcrumbs {
   justify-content: end;
+}
+
+main .action-buttons.copy-markdown-button{
+  cursor:pointer; 
 }
