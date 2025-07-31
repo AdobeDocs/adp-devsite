@@ -5,6 +5,7 @@ import {
 import {
   fetchSiteWideBanner,
   getMetadata,
+  IS_DEV_DOCS,
 } from "../../scripts/lib-helix.js";
 import { getVariant } from "../inlinealert/inlinealert.js";
 
@@ -15,17 +16,16 @@ export default async function decorate(block) {
 
   const mainArea = document.querySelector('[style*="grid-area: main"]');
   const sidenavArea = document.querySelector('[style*="grid-area: sidenav"]');
-  const isDocTemplate = getMetadata("template") === "documentation";
   const productName = getMetadata('product');
   const isMobile = window.innerWidth < 1025;
-  const paddingTargets = isDocTemplate ? [mainArea, sidenavArea] : [siteParent.nextElementSibling?.nextElementSibling];
+  const paddingTargets = IS_DEV_DOCS ? [mainArea, sidenavArea] : [siteParent.nextElementSibling?.nextElementSibling];
   block.setAttribute('daa-lh', 'site-wide-banner');
   const allowedColors = ["warning", "success", "info", "neutral", "notice", "light"];
 
   let banner;
   try {
     const url = `/franklin_assets/${productName ? `${productName}-` : ''}site-wide-banner.json`;
-    const bannerSource = isDocTemplate
+    const bannerSource = IS_DEV_DOCS
       ? await fetchSiteWideBanner()
       : await fetch(url).then(resp => {
         if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
