@@ -44,7 +44,8 @@ import {
   addExtraScriptWithLoad,
   decorateHR,
   buildNextPrev,
-  buildResources
+  buildResources,
+  checkExternalLink
 } from './lib-adobeio.js';
 
 export {
@@ -156,6 +157,7 @@ export function decorateMain(main) {
   decorateBlocks(main);
   decorateNestedCodes(main);
   decorateHR(main);
+  checkExternalLink(main);
 }
 
 /**
