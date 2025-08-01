@@ -12,14 +12,20 @@ export const LARGE_SCREEN_WIDTH = 1280;
  * Updates the tag target and rel attributes accordingly.
  * @param {*} a The a tag to check
  */
-export function checkExternalLink(a) {
-  const url = a.href;
-  if (url.indexOf('developer.adobe.com') === -1
-    && url.indexOf('hlx.page') === -1
-    && url.indexOf('hlx.live') === -1) {
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-  }
+export function checkExternalLink(main) {
+  main.querySelectorAll('a').forEach((a) => {
+    const url = a.href;
+    if (url) {
+      const [_, queryString] = url.split('?');
+      const searchParams = new URLSearchParams(queryString);
+      const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live'];
+      const isExternal = !internalDomains.some(domain => url.includes(domain)) || searchParams.has('aio_external');
+      if (isExternal) {
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+    }
+  });
 }
 
 /**
@@ -159,8 +165,6 @@ export function decorateButtons(block, secondaryButtonBorderColor, secondaryButt
         innerHTML.style.color = secondaryButtonColor;
       }
     }
-
-    checkExternalLink(a);
 
     if (
       up.childNodes.length === 1
