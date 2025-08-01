@@ -1,6 +1,5 @@
 import {
   createTag,
-  checkExternalLink,
   removeEmptyPTags,
   
 } from '../../scripts/lib-adobeio.js';
@@ -37,7 +36,6 @@ export default async function decorate(block) {
     });
     column.querySelectorAll('a').forEach((a) => {
       a.classList.add('spectrum-Link', 'spectrum-Link--quiet');
-      checkExternalLink(a);
     });
     column.querySelectorAll('div > div.info-column').forEach((infoColumn) => {
       const productLinkContainer = createTag('div', { class: 'product-link-container' });
