@@ -15,17 +15,15 @@ export const LARGE_SCREEN_WIDTH = 1280;
 export function checkExternalLink(main) {
   main.querySelectorAll('a').forEach((a) => {
     const url = a.href;
-
-    const urlObj = new URL(url, window.location.href); // handles relative URLs correctly
-    const isRelative = urlObj.origin === window.location.origin;
-    const hasExternal = urlObj.searchParams.has('aio_external');
-
-    if ((!isRelative &&
-         urlObj.hostname.indexOf('developer.adobe.com') === -1 &&
-         urlObj.hostname.indexOf('hlx.page') === -1 &&
-         urlObj.hostname.indexOf('hlx.live') === -1) || hasExternal) {
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
+    if (url) {
+      const [_, queryString] = url.split('?');
+      const searchParams = new URLSearchParams(queryString);
+      const internalDomains = ['developer.adobe.com', 'hlx.page', 'hlx.live'];
+      const isExternal = !internalDomains.some(domain => url.includes(domain)) || searchParams.has('aio_external');
+      if (isExternal) {
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
     }
   });
 }
