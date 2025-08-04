@@ -28,6 +28,30 @@ function fetchSearchURLParams() {
   };
 }
 
+async function checkIndices(client, indices) {
+  const results = await Promise.all(
+    indices.map(indexName =>
+      client
+        .search([{ indexName }])
+        .then(() => ({ name: indexName, valid: true }))
+        .catch((error) => {
+          console.warn(`❌ Index "${indexName}" is invalid or inaccessible consider removing from map:`, error.message);
+          return { name: indexName, valid: false };
+        })
+    )
+  );
+
+  const validIndices = results.filter(r => r.valid).map(r => r.name);
+  return Object.fromEntries(validIndices.map(index => [index, true]));
+}
+
+//initalize search to check product index map:
+const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+const { connectAutocomplete } = instantsearch.connectors;
+
+const searchClient = algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
+const indicesObject = await checkIndices(searchClient, window.adp_search.indices);
+
 // function to find which index and product to search within
 function localSearch() {
   // Remove leading/trailing slashes and split the pathname into segments
@@ -50,15 +74,11 @@ function localSearch() {
   return bestMatch;
 }
 
-function initSearch() {
-  const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-  const { connectAutocomplete } = instantsearch.connectors;
-
-  const searchClient = algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
+async function initSearch() {
   const SUGGESTION_MAX_RESULTS = 50;
   const SEARCH_MAX_RESULTS = 100;
-
-  const indices = window.adp_search.indices
+  
+  const indices = Object.keys(indicesObject); // from before initSearch
   const indexToProduct = window.adp_search.index_to_product;
   const allProducts = window.adp_search.products;
 
