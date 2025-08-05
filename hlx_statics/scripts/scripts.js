@@ -210,10 +210,8 @@ function optimizeImageUrl(url) {
  *    <img loading="eager" alt="" src="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=png&amp;optimize=low">
  *  </picture>
  */
-function optimizeHeroPictures() {
-  const heroes = ['hero', 'herosimple', 'site-hero'];
-  const selector = heroes.map(hero => `div.${hero} picture`).join(', ');
-  const pictures = document.querySelectorAll(selector);
+function optimizePictures() {
+  const pictures = document.querySelectorAll('div picture');
   pictures.forEach(picture => {
 
     const sources = picture.querySelectorAll('source');
@@ -262,7 +260,7 @@ async function loadEager(doc) {
     await runExperiment(experiment, instantExperiment);
   }
 
-  optimizeHeroPictures();
+  optimizePictures();
 
   decorateTemplateAndTheme();
   const html = doc.querySelector('html');
