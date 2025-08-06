@@ -111,7 +111,12 @@ main div.hero-wrapper div.hero h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
+main div.hero-wrapper div.hero.font-color-white a {
+  text-decoration: underline;
+}
+
 main div.hero-wrapper div.hero.font-color-white h1 ,
+main div.hero-wrapper div.hero.font-color-white a ,
 main div.hero-wrapper div.hero.font-color-white p{
   color: white !important;
 }
