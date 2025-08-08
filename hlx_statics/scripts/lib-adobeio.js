@@ -294,7 +294,10 @@ export function buildGrid(main) {
   mainContainer.style.display = 'grid';
 
   const gridAreaMain = main.querySelector('.section');
-  if (gridAreaMain) gridAreaMain.style.gridArea = 'main';
+  if (gridAreaMain) {
+    gridAreaMain.style.gridArea = 'main';
+    gridAreaMain.classList.add('grid-main-area');
+  }
 
   const sideNav = document.querySelector('.side-nav');
   if (sideNav) sideNav.style.gridArea = 'sidenav';
@@ -317,7 +320,7 @@ export function buildGrid(main) {
  */
 export function buildGridAreaMain(main) {
   const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
-  const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
+  const gridAreaMain = main.querySelector('.grid-main-area');
   const subParent = createTag("div", { class: "sub-parent" });
   if (herosimpleWrapper) {
     const children = Array.from(gridAreaMain.children);
@@ -399,7 +402,7 @@ export function buildResources(main) {
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
-  const gridAreaMain = main.querySelector('div[style*="grid-area: main"]');
+  const gridAreaMain = main.querySelector('.grid-main-area');
   gridAreaMain.appendChild(nextPrevWrapper)
 }
 
