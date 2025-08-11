@@ -201,3 +201,13 @@
 
 - line 85 - 87:
     - `getMetadata('template')` gets null
+
+
+**text.js**
+- line 56
+    - inappropriate naming `p`, should be `a`
+    
+- line 66 & 68 & 70
+    - line 68 is checking class name `button-container` before it is assigned by`decorateButtons(block)`
+    - `isImageTextBlock` always true
+    - line 77 never reached 
