@@ -14,8 +14,8 @@ export default async function decorate(block) {
   // default setting this to none and then show it once it loads
   siteParent.style.display = 'none';
 
-  const mainArea = document.querySelector('[style*="grid-area: main"]');
-  const sidenavArea = document.querySelector('[style*="grid-area: sidenav"]');
+  const mainArea = document.querySelector('.grid-main-area');
+  const sidenavArea = document.querySelector('.side-nav-container');
   const productName = getMetadata('product');
   const isMobile = window.innerWidth < 1025;
   const paddingTargets = IS_DEV_DOCS ? [mainArea, sidenavArea] : [siteParent.nextElementSibling?.nextElementSibling];
