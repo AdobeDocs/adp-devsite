@@ -186,3 +186,10 @@
     - No element has class name `icon`
 
 
+
+
+**site-hero.js**
+- line 27
+    - unused variable `hasLinks`
+- line 33
+    - No `<p>` tag contains class name `button-container`
