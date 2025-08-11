@@ -107,7 +107,7 @@
 
 - line 140 - 146:
     - No `<span>` under `<p>` tag
-    - Line 140 `if(p.querySelector("span")` always gets false
+    - Line 140 `if(p.querySelector("span"))` always gets false
 -line 250 - 270:
     - `block.querySelectorAll("div.embed.block > div > div > a")` gets empty list
     - Can't run through forEac
@@ -115,6 +115,17 @@
 **info.js**
 - line 26 - 28:
     - No longer using `<ul>` in source html
+**contributors.js**
+- line 11 & 13 - 15:
+    - No element has attribute `data-isborder`
+    - Variable `isBordar` is null
+- line 47 - 51 & 53:
+    - resources are hard coded
+    - should accept inputs from google drive table
+
+**list.js**
+- line 25 - 43
+    - `getMetadata('template')` is null
 **embed.js**:
 - line 8 - 17:
     - Function `loadScript()` not covered
