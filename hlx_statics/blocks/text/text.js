@@ -65,7 +65,7 @@ export default async function decorate(block) {
 
   let isImageTextBlock = true
   Array.from(block.firstElementChild.children).forEach((div) => {
-    if (div.classList.contains("button-container")) {
+    if (div.classList.contains("button-container")) { //FIXME: checking "button-container" before decorateButtons()
       videoConverter(div);
       decorateButtons(block);
       isImageTextBlock = false;

@@ -1,16 +1,144 @@
 <main>
-  <div class="table">
-    <div>
-      <div>Name</div>
-      <div>Description</div>
-      <div>Format</div>
-      <div>Requirements</div>
-    </div>
-    <div>
-      <div><code>status</code></div>
-      <div>Indicates whether the company user is active or inactive</div>
-      <div>integer</div>
-      <div><code>0</code> - inactive; <code>1</code> - active</div>
+  <div>
+    <div class="tab vertical background-color-navy">
+      <div>
+        <div>
+          <strong>Express Embed SDK 1</strong>
+        </div>
+        <div>
+          <picture>
+            <source type="image/webp" srcset="./media_1543bac31965281b58a51706aea904eee77e28a94.jpg?width=2000&amp;format=webply&amp;optimize=medium" media="(min-width: 600px)">
+            <source type="image/webp" srcset="./media_1543bac31965281b58a51706aea904eee77e28a94.jpg?width=750&amp;format=webply&amp;optimize=medium">
+            <source type="image/jpeg" srcset="./media_1543bac31965281b58a51706aea904eee77e28a94.jpg?width=2000&amp;format=jpg&amp;optimize=medium" media="(min-width: 600px)">
+            <img loading="lazy" alt="" src="./media_1543bac31965281b58a51706aea904eee77e28a94.jpg?width=750&amp;format=jpg&amp;optimize=medium" width="200" height="200">
+          </picture>
+        </div>
+        <div>
+          <table>
+            <tbody>
+              <tr>
+                <td>REST API</td>
+                <td>
+                  <p>bash</p>
+                  <pre><code>curl --location --request POST 'https://pdf-services.adobe.io/operation/extractpdf' \
+                          --header 'x-api-key: {{Placeholder for client_id}}' \
+                          --header 'Content-Type: application/json' \
+                          --header 'Authorization: Bearer {{Placeholder for token}}' \
+                          --data-raw '{
+                          "assetID": "urn:aaid:AS:UE1:23c30ee0-2e4d-46d6-87f2-087832fca718",
+                          "elementsToExtract": [
+                              "text"
+                          ]</code></pre>
+                </td>
+              </tr>
+              <tr>
+                <td>Node js</td>
+                <td>
+                  <p>js</p>
+                  <pre><code>const num1 = 5;
+                          const num2 = 3;
+
+                          // add two numbers
+                          const sum = num1 + num2;
+
+                          // display the sum
+                          console.log('The sum of ' + num1 + ' and ' + num2 + ' is: ' + sum);</code></pre>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div>
+          <strong>Express Embed SDK 2</strong>
+        </div>
+        <div>
+          <picture>
+            <source type="image/webp" srcset="./media_1327a6529cdc2783e686383a624c0b88e5aee226b.jpg?width=2000&amp;format=webply&amp;optimize=medium" media="(min-width: 600px)">
+            <source type="image/webp" srcset="./media_1327a6529cdc2783e686383a624c0b88e5aee226b.jpg?width=750&amp;format=webply&amp;optimize=medium">
+            <source type="image/jpeg" srcset="./media_1327a6529cdc2783e686383a624c0b88e5aee226b.jpg?width=2000&amp;format=jpg&amp;optimize=medium" media="(min-width: 600px)">
+            <img loading="lazy" alt="" src="./media_1327a6529cdc2783e686383a624c0b88e5aee226b.jpg?width=750&amp;format=jpg&amp;optimize=medium" width="200" height="200">
+          </picture>
+        </div>
+        <div>
+          <table>
+            <tbody>
+              <tr>
+                <td>.Net</td>
+                <td>
+                  <p>clike</p>
+                  <pre><code>using System;
+                          namespace MyApplication
+                          {
+                          class Program
+                          {
+                          static void Main(string[] args)
+                          {
+                            int x = 5;
+                            int y = 6;
+                            int sum = x + y;
+                            Console.WriteLine(sum); // Print the sum of x + y
+                          }
+                          }
+                          }</code></pre>
+                </td>
+              </tr>
+              <tr>
+                <td>Python</td>
+                <td>
+                  <p>python</p>
+                  <pre><code># This program adds two numbers
+                          num1 = 1.5
+                          num2 = 6.3
+
+                          # Add two numbers
+                          sum = num1 + num2
+
+                          # Display the sum
+                          print('The sum of {0} and {1} is {2}'.format(num1, num2, sum))</code></pre>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div>
+          <strong>Express Embed SDK 3</strong>
+        </div>
+        <div>
+          <picture>
+            <source type="image/webp" srcset="./media_16db2c5b124a2f92ba49385a42e1d73c60f5e4076.jpg?width=2000&amp;format=webply&amp;optimize=medium" media="(min-width: 600px)">
+            <source type="image/webp" srcset="./media_16db2c5b124a2f92ba49385a42e1d73c60f5e4076.jpg?width=750&amp;format=webply&amp;optimize=medium">
+            <source type="image/jpeg" srcset="./media_16db2c5b124a2f92ba49385a42e1d73c60f5e4076.jpg?width=2000&amp;format=jpg&amp;optimize=medium" media="(min-width: 600px)">
+            <img loading="lazy" alt="" src="./media_16db2c5b124a2f92ba49385a42e1d73c60f5e4076.jpg?width=750&amp;format=jpg&amp;optimize=medium" width="200" height="200">
+          </picture>
+        </div>
+        <div>
+          <table>
+            <tbody>
+              <tr>
+                <td>Java</td>
+                <td>
+                  <p>javascript</p>
+                  <pre><code>class Main {
+                          public static void main(String[] args) {
+
+                          int first = 10;
+                          int second = 20;
+
+                          // add two numbers
+                          int sum = first + second;
+                          System.out.println(first + " + " + second + " = "  + sum);
+                          }
+                          }</code></pre>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </main>
