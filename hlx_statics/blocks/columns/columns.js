@@ -1,5 +1,4 @@
 import {
-  checkExternalLink,
   createTag,
   decorateButtons,
   removeEmptyPTags,
@@ -94,9 +93,6 @@ export default async function decorate(block) {
     block.querySelectorAll('a').forEach((a) => {
       if (!a.classList.contains('button') && !a.classList.contains('spectrum-Button')) {
         a.classList.add('spectrum-Link', 'spectrum-Link--quiet');
-      }
-      if (!a.classList.contains('anchor-link')) {
-        checkExternalLink(a);
       }
     });
 

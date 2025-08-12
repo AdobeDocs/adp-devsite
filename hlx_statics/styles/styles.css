@@ -231,7 +231,7 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 
 main.dev-docs .herosimple > div,
 main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs:not(:has(.herosimple)) > .grid-main-area,
 main.dev-docs .footer-wrapper .footer-links-container-inner {
   padding-left: 32px;
   padding-right: 32px;
@@ -239,7 +239,7 @@ main.dev-docs .footer-wrapper .footer-links-container-inner {
 
 main.dev-docs .herosimple > div,
 main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs:not(:has(.herosimple)) .grid-main-area,
 main.dev-docs .footer-wrapper {
   margin: 0 auto;
   width: 100%;
@@ -254,7 +254,7 @@ main.dev-docs:has(.herosimple) .footer-wrapper {
 main.dev-docs.no-sidenav .herosimple > div,
 main.dev-docs:has(.herosimple).no-sidenav .sub-parent,
 main.dev-docs:has(.herosimple).no-sidenav .footer-wrapper,
-main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main.dev-docs:not(:has(.herosimple)) .grid-main-area,
 main.dev-docs:not(:has(.herosimple)) .footer-wrapper {
   max-width: 1280px;
 }
@@ -1237,5 +1237,5 @@ main .no-breadcrumbs {
 }
 
 main .action-buttons.copy-markdown-button{
-  cursor:pointer; 
+  cursor:pointer;
 }

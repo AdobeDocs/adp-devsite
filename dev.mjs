@@ -56,11 +56,34 @@ app.use(async (req, res) => {
   }
 
   console.log(`Fetching upstream url: ${upstreamUrl}`);
-  const resp = await fetch(upstreamUrl);
-  let body;
-  const headers = new Map(resp.headers.entries());
 
-  if (source === 'docs' && resp.headers.get('content-type')?.includes('text/html')) {
+  // For font files, request uncompressed data to avoid decoding issues
+  const fetchOptions = {};
+  if (req.path.includes('.otf') || req.path.includes('.woff2') || req.path.includes('.ttf')) {
+    fetchOptions.headers = {
+      'Accept-Encoding': 'identity'
+    };
+  }
+
+  const resp = await fetch(upstreamUrl, fetchOptions);
+  let body;
+  const contentType = resp.headers.get('content-type') || '';
+  const isFont = contentType.includes('font') || contentType.includes('woff2') || contentType.includes('otf');
+
+  // Handle headers differently for fonts vs other files
+  const headers = new Map();
+  if (isFont) {
+    // For fonts, only copy essential headers and ensure no compression
+    headers.set('content-type', contentType);
+    headers.set('content-length', resp.headers.get('content-length') || '');
+    // Explicitly remove any compression headers
+    headers.delete('content-encoding');
+  } else {
+    // For non-fonts, copy all headers
+    resp.headers.forEach((value, key) => headers.set(key, value));
+  }
+
+  if (source === 'docs' && contentType.includes('text/html')) {
     body = await resp.text();
     // inject the head.html
     const [pre, post] = body.split('</head>');
@@ -70,14 +93,29 @@ app.use(async (req, res) => {
     </head>
     ${post}`;
   } else {
-    body = await resp.text();
-    // may cause problems with other encoded files?
-    headers.delete('content-encoding');
+    // Handle binary files (like fonts) properly
+    if (isFont) {
+      // For font files, preserve content-encoding and get binary data
+      body = await resp.arrayBuffer();
+    } else {
+      // For text files, get as text and remove content-encoding if needed
+      body = await resp.text();
+      headers.delete('content-encoding');
+    }
   }
 
   res.status(resp.status);
-  res.setHeaders(headers);
-  res.send(body);
+
+  // Set headers properly for Express
+  headers.forEach((value, key) => {
+    res.set(key, value);
+  });
+
+  if (isFont) {
+    res.send(Buffer.from(body));
+  } else {
+    res.send(body);
+  }
 
 });
 
