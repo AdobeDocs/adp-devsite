@@ -694,8 +694,40 @@ function loadPrism(document) {
         window.Prism = { manual: true };
         loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
         import('./prism.js').then(() => {
-          window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
           window.Prism.highlightAll(true);
+          // Re-highlight when tab panels become active (without modifying tab block)
+          try {
+            const observer = new MutationObserver((mutations) => {
+              for (const m of mutations) {
+                if (m.type === 'attributes') {
+                  const el = m.target;
+                  if (!(el instanceof HTMLElement)) continue;
+                  if (!el.classList || m.attributeName !== 'class') continue;
+                  const isActive = el.classList.contains('active');
+                  const isPanel = el.matches && el.matches('.tab-content, .sub-tab-content');
+                  if (isActive && isPanel && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    window.Prism.highlightAllUnder(el, true);
+                  } else if (isActive && el.matches && el.matches('.tabs-wrapper, .sub-content-wrapper')) {
+                    // If a wrapper toggled, highlight any active panels inside
+                    el.querySelectorAll('.tab-content.active, .sub-tab-content.active').forEach((panel) => {
+                      window.Prism.highlightAllUnder(panel, true);
+                    });
+                  }
+                } else if (m.type === 'childList') {
+                  // New nodes added: highlight any code blocks under them
+                  m.addedNodes.forEach((node) => {
+                    if (!(node instanceof HTMLElement)) return;
+                    if (window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                      window.Prism.highlightAllUnder(node, true);
+                    }
+                  });
+                }
+              }
+            });
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+          } catch (e) { 
+            console.error('Error loading Prism:', e);
+           }
         }).catch(console.error);
       }
 
