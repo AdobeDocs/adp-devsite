@@ -36,6 +36,12 @@ const pathPrefixMap = {
     owner: 'AdobeDocs',
     root: '/src/pages/',
   },
+  '/commerce-xd-kits': {
+    pathPrefix: '/commerce-xd-kits/',
+    repo: 'commerce-xd-kits',
+    owner: 'AdobeDocs',
+    root: '/src/pages/',
+  },
 };
 
 app.use(async (req, res) => {
