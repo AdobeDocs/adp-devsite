@@ -1,4 +1,4 @@
-import decoratePreformattedCode from "../../components/code.js";
+import decoratePreformattedCode, { applyLanguageDirectives, extractLanguageDirectives } from "../../components/code.js";
 import { getMetadata } from "../../scripts/scripts.js";
 
 /**
@@ -10,10 +10,15 @@ const createCodeBlock = (codeBlock, language) => {
   const preContainer = document.createElement('div');
   const pre = document.createElement('pre');
   if (language) {
-    pre.className = `language-${language.toLowerCase()}`;
+    applyLanguageDirectives(pre, codeBlock, language);
+  } else {
+    const extracted = extractLanguageDirectives(codeBlock.closest('.tab-content, .sub-tab-content') || preContainer);
+    if (extracted) {
+      applyLanguageDirectives(pre, codeBlock, extracted);
+    }
   }
-  pre.innerHTML = codeBlock.outerHTML;
 
+  pre.innerHTML = codeBlock.outerHTML;
   preContainer.appendChild(pre);
   decoratePreformattedCode(preContainer);
 

@@ -26,8 +26,8 @@ main div.tab-wrapper .tab-button {
     width: 260px;
 }
 
-main div.tab-wrapper .tab-button.active,
-main div.tab-wrapper .tab-button:hover {
+main div.tab-wrapper > div:not(.background-color-navy) .tab-button.active,
+main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover {
     background-color: #2e3c6a;
     color: white;
 }
@@ -81,8 +81,8 @@ main div.tab-wrapper .tab-button {
 }
 
 main div.tab-wrapper .tab-icon img {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 24px;
 }
 
 main div.tab-wrapper .tab-content,
@@ -141,7 +141,8 @@ main div.tab-wrapper .tab.vertical>.content-wrapper {
 }
 
 main div.tab-wrapper .tab {
-    width: 100%;
+    margin: auto auto 5%;
+    width: 60%;
 }
 
 main div.tab-wrapper .sub-tab-button.active {
@@ -153,8 +154,30 @@ main div.tab-wrapper .tab-button {
     padding: 10px;
     margin: 0 5px;
     border: none;
-    background: #eee;
     font-size: 16px;
+}
+
+main div.tab-wrapper > div.background-color-navy .tab-button:not(.active) .tab-title {
+    color: white;
+}
+
+main div.tab-wrapper > div.background-color-navy .tab-button:hover .tab-title {
+    color: #000;
+}
+
+main div.tab-wrapper > div:not(.background-color-navy) .tab-button , 
+main div.tab-wrapper > div.background-color-navy .tab-button:hover,
+main div.tab-wrapper > div.background-color-navy .tab-button.active {
+    background: #eee;
+}
+
+main div.tab-wrapper div.background-color-navy .code-toolbar pre {
+    background-color: #111a35;
+    border-radius: 2vh;
+}
+ 
+main div.sub-content-wrapper .code-toolbar pre {
+    border-radius: 0%;
 }
 
 main div.tab-wrapper .tab-content,
