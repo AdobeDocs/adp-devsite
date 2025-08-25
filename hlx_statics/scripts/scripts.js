@@ -749,57 +749,6 @@ function loadPrism(document) {
   }, { rootMargin: '200px 0px', threshold: 0.1 });
 
   codeBlocks.forEach((block) => observer.observe(block));
-
-  // Fallback: initialize Prism if no blocks intersect (e.g., hidden in tabs)
-  setTimeout(() => {
-    if (!prismLoaded) {
-      prismLoaded = true;
-      window.Prism = { manual: true };
-      loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
-      import('./prism.js').then(() => {
-        // Ensure Prism autoloader knows where to fetch language components (self-hosted for CSP)
-        if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
-          window.Prism.plugins.autoloader.languages_path = `${window.hlx.codeBasePath}/scripts/prism-grammars/`;
-          window.Prism.plugins.autoloader.use_minified = true;
-        }
-        // Run highlighting without Web Workers (avoids missing filename with dynamic import)
-        window.Prism.highlightAll();
-        // Re-highlight when tab panels become active (without modifying tab block)
-        try {
-          const observer = new MutationObserver((mutations) => {
-            for (const m of mutations) {
-              if (m.type === 'attributes') {
-                const el = m.target;
-                if (!(el instanceof HTMLElement)) continue;
-                if (!el.classList || m.attributeName !== 'class') continue;
-                const isActive = el.classList.contains('active');
-                const isPanel = el.matches && el.matches('.tab-content, .sub-tab-content');
-                if (isActive && isPanel && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
-                  window.Prism.highlightAllUnder(el);
-                } else if (isActive && el.matches && el.matches('.tabs-wrapper, .sub-content-wrapper')) {
-                  // If a wrapper toggled, highlight any active panels inside
-                  el.querySelectorAll('.tab-content.active, .sub-tab-content.active').forEach((panel) => {
-                    window.Prism.highlightAllUnder(panel);
-                  });
-                }
-              } else if (m.type === 'childList') {
-                // New nodes added: highlight any code blocks under them
-                m.addedNodes.forEach((node) => {
-                  if (!(node instanceof HTMLElement)) return;
-                  if (window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
-                    window.Prism.highlightAllUnder(node);
-                  }
-                });
-              }
-            }
-          });
-          observer.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
-        } catch (e) { 
-          console.error('Error loading Prism:', e);
-         }
-      }).catch(console.error);
-    }
-  }, 1200);
 }
 
 function fixLocalDev(document){
