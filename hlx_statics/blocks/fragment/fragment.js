@@ -40,13 +40,6 @@ import {
         main = document.createElement('main');
         main.innerHTML = await resp.text();
 
-        // special case for config to read it when in local mode
-        if(path === 'config'){
-          let configHtml = main.querySelector.querySelector('div.default-content-wrapper');
-          configHtml?.removeAttribute('class');
-          main.innerHTML = configHtml;
-        }
-
         sessionStorage.setItem(fragmentHash, main.innerHTML);
         // reset base path for media to fragment base
         const resetAttributeBase = (tag, attr) => {
