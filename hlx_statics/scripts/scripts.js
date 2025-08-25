@@ -694,7 +694,13 @@ function loadPrism(document) {
         window.Prism = { manual: true };
         loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
         import('./prism.js').then(() => {
-          window.Prism.highlightAll(true);
+          // Ensure Prism autoloader knows where to fetch language components
+          if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
+            window.Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/';
+            window.Prism.plugins.autoloader.use_minified = true;
+          }
+          // Run highlighting without Web Workers (avoids missing filename with dynamic import)
+          window.Prism.highlightAll();
           // Re-highlight when tab panels become active (without modifying tab block)
           try {
             const observer = new MutationObserver((mutations) => {
@@ -706,11 +712,11 @@ function loadPrism(document) {
                   const isActive = el.classList.contains('active');
                   const isPanel = el.matches && el.matches('.tab-content, .sub-tab-content');
                   if (isActive && isPanel && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
-                    window.Prism.highlightAllUnder(el, true);
+                    window.Prism.highlightAllUnder(el);
                   } else if (isActive && el.matches && el.matches('.tabs-wrapper, .sub-content-wrapper')) {
                     // If a wrapper toggled, highlight any active panels inside
                     el.querySelectorAll('.tab-content.active, .sub-tab-content.active').forEach((panel) => {
-                      window.Prism.highlightAllUnder(panel, true);
+                      window.Prism.highlightAllUnder(panel);
                     });
                   }
                 } else if (m.type === 'childList') {
@@ -718,7 +724,7 @@ function loadPrism(document) {
                   m.addedNodes.forEach((node) => {
                     if (!(node instanceof HTMLElement)) return;
                     if (window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
-                      window.Prism.highlightAllUnder(node, true);
+                      window.Prism.highlightAllUnder(node);
                     }
                   });
                 }
