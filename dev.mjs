@@ -53,7 +53,7 @@ app.use(async (req, res) => {
 
   let upstreamUrl;
   let source;
-  if (prefix && prefix !== 'undefined' && !req.path.endsWith('/config.plain.html')) {
+  if (prefix && prefix !== 'undefined') {
     source = 'docs';
     upstreamUrl = `http://127.0.0.1:3002${req.path}`;
   } else {
