@@ -15,45 +15,85 @@ const corsOptions = {
 const app = express();
 app.use(cors(corsOptions));
 
-// TODO: use devsitepaths.json instead
-const pathPrefixMap = {
-  '/commerce/webapi': {
-    pathPrefix: '/commerce/webapi',
-    repo: 'commerce-webapi',
-    owner: 'AdobeDocs',
-    root: '/src/pages/',
-    branch: '',
-  },
-  '/github-actions-test': {
-    pathPrefix: '/github-actions-test',
-    repo: 'adp-devsite-github-actions-test',
-    owner: 'AdobeDocs',
-    root: '/src/pages/',
-  },
-  '/express/add-ons/docs': {
-    pathPrefix: '/express/add-ons/docs/',
-    repo: 'express-add-ons-docs',
-    owner: 'AdobeDocs',
-    root: '/src/pages/',
-  },
-  '/commerce-xd-kits': {
-    pathPrefix: '/commerce-xd-kits/',
-    repo: 'commerce-xd-kits',
-    owner: 'AdobeDocs',
-    root: '/src/pages/',
-  },
-};
+let devsitePaths = {};
+// TODO: should this switch between stage/prod version of this file or always pull from stage?
+const devsitePathsUrl = `https://main--adp-devsite-stage--adobedocs.aem.page/franklin_assets/devsitepaths.json`;
+
+// Function to fetch devsite paths
+async function fetchDevsitePaths() {
+  try {
+    console.log(`Fetching devsite paths from: ${devsitePathsUrl}`);
+    const response = await fetch(devsitePathsUrl);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    devsitePaths = data?.data || {};
+    console.log(`Successfully loaded ${Object.keys(devsitePaths).length} devsite paths`);
+    return devsitePaths;
+  } catch (error) {
+    console.error(`Failed to fetch devsite paths: ${error.message}`);
+    // Set empty object as fallback so server can still run
+    devsitePaths = {};
+    return devsitePaths;
+  }
+}
+
+// Initialize devsite paths when server starts
+let isInitialized = false;
+
+// Middleware to ensure devsite paths are loaded
+app.use(async (req, res, next) => {
+  if (!isInitialized) {
+    await fetchDevsitePaths();
+    isInitialized = true;
+  }
+  next();
+});
 
 app.use(async (req, res) => {
-  // if path prefix matches something in the pathPrefixMap
+  // if path prefix matches something in the devsitePaths
   // route request to the connector on port 3002
   // otherwise serve from aem-cli on port 3001
-  const prefix = Object.keys(pathPrefixMap).find((prefix) => req.path.startsWith(prefix));
+  const suffixSplit = req.url.split('/');
+  let suffixSplitRest = suffixSplit.slice(1);
 
+  let devsitePathMatch;
+  let devsitePathMatchFlag = false;
+
+  // find match based on level 3, 2, or 1 transclusion rule
+  // if match found in higher level don't do lower level
+  if (suffixSplit.length > 2) {
+    devsitePathMatch = devsitePaths.find((element) => element.pathPrefix === `/${suffixSplit[1]}/${suffixSplit[2]}/${suffixSplit[3]}`);
+    devsitePathMatchFlag = !!devsitePathMatch;
+    if (devsitePathMatchFlag) {
+      console.log('rest 3');
+      suffixSplitRest = suffixSplit.slice(4);
+    }
+  }
+  if (suffixSplit.length > 1 && !devsitePathMatchFlag) {
+    devsitePathMatch = devsitePaths.find((element) => element.pathPrefix === `/${suffixSplit[1]}/${suffixSplit[2]}`);
+    devsitePathMatchFlag = !!devsitePathMatch;
+    if (devsitePathMatchFlag) {
+      console.log('rest 2');
+      suffixSplitRest = suffixSplit.slice(3);
+    }
+  }
+  if (suffixSplit.length > 0 && !devsitePathMatchFlag) {
+    devsitePathMatch = devsitePaths.find((element) => element.pathPrefix === `/${suffixSplit[1]}`);
+    devsitePathMatchFlag = !!devsitePathMatch;
+    if (devsitePathMatchFlag) {
+      console.log('rest 1');
+      suffixSplitRest = suffixSplit.slice(2);
+    }
+  }
 
   let upstreamUrl;
   let source;
-  if (prefix && prefix !== 'undefined') {
+
+  if (devsitePathMatchFlag && devsitePathMatch !== 'undefined') {
     source = 'docs';
     upstreamUrl = `http://127.0.0.1:3002${req.path}`;
   } else {
@@ -125,6 +165,10 @@ app.use(async (req, res) => {
 
 });
 
-app.listen(PORT, () => {
+// Start server and initialize devsite paths
+app.listen(PORT, async () => {
   console.debug(`Website dev server is running on port ${PORT}`);
+  // Initialize devsite paths after server starts
+  await fetchDevsitePaths();
+  isInitialized = true;
 });
