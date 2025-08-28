@@ -31,7 +31,7 @@ export default async function decorate(block) {
     decorateLightOrDark(block);
 
     card.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((header) => {
-      header.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM');
+      header.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'card-heading');
     });
 
     card.querySelectorAll('p').forEach((p) => {
