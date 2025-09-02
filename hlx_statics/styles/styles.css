@@ -251,11 +251,11 @@ main.dev-docs:has(.herosimple) .footer-wrapper {
   max-width: 1000px;
 }
 
-main.dev-docs.no-sidenav .herosimple > div,
-main.dev-docs:has(.herosimple).no-sidenav .sub-parent,
-main.dev-docs:has(.herosimple).no-sidenav .footer-wrapper,
-main.dev-docs:not(:has(.herosimple)) .grid-main-area,
-main.dev-docs:not(:has(.herosimple)) .footer-wrapper {
+main.dev-docs:not(.no-layout).no-sidenav .herosimple > div,
+main.dev-docs:not(.no-layout):has(.herosimple).no-sidenav .sub-parent,
+main.dev-docs:not(.no-layout):has(.herosimple).no-sidenav .footer-wrapper,
+main.dev-docs:not(.no-layout):not(:has(.herosimple)) .grid-main-area,
+main.dev-docs:not(.no-layout):not(:has(.herosimple)) .footer-wrapper {
   max-width: 1280px;
 }
 
