@@ -102,14 +102,12 @@ function getAccordionItem(heading) {
   return `
     <h3>
         <button class="accordion-itemHeader" type="button"> 
-            <span class="spectrum-Accordion-ChevronIcon">
-                <svg aria-hidden="true" role="img" style="display: block" class="spectrum-Icon spectrum-UIIcon-ChevronRight100">
-                    <path d="M4.5 13.25a1.094 1.094 0 01-.773-1.868L8.109 7 3.727 2.618A1.094 1.094 0 15.273 1.07l5.157 5.156a1.094 1.094 0 010 1.546L5.273 12.93a1.091 1.091 0 01-.773.321z" class="spectrum-UIIcon--large"></path>
-                    <path d="M3 9.95a.875.875 0 01-.615-1.498L5.88 5 2.385 1.547A.875.875 0 13.615.302L7.74 4.377a.876.876 0 010 1.246L3.615 9.698A.872.872 0 13 9.95z" class="spectrum-UIIcon--medium"></path>                
+            <span class="accordion-toggle-icon">
+                <svg class="expand-icon" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                <svg aria-hidden="true" role="img" style="display: none" class="spectrum-Icon spectrum-UIIcon-ChevronDown100">
-                    <path d="M4.5 13.25a1.094 1.094 0 01-.773-1.868L8.109 7 3.727 2.618A1.094 1.094 0 15.273 1.07l5.157 5.156a1.094 1.094 0 010 1.546L5.273 12.93a1.091 1.091 0 01-.773.321z" class="spectrum-UIIcon--large"></path>
-                    <path d="M3 9.95a.875.875 0 01-.615-1.498L5.88 5 2.385 1.547A .875.875 0 13.615.302L7.74 4.377a.876.876 0 010 1.246L3.615 9.698A.872.872 0 13 9.95z" class="spectrum-UIIcon--medium"></path>
+                <svg class="collapse-icon" style="display: none;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
             </span>
             ${heading}
@@ -148,15 +146,15 @@ export default async function decorate(block) {
         content?.forEach((item) => {
           item.style.display = 'block';
         });
-        heading.querySelector('.spectrum-UIIcon-ChevronRight100').style.display = 'none';
-        heading.querySelector('.spectrum-UIIcon-ChevronDown100').style.display = 'block';
+        heading.querySelector('.expand-icon').style.display = 'none';
+        heading.querySelector('.collapse-icon').style.display = 'block';
       }else{ //hide contents
         heading.classList.remove('active');
         content?.forEach((item) => {
           item.style.display = 'none';
         });
-        heading.querySelector('.spectrum-UIIcon-ChevronRight100').style.display = 'block';
-        heading.querySelector('.spectrum-UIIcon-ChevronDown100').style.display = 'none';
+        heading.querySelector('.expand-icon').style.display = 'block';
+        heading.querySelector('.collapse-icon').style.display = 'none';
       };
     });
   });

@@ -7,7 +7,6 @@ main div.accordionitem-wrapper div.accordionitem .accordionitem-div {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 1280px !important;
     margin: auto !important;
 }
 
@@ -27,7 +26,6 @@ main div.accordionitem-wrapper div.accordionitem .accordionitem-title {
     justify-content: center;
     text-align: left;
     color: black;
-    width: 1280px !important;
     margin: auto !important
 }
 
@@ -72,6 +70,10 @@ main div.accordionitem-wrapper div.accordionitem .accordion-itemHeader {
     font-weight: 700 !important;
 }
 
+main div.accordionitem-wrapper div.accordionitem .accordion-itemHeader .accordion-toggle-icon{
+    padding-right: 25px;
+}
+
 main div.accordionitem-wrapper div.accordionitem .accordion-itemHeader:hover {
     background-color:  #e9eaeb;
     color: #2C2C2C;
@@ -83,6 +85,11 @@ main div.accordionitem-wrapper div.accordionitem .accordion-itemContent {
     padding-left: 20px!important;
     padding-bottom: 16px;
     display: none;
+    overflow-x: auto;
+}
+
+main div.accordionitem-wrapper div.accordionitem .accordion-itemContent {
+
 }
 
 main div.accordionitem-wrapper div.accordionitem .active {
