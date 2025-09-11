@@ -538,7 +538,7 @@ function activeSubNav(actTab) {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (linkPath.startsWith(pagePath)) {
+        if (linkPath.startsWith(pagePath) && getMetadata("template") === "documentation") {
           showSidenav = true;
         }
         if (!linkPath.startsWith(topNavPath)) {
@@ -549,10 +549,7 @@ function activeSubNav(actTab) {
       }
     });
   }
-  // If this is the landing page of the devdoc site, no side nav should be shown. 
-  if (getMetadata("template") !== "documentation"){
-    showSidenav = false;
-  }
+  
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }
