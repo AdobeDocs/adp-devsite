@@ -298,6 +298,10 @@ export function buildGrid(main) {
     gridAreaMain.style.gridArea = 'main';
     gridAreaMain.classList.add('grid-main-area');
   }
+  
+  if(getMetadata('layout') === 'none' && gridAreaMain?.classList.contains('redoclyapiblock-container')){
+    main?.classList.add('no-layout');
+  }
 
   const sideNav = document.querySelector('.side-nav');
   if (sideNav) sideNav.style.gridArea = 'sidenav';
