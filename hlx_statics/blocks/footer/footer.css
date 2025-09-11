@@ -21,7 +21,8 @@ footer>div {
   margin: 0 auto;
 }
 
-main:not(.no-layout) footer>div {
+main.dev-docs:not(.no-layout) footer>div,
+main.dev-biz ~ footer>div {
   max-width: 1280px;
 }
 

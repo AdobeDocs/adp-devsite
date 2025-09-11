@@ -278,14 +278,16 @@ async function loadEager(doc) {
     await waitForLCP(LCP_BLOCKS);
   }
 
+  const mainContainer = document.querySelector('main');
   if (IS_DEV_DOCS) {
     // check if this page is from dev docs, then change the main container to white background.
-    const mainContainer = document.querySelector('main');
     mainContainer.classList.add('dev-docs', 'white-background');
 
     buildGrid(main);
     buildSideNav(main);
     buildBreadcrumbs(main);
+  } else {
+    mainContainer.classList.add('dev-biz');
   }
 
   buildSiteWideBanner(main);
