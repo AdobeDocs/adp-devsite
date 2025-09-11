@@ -298,7 +298,7 @@ export function buildGrid(main) {
     gridAreaMain.style.gridArea = 'main';
     gridAreaMain.classList.add('grid-main-area');
   }
-  
+
   if(getMetadata('layout') === 'none' && gridAreaMain?.classList.contains('redoclyapiblock-container')){
     main?.classList.add('no-layout');
   }
@@ -538,7 +538,7 @@ function activeSubNav(actTab) {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (linkPath === pagePath) {
+        if (linkPath.startsWith(pagePath) && getMetadata("template") === "documentation") {
           showSidenav = true;
         }
         if (!linkPath.startsWith(topNavPath)) {
@@ -549,6 +549,7 @@ function activeSubNav(actTab) {
       }
     });
   }
+  
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }
