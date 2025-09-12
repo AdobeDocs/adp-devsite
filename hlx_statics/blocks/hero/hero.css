@@ -60,11 +60,11 @@ main div.hero-wrapper div.hero div:nth-child(2) > div img {
 }
 
 main div.hero-wrapper:has(.full-width-background) div:nth-child(2) > div img {
-  display:none;
+  display: none;
 }
 
 main div.hero-wrapper:has(.full-width-background) div:nth-child(3) {
-  display:flex;
+  display: flex;
   align-items: center;
 }
 
@@ -84,8 +84,8 @@ main div.hero-wrapper div.hero .icon {
   object-fit: contain;
 }
 
-main div.hero-wrapper div.hero h3 ,
-main div.hero-wrapper div.hero h1{
+main div.hero-wrapper div.hero h3,
+main div.hero-wrapper div.hero h1 {
   margin-top: 0;
   margin-bottom: 16px;
 }
@@ -115,9 +115,9 @@ main div.hero-wrapper div.hero.font-color-white a {
   text-decoration: underline;
 }
 
-main div.hero-wrapper div.hero.font-color-white h1 ,
-main div.hero-wrapper div.hero.font-color-white a ,
-main div.hero-wrapper div.hero.font-color-white p{
+main div.hero-wrapper div.hero.font-color-white h1,
+main div.hero-wrapper div.hero.font-color-white a,
+main div.hero-wrapper div.hero.font-color-white p {
   color: white !important;
 }
 
@@ -125,11 +125,11 @@ main div.hero-wrapper div.hero.font-color-black {
   color: black;
 }
 
-main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent){
+main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) {
   border-color: white;
 }
 
-main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) > span{
+main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) > span {
   color: white;
 }
 
