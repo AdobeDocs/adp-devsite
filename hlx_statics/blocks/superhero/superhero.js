@@ -1,11 +1,11 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 
 /**
- * decorates the site-hero
- * @param {Element} block The site-hero block element
+ * decorates the superhero
+ * @param {Element} block The superhero block element
  */
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'site-hero');
+  block.setAttribute('daa-lh', 'superhero');
   removeEmptyPTags(block);
   decorateButtons(block);
 
@@ -15,7 +15,7 @@ export default async function decorate(block) {
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
     h.style.color = 'white';
-    h.parentElement.classList.add('site-hero-content');
+    h.parentElement.classList.add('superhero-content');
     h.parentElement.append(button_div);
   });
 
