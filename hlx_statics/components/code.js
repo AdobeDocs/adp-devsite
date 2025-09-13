@@ -1,3 +1,5 @@
+import { getMetadata } from "../scripts/scripts.js";
+
 export function extractLanguageDirectives(container) {
   if (!container) return '';
   const preEl = container.querySelector('pre');
@@ -60,17 +62,45 @@ export function applyLanguageDirectives(pre, codeEl, languageText) {
 
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre');
-  // see https://prismjs.com/plugins/line-numbers/#how-to-use
+  const code = block.querySelector('code');
+
+  if(pre && getMetadata('template') === "documentation"){
+    const processClasses = (element) => {
+      element.className = Array.from(element.classList).map(className => {
+        let cleanClassName = className;
+        const dataLineMatch = className.match(/data-line="([^"]*)"/);
+        const dataLineOffsetMatch = className.match(/data-line-offset="([^"]*)"/);
+        
+        if(dataLineMatch) {
+          pre.setAttribute('data-line', dataLineMatch[1]);
+          code?.setAttribute('data-line', dataLineMatch[1]);
+          cleanClassName = cleanClassName.replace(/-data-line="[^"]*"/, '');
+        }
+        if(dataLineOffsetMatch) {
+          pre.setAttribute('data-line-offset', dataLineOffsetMatch[1]);
+          code?.setAttribute('data-line-offset', dataLineOffsetMatch[1]);
+          cleanClassName = cleanClassName.replace(/-data-line-offset="[^"]*"/, '');
+        }
+        if(className.includes('disableLineNumbers')) {
+          pre.classList.add('disableLineNumbers');
+          cleanClassName = cleanClassName.replace(/-disableLineNumbers/, '');
+        }
+        return cleanClassName;
+      }).filter(className => className.trim()).join(' ');
+    };
+    
+    processClasses(pre);
+    code && processClasses(code);
+  }
+
   if (pre?.classList.contains("disableLineNumbers")) {
     pre?.classList.add('no-line-numbers');
   }
   else {
     pre?.classList.add('line-numbers');
   }
-
-  const code = block.querySelector('code');
-  const dataLine = code.getAttribute('data-line');
-  const dataLineOffset = code.getAttribute('data-line-offset');
+    const dataLine = code.getAttribute('data-line');
+    const dataLineOffset = code.getAttribute('data-line-offset');
   if (dataLine) {
     pre.setAttribute('data-line', dataLine);
   }
@@ -81,8 +111,8 @@ export default function decoratePreformattedCode(block) {
     code.classList.add('language-none');
   }
 
-  code.classList.forEach(cls => pre.classList.add(cls));
-  code.setAttribute('data-prismjs-copy', 'Copy');
-  code.setAttribute('data-prismjs-copy-success', 'Copied to your clipboard');
-  code.setAttribute('data-prismjs-copy-timeout', '3000');
+    code.classList.forEach(cls => pre.classList.add(cls));
+    code.setAttribute('data-prismjs-copy', 'Copy');
+    code.setAttribute('data-prismjs-copy-success', 'Copied to your clipboard');
+    code.setAttribute('data-prismjs-copy-timeout', '3000');
 }
