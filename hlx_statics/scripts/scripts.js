@@ -711,7 +711,13 @@ function loadPrism(document) {
                   if (!el.classList || m.attributeName !== 'class') continue;
                   const isActive = el.classList.contains('active');
                   const isPanel = el.matches && el.matches('.tab-content, .sub-tab-content');
+                  const isCodeblockPanel = el.matches && el.matches('[role="tabpanel"]');
+                  const isNowVisible = isCodeblockPanel && !el.classList.contains('hidden');
+                  
                   if (isActive && isPanel && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    window.Prism.highlightAllUnder(el);
+                  } else if (isNowVisible && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    // Handle codeblock panels that become visible (not hidden)
                     window.Prism.highlightAllUnder(el);
                   } else if (isActive && el.matches && el.matches('.tabs-wrapper, .sub-content-wrapper')) {
                     // If a wrapper toggled, highlight any active panels inside
@@ -720,10 +726,11 @@ function loadPrism(document) {
                     });
                   }
                 } else if (m.type === 'childList') {
-                  // New nodes added: highlight any code blocks under them
+                  // New nodes added: only highlight if they contain code blocks with language classes
                   m.addedNodes.forEach((node) => {
                     if (!(node instanceof HTMLElement)) return;
-                    if (window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    const hasCodeBlocks = node.querySelector && node.querySelector('code[class*="language-"], [class*="language-"] code');
+                    if (hasCodeBlocks && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
                       window.Prism.highlightAllUnder(node);
                     }
                   });
