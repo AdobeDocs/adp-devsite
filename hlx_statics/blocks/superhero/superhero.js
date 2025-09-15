@@ -1,5 +1,7 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 
+const CENTERED_VARIANTS = ['centered', 'centeredxl'];
+
 /**
  * decorates the superhero
  * @param {Element} block The superhero block element
@@ -11,9 +13,13 @@ export default async function decorate(block) {
   const isDevBiz = main.classList.contains('dev-biz');
   const isDevDocs = main.classList.contains('dev-docs');
 
-  if (isDevBiz && ['centered', 'centeredxl'].some((variant) => block.classList.contains(variant))) {
+  if (isDevBiz && hasAnyClass(block, CENTERED_VARIANTS)) {
     decorateDevBizCentered(block);
   }
+}
+
+function hasAnyClass(block, classes) {
+  return classes.some((c) => block.classList.contains(c));
 }
 
 async function decorateDevBizCentered(block) {
