@@ -696,7 +696,7 @@ function loadPrism(document) {
         import('./prism.js').then(() => {
           // Ensure Prism autoloader knows where to fetch language components
           if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
-            window.Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/';
+            window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
             window.Prism.plugins.autoloader.use_minified = true;
           }
           // Run highlighting without Web Workers (avoids missing filename with dynamic import)
