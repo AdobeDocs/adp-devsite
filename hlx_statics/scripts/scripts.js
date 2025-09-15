@@ -696,8 +696,53 @@ function loadPrism(document) {
         window.Prism = { manual: true };
         loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
         import('./prism.js').then(() => {
-          window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
-          window.Prism.highlightAll(true);
+          // Ensure Prism autoloader knows where to fetch language components
+          if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
+            window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
+            window.Prism.plugins.autoloader.use_minified = true;
+          }
+          // Run highlighting without Web Workers (avoids missing filename with dynamic import)
+          window.Prism.highlightAll();
+          // Re-highlight when tab panels become active (without modifying tab block)
+          try {
+            const observer = new MutationObserver((mutations) => {
+              for (const m of mutations) {
+                if (m.type === 'attributes') {
+                  const el = m.target;
+                  if (!(el instanceof HTMLElement)) continue;
+                  if (!el.classList || m.attributeName !== 'class') continue;
+                  const isActive = el.classList.contains('active');
+                  const isPanel = el.matches && el.matches('.tab-content, .sub-tab-content');
+                  const isCodeblockPanel = el.matches && el.matches('[role="tabpanel"]');
+                  const isNowVisible = isCodeblockPanel && !el.classList.contains('hidden');
+                  
+                  if (isActive && isPanel && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    window.Prism.highlightAllUnder(el);
+                  } else if (isNowVisible && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    // Handle codeblock panels that become visible (not hidden)
+                    window.Prism.highlightAllUnder(el);
+                  } else if (isActive && el.matches && el.matches('.tabs-wrapper, .sub-content-wrapper')) {
+                    // If a wrapper toggled, highlight any active panels inside
+                    el.querySelectorAll('.tab-content.active, .sub-tab-content.active').forEach((panel) => {
+                      window.Prism.highlightAllUnder(panel);
+                    });
+                  }
+                } else if (m.type === 'childList') {
+                  // New nodes added: only highlight if they contain code blocks with language classes
+                  m.addedNodes.forEach((node) => {
+                    if (!(node instanceof HTMLElement)) return;
+                    const hasCodeBlocks = node.querySelector && node.querySelector('code[class*="language-"], [class*="language-"] code');
+                    if (hasCodeBlocks && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                      window.Prism.highlightAllUnder(node);
+                    }
+                  });
+                }
+              }
+            });
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+          } catch (e) { 
+            console.error('Error loading Prism:', e);
+           }
         }).catch(console.error);
       }
 
