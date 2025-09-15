@@ -217,3 +217,7 @@ main div.tab-wrapper .sub-tabs-wrapper>pre[class*=language-].line-numbers {
     border-bottom-right-radius: 10px !important;
     border-bottom-left-radius: 10px !important;
 }
+
+main div.tab-wrapper div.tab pre[class*=language-].no-line-numbers .line-highlight {
+    transform: translateY(22.6px);
+  }

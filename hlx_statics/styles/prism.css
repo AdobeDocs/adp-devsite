@@ -214,12 +214,6 @@ pre[class*=language-].no-line-numbers {
   padding-top: 2em;
 }
 
-.codeblock pre[class*=language-].no-line-numbers .line-highlight,
-.tab pre[class*=language-].no-line-numbers .line-highlight {
-
-  transform: translateY(22.6px);
-}
-
 .line-highlight {
   position: absolute;
   left: 0;
