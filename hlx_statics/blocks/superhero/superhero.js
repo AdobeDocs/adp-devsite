@@ -7,7 +7,11 @@ import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'superhero');
 
-  if (['centered', 'centeredxl'].some((variant) => block.classList.contains(variant))) {
+  const main = document.querySelector('main');
+  const isDevBiz = main.classList.contains('dev-biz');
+  const isDevDocs = main.classList.contains('dev-docs');
+
+  if (isDevBiz && ['centered', 'centeredxl'].some((variant) => block.classList.contains(variant))) {
     removeEmptyPTags(block);
     decorateButtons(block);
 
