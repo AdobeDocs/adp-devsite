@@ -107,7 +107,13 @@ app.use(async (req, res) => {
   const fetchOptions = {};
   if (req.path.includes('.otf') || req.path.includes('.woff2') || req.path.includes('.ttf')) {
     fetchOptions.headers = {
-      'Accept-Encoding': 'identity'
+      'Accept-Encoding': 'identity',
+      'authorization' : 'sign-pages'
+    };
+  } else {
+    // current hack to set branch of content repo
+    fetchOptions.headers = {
+      'authorization' : 'sign-pages'
     };
   }
 
