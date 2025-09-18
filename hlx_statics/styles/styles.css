@@ -230,32 +230,32 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 }
 
 main.dev-docs .herosimple > div,
-main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:not(:has(.herosimple)) > .grid-main-area,
+main.dev-docs:has(.herosimple, .superhero) .sub-parent
+main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) > .grid-main-area,
 main.dev-docs .footer-wrapper .footer-links-container-inner {
   padding-left: 32px;
   padding-right: 32px;
 }
 
 main.dev-docs .herosimple > div,
-main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:not(:has(.herosimple)) .grid-main-area,
+main.dev-docs:has(.herosimple, .superhero) .sub-parent,
+main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
 main.dev-docs .footer-wrapper {
   margin: 0 auto;
   width: 100%;
 }
 
 main.dev-docs .herosimple > div,
-main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:has(.herosimple) .footer-wrapper {
+main.dev-docs:has(.herosimple, .superhero) .sub-parent,
+main.dev-docs:has(.herosimple, .superhero) .footer-wrapper {
   max-width: 1000px;
 }
 
 main.dev-docs:not(.no-layout).no-sidenav .herosimple > div,
-main.dev-docs:not(.no-layout):has(.herosimple).no-sidenav .sub-parent,
-main.dev-docs:not(.no-layout):has(.herosimple).no-sidenav .footer-wrapper,
-main.dev-docs:not(.no-layout):not(:has(.herosimple)) .grid-main-area,
-main.dev-docs:not(.no-layout):not(:has(.herosimple)) .footer-wrapper {
+main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .sub-parent,
+main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .footer-wrapper,
+main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
+main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .footer-wrapper {
   max-width: 1280px;
 }
 

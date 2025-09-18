@@ -80,7 +80,7 @@ async function buildBreadcrumbs() {
 }
 
 export default async function decorate(block) {
-  const hasHero = Boolean(document.querySelector('.hero, .site-hero, .herosimple'));
+  const hasHero = Boolean(document.querySelector('.hero, .site-hero, .herosimple, .superhero'));
   const showBreadcrumbsConfig = getMetadata('hidebreadcrumbnav') !== 'true';
   const showBreadcrumbs = !hasHero && showBreadcrumbsConfig;
   if(showBreadcrumbs) {
