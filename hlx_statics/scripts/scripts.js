@@ -213,7 +213,7 @@ function optimizeImageUrl(url) {
  *  </picture>
  */
 function optimizeHeroPictures() {
-  const heroes = ['hero', 'herosimple', 'site-hero'];
+  const heroes = ['hero', 'herosimple', 'site-hero', 'superhero'];
   const selector = heroes.map(hero => `div.${hero} picture`).join(', ');
   const pictures = document.querySelectorAll(selector);
   pictures.forEach(picture => {
@@ -626,7 +626,7 @@ async function loadLazy(doc) {
     footer.style.gridArea = 'footer';
     main.append(footer);
 
-    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    const hasHero = Boolean(document.querySelector('.herosimple, .superhero'));
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     if (!hasHero && hasHeading) {

@@ -43,8 +43,8 @@ main div.superhero-wrapper div.superhero.centered img {
   object-fit: cover;
 }
 
-main div.superhero-wrapper div.superhero.centered h1,
-main div.superhero-wrapper div.superhero.centeredxl h1 {
+main div.superhero-wrapper div.superhero.centered :is(h1, h2, h3, h4, h5, h6),
+main div.superhero-wrapper div.superhero.centeredxl :is(h1, h2, h3, h4, h5, h6) {
   text-align: center;
   margin-top: 0;
   margin-bottom: 16px;
