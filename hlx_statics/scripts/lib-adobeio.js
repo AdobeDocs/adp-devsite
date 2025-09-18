@@ -323,17 +323,22 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildGridAreaMain(main) {
-  const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
   const gridAreaMain = main.querySelector('.grid-main-area');
   const subParent = createTag("div", { class: "sub-parent" });
-  if (herosimpleWrapper) {
+  
+  const heroWrapperClasses = ['herosimple-wrapper', 'superhero-wrapper'];
+  const selector = '.' + heroWrapperClasses.join(', .');
+  const heroWrapper = main.querySelector(selector);
+  const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
+  
+  if (heroWrapper) {
     const children = Array.from(gridAreaMain.children);
     children.forEach((child) => {
-      if (!child.classList.contains("herosimple-wrapper")) {
+      if (!child.classList.contains(heroWrapperClass)) {
         subParent.appendChild(child);
       }
     });
-    gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
+    gridAreaMain.insertBefore(subParent, heroWrapper.nextSibling);
   } else {
     gridAreaMain.appendChild(subParent);
   }
