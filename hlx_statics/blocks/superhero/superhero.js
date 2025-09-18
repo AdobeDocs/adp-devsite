@@ -43,7 +43,7 @@ async function decorateDevBizCentered(block) {
   block.classList.add('spectrum--dark');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
-    h.style.color = 'white';
+    h.style.color = DEFAULT_TEXT_COLOR;
     h.parentElement.classList.add('superhero-content');
     h.parentElement.append(button_div);
   });
@@ -51,7 +51,7 @@ async function decorateDevBizCentered(block) {
   block.querySelectorAll('p').forEach((p) => {
     if (!p.classList.contains('icon-container')) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
-      p.style.color = 'white';
+      p.style.color = DEFAULT_TEXT_COLOR;
     }
     if (p.classList.contains('button-container')) {
       button_div.append(p);
