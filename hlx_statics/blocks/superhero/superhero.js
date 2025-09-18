@@ -37,8 +37,6 @@ async function decorateDevBizCentered(block) {
   });
 
   block.querySelectorAll('p').forEach((p) => {
-    const hasLinks = p.querySelectorAll('a, button');
-    // don't attach to icon container or if p tag contains links
     if (!p.classList.contains('icon-container')) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
       p.style.color = 'white';
