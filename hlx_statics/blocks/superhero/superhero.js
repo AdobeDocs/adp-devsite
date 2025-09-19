@@ -39,7 +39,7 @@ async function decorateDevBizCentered(block) {
   removeEmptyPTags(block);
   decorateButtons(block);
 
-  const button_div = createTag('div', { class: 'hero-button-container' });
+  const button_div = createTag('div', { class: 'superhero-button-container' });
 
   block.classList.add('spectrum--dark');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
@@ -195,13 +195,13 @@ function applyDataAttributeStyles(block) {
 }
 
 /**
- * Rearranges the links into a hero-button-container div
+ * Rearranges the links into a superhero-button-container div
  * @param {*} block The hero block element
  */
 function rearrangeLinks(block) {
   const leftDiv = block.firstElementChild.firstElementChild;
   const heroButtonContainer = document.createElement('div');
-  heroButtonContainer.classList.add('hero-button-container');
+  heroButtonContainer.classList.add('superhero-button-container');
   leftDiv.querySelectorAll('p.button-container').forEach((p) => {
     heroButtonContainer.append(p);
   });
