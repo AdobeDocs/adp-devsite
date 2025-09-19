@@ -1,6 +1,13 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
+import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 
-const CENTERED_VARIANTS = ['centered', 'centeredxl'];
+const VARIANTS = {
+  default: 'default',
+  centered: 'centered',
+  centeredxl: 'centeredxl',
+  halfwidth: 'halfwidth'
+};
+const CENTERED_VARIANTS = [VARIANTS.centered, VARIANTS.centeredxl];
 const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
 const DEFAULT_TEXT_COLOR = 'white';
 const ALLOWED_TEXT_COLORS = ['black', DEFAULT_TEXT_COLOR, 'gray', 'navy'];
@@ -22,6 +29,8 @@ export default async function decorate(block) {
     restructureAsDevBizCentered(block);
     decorateDevBizCentered(block);
     applyDataAttributeStyles(block);
+  } else if (isDevBiz && hasAnyClass(block, [VARIANTS.halfwidth])) {
+    decorateDevBizHalfWidth(block);
   }
 }
 
@@ -30,7 +39,7 @@ function hasAnyClass(block, classes) {
 }
 
 function hasAnyVariant(block, variants) {
-  const variant = block.getAttribute('data-variant') || 'default';
+  const variant = block.getAttribute('data-variant') || VARIANTS.default;
   return variants.some((v) => v === variant);
 }
 
@@ -38,7 +47,7 @@ async function decorateDevBizCentered(block) {
   removeEmptyPTags(block);
   decorateButtons(block);
 
-  const button_div = createTag('div', { class: 'hero-button-container' });
+  const button_div = createTag('div', { class: 'superhero-button-container' });
 
   block.classList.add('spectrum--dark');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
@@ -57,6 +66,64 @@ async function decorateDevBizCentered(block) {
       button_div.append(p);
     }
   });
+}
+
+async function decorateDevBizHalfWidth(block) {
+  block.setAttribute('daa-lh', 'superhero');
+  // Block decoration
+  decorateLightOrDark(block, true);
+  // H1 decoration
+  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
+  });
+
+  block.querySelectorAll('picture source').forEach((picture) => {
+    // Removes weird max-width attribute
+    picture.media = '';
+  });
+
+  // Removes content for span.icon
+  block.querySelectorAll('span.icon').forEach((span) => {
+    span.textContent = '';
+  });
+  // Link decoration
+  rearrangeLinks(block);
+  decorateButtons(block);
+  // Paragraph decoration
+  block.querySelectorAll('p').forEach((p) => {
+    if (p.innerText) {
+      p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
+    }
+  });
+
+  const backgroundImage = block.classList.contains('full-width-background');
+  const heroWrapper = block?.parentElement?.parentElement;
+
+  if (backgroundImage) {
+    const picsrc = block.querySelectorAll('picture img')[0].currentSrc;
+    heroWrapper.querySelectorAll('.superhero-container > div').forEach((herowrapper) => {
+      Object.assign(herowrapper.style, {
+        backgroundImage: `url(${picsrc})`,
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+      });
+    });
+    heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
+      Object.assign(herowrapper.style, {
+        backgroundColor: 'transparent',
+        width: '75%',
+        margin: 'auto',
+      });
+    });
+  }
+
+  const videoURL = block.lastElementChild.querySelector('a');
+  if (videoURL && block.classList.contains('video')) {
+    const videoContainer = createTag('div', { class: 'superhero-video-container' });
+    const videoTag = `<video src=${videoURL?.href} alt=${videoURL?.textContent} autoplay playsinline muted loop></video>`;
+    videoContainer.innerHTML = videoTag;
+    block.lastElementChild.replaceWith(videoContainer);
+  }
 }
 
 /**
@@ -134,4 +201,19 @@ function applyDataAttributeStyles(block) {
     });
   }
 }
+
+/**
+ * Rearranges the links into a superhero-button-container div
+ * @param {*} block The hero block element
+ */
+function rearrangeLinks(block) {
+  const leftDiv = block.firstElementChild.firstElementChild;
+  const heroButtonContainer = document.createElement('div');
+  heroButtonContainer.classList.add('superhero-button-container');
+  leftDiv.querySelectorAll('p.button-container').forEach((p) => {
+    heroButtonContainer.append(p);
+  });
+  leftDiv.append(heroButtonContainer);
+}
+
 

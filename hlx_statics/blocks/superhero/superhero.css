@@ -58,8 +58,8 @@ main div.superhero-wrapper div.superhero.centeredxl p.spectrum-Body--sizeL {
   text-align: center;
 }
 
-main div.superhero-wrapper div.superhero.centered .hero-button-container,
-main div.superhero-wrapper div.superhero.centeredxl .hero-button-container {
+main div.superhero-wrapper div.superhero.centered .superhero-button-container,
+main div.superhero-wrapper div.superhero.centeredxl .superhero-button-container {
   display: flex;
   flex-wrap: wrap;
   display: inline-flex;
@@ -120,3 +120,193 @@ main div.superhero-wrapper div.superhero.centeredxl .hero-button-container {
     padding: 0 32px;
   }
 }
+
+main div.superhero-wrapper div.superhero.halfwidth {
+  background: rgb(255, 255, 255);
+  height: 500px;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.full-width-background img {
+  width: 100% !important;
+  height: 350px !important;
+  object-fit: cover !important;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth p.spectrum-Body--sizeL {
+  margin-top: 0 !important;
+  color: rgb(80, 80, 80) !important;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.font-white h1,
+main div.superhero-wrapper div.superhero.halfwidth.font-white h2,
+main div.superhero-wrapper div.superhero.halfwidth.font-white h3,
+main div.superhero-wrapper div.superhero.halfwidth.font-white p {
+  color: white !important;
+}
+
+main div.superhero-wrapper:has(div.superhero.halfwidth) {
+  padding: 0;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth > div:first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: calc(5 * 100% / 12);
+
+  margin-left: 40px;
+  margin-right: 32px;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth div:nth-child(2) {
+  flex: 1;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth div:nth-child(2) > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin-top: 0;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth div:nth-child(2) > div img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0;
+  min-height: 500px !important;
+}
+
+main div.superhero-wrapper:has(.halfwidth.full-width-background) div:nth-child(2) > div img {
+  display: none;
+}
+
+main div.superhero-wrapper:has(.halfwidth.full-width-background) div:nth-child(3) {
+  display: flex;
+  align-items: center;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth .icon-container {
+  height: 48px;
+  width: 48px;
+  margin-top: 0 !important;
+  margin-bottom: 24px !important;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth span.icon {
+  display: none;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth .icon {
+  height: 100%;
+  object-fit: contain;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth h3,
+main div.superhero-wrapper div.superhero.halfwidth h1 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth h1 + p.last-of-type {
+  margin-bottom: 0 !important;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth .superhero-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth h1 + p.last-of-type {
+  margin-bottom: 0 !important;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.font-color-white a {
+  text-decoration: underline;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.font-color-white h1,
+main div.superhero-wrapper div.superhero.halfwidth.font-color-white a,
+main div.superhero-wrapper div.superhero.halfwidth.font-color-white p {
+  color: white !important;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.font-color-black {
+  color: black;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) {
+  border-color: white;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) > span {
+  color: white;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth.over-gradient p.button-container a {
+  font-size: 16px;
+}
+
+main div.superhero-wrapper div.superhero.halfwidth div.superhero-video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media screen and (max-width: 768px) {
+  main div.superhero-wrapper div.superhero.halfwidth {
+    padding: 32px;
+    overflow: hidden;
+  }
+
+  main div.superhero-wrapper div.superhero.halfwidth > div:first-child {
+    margin-left: 64px;
+    margin-right: 32px;
+    width: 100%;
+    margin: 0;
+  }
+
+  main div.superhero-wrapper div.superhero.halfwidth div:nth-child(2) {
+    display: none;
+  }
+  main div.superhero-wrapper div.superhero.halfwidth .spectrum-Heading--sizeXXL {
+    font-size: 36px;
+  }
+
+  main div.superhero-wrapper div.superhero.halfwidth picture {
+    display: none;
+  }
+
+  main div.superhero-wrapper div.superhero.halfwidth div:nth-child(2) > div div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-top: 0;
+  }
+
+  main div.superhero-wrapper div.superhero.halfwidth div:nth-child(2) > div img {
+    width: 100% !important;
+    min-width: 320px !important;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  main div.superhero-wrapper div.superhero.halfwidth div:nth-child(2) > div img {
+    min-height: 0px;
+  }
+}
+
