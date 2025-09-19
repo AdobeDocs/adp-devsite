@@ -61,7 +61,7 @@ async function decorateDevBizCentered(block) {
 }
 
 async function decorateDevBizHalfWidth(block) {
-  block.setAttribute('daa-lh', 'hero');
+  block.setAttribute('daa-lh', 'superhero');
   // Block decoration
   decorateLightOrDark(block, true);
   // H1 decoration
@@ -93,14 +93,14 @@ async function decorateDevBizHalfWidth(block) {
 
   if (backgroundImage) {
     const picsrc = block.querySelectorAll('picture img')[0].currentSrc;
-    heroWrapper.querySelectorAll('.hero-container > div').forEach((herowrapper) => {
+    heroWrapper.querySelectorAll('.superhero-container > div').forEach((herowrapper) => {
       Object.assign(herowrapper.style, {
         backgroundImage: `url(${picsrc})`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
       });
     });
-    heroWrapper.querySelectorAll('.hero-container > div > div').forEach((herowrapper) => {
+    heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
       Object.assign(herowrapper.style, {
         backgroundColor: 'transparent',
         width: '75%',
@@ -111,7 +111,7 @@ async function decorateDevBizHalfWidth(block) {
 
   const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
-    const videoContainer = createTag('div', { class: 'hero-video-container' });
+    const videoContainer = createTag('div', { class: 'superhero-video-container' });
     const videoTag = `<video src=${videoURL?.href} alt=${videoURL?.textContent} autoplay playsinline muted loop></video>`;
     videoContainer.innerHTML = videoTag;
     block.lastElementChild.replaceWith(videoContainer);

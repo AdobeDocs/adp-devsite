@@ -121,7 +121,7 @@ main div.superhero-wrapper div.superhero.centeredxl .hero-button-container {
   }
 }
 
-main div.hero-wrapper div.hero {
+main div.superhero-wrapper div.superhero {
   background: rgb(255, 255, 255);
   height: 500px;
   width: 100%;
@@ -130,29 +130,29 @@ main div.hero-wrapper div.hero {
   justify-content: center;
 }
 
-main div.hero-wrapper div.hero.full-width-background img {
+main div.superhero-wrapper div.superhero.full-width-background img {
   width: 100% !important;
   height: 350px !important;
   object-fit: cover !important;
 }
 
-main div.hero-wrapper div.hero p.spectrum-Body--sizeL {
+main div.superhero-wrapper div.superhero p.spectrum-Body--sizeL {
   margin-top: 0 !important;
   color: rgb(80, 80, 80) !important;
 }
 
-main div.hero-wrapper div.hero.font-white h1,
-main div.hero-wrapper div.hero.font-white h2,
-main div.hero-wrapper div.hero.font-white h3,
-main div.hero-wrapper div.hero.font-white p {
+main div.superhero-wrapper div.superhero.font-white h1,
+main div.superhero-wrapper div.superhero.font-white h2,
+main div.superhero-wrapper div.superhero.font-white h3,
+main div.superhero-wrapper div.superhero.font-white p {
   color: white !important;
 }
 
-main div.hero-wrapper {
+main div.superhero-wrapper {
   padding: 0;
 }
 
-main div.hero-wrapper div.hero > div:first-child {
+main div.superhero-wrapper div.superhero > div:first-child {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -162,11 +162,11 @@ main div.hero-wrapper div.hero > div:first-child {
   margin-right: 32px;
 }
 
-main div.hero-wrapper div.hero div:nth-child(2) {
+main div.superhero-wrapper div.superhero div:nth-child(2) {
   flex: 1;
 }
 
-main div.hero-wrapper div.hero div:nth-child(2) > div {
+main div.superhero-wrapper div.superhero div:nth-child(2) > div {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,7 +174,7 @@ main div.hero-wrapper div.hero div:nth-child(2) > div {
   margin-top: 0;
 }
 
-main div.hero-wrapper div.hero div:nth-child(2) > div img {
+main div.superhero-wrapper div.superhero div:nth-child(2) > div img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
@@ -182,42 +182,42 @@ main div.hero-wrapper div.hero div:nth-child(2) > div img {
   min-height: 500px !important;
 }
 
-main div.hero-wrapper:has(.full-width-background) div:nth-child(2) > div img {
+main div.superhero-wrapper:has(.full-width-background) div:nth-child(2) > div img {
   display: none;
 }
 
-main div.hero-wrapper:has(.full-width-background) div:nth-child(3) {
+main div.superhero-wrapper:has(.full-width-background) div:nth-child(3) {
   display: flex;
   align-items: center;
 }
 
-main div.hero-wrapper div.hero .icon-container {
+main div.superhero-wrapper div.superhero .icon-container {
   height: 48px;
   width: 48px;
   margin-top: 0 !important;
   margin-bottom: 24px !important;
 }
 
-main div.hero-wrapper div.hero span.icon {
+main div.superhero-wrapper div.superhero span.icon {
   display: none;
 }
 
-main div.hero-wrapper div.hero .icon {
+main div.superhero-wrapper div.superhero .icon {
   height: 100%;
   object-fit: contain;
 }
 
-main div.hero-wrapper div.hero h3,
-main div.hero-wrapper div.hero h1 {
+main div.superhero-wrapper div.superhero h3,
+main div.superhero-wrapper div.superhero h1 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-main div.hero-wrapper div.hero h1 + p.last-of-type {
+main div.superhero-wrapper div.superhero h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
-main div.hero-wrapper div.hero .hero-button-container {
+main div.superhero-wrapper div.superhero .hero-button-container {
   display: flex;
   flex-wrap: wrap;
   margin-top: 24px;
@@ -225,72 +225,72 @@ main div.hero-wrapper div.hero .hero-button-container {
   margin-bottom: 10px;
 }
 
-main div.hero-wrapper div.hero h3 {
+main div.superhero-wrapper div.superhero h3 {
   margin-top: 0;
   margin-bottom: 16px;
 }
 
-main div.hero-wrapper div.hero h1 + p.last-of-type {
+main div.superhero-wrapper div.superhero h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
-main div.hero-wrapper div.hero.font-color-white a {
+main div.superhero-wrapper div.superhero.font-color-white a {
   text-decoration: underline;
 }
 
-main div.hero-wrapper div.hero.font-color-white h1,
-main div.hero-wrapper div.hero.font-color-white a,
-main div.hero-wrapper div.hero.font-color-white p {
+main div.superhero-wrapper div.superhero.font-color-white h1,
+main div.superhero-wrapper div.superhero.font-color-white a,
+main div.superhero-wrapper div.superhero.font-color-white p {
   color: white !important;
 }
 
-main div.hero-wrapper div.hero.font-color-black {
+main div.superhero-wrapper div.superhero.font-color-black {
   color: black;
 }
 
-main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) {
+main div.superhero-wrapper div.superhero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) {
   border-color: white;
 }
 
-main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) > span {
+main div.superhero-wrapper div.superhero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) > span {
   color: white;
 }
 
-main div.hero-wrapper div.hero.over-gradient p.button-container a {
+main div.superhero-wrapper div.superhero.over-gradient p.button-container a {
   font-size: 16px;
 }
 
-main div.hero-wrapper div.hero-video-container {
+main div.superhero-wrapper div.superhero-video-container {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 @media screen and (max-width: 768px) {
-  main div.hero-wrapper div.hero {
+  main div.superhero-wrapper div.superhero {
     padding: 32px;
     overflow: hidden;
   }
 
-  main div.hero-wrapper div.hero > div:first-child {
+  main div.superhero-wrapper div.superhero > div:first-child {
     margin-left: 64px;
     margin-right: 32px;
     width: 100%;
     margin: 0;
   }
 
-  main div.hero-wrapper div.hero div:nth-child(2) {
+  main div.superhero-wrapper div.superhero div:nth-child(2) {
     display: none;
   }
-  main div.hero-wrapper div.hero .spectrum-Heading--sizeXXL {
+  main div.superhero-wrapper div.superhero .spectrum-Heading--sizeXXL {
     font-size: 36px;
   }
 
-  main div.hero-wrapper div.hero picture {
+  main div.superhero-wrapper div.superhero picture {
     display: none;
   }
 
-  main div.hero-wrapper div.hero div:nth-child(2) > div div {
+  main div.superhero-wrapper div.superhero div:nth-child(2) > div div {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -298,14 +298,14 @@ main div.hero-wrapper div.hero-video-container {
     margin-top: 0;
   }
 
-  main div.hero-wrapper div.hero div:nth-child(2) > div img {
+  main div.superhero-wrapper div.superhero div:nth-child(2) > div img {
     width: 100% !important;
     min-width: 320px !important;
   }
 }
 
 @media screen and (max-width: 425px) {
-  main div.hero-wrapper div.hero div:nth-child(2) > div img {
+  main div.superhero-wrapper div.superhero div:nth-child(2) > div img {
     min-height: 0px;
   }
 }
