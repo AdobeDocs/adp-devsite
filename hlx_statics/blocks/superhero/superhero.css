@@ -120,3 +120,193 @@ main div.superhero-wrapper div.superhero.centeredxl .hero-button-container {
     padding: 0 32px;
   }
 }
+
+main div.hero-wrapper div.hero {
+  background: rgb(255, 255, 255);
+  height: 500px;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+main div.hero-wrapper div.hero.full-width-background img {
+  width: 100% !important;
+  height: 350px !important;
+  object-fit: cover !important;
+}
+
+main div.hero-wrapper div.hero p.spectrum-Body--sizeL {
+  margin-top: 0 !important;
+  color: rgb(80, 80, 80) !important;
+}
+
+main div.hero-wrapper div.hero.font-white h1,
+main div.hero-wrapper div.hero.font-white h2,
+main div.hero-wrapper div.hero.font-white h3,
+main div.hero-wrapper div.hero.font-white p {
+  color: white !important;
+}
+
+main div.hero-wrapper {
+  padding: 0;
+}
+
+main div.hero-wrapper div.hero > div:first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: calc(5 * 100% / 12);
+
+  margin-left: 40px;
+  margin-right: 32px;
+}
+
+main div.hero-wrapper div.hero div:nth-child(2) {
+  flex: 1;
+}
+
+main div.hero-wrapper div.hero div:nth-child(2) > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin-top: 0;
+}
+
+main div.hero-wrapper div.hero div:nth-child(2) > div img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0;
+  min-height: 500px !important;
+}
+
+main div.hero-wrapper:has(.full-width-background) div:nth-child(2) > div img {
+  display: none;
+}
+
+main div.hero-wrapper:has(.full-width-background) div:nth-child(3) {
+  display: flex;
+  align-items: center;
+}
+
+main div.hero-wrapper div.hero .icon-container {
+  height: 48px;
+  width: 48px;
+  margin-top: 0 !important;
+  margin-bottom: 24px !important;
+}
+
+main div.hero-wrapper div.hero span.icon {
+  display: none;
+}
+
+main div.hero-wrapper div.hero .icon {
+  height: 100%;
+  object-fit: contain;
+}
+
+main div.hero-wrapper div.hero h3,
+main div.hero-wrapper div.hero h1 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+main div.hero-wrapper div.hero h1 + p.last-of-type {
+  margin-bottom: 0 !important;
+}
+
+main div.hero-wrapper div.hero .hero-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+main div.hero-wrapper div.hero h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+main div.hero-wrapper div.hero h1 + p.last-of-type {
+  margin-bottom: 0 !important;
+}
+
+main div.hero-wrapper div.hero.font-color-white a {
+  text-decoration: underline;
+}
+
+main div.hero-wrapper div.hero.font-color-white h1,
+main div.hero-wrapper div.hero.font-color-white a,
+main div.hero-wrapper div.hero.font-color-white p {
+  color: white !important;
+}
+
+main div.hero-wrapper div.hero.font-color-black {
+  color: black;
+}
+
+main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) {
+  border-color: white;
+}
+
+main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) > span {
+  color: white;
+}
+
+main div.hero-wrapper div.hero.over-gradient p.button-container a {
+  font-size: 16px;
+}
+
+main div.hero-wrapper div.hero-video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media screen and (max-width: 768px) {
+  main div.hero-wrapper div.hero {
+    padding: 32px;
+    overflow: hidden;
+  }
+
+  main div.hero-wrapper div.hero > div:first-child {
+    margin-left: 64px;
+    margin-right: 32px;
+    width: 100%;
+    margin: 0;
+  }
+
+  main div.hero-wrapper div.hero div:nth-child(2) {
+    display: none;
+  }
+  main div.hero-wrapper div.hero .spectrum-Heading--sizeXXL {
+    font-size: 36px;
+  }
+
+  main div.hero-wrapper div.hero picture {
+    display: none;
+  }
+
+  main div.hero-wrapper div.hero div:nth-child(2) > div div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-top: 0;
+  }
+
+  main div.hero-wrapper div.hero div:nth-child(2) > div img {
+    width: 100% !important;
+    min-width: 320px !important;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  main div.hero-wrapper div.hero div:nth-child(2) > div img {
+    min-height: 0px;
+  }
+}
+
