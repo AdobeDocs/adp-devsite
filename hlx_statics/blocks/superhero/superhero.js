@@ -23,6 +23,8 @@ export default async function decorate(block) {
     restructureAsDevBizCentered(block);
     decorateDevBizCentered(block);
     applyDataAttributeStyles(block);
+  } else if (isDevBiz && hasAnyClass(block, ['halfwidth'])) {
+    decorateDevBizHalfWidth(block);
   }
 }
 
