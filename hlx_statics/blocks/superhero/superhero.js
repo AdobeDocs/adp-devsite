@@ -1,7 +1,13 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 
-const CENTERED_VARIANTS = ['centered', 'centeredxl'];
+const VARIANTS = {
+  default: 'default',
+  centered: 'centered',
+  centeredxl: 'centeredxl',
+  halfwidth: 'halfwidth'
+};
+const CENTERED_VARIANTS = [VARIANTS.centered, VARIANTS.centeredxl];
 const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
 const DEFAULT_TEXT_COLOR = 'white';
 const ALLOWED_TEXT_COLORS = ['black', DEFAULT_TEXT_COLOR, 'gray', 'navy'];
@@ -23,7 +29,7 @@ export default async function decorate(block) {
     restructureAsDevBizCentered(block);
     decorateDevBizCentered(block);
     applyDataAttributeStyles(block);
-  } else if (isDevBiz && hasAnyClass(block, ['halfwidth'])) {
+  } else if (isDevBiz && hasAnyClass(block, [VARIANTS.halfwidth])) {
     decorateDevBizHalfWidth(block);
   }
 }
@@ -33,7 +39,7 @@ function hasAnyClass(block, classes) {
 }
 
 function hasAnyVariant(block, variants) {
-  const variant = block.getAttribute('data-variant') || 'default';
+  const variant = block.getAttribute('data-variant') || VARIANTS.default;
   return variants.some((v) => v === variant);
 }
 
