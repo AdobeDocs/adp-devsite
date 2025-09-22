@@ -1,13 +1,7 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 
-const VARIANTS = {
-  default: 'default',
-  centered: 'centered',
-  centeredxl: 'centeredxl',
-  halfwidth: 'halfwidth'
-};
-const CENTERED_VARIANTS = [VARIANTS.centered, VARIANTS.centeredxl];
+const DEFAULT_VARIANT = 'default';
 const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
 const DEFAULT_TEXT_COLOR = 'white';
 const ALLOWED_TEXT_COLORS = ['black', DEFAULT_TEXT_COLOR, 'gray', 'navy'];
@@ -23,13 +17,13 @@ export default async function decorate(block) {
   const isDevBiz = main.classList.contains('dev-biz');
   const isDevDocs = main.classList.contains('dev-docs');
 
-  if (isDevBiz && hasAnyClass(block, CENTERED_VARIANTS)) {
+  if (isDevBiz && hasAnyClass(block, ['centered', 'centered-xl'])) {
     decorateDevBizCentered(block);
-  } else if (isDevDocs && hasAnyVariant(block, CENTERED_VARIANTS)) {
+  } else if (isDevDocs && hasAnyVariant(block, ['centered', 'centeredXL'])) {
     restructureAsDevBizCentered(block);
     decorateDevBizCentered(block);
     applyDataAttributeStyles(block);
-  } else if (isDevBiz && hasAnyClass(block, [VARIANTS.halfwidth])) {
+  } else if (isDevBiz && hasAnyClass(block, ['half-width'])) {
     decorateDevBizHalfWidth(block);
   }
 }
@@ -39,7 +33,7 @@ function hasAnyClass(block, classes) {
 }
 
 function hasAnyVariant(block, variants) {
-  const variant = block.getAttribute('data-variant') || VARIANTS.default;
+  const variant = block.getAttribute('data-variant') || DEFAULT_VARIANT;
   return variants.some((v) => v === variant);
 }
 
@@ -144,20 +138,20 @@ function restructureAsDevBizCentered(block) {
   const imageContent = slotElements.image?.querySelector('picture > img');
 
   const newChildren = [];
-  
+
   const contentDiv = createTag('div');
   const contentInnerDiv = createTag('div');
-  
+
   if (headingContent) {
     contentInnerDiv.appendChild(headingContent);
   }
-  
+
   if (textContent) {
     const p = createTag('p');
     p.textContent = textContent.textContent;
     contentInnerDiv.appendChild(p);
   }
-  
+
   if (buttonsContent) {
     buttonsContent.forEach((button, index) => {
       const p = createTag('p', { class: 'button-container' });
@@ -171,31 +165,34 @@ function restructureAsDevBizCentered(block) {
       contentInnerDiv.appendChild(p);
     });
   }
-  
+
   contentDiv.appendChild(contentInnerDiv);
   newChildren.push(contentDiv);
-  
+
   const imageDiv = createTag('div');
   const imageInnerDiv = createTag('div');
-  
+
   if (imageContent) {
     const picture = createTag('picture');
     picture.appendChild(imageContent);
     imageInnerDiv.appendChild(picture);
   }
-  
+
   imageDiv.appendChild(imageInnerDiv);
   newChildren.push(imageDiv);
-  
+
   block.replaceChildren(...newChildren);
 }
 
 function applyDataAttributeStyles(block) {
+  const variant = block.getAttribute('data-variant') || DEFAULT_VARIANT;
+  block.classList.add(variant);
+
   const background = block.getAttribute('data-background') || DEFAULT_BACKGROUND_COLOR;
   block.style.background = background;
 
   const textColor = block.getAttribute('data-textcolor') || DEFAULT_TEXT_COLOR;
-  if(ALLOWED_TEXT_COLORS.includes(textColor)) {
+  if (ALLOWED_TEXT_COLORS.includes(textColor)) {
     block.querySelectorAll('h1, h2, h3, h4, h5, h6, p').forEach((el) => {
       el.style.color = textColor;
     });
@@ -215,5 +212,3 @@ function rearrangeLinks(block) {
   });
   leftDiv.append(heroButtonContainer);
 }
-
-
