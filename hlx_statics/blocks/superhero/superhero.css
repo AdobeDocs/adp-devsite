@@ -156,13 +156,6 @@ main div.superhero-wrapper div.superhero.half-width p.spectrum-Body--sizeL {
   color: rgb(80, 80, 80) !important;
 }
 
-main div.superhero-wrapper div.superhero.half-width.font-white h1,
-main div.superhero-wrapper div.superhero.half-width.font-white h2,
-main div.superhero-wrapper div.superhero.half-width.font-white h3,
-main div.superhero-wrapper div.superhero.half-width.font-white p {
-  color: white !important;
-}
-
 main div.superhero-wrapper:has(div.superhero.half-width) {
   padding: 0;
 }
@@ -249,17 +242,17 @@ main div.superhero-wrapper div.superhero.half-width h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
-main div.superhero-wrapper div.superhero.half-width.font-color-white a {
+main div.superhero-wrapper div.superhero.half-width.text-color-white a {
   text-decoration: underline;
 }
 
-main div.superhero-wrapper div.superhero.half-width.font-color-white h1,
-main div.superhero-wrapper div.superhero.half-width.font-color-white a,
-main div.superhero-wrapper div.superhero.half-width.font-color-white p {
+main div.superhero-wrapper div.superhero.half-width.text-color-white h1,
+main div.superhero-wrapper div.superhero.half-width.text-color-white a,
+main div.superhero-wrapper div.superhero.half-width.text-color-white p {
   color: white !important;
 }
 
-main div.superhero-wrapper div.superhero.half-width.font-color-black {
+main div.superhero-wrapper div.superhero.half-width.text-color-black {
   color: black;
 }
 
