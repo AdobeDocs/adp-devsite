@@ -1,7 +1,13 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 
-const DEFAULT_VARIANT = 'default';
+const VARIANTS = {
+  default: 'default',
+  centered: 'centered',
+  centeredXL: 'centered-xl',
+  halfWidth: 'half-width',
+};
+const CENTERED_VARIANTS = [VARIANTS.centered, VARIANTS.centeredXL];
 const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
 const DEFAULT_TEXT_COLOR = 'white';
 const ALLOWED_TEXT_COLORS = ['black', DEFAULT_TEXT_COLOR, 'gray', 'navy'];
@@ -17,13 +23,17 @@ export default async function decorate(block) {
   const isDevBiz = main.classList.contains('dev-biz');
   const isDevDocs = main.classList.contains('dev-docs');
 
-  if (isDevBiz && hasAnyClass(block, ['centered', 'centered-xl'])) {
+  if (isDevDocs) {
+    renameAsDevBiz(block);
+  }
+
+  if (isDevBiz && hasAnyClass(block, CENTERED_VARIANTS)) {
     decorateDevBizCentered(block);
-  } else if (isDevDocs && hasAnyVariant(block, ['centered', 'centeredXL'])) {
+  } else if (isDevDocs && hasAnyVariant(block, CENTERED_VARIANTS)) {
     restructureAsDevBizCentered(block);
     decorateDevBizCentered(block);
     applyDataAttributeStyles(block);
-  } else if (isDevBiz && hasAnyClass(block, ['half-width'])) {
+  } else if (isDevBiz && hasAnyClass(block, [VARIANTS.halfWidth])) {
     decorateDevBizHalfWidth(block);
   }
 }
@@ -33,7 +43,7 @@ function hasAnyClass(block, classes) {
 }
 
 function hasAnyVariant(block, variants) {
-  const variant = block.getAttribute('data-variant') || DEFAULT_VARIANT;
+  const variant = block.getAttribute('data-variant') || VARIANTS.default;
   return variants.some((v) => v === variant);
 }
 
@@ -121,7 +131,18 @@ async function decorateDevBizHalfWidth(block) {
 }
 
 /**
- * restructures a devdocs block to match devbiz before the decorate function runs
+ * renames attributes of a DevDocs block from camelCase to kebab-case to match DevBiz before the decorate function runs
+ */
+function renameAsDevBiz(block) {
+  const variant = block.getAttribute('data-variant') || VARIANTS.default;
+  // VARIANTS has camelCase keys and kebab-case values
+  if (variant in VARIANTS) {
+    block.setAttribute('data-variant', VARIANTS[variant]);
+  }
+}
+
+/**
+ * restructures a DevDocs block to match DevBiz before the decorate function runs
  */
 function restructureAsDevBizCentered(block) {
   const slotNames = block
