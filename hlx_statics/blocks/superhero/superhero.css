@@ -1,6 +1,5 @@
 main div.superhero-wrapper:has(div.superhero.centered),
-main div.superhero-wrapper:has(div.superhero.centered-xl),
-main div.superhero-wrapper:has(div.superhero.centeredXL) {
+main div.superhero-wrapper:has(div.superhero.centered-xl) {
   background: rgb(255, 255, 255);
   background-position: center;
   background-size: cover;
@@ -13,16 +12,14 @@ main div.superhero-wrapper div.superhero.centered {
   height: 350px;
 }
 
-main div.superhero-wrapper div.superhero.centered-xl,
-main div.superhero-wrapper div.superhero.centeredXL {
+main div.superhero-wrapper div.superhero.centered-xl {
   position: relative;
   width: 100%;
   height: 624px;
 }
 
 main div.superhero-wrapper div.superhero.centered .superhero-content,
-main div.superhero-wrapper div.superhero.centered-xl .superhero-content,
-main div.superhero-wrapper div.superhero.centeredXL .superhero-content {
+main div.superhero-wrapper div.superhero.centered-xl .superhero-content {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -34,8 +31,7 @@ main div.superhero-wrapper div.superhero.centeredXL .superhero-content {
   width: 100%;
 }
 
-main div.superhero-wrapper div.superhero.centered-xl img,
-main div.superhero-wrapper div.superhero.centeredXL img {
+main div.superhero-wrapper div.superhero.centered-xl img {
   width: 100%;
   height: 624px;
   object-fit: cover;
@@ -48,16 +44,14 @@ main div.superhero-wrapper div.superhero.centered img {
 }
 
 main div.superhero-wrapper div.superhero.centered :is(h1, h2, h3, h4, h5, h6),
-main div.superhero-wrapper div.superhero.centered-xl :is(h1, h2, h3, h4, h5, h6),
-main div.superhero-wrapper div.superhero.centeredXL :is(h1, h2, h3, h4, h5, h6) {
+main div.superhero-wrapper div.superhero.centered-xl :is(h1, h2, h3, h4, h5, h6) {
   text-align: center;
   margin-top: 0;
   margin-bottom: 16px;
 }
 
 main div.superhero-wrapper div.superhero.centered p.spectrum-Body--sizeL,
-main div.superhero-wrapper div.superhero.centered-xl p.spectrum-Body--sizeL,
-main div.superhero-wrapper div.superhero.centeredXL p.spectrum-Body--sizeL {
+main div.superhero-wrapper div.superhero.centered-xl p.spectrum-Body--sizeL {
   margin-top: 0 !important;
   font-size: 18px;
   /* color: rgb(34, 34, 34) !important; */
@@ -65,8 +59,7 @@ main div.superhero-wrapper div.superhero.centeredXL p.spectrum-Body--sizeL {
 }
 
 main div.superhero-wrapper div.superhero.centered .superhero-button-container,
-main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container,
-main div.superhero-wrapper div.superhero.centeredXL .superhero-button-container {
+main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container {
   display: flex;
   flex-wrap: wrap;
   display: inline-flex;
@@ -77,21 +70,18 @@ main div.superhero-wrapper div.superhero.centeredXL .superhero-button-container 
 
 @media screen and (min-width: 768px) and (max-width: 1024px) {
   main div.superhero-wrapper div.superhero.centered .superhero-content,
-  main div.superhero-wrapper div.superhero.centered-xl .superhero-content,
-  main div.superhero-wrapper div.superhero.centeredXL .superhero-content {
+  main div.superhero-wrapper div.superhero.centered-xl .superhero-content {
     padding: 0 32px;
   }
 
   main div.superhero-wrapper div.superhero.centered img,
-  main div.superhero-wrapper div.superhero.centered-xl img,
-  main div.superhero-wrapper div.superhero.centeredXL img {
+  main div.superhero-wrapper div.superhero.centered-xl img {
     width: 100%;
     height: 350px;
     object-fit: cover;
   }
 
-  main div.superhero-wrapper .centered-xl img,
-  main div.superhero-wrapper .centeredXL img {
+  main div.superhero-wrapper .centered-xl img {
     width: 100%;
     height: 350px;
     object-fit: cover;
@@ -100,38 +90,33 @@ main div.superhero-wrapper div.superhero.centeredXL .superhero-button-container 
 
 @media screen and (min-width: 320px) and (max-width: 767px) {
   main div.superhero-wrapper div.superhero.centered,
-  main div.superhero-wrapper div.superhero.centered-xl,
-  main div.superhero-wrapper div.superhero.centeredXL {
+  main div.superhero-wrapper div.superhero.centered-xl {
     position: relative;
     width: 100%;
     height: 75vh !important;
   }
 
-  main div.superhero-wrapper div.superhero.centered-xl,
-  main div.superhero-wrapper div.superhero.centeredXL {
+  main div.superhero-wrapper div.superhero.centered-xl {
     position: relative;
     width: 100%;
     height: 100vh !important;
   }
 
   main div.superhero-wrapper div.superhero.centered img,
-  main div.superhero-wrapper div.superhero.centered-xl img,
-  main div.superhero-wrapper div.superhero.centeredXL img {
+  main div.superhero-wrapper div.superhero.centered-xl img {
     overflow-clip-margin: content-box;
     overflow: clip;
     height: 75vh !important;
   }
 
-  main div.superhero-wrapper div.superhero.centered-xl img,
-  main div.superhero-wrapper div.superhero.centeredXL img {
+  main div.superhero-wrapper div.superhero.centered-xl img {
     overflow-clip-margin: content-box;
     overflow: clip;
     height: 100vh !important;
   }
 
   main div.superhero-wrapper div.superhero.centered .superhero-content,
-  main div.superhero-wrapper div.superhero.centered-xl .superhero-content,
-  main div.superhero-wrapper div.superhero.centeredXL .superhero-content {
+  main div.superhero-wrapper div.superhero.centered-xl .superhero-content {
     padding: 0 32px;
   }
 }
