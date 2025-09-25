@@ -298,7 +298,7 @@ export function buildGrid(main) {
     gridAreaMain.style.gridArea = 'main';
     gridAreaMain.classList.add('grid-main-area');
   }
-  
+
   if(getMetadata('layout') === 'none' && gridAreaMain?.classList.contains('redoclyapiblock-container')){
     main?.classList.add('no-layout');
   }
@@ -323,17 +323,22 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildGridAreaMain(main) {
-  const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
   const gridAreaMain = main.querySelector('.grid-main-area');
   const subParent = createTag("div", { class: "sub-parent" });
-  if (herosimpleWrapper) {
+  
+  const heroWrapperClasses = ['herosimple-wrapper', 'superhero-wrapper'];
+  const selector = '.' + heroWrapperClasses.join(', .');
+  const heroWrapper = main.querySelector(selector);
+  const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
+  
+  if (heroWrapper) {
     const children = Array.from(gridAreaMain.children);
     children.forEach((child) => {
-      if (!child.classList.contains("herosimple-wrapper")) {
+      if (!child.classList.contains(heroWrapperClass)) {
         subParent.appendChild(child);
       }
     });
-    gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
+    gridAreaMain.insertBefore(subParent, heroWrapper.nextSibling);
   } else {
     gridAreaMain.appendChild(subParent);
   }
@@ -538,7 +543,7 @@ function activeSubNav(actTab) {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (linkPath === pagePath) {
+        if (linkPath.startsWith(pagePath) && getMetadata("template") === "documentation") {
           showSidenav = true;
         }
         if (!linkPath.startsWith(topNavPath)) {
@@ -549,6 +554,7 @@ function activeSubNav(actTab) {
       }
     });
   }
+  
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }

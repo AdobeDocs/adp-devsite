@@ -798,7 +798,8 @@ export function githubActionsBlock(doc) {
   if (!baseUrl) return;
   const githubEditUrl = baseUrl.replace('blob', 'edit');
   const githubIssueUrl = baseUrl.replace('blob', 'issues/new?title=Issue%20in%20');
-  if (!doc.querySelector('.herosimple-container') && !doc.querySelector('.hero-container')) {
+  const hasHero = Boolean(document.querySelector('.hero, .site-hero, .herosimple, .superhero'));
+  if (!hasHero) {
     const newContent = doc.createElement('div');
     newContent.classList.add('section', 'github-actions-wrapper');
     newContent.innerHTML = `

@@ -1,8 +1,4 @@
-import {
-  removeEmptyPTags,
-  decorateButtons,
-  createTag,
-} from '../../scripts/lib-adobeio.js';
+import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 
 /**
  * decorates the site-hero
@@ -13,12 +9,12 @@ export default async function decorate(block) {
   removeEmptyPTags(block);
   decorateButtons(block);
 
-  const button_div = createTag('div', {class: 'hero-button-container'});
+  const button_div = createTag('div', { class: 'hero-button-container' });
 
   block.classList.add('spectrum--dark');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
-    h.style.color = "white";
+    h.style.color = 'white';
     h.parentElement.classList.add('site-hero-content');
     h.parentElement.append(button_div);
   });
@@ -28,9 +24,9 @@ export default async function decorate(block) {
     // don't attach to icon container or if p tag contains links
     if (!p.classList.contains('icon-container')) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
-      p.style.color = "white";
+      p.style.color = 'white';
     }
-    if (p.classList.contains('button-container')){
+    if (p.classList.contains('button-container')) {
       button_div.append(p);
     }
   });

@@ -117,3 +117,7 @@ main div.codeblock-wrapper div.codeblock .tabs-panel {
 main div.codeblock-wrapper div.codeblock .hidden {
   display: none;
 }
+
+main div.codeblock-wrapper div.codeblock pre[class*=language-].no-line-numbers .line-highlight {
+  transform: translateY(22.6px);
+}
