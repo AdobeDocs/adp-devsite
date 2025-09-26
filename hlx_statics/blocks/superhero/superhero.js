@@ -179,8 +179,10 @@ function restructureAsDevBiz(block) {
     });
   }
 
-  contentDiv.appendChild(contentInnerDiv);
-  newChildren.push(contentDiv);
+  if (contentInnerDiv.children.length > 0) {
+    contentDiv.appendChild(contentInnerDiv);
+    newChildren.push(contentDiv);
+  }
 
   const imageDiv = createTag('div');
   const imageInnerDiv = createTag('div');
@@ -191,8 +193,10 @@ function restructureAsDevBiz(block) {
     imageInnerDiv.appendChild(picture);
   }
 
-  imageDiv.appendChild(imageInnerDiv);
-  newChildren.push(imageDiv);
+  if (imageInnerDiv.children.length > 0) {
+    imageDiv.appendChild(imageInnerDiv);
+    newChildren.push(imageDiv);
+  }
 
   block.replaceChildren(...newChildren);
 }
