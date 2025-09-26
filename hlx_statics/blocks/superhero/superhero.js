@@ -7,10 +7,13 @@ const VARIANTS = {
   centeredXL: 'centered-xl',
   halfWidth: 'half-width',
 };
-const CENTERED_VARIANTS = [VARIANTS.centered, VARIANTS.centeredXL];
-const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
-const DEFAULT_TEXT_COLOR = 'white';
-const ALLOWED_TEXT_COLORS = ['black', DEFAULT_TEXT_COLOR, 'gray', 'navy'];
+
+const TEXT_COLORS = {
+  black: 'black',
+  white: 'white',
+  gray: 'gray',
+  navy: 'navy',
+};
 
 /**
  * decorates the superhero
@@ -20,20 +23,16 @@ export default async function decorate(block) {
   block.setAttribute('daa-lh', 'superhero');
 
   const main = document.querySelector('main');
-  const isDevBiz = main.classList.contains('dev-biz');
   const isDevDocs = main.classList.contains('dev-docs');
 
   if (isDevDocs) {
-    renameAsDevBiz(block);
+    restructureAsDevBiz(block);
+    applyDataAttributeStyles(block);
   }
 
-  if (isDevBiz && hasAnyClass(block, CENTERED_VARIANTS)) {
+  if (hasAnyClass(block, [VARIANTS.centered, VARIANTS.centeredXL])) {
     decorateDevBizCentered(block);
-  } else if (isDevDocs && hasAnyVariant(block, CENTERED_VARIANTS)) {
-    restructureAsDevBizCentered(block);
-    decorateDevBizCentered(block);
-    applyDataAttributeStyles(block);
-  } else if (isDevBiz && hasAnyClass(block, [VARIANTS.halfWidth])) {
+  } else if (hasAnyClass(block, [VARIANTS.halfWidth])) {
     decorateDevBizHalfWidth(block);
   }
 }
@@ -42,12 +41,9 @@ function hasAnyClass(block, classes) {
   return classes.some((c) => block.classList.contains(c));
 }
 
-function hasAnyVariant(block, variants) {
-  const variant = block.getAttribute('data-variant') || VARIANTS.default;
-  return variants.some((v) => v === variant);
-}
-
 async function decorateDevBizCentered(block) {
+  const defaultTextColor = TEXT_COLORS.white;
+
   removeEmptyPTags(block);
   decorateButtons(block);
 
@@ -56,7 +52,7 @@ async function decorateDevBizCentered(block) {
   block.classList.add('spectrum--dark');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
-    h.style.color = DEFAULT_TEXT_COLOR;
+    h.style.color = defaultTextColor;
     h.parentElement.classList.add('superhero-content');
     h.parentElement.append(button_div);
   });
@@ -64,7 +60,7 @@ async function decorateDevBizCentered(block) {
   block.querySelectorAll('p').forEach((p) => {
     if (!p.classList.contains('icon-container')) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
-      p.style.color = DEFAULT_TEXT_COLOR;
+      p.style.color = defaultTextColor;
     }
     if (p.classList.contains('button-container')) {
       button_div.append(p);
@@ -131,37 +127,57 @@ async function decorateDevBizHalfWidth(block) {
 }
 
 /**
- * renames attributes of a DevDocs block from camelCase to kebab-case to match DevBiz before the decorate function runs
- */
-function renameAsDevBiz(block) {
-  const variant = block.getAttribute('data-variant') || VARIANTS.default;
-  // VARIANTS has camelCase keys and kebab-case values
-  if (variant in VARIANTS) {
-    block.setAttribute('data-variant', VARIANTS[variant]);
-  }
-}
-
-/**
  * restructures a DevDocs block to match DevBiz before the decorate function runs
  */
-function restructureAsDevBizCentered(block) {
+function restructureAsDevBiz(block) {
+  const camelCaseVariant = block.getAttribute('data-variant') || VARIANTS.default;
+  if (camelCaseVariant in VARIANTS) {
+    const kebabCaseVariant = VARIANTS[camelCaseVariant];
+    block.setAttribute('data-variant', kebabCaseVariant);
+    block.classList.add(kebabCaseVariant);
+  }
+
+  const textColor = block.getAttribute('data-textcolor');
+  if (textColor) {
+    block.classList.add(`text-color-${textColor}`);
+  }
+
+  if (block.getAttribute('data-overgradient')) {
+    block.classList.add('over-gradient');
+  }
+
   const slotNames = block
     ?.getAttribute('data-slots')
     ?.split(',')
     .map((slot) => slot.trim());
 
+  if (slotNames.includes('fullWidthBackground')) {
+    block.classList.add('full-width-background');
+  }
+
+  if (slotNames.includes('video')) {
+    block.classList.add('video');
+  }
+
   const children = Array.from(block.children[0].children);
   const slotElements = Object.fromEntries(slotNames.map((slotName, index) => [slotName, children[index]]));
 
+  const iconContent = slotElements.icon?.firstElementChild;
   const headingContent = slotElements.heading?.querySelector('h1, h2, h3, h4, h5, h6');
-  const textContent = slotElements.text?.firstChild;
+  const textContent = slotElements.text;
   const buttonsContent = slotElements.buttons?.querySelectorAll('ul > li > a');
+  const backgroundContent = slotElements.fullWidthBackground?.querySelector('picture > img');
   const imageContent = slotElements.image?.querySelector('picture > img');
+  const videoContent = slotElements.video;
 
   const newChildren = [];
 
   const contentDiv = createTag('div');
   const contentInnerDiv = createTag('div');
+
+  if (iconContent) {
+    contentInnerDiv.appendChild(iconContent);
+  }
 
   if (headingContent) {
     contentInnerDiv.appendChild(headingContent);
@@ -169,7 +185,7 @@ function restructureAsDevBizCentered(block) {
 
   if (textContent) {
     const p = createTag('p');
-    p.textContent = textContent.textContent;
+    p.innerHTML = textContent.innerHTML;
     contentInnerDiv.appendChild(p);
   }
 
@@ -187,33 +203,56 @@ function restructureAsDevBizCentered(block) {
     });
   }
 
-  contentDiv.appendChild(contentInnerDiv);
-  newChildren.push(contentDiv);
-
-  const imageDiv = createTag('div');
-  const imageInnerDiv = createTag('div');
-
-  if (imageContent) {
-    const picture = createTag('picture');
-    picture.appendChild(imageContent);
-    imageInnerDiv.appendChild(picture);
+  if (contentInnerDiv.children.length > 0) {
+    contentDiv.appendChild(contentInnerDiv);
+    newChildren.push(contentDiv);
   }
 
-  imageDiv.appendChild(imageInnerDiv);
-  newChildren.push(imageDiv);
+  const backgroundDiv = createTag('div');
+  const backgroundInnerDiv = createTag('div');
+
+  if (backgroundContent) {
+    const picture = createTag('picture');
+    picture.appendChild(backgroundContent);
+    backgroundInnerDiv.appendChild(picture);
+  }
+
+  if (backgroundInnerDiv.children.length > 0) {
+    backgroundDiv.appendChild(backgroundInnerDiv);
+    newChildren.push(backgroundDiv);
+  }
+
+  const mediaDiv = createTag('div');
+
+  if (imageContent) {
+    const mediaInnerDiv = createTag('div');
+    const picture = createTag('picture');
+    picture.appendChild(imageContent);
+    mediaInnerDiv.appendChild(picture);
+    mediaDiv.appendChild(mediaInnerDiv);
+  }
+
+  if (videoContent) {
+    mediaDiv.appendChild(videoContent);
+  }
+
+  if (mediaDiv.children.length > 0) {
+    newChildren.push(mediaDiv);
+  }
 
   block.replaceChildren(...newChildren);
 }
 
 function applyDataAttributeStyles(block) {
-  const variant = block.getAttribute('data-variant') || DEFAULT_VARIANT;
-  block.classList.add(variant);
+  const variant = block.getAttribute('data-variant') || VARIANTS.default;
 
-  const background = block.getAttribute('data-background') || DEFAULT_BACKGROUND_COLOR;
+  const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(29, 125, 238)';
+  const background = block.getAttribute('data-background') || defaultBackgroundColor;
   block.style.background = background;
 
-  const textColor = block.getAttribute('data-textcolor') || DEFAULT_TEXT_COLOR;
-  if (ALLOWED_TEXT_COLORS.includes(textColor)) {
+  const defaultTextColor = variant === VARIANTS.halfWidth ? TEXT_COLORS.black : TEXT_COLORS.white;
+  const textColor = block.getAttribute('data-textcolor') || defaultTextColor;
+  if (Object.keys(TEXT_COLORS).includes(textColor)) {
     block.querySelectorAll('h1, h2, h3, h4, h5, h6, p').forEach((el) => {
       el.style.color = textColor;
     });
