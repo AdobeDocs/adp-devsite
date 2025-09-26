@@ -15,9 +15,6 @@ const TEXT_COLORS = {
   navy: 'navy',
 };
 
-const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
-const DEFAULT_TEXT_COLOR = TEXT_COLORS.white;
-
 /**
  * decorates the superhero
  * @param {Element} block The superhero block element
@@ -45,6 +42,8 @@ function hasAnyClass(block, classes) {
 }
 
 async function decorateDevBizCentered(block) {
+  const defaultTextColor = TEXT_COLORS.white;
+
   removeEmptyPTags(block);
   decorateButtons(block);
 
@@ -53,7 +52,7 @@ async function decorateDevBizCentered(block) {
   block.classList.add('spectrum--dark');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
-    h.style.color = DEFAULT_TEXT_COLOR;
+    h.style.color = defaultTextColor;
     h.parentElement.classList.add('superhero-content');
     h.parentElement.append(button_div);
   });
@@ -61,7 +60,7 @@ async function decorateDevBizCentered(block) {
   block.querySelectorAll('p').forEach((p) => {
     if (!p.classList.contains('icon-container')) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
-      p.style.color = DEFAULT_TEXT_COLOR;
+      p.style.color = defaultTextColor;
     }
     if (p.classList.contains('button-container')) {
       button_div.append(p);
@@ -134,7 +133,17 @@ function restructureAsDevBiz(block) {
   const camelCaseVariant = block.getAttribute('data-variant') || VARIANTS.default;
   if (camelCaseVariant in VARIANTS) {
     const kebabCaseVariant = VARIANTS[camelCaseVariant];
+    block.setAttribute('data-variant', kebabCaseVariant);
     block.classList.add(kebabCaseVariant);
+  }
+
+  const textColor = block.getAttribute('data-textcolor');
+  if (textColor) {
+    block.classList.add(`text-color-${textColor}`);
+  }
+
+  if (block.getAttribute('data-overgradient')) {
+    block.classList.add('over-gradient');
   }
 
   const slotNames = block
@@ -142,18 +151,33 @@ function restructureAsDevBiz(block) {
     ?.split(',')
     .map((slot) => slot.trim());
 
+  if (slotNames.includes('fullWidthBackground')) {
+    block.classList.add('full-width-background');
+  }
+
+  if (slotNames.includes('video')) {
+    block.classList.add('video');
+  }
+
   const children = Array.from(block.children[0].children);
   const slotElements = Object.fromEntries(slotNames.map((slotName, index) => [slotName, children[index]]));
 
+  const iconContent = slotElements.icon?.firstElementChild;
   const headingContent = slotElements.heading?.querySelector('h1, h2, h3, h4, h5, h6');
   const textContent = slotElements.text;
   const buttonsContent = slotElements.buttons?.querySelectorAll('ul > li > a');
+  const backgroundContent = slotElements.fullWidthBackground?.querySelector('picture > img');
   const imageContent = slotElements.image?.querySelector('picture > img');
+  const videoContent = slotElements.video;
 
   const newChildren = [];
 
   const contentDiv = createTag('div');
   const contentInnerDiv = createTag('div');
+
+  if (iconContent) {
+    contentInnerDiv.appendChild(iconContent);
+  }
 
   if (headingContent) {
     contentInnerDiv.appendChild(headingContent);
@@ -184,6 +208,20 @@ function restructureAsDevBiz(block) {
     newChildren.push(contentDiv);
   }
 
+  const backgroundDiv = createTag('div');
+  const backgroundInnerDiv = createTag('div');
+
+  if (backgroundContent) {
+    const picture = createTag('picture');
+    picture.appendChild(backgroundContent);
+    backgroundInnerDiv.appendChild(picture);
+  }
+
+  if (backgroundInnerDiv.children.length > 0) {
+    backgroundDiv.appendChild(backgroundInnerDiv);
+    newChildren.push(backgroundDiv);
+  }
+
   const mediaDiv = createTag('div');
 
   if (imageContent) {
@@ -194,6 +232,10 @@ function restructureAsDevBiz(block) {
     mediaDiv.appendChild(mediaInnerDiv);
   }
 
+  if (videoContent) {
+    mediaDiv.appendChild(videoContent);
+  }
+
   if (mediaDiv.children.length > 0) {
     newChildren.push(mediaDiv);
   }
@@ -202,10 +244,14 @@ function restructureAsDevBiz(block) {
 }
 
 function applyDataAttributeStyles(block) {
-  const background = block.getAttribute('data-background') || DEFAULT_BACKGROUND_COLOR;
+  const variant = block.getAttribute('data-variant') || VARIANTS.default;
+
+  const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(29, 125, 238)';
+  const background = block.getAttribute('data-background') || defaultBackgroundColor;
   block.style.background = background;
 
-  const textColor = block.getAttribute('data-textcolor') || DEFAULT_TEXT_COLOR;
+  const defaultTextColor = variant === VARIANTS.halfWidth ? TEXT_COLORS.black : TEXT_COLORS.white;
+  const textColor = block.getAttribute('data-textcolor') || defaultTextColor;
   if (Object.keys(TEXT_COLORS).includes(textColor)) {
     block.querySelectorAll('h1, h2, h3, h4, h5, h6, p').forEach((el) => {
       el.style.color = textColor;
