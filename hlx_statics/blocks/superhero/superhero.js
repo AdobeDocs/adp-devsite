@@ -7,7 +7,6 @@ const VARIANTS = {
   centeredXL: 'centered-xl',
   halfWidth: 'half-width',
 };
-const CENTERED_VARIANTS = [VARIANTS.centered, VARIANTS.centeredXL];
 const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
 const DEFAULT_TEXT_COLOR = 'white';
 const ALLOWED_TEXT_COLORS = ['black', DEFAULT_TEXT_COLOR, 'gray', 'navy'];
@@ -20,31 +19,22 @@ export default async function decorate(block) {
   block.setAttribute('daa-lh', 'superhero');
 
   const main = document.querySelector('main');
-  const isDevBiz = main.classList.contains('dev-biz');
   const isDevDocs = main.classList.contains('dev-docs');
 
   if (isDevDocs) {
-    renameAsDevBiz(block);
+    restructureAsDevBiz(block);
+    applyDataAttributeStyles(block);
   }
 
-  if (isDevBiz && hasAnyClass(block, CENTERED_VARIANTS)) {
+  if (hasAnyClass(block, [VARIANTS.centered, VARIANTS.centeredXL])) {
     decorateDevBizCentered(block);
-  } else if (isDevDocs && hasAnyVariant(block, CENTERED_VARIANTS)) {
-    restructureAsDevBizCentered(block);
-    decorateDevBizCentered(block);
-    applyDataAttributeStyles(block);
-  } else if (isDevBiz && hasAnyClass(block, [VARIANTS.halfWidth])) {
+  } else if (hasAnyClass(block, [VARIANTS.halfWidth])) {
     decorateDevBizHalfWidth(block);
   }
 }
 
 function hasAnyClass(block, classes) {
   return classes.some((c) => block.classList.contains(c));
-}
-
-function hasAnyVariant(block, variants) {
-  const variant = block.getAttribute('data-variant') || VARIANTS.default;
-  return variants.some((v) => v === variant);
 }
 
 async function decorateDevBizCentered(block) {
@@ -131,20 +121,15 @@ async function decorateDevBizHalfWidth(block) {
 }
 
 /**
- * renames attributes of a DevDocs block from camelCase to kebab-case to match DevBiz before the decorate function runs
- */
-function renameAsDevBiz(block) {
-  const variant = block.getAttribute('data-variant') || VARIANTS.default;
-  // VARIANTS has camelCase keys and kebab-case values
-  if (variant in VARIANTS) {
-    block.setAttribute('data-variant', VARIANTS[variant]);
-  }
-}
-
-/**
  * restructures a DevDocs block to match DevBiz before the decorate function runs
  */
-function restructureAsDevBizCentered(block) {
+function restructureAsDevBiz(block) {
+  const camelCaseVariant = block.getAttribute('data-variant') || VARIANTS.default;
+  if (camelCaseVariant in VARIANTS) {
+    const kebabCaseVariant = VARIANTS[camelCaseVariant];
+    block.classList.add(kebabCaseVariant);
+  }
+
   const slotNames = block
     ?.getAttribute('data-slots')
     ?.split(',')
@@ -206,9 +191,6 @@ function restructureAsDevBizCentered(block) {
 }
 
 function applyDataAttributeStyles(block) {
-  const variant = block.getAttribute('data-variant') || DEFAULT_VARIANT;
-  block.classList.add(variant);
-
   const background = block.getAttribute('data-background') || DEFAULT_BACKGROUND_COLOR;
   block.style.background = background;
 
