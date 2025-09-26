@@ -7,9 +7,16 @@ const VARIANTS = {
   centeredXL: 'centered-xl',
   halfWidth: 'half-width',
 };
+
+const TEXT_COLORS = {
+  black: 'black',
+  white: 'white',
+  gray: 'gray',
+  navy: 'navy',
+};
+
 const DEFAULT_BACKGROUND_COLOR = 'rgb(29, 125, 238)';
-const DEFAULT_TEXT_COLOR = 'white';
-const ALLOWED_TEXT_COLORS = ['black', DEFAULT_TEXT_COLOR, 'gray', 'navy'];
+const DEFAULT_TEXT_COLOR = TEXT_COLORS.white;
 
 /**
  * decorates the superhero
@@ -195,7 +202,7 @@ function applyDataAttributeStyles(block) {
   block.style.background = background;
 
   const textColor = block.getAttribute('data-textcolor') || DEFAULT_TEXT_COLOR;
-  if (ALLOWED_TEXT_COLORS.includes(textColor)) {
+  if (Object.keys(TEXT_COLORS).includes(textColor)) {
     block.querySelectorAll('h1, h2, h3, h4, h5, h6, p').forEach((el) => {
       el.style.color = textColor;
     });
