@@ -184,18 +184,18 @@ function restructureAsDevBiz(block) {
     newChildren.push(contentDiv);
   }
 
-  const imageDiv = createTag('div');
-  const imageInnerDiv = createTag('div');
+  const mediaDiv = createTag('div');
+  const mediaInnerDiv = createTag('div');
 
   if (imageContent) {
     const picture = createTag('picture');
     picture.appendChild(imageContent);
-    imageInnerDiv.appendChild(picture);
+    mediaInnerDiv.appendChild(picture);
   }
 
-  if (imageInnerDiv.children.length > 0) {
-    imageDiv.appendChild(imageInnerDiv);
-    newChildren.push(imageDiv);
+  if (mediaInnerDiv.children.length > 0) {
+    mediaDiv.appendChild(mediaInnerDiv);
+    newChildren.push(mediaDiv);
   }
 
   block.replaceChildren(...newChildren);
