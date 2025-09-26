@@ -1186,8 +1186,7 @@ main .action-buttons div{
 }
 
 main .default-content-wrapper img{
-  width: 100%;
-  height: 100%;
+  max-width:100%
 }
 
 main li h3{
