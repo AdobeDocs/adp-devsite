@@ -185,16 +185,16 @@ function restructureAsDevBiz(block) {
   }
 
   const mediaDiv = createTag('div');
-  const mediaInnerDiv = createTag('div');
 
   if (imageContent) {
+    const mediaInnerDiv = createTag('div');
     const picture = createTag('picture');
     picture.appendChild(imageContent);
     mediaInnerDiv.appendChild(picture);
+    mediaDiv.appendChild(mediaInnerDiv);
   }
 
-  if (mediaInnerDiv.children.length > 0) {
-    mediaDiv.appendChild(mediaInnerDiv);
+  if (mediaDiv.children.length > 0) {
     newChildren.push(mediaDiv);
   }
 
