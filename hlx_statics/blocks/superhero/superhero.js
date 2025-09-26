@@ -146,7 +146,7 @@ function restructureAsDevBiz(block) {
   const slotElements = Object.fromEntries(slotNames.map((slotName, index) => [slotName, children[index]]));
 
   const headingContent = slotElements.heading?.querySelector('h1, h2, h3, h4, h5, h6');
-  const textContent = slotElements.text?.firstChild;
+  const textContent = slotElements.text;
   const buttonsContent = slotElements.buttons?.querySelectorAll('ul > li > a');
   const imageContent = slotElements.image?.querySelector('picture > img');
 
@@ -161,7 +161,7 @@ function restructureAsDevBiz(block) {
 
   if (textContent) {
     const p = createTag('p');
-    p.textContent = textContent.textContent;
+    p.innerHTML = textContent.innerHTML;
     contentInnerDiv.appendChild(p);
   }
 
