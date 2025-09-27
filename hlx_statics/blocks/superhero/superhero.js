@@ -111,11 +111,22 @@ async function decorateDevBizHalfWidth(block) {
     heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
       Object.assign(herowrapper.style, {
         backgroundColor: 'transparent',
-        width: '75%',
-        margin: 'auto',
       });
     });
+  } else {
+    // insert a placeholder div (where the background image would be), because it is styled as the space between the text and the image/video.
+    const emptyDiv = createTag('div');
+    const emptyInnerDiv = createTag('div');
+    emptyDiv.appendChild(emptyInnerDiv);
+    block.insertBefore(emptyDiv, block.lastElementChild);
   }
+
+  heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
+    Object.assign(herowrapper.style, {
+      width: '75%',
+      margin: 'auto',
+    });
+  });
 
   const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
@@ -249,6 +260,8 @@ function applyDataAttributeStyles(block) {
   const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(29, 125, 238)';
   const background = block.getAttribute('data-background') || defaultBackgroundColor;
   block.style.background = background;
+  const wrapper = block.parentElement;
+  wrapper.style.background = background;
 
   const defaultTextColor = variant === VARIANTS.halfWidth ? TEXT_COLORS.black : TEXT_COLORS.white;
   const textColor = block.getAttribute('data-textcolor') || defaultTextColor;

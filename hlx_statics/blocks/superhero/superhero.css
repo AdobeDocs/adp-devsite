@@ -121,8 +121,12 @@ main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container
   }
 }
 
+main div.superhero-wrapper:has(div.superhero.half-width),
 main div.superhero-wrapper div.superhero.half-width {
   background: rgb(255, 255, 255);
+}
+
+main div.superhero-wrapper div.superhero.half-width {
   height: 500px;
   width: 100%;
   overflow: hidden;
@@ -130,7 +134,7 @@ main div.superhero-wrapper div.superhero.half-width {
   justify-content: center;
 }
 
-main div.superhero-wrapper div.superhero.half-width.full-width-background img {
+main div.superhero-wrapper div.superhero.half-width img {
   width: 100% !important;
   height: 350px !important;
   object-fit: cover !important;
@@ -175,11 +179,11 @@ main div.superhero-wrapper div.superhero.half-width div:nth-child(2) > div img {
   min-height: 500px !important;
 }
 
-main div.superhero-wrapper:has(.half-width.full-width-background) div:nth-child(2) > div img {
+main div.superhero-wrapper:has(.half-width) div:nth-child(2) > div img {
   display: none;
 }
 
-main div.superhero-wrapper:has(.half-width.full-width-background) div:nth-child(3) {
+main div.superhero-wrapper:has(.half-width) div:nth-child(3) {
   display: flex;
   align-items: center;
 }
