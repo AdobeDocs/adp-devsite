@@ -72,7 +72,6 @@ async function decorateDevBizCentered(block) {
 }
 
 async function decorateDevBizHalfWidth(block) {
-  block.setAttribute('daa-lh', 'superhero');
   // Block decoration
   decorateLightOrDark(block, true);
   // H1 decoration
@@ -152,7 +151,6 @@ async function decorateDevBizDefault(block) {
 
   const allowedTextColors = { black: 'rgb(0, 0, 0)', white: 'rgb(255, 255, 255)', gray: 'rgb(110, 110, 110)', navy: 'rgb(15, 55, 95)' };
 
-  block.setAttribute('daa-lh', 'hero');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.style.color = Object.keys(allowedTextColors).includes(textColor) && allowedTextColors[textColor];
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL', 'spectrum-Heading');
