@@ -35,6 +35,7 @@ export default async function decorate(block) {
   } else if (hasAnyClass(block, [VARIANTS.halfWidth])) {
     decorateDevBizHalfWidth(block);
   } else {
+    block.classList.add(VARIANTS.default);
     decorateDevBizDefault(block);
   }
 }

@@ -307,16 +307,16 @@ main div.superhero-wrapper div.superhero.half-width div.superhero-video-containe
   }
 }
 
-main div.superhero-wrapper {
+main div.superhero-wrapper:has(div.superhero.default) {
   width: 100%;
 }
-main div.superhero-wrapper div.superhero {
+main div.superhero-wrapper div.superhero.default {
   height: 272px;
   overflow: hidden;
   position: relative;
 }
 
-main div.superhero-wrapper div.superhero > div {
+main div.superhero-wrapper div.superhero.default > div {
   margin: 0 auto;
   width: 100%;
   display: flex;
@@ -326,112 +326,112 @@ main div.superhero-wrapper div.superhero > div {
   height: 100%;
 }
 
-main div.superhero-wrapper div.superhero > div > div {
+main div.superhero-wrapper div.superhero.default > div > div {
   width: calc(5 * 100% / 12);
   font-size: 20px;
 }
 
-main div.superhero-wrapper div.superhero .hero-left-content {
+main div.superhero-wrapper div.superhero.default .hero-left-content {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-main div.superhero-wrapper div.superhero div.hero-left-content > div {
+main div.superhero-wrapper div.superhero.default div.hero-left-content > div {
   display: flex;
   gap: 30px;
   flex-direction: column;
 }
 
-main div.superhero-wrapper div.superhero div.hero-left-content,
-main div.superhero-wrapper div.superhero div.hero-right-image {
+main div.superhero-wrapper div.superhero.default div.hero-left-content,
+main div.superhero-wrapper div.superhero.default div.hero-right-image {
   width: 50%;
 }
 
-main div.superhero-wrapper div.superhero div.hero-right-image img {
+main div.superhero-wrapper div.superhero.default div.hero-right-image img {
   width: 600px;
 }
 
-main div.superhero-wrapper div.halfWidth {
+main div.superhero-wrapper div.superhero.default.halfWidth {
   height: unset;
 }
 
-main div.superhero-wrapper div.halfWidth > div.superhero-container-wrapper {
+main div.superhero-wrapper div.superhero.default.halfWidth > div.superhero-container-wrapper {
   flex-direction: row;
   gap: 30px;
 }
 
-main div.superhero-wrapper div.fullWidth > div {
+main div.superhero-wrapper div.superhero.default.fullWidth > div {
   align-items: center;
   text-align: center;
 }
 
-main div.superhero-wrapper div.fullWidth > div > div {
+main div.superhero-wrapper div.superhero.default.fullWidth > div > div {
   width: unset;
 }
 
-main div.superhero-wrapper div.button-container > p,
-main div.superhero-wrapper .all-button-container > p {
+main div.superhero-wrapper div.superhero.default div.button-container > p,
+main div.superhero-wrapper div.superhero.default .all-button-container > p {
   margin: 0;
 }
 
-main div.superhero-wrapper .all-button-container {
+main div.superhero-wrapper div.superhero.default .all-button-container {
   display: inline-flex;
   gap: 16px;
 }
 
-main div.superhero-wrapper .text-color-white {
+main div.superhero-wrapper div.superhero.default.text-color-white {
   color: rgb(255, 255, 255);
 }
 
-main div.superhero-wrapper .text-color-black {
+main div.superhero-wrapper div.superhero.default.text-color-black {
   color: rgb(0, 0, 0);
 }
 
-main div.superhero-wrapper .text-color-gray {
+main div.superhero-wrapper div.superhero.default.text-color-gray {
   color: rgb(110, 110, 110);
 }
 
-main div.superhero-wrapper .text-color-navy {
+main div.superhero-wrapper div.superhero.default.text-color-navy {
   color: rgb(15, 55, 95);
 }
 
 @media screen and (min-width: 320px) and (max-width: 767px) {
-  main div.superhero-wrapper div.superhero div.hero-right-image img {
+  main div.superhero-wrapper div.superhero.default div.hero-right-image img {
     width: 300px;
   }
 }
 
 @media screen and (max-width: 1280px) {
-  main div.superhero-wrapper div.superhero > div > div {
+  main div.superhero-wrapper div.superhero.default > div > div {
     width: 100%;
   }
 }
 
-main div.superhero-wrapper div.superhero h1 {
+main div.superhero-wrapper div.superhero.default h1 {
   color: rgb(255, 255, 255);
   margin-top: 0;
   font-size: 36px !important;
 }
 
 @media screen and (max-width: 1024px) {
-  main div.superhero-wrapper div.superhero {
+  main div.superhero-wrapper div.superhero.default {
     height: auto;
     padding: 50px 0px;
   }
-  main div.superhero-wrapper div.superhero > div {
+  main div.superhero-wrapper div.superhero.default > div {
     margin: auto;
   }
 }
 
 @media screen and (max-width: 768px) {
-  main div.superhero-wrapper div.superhero {
+  main div.superhero-wrapper div.superhero.default {
     height: auto;
     padding: 32px 0;
   }
 }
 
-main div.superhero-wrapper .superhero .superhero-button-container {
+main div.superhero-wrapper div.superhero.default .superhero-button-container {
   display: flex;
   margin-top: 24px;
   gap: 16px;
