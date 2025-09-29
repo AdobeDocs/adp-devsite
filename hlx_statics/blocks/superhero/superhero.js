@@ -34,6 +34,8 @@ export default async function decorate(block) {
     decorateDevBizCentered(block);
   } else if (hasAnyClass(block, [VARIANTS.halfWidth])) {
     decorateDevBizHalfWidth(block);
+  } else {
+    decorateDevBizDefault(block);
   }
 }
 
@@ -136,6 +138,8 @@ async function decorateDevBizHalfWidth(block) {
     block.lastElementChild.replaceWith(videoContainer);
   }
 }
+
+async function decorateDevBizDefault(block) {}
 
 /**
  * restructures a DevDocs block to match DevBiz before the decorate function runs
