@@ -149,7 +149,7 @@ async function decorateDevBizDefault(block) {
   const textColor = block.getAttribute('data-textcolor') || 'white';
   block.classList.add(`text-color-${textColor}`);
 
-  const layoutWrapper = createTag('div', { class: 'herosimple-container-wrapper' });
+  const layoutWrapper = createTag('div', { class: 'superhero-container-wrapper' });
   const contentContainer = createTag('div', { class: 'hero-left-content' });
   const imageContainer = createTag('div', { class: 'hero-right-image' });
   const videoContainer = createTag('div', { class: 'hero-right-video' });
