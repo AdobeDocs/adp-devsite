@@ -331,45 +331,6 @@ main div.superhero-wrapper div.superhero.default > div > div {
   font-size: 20px;
 }
 
-main div.superhero-wrapper div.superhero.default .hero-left-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-main div.superhero-wrapper div.superhero.default div.hero-left-content > div {
-  display: flex;
-  gap: 30px;
-  flex-direction: column;
-}
-
-main div.superhero-wrapper div.superhero.default div.hero-left-content,
-main div.superhero-wrapper div.superhero.default div.hero-right-image {
-  width: 50%;
-}
-
-main div.superhero-wrapper div.superhero.default div.hero-right-image img {
-  width: 600px;
-}
-
-main div.superhero-wrapper div.superhero.default.halfWidth {
-  height: unset;
-}
-
-main div.superhero-wrapper div.superhero.default.halfWidth > div.superhero-container-wrapper {
-  flex-direction: row;
-  gap: 30px;
-}
-
-main div.superhero-wrapper div.superhero.default.fullWidth > div {
-  align-items: center;
-  text-align: center;
-}
-
-main div.superhero-wrapper div.superhero.default.fullWidth > div > div {
-  width: unset;
-}
-
 main div.superhero-wrapper div.superhero.default div.button-container > p,
 main div.superhero-wrapper div.superhero.default .all-button-container > p {
   margin: 0;
@@ -394,12 +355,6 @@ main div.superhero-wrapper div.superhero.default.text-color-gray {
 
 main div.superhero-wrapper div.superhero.default.text-color-navy {
   color: rgb(15, 55, 95);
-}
-
-@media screen and (min-width: 320px) and (max-width: 767px) {
-  main div.superhero-wrapper div.superhero.default div.hero-right-image img {
-    width: 300px;
-  }
 }
 
 @media screen and (max-width: 1280px) {
