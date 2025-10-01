@@ -127,7 +127,7 @@ async function decorateDevBizHalfWidth(block) {
       margin: 'auto',
     });
   });
-
+  
   const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
@@ -156,7 +156,6 @@ function restructureAsDevBiz(block) {
   if (block.getAttribute('data-overgradient')) {
     block.classList.add('over-gradient');
   }
-
   const slotNames = block
     ?.getAttribute('data-slots')
     ?.split(',')
