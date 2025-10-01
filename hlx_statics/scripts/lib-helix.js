@@ -392,6 +392,7 @@ export function decorateBlock(block) {
   }
 }
 
+
 /**
  * Extracts the config from a block.
  * @param {Element} block The block element
@@ -506,6 +507,7 @@ export function updateSectionsStatus(main) {
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
+  main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
   main
     .querySelectorAll('div.section > div > div')
     .forEach((block) => decorateBlock(block));
@@ -843,21 +845,21 @@ window.copyMarkdownContent = async function(btn, event) {
   if (event) {
     event.preventDefault();
   }
-  
+
   const baseUrl = btn.dataset.githubUrl;
   const rawUrl = baseUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
   const label = btn.querySelector('.copy-markdown-button-label');
   const originalText = label.textContent;
-  
+
   try {
     const response = await fetch(rawUrl);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     await navigator.clipboard.writeText(await response.text());
     label.textContent = 'Copied!';
     btn.classList.add('copied');
-    setTimeout(() => { 
-      label.textContent = originalText; 
-      btn.classList.remove('copied'); 
+    setTimeout(() => {
+      label.textContent = originalText;
+      btn.classList.remove('copied');
     }, 3000);
     console.log('Markdown copied to clipboard!');
   } catch (error) {
