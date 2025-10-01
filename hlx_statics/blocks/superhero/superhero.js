@@ -140,29 +140,57 @@ async function decorateDevBizHalfWidth(block) {
 }
 
 async function decorateDevBizDefault(block) {
-  const background = block.getAttribute('data-background') || 'rgb(29, 125, 238)';
-  block.style.background = background;
+  const newChildren = [];
 
-  const variant = block.getAttribute('data-variant') || 'default';
-  block.classList.add(variant);
+  const pictureContent = block.querySelector('div:nth-child(2) > div > picture');
+  const headingContent = block.querySelector('div:nth-child(1) > div > h1');
+  const textContent = block.querySelector('div:nth-child(1) > div > p:first-of-type');
+  const buttonsContent = block.querySelectorAll('div:nth-child(1) > div > p.button-container');
 
-  const textColor = block.getAttribute('data-textcolor') || 'white';
-  block.classList.add(`text-color-${textColor}`);
+  if (pictureContent) {
+    const pictureDiv = createTag('div');
+    pictureDiv.appendChild(pictureContent);
+    newChildren.push(pictureDiv);
+  }
 
-  const allowedTextColors = { black: 'rgb(0, 0, 0)', white: 'rgb(255, 255, 255)', gray: 'rgb(110, 110, 110)', navy: 'rgb(15, 55, 95)' };
+  if (headingContent) {
+    const headingDiv = createTag('div');
+    headingDiv.appendChild(headingContent);
+    newChildren.push(headingDiv);
+  }
+
+  if (textContent) {
+    const textDiv = createTag('div');
+    textDiv.innerHTML = textContent.innerHTML;
+    newChildren.push(textDiv);
+  }
+
+  if (buttonsContent) {
+    const buttonsDiv = createTag('div');
+    buttonsContent.forEach((button) => {
+      buttonsDiv.appendChild(button);
+    });
+    newChildren.push(buttonsDiv);
+  }
+
+  const div = createTag('div');
+  div.append(...newChildren);
+  block.replaceChildren(div);
+
+  const defaultTextColor = TEXT_COLORS.white;
+  let textColor = Object.values(TEXT_COLORS).find((color) => block.classList.contains(`text-color-${color}`)) ?? defaultTextColor;
+  block.classList.add(`text-color-${defaultTextColor}`);
 
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-    h.style.color = Object.keys(allowedTextColors).includes(textColor) && allowedTextColors[textColor];
+    h.style.color = textColor;
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL', 'spectrum-Heading');
   });
 
-  const sourceElement = block.querySelector('source[type="image/webp"]');
-  const srcsetValue = sourceElement ? sourceElement?.getAttribute('srcset') : null;
-  const url = srcsetValue?.split(' ')[0];
+  const img = block.querySelector('picture > img');
+  const url = img?.getAttribute('src');
   const pictureElement = block.querySelector('picture');
 
   const parentDiv = pictureElement?.parentElement;
-
   if (parentDiv) parentDiv.remove();
 
   Object.assign(block.style, {
@@ -172,10 +200,8 @@ async function decorateDevBizDefault(block) {
     backgroundRepeat: 'no-repeat',
   });
 
-  if (block.getAttribute('data-slots').split(' ').includes('buttons')) {
-    normalizeButtonContainer(block);
-    decorateButtons(block);
-  }
+  normalizeButtonContainer(block);
+  decorateButtons(block);
 }
 
 /**
@@ -330,14 +356,6 @@ function rearrangeLinks(block) {
 function normalizeButtonContainer(block) {
   const anchorElement = Array.from(block.querySelectorAll('a'));
   if (anchorElement.length > 0) {
-    anchorElement.forEach((anchor, i) => {
-      const p = createTag('p');
-      const node = i === 0 ? createTag('strong') : p;
-      node.appendChild(anchor.cloneNode(true));
-      p.appendChild(node === p ? node.firstChild : node);
-      anchor.replaceWith(p);
-    });
-
     const lastGroup = block.lastElementChild?.lastElementChild;
     if (lastGroup && [...lastGroup.children].every((child) => child.tagName === 'P')) {
       lastGroup.classList.add('all-button-container');
