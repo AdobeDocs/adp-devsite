@@ -310,6 +310,7 @@ main div.superhero-wrapper div.superhero.half-width div.superhero-video-containe
 main div.superhero-wrapper:has(div.superhero.default) {
   width: 100%;
 }
+
 main div.superhero-wrapper div.superhero.default {
   height: 272px;
   overflow: hidden;
