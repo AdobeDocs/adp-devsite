@@ -34,6 +34,9 @@ export default async function decorate(block) {
     decorateDevBizCentered(block);
   } else if (hasAnyClass(block, [VARIANTS.halfWidth])) {
     decorateDevBizHalfWidth(block);
+  } else {
+    block.classList.add(VARIANTS.default);
+    decorateDevBizDefault(block);
   }
 }
 
@@ -69,7 +72,6 @@ async function decorateDevBizCentered(block) {
 }
 
 async function decorateDevBizHalfWidth(block) {
-  block.setAttribute('daa-lh', 'superhero');
   // Block decoration
   decorateLightOrDark(block, true);
   // H1 decoration
@@ -135,6 +137,71 @@ async function decorateDevBizHalfWidth(block) {
     videoContainer.innerHTML = videoTag;
     block.lastElementChild.replaceWith(videoContainer);
   }
+}
+
+async function decorateDevBizDefault(block) {
+  const newChildren = [];
+
+  const pictureContent = block.querySelector('div:nth-child(2) > div > picture');
+  const headingContent = block.querySelector('div:nth-child(1) > div > h1');
+  const textContent = block.querySelector('div:nth-child(1) > div > p:first-of-type');
+  const buttonsContent = block.querySelectorAll('div:nth-child(1) > div > p.button-container');
+
+  if (pictureContent) {
+    const pictureDiv = createTag('div');
+    pictureDiv.appendChild(pictureContent);
+    newChildren.push(pictureDiv);
+  }
+
+  if (headingContent) {
+    const headingDiv = createTag('div');
+    headingDiv.appendChild(headingContent);
+    newChildren.push(headingDiv);
+  }
+
+  if (textContent) {
+    const textDiv = createTag('div');
+    textDiv.innerHTML = textContent.innerHTML;
+    newChildren.push(textDiv);
+  }
+
+  if (buttonsContent) {
+    const buttonsDiv = createTag('div');
+    buttonsContent.forEach((button) => {
+      buttonsDiv.appendChild(button);
+    });
+    newChildren.push(buttonsDiv);
+  }
+
+  const div = createTag('div');
+  div.append(...newChildren);
+  block.replaceChildren(div);
+
+  const defaultTextColor = TEXT_COLORS.white;
+  let textColor = Object.values(TEXT_COLORS).find((color) => block.classList.contains(`text-color-${color}`)) ?? defaultTextColor;
+  block.classList.add(`text-color-${defaultTextColor}`);
+
+  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
+    h.style.color = textColor;
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL', 'spectrum-Heading');
+  });
+
+  const img = block.querySelector('picture > img');
+  const url = img?.getAttribute('src');
+  const pictureElement = block.querySelector('picture');
+
+  const parentDiv = pictureElement?.parentElement;
+  if (parentDiv) parentDiv.remove();
+
+  Object.assign(block.style, {
+    backgroundImage: `url(${url})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  });
+
+  normalizeButtonContainer(block);
+  decorateButtons(block);
 }
 
 /**
@@ -283,4 +350,14 @@ function rearrangeLinks(block) {
     heroButtonContainer.append(p);
   });
   leftDiv.append(heroButtonContainer);
+}
+
+function normalizeButtonContainer(block) {
+  const anchorElement = Array.from(block.querySelectorAll('a'));
+  if (anchorElement.length > 0) {
+    const lastGroup = block.lastElementChild?.lastElementChild;
+    if (lastGroup && [...lastGroup.children].every((child) => child.tagName === 'P')) {
+      lastGroup.classList.add('all-button-container');
+    }
+  }
 }
