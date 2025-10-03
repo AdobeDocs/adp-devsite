@@ -507,7 +507,20 @@ export function updateSectionsStatus(main) {
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
+  // Replace HTML entities but preserve them inside <code> tags
+  const codeElements = main.querySelectorAll('code');
+  const codeContents = Array.from(codeElements).map(el => el.innerHTML);
+  
+  // Replace entities in the entire main element
   main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  
+  // Restore original content in code elements
+  main.querySelectorAll('code').forEach((el, index) => {
+    if (index < codeContents.length) {
+      el.innerHTML = codeContents[index];
+    }
+  });
+  
   main
     .querySelectorAll('div.section > div > div')
     .forEach((block) => decorateBlock(block));
