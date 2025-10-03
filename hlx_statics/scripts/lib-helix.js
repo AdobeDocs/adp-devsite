@@ -503,21 +503,25 @@ export function updateSectionsStatus(main) {
 }
 
 /**
+ * Replace HTML entities in text nodes, but skip those inside code elements
+ * @param {Element} element The element to process
+ */
+function replaceInTextNodes(element) {
+  if (element.nodeType === Node.TEXT_NODE) {
+    if (!element.parentElement?.closest('code')) {
+      element.textContent = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    }
+  } else {
+    // Recursively process child nodes
+    Array.from(element.childNodes).forEach(replaceInTextNodes);
+  }
+}
+
+/**
  * Decorates all blocks in a container element.
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
-  // Replace HTML entities in text nodes only, preserving DOM structure
-  function replaceInTextNodes(element) {
-    if (element.nodeType === Node.TEXT_NODE) {
-      if (!element.parentElement?.closest('code')) {
-        element.textContent = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-      }
-    } else {
-      // Recursively process child nodes
-      Array.from(element.childNodes).forEach(replaceInTextNodes);
-    }
-  }
   replaceInTextNodes(main);
   main
     .querySelectorAll('div.section > div > div')
