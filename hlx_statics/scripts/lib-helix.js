@@ -136,18 +136,18 @@ export async function fetchSiteWideBanner() {
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
   let siteWideBannerFile = `${window.location.origin}/${pathPrefix}/site-wide-banner.json`;
   let siteWideBannerJSON = await fetch(siteWideBannerFile)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          console.warn('Network response was not ok');
-        }
-      })
-      .then(data => data)
-      .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
-      });
-      return siteWideBannerJSON;
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.warn('Network response was not ok');
+      }
+    })
+    .then(data => data)
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+  return siteWideBannerJSON;
 }
 
 /**
@@ -383,7 +383,7 @@ export function decorateBlock(block) {
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
     const childBlock = blockWrapper.querySelector('div')
-    if(IS_DEV_DOCS){
+    if (IS_DEV_DOCS) {
       // ensure all documentation blocks are having white background.
       childBlock?.classList.add('background-color-white');
     }
@@ -507,20 +507,18 @@ export function updateSectionsStatus(main) {
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
-  // Replace HTML entities but preserve them inside <code> tags
-  const codeElements = main.querySelectorAll('code');
-  const codeContents = Array.from(codeElements).map(el => el.innerHTML);
-  
-  // Replace entities in the entire main element
-  main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  
-  // Restore original content in code elements
-  main.querySelectorAll('code').forEach((el, index) => {
-    if (index < codeContents.length) {
-      el.innerHTML = codeContents[index];
+  // Replace HTML entities in text nodes only, preserving DOM structure
+  function replaceInTextNodes(element) {
+    if (element.nodeType === Node.TEXT_NODE) {
+      if (!element.parentElement?.closest('code')) {
+        element.textContent = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      }
+    } else {
+      // Recursively process child nodes
+      Array.from(element.childNodes).forEach(replaceInTextNodes);
     }
-  });
-  
+  }
+  replaceInTextNodes(main);
   main
     .querySelectorAll('div.section > div > div')
     .forEach((block) => decorateBlock(block));
@@ -844,7 +842,7 @@ export function githubActionsBlock(doc) {
     const contentHeader = doc.querySelector('.content-header');
     contentHeader?.append(newContent);
     const isBreadCrumbs = doc.querySelector('.breadcrumbs-container');
-    if(!isBreadCrumbs){
+    if (!isBreadCrumbs) {
       contentHeader.classList.add('no-breadcrumbs');
     }
   }
@@ -853,7 +851,7 @@ export function githubActionsBlock(doc) {
 /**
  * Copy markdown content from GitHub to clipboard
  */
-window.copyMarkdownContent = async function(btn, event) {
+window.copyMarkdownContent = async function (btn, event) {
   // Prevent default anchor behavior
   if (event) {
     event.preventDefault();
