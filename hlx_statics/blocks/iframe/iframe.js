@@ -101,8 +101,8 @@ export default async function decorate(block) {
     });
     filteredClassList.push('iframe-container');
 
-    // filteredClassList is an array so make it a string separated by commas
-    const iframe = createTag('iframe', { 'title': title, class: filteredClassList.join(','), 'src': iframeSrc.href, 'id': 'penpalIframe' });
+    // filteredClassList is an array so make it a string separated by a space
+    const iframe = createTag('iframe', { 'title': title, class: filteredClassList.join(' '), 'src': iframeSrc.href, 'id': 'penpalIframe' });
     penpalScript.onload = () => {
         iframeContainer.append(iframe);
         penpalOnLoad();
