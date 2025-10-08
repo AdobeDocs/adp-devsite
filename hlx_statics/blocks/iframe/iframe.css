@@ -10,7 +10,7 @@ main div.iframe-wrapper iframe.iframe-container {
 }
 
 main div.iframe-wrapper iframe.full-height {
-  overflow: hidden;
+  height: calc(100vh - 64px) !important ;
 }
 
 main div.iframe-wrapper {
