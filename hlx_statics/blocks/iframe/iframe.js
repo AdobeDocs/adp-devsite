@@ -104,11 +104,6 @@ export default async function decorate(block) {
     // filteredClassList is an array so make it a string separated by a space
     const iframe = createTag('iframe', { 'title': title, class: filteredClassList.join(' '), 'src': iframeSrc.href, 'id': 'penpalIframe' });
 
-    if(iframe.classList.contains('full-height')) {
-        // this is deprecated but chrome won't remove the scollbars otherwise
-        iframe.setAttribute('scrolling', 'no');
-    }
-
     penpalScript.onload = () => {
         iframeContainer.append(iframe);
         penpalOnLoad();
