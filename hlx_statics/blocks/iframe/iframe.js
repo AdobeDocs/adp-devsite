@@ -91,7 +91,21 @@ export default async function decorate(block) {
     const iframeSrc = block.querySelector('a');
     const iframeContainer = block.parentElement;
     const title = block?.parentElement?.parentElement?.attributes.getNamedItem('data-title')?.value;
-    const iframe = createTag('iframe', { 'title': title, class: 'iframe-container', 'src': iframeSrc.href, 'id': 'penpalIframe' });
+
+    // get all the block options and add them to the iframe class list
+    const classListArray = [...block.classList];
+    const classesToExclude = ["iframe", "block"];
+
+    let filteredClassList = classListArray.filter(theClass => {
+        return !classesToExclude.some(excludedClass => theClass.includes(excludedClass))
+    });
+    filteredClassList.push('iframe-container');
+
+    const params = new URLSearchParams(window.location.search);
+
+    // filteredClassList is an array so make it a string separated by a space
+    const iframe = createTag('iframe', { 'title': title, class: filteredClassList.join(' '), 'src': iframeSrc.href+'?'+params.toString(), 'id': 'penpalIframe' });
+
     penpalScript.onload = () => {
         iframeContainer.append(iframe);
         penpalOnLoad();
