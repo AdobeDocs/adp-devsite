@@ -306,3 +306,90 @@ main div.superhero-wrapper div.superhero.half-width div.superhero-video-containe
     min-height: 0px;
   }
 }
+
+main div.superhero-wrapper:has(div.superhero.default) {
+  width: 100%;
+}
+
+main div.superhero-wrapper div.superhero.default {
+  height: 272px;
+  overflow: hidden;
+  position: relative;
+}
+
+main div.superhero-wrapper div.superhero.default > div {
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 30px;
+  justify-content: center;
+  height: 100%;
+}
+
+main div.superhero-wrapper div.superhero.default > div > div {
+  width: calc(5 * 100% / 12);
+  font-size: 20px;
+}
+
+main div.superhero-wrapper div.superhero.default div.button-container > p,
+main div.superhero-wrapper div.superhero.default .all-button-container > p {
+  margin: 0;
+}
+
+main div.superhero-wrapper div.superhero.default .all-button-container {
+  display: inline-flex;
+  gap: 16px;
+}
+
+main div.superhero-wrapper div.superhero.default.text-color-white {
+  color: rgb(255, 255, 255);
+}
+
+main div.superhero-wrapper div.superhero.default.text-color-black {
+  color: rgb(0, 0, 0);
+}
+
+main div.superhero-wrapper div.superhero.default.text-color-gray {
+  color: rgb(110, 110, 110);
+}
+
+main div.superhero-wrapper div.superhero.default.text-color-navy {
+  color: rgb(15, 55, 95);
+}
+
+@media screen and (max-width: 1280px) {
+  main div.superhero-wrapper div.superhero.default > div > div {
+    width: 100%;
+  }
+}
+
+main div.superhero-wrapper div.superhero.default h1 {
+  color: rgb(255, 255, 255);
+  margin-top: 0;
+  font-size: 36px !important;
+}
+
+@media screen and (max-width: 1024px) {
+  main div.superhero-wrapper div.superhero.default {
+    height: auto;
+    padding: 50px 0px;
+  }
+  main div.superhero-wrapper div.superhero.default > div {
+    margin: auto;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  main div.superhero-wrapper div.superhero.default {
+    height: auto;
+    padding: 32px 0;
+  }
+}
+
+main div.superhero-wrapper div.superhero.default .superhero-button-container {
+  display: flex;
+  margin-top: 24px;
+  gap: 16px;
+  margin-bottom: 10px;
+}

@@ -230,6 +230,7 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 }
 
 main.dev-docs .herosimple > div,
+main .superhero.default > div,
 main.dev-docs:has(.herosimple, .superhero) .sub-parent,
 main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) > .grid-main-area,
 main.dev-docs .footer-wrapper .footer-links-container-inner {
@@ -238,6 +239,7 @@ main.dev-docs .footer-wrapper .footer-links-container-inner {
 }
 
 main.dev-docs .herosimple > div,
+main .superhero.default > div,
 main.dev-docs:has(.herosimple, .superhero) .sub-parent,
 main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
 main.dev-docs .footer-wrapper {
@@ -246,12 +248,15 @@ main.dev-docs .footer-wrapper {
 }
 
 main.dev-docs .herosimple > div,
+main .superhero.default > div,
 main.dev-docs:has(.herosimple, .superhero) .sub-parent,
 main.dev-docs:has(.herosimple, .superhero) .footer-wrapper {
   max-width: 1000px;
 }
 
 main.dev-docs:not(.no-layout).no-sidenav .herosimple > div,
+main.dev-docs:not(.no-layout).no-sidenav .superhero.default > div,
+main.dev-biz .superhero.default > div,
 main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .sub-parent,
 main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .footer-wrapper,
 main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
@@ -1186,8 +1191,8 @@ main .action-buttons div{
 }
 
 main .default-content-wrapper img{
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  display: block;
 }
 
 main li h3{
