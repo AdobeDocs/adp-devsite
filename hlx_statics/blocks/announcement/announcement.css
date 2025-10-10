@@ -13,7 +13,7 @@ main div.announcement-wrapper div.announcement.block {
   padding: 20px;
 }
 
-main div.announcement-wrapper div.announcement > div {
+main div.announcement-wrapper div.announcement:not(.start) > div {
   height: 100%;
   text-align: center;
 }
