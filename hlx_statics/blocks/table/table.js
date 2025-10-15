@@ -51,12 +51,14 @@ export default async function decorate(block) {
     [...child.children].forEach((col) => {
       const rowIndex = hasHeader ? i : i + 1;
       const cell = isHeader ? buildCellHead(rowIndex) : buildCell(rowIndex);
-      cell.innerHTML = col.innerHTML;
+      // Replace HTML entities for <br/> tags
+      const cellContent = col.innerHTML.replace(/&lt;br\/&gt;/g, '<br/>');
+      cell.innerHTML = cellContent;
       row.append(cell);
     });
   });
 
   block.innerHTML = '';
   block.append(table);
-  
+
 }

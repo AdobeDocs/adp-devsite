@@ -116,7 +116,7 @@ pre[class*=language-].line-numbers {
     padding-left: 3.8em;
     padding-right: 2em;
     padding-bottom: 2em;
-    padding-top: 3.8em;
+    padding-top: 2em;
     counter-reset: linenumber
 }
 
@@ -205,4 +205,23 @@ pre.prism-loading::before {
 
 pre.prism-loading code {
     visibility: hidden;
+}
+
+pre[class*=language-].no-line-numbers {
+  padding-left: 3.8em;
+  padding-right: 2em;
+  padding-bottom: 2em;
+  padding-top: 2em;
+}
+
+.line-highlight {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding: inherit 0;
+  margin-top: 2em;
+  background: hsla(24, 20%, 50%, .08);
+  pointer-events: none;
+  line-height: inherit;
+  white-space: pre
 }

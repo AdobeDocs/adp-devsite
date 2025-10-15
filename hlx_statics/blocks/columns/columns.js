@@ -1,5 +1,4 @@
 import {
-  checkExternalLink,
   createTag,
   decorateButtons,
   removeEmptyPTags,
@@ -39,7 +38,7 @@ export default async function decorate(block) {
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
 
-  block.setAttribute('daa-lh', 'column');
+  block.setAttribute('daa-lh', 'columns');
   decorateLightOrDark(block);
 
   if (!container.classList.contains('columns-container')) {
@@ -90,28 +89,10 @@ export default async function decorate(block) {
     columnList[columnList.length - 1].classList.add("last-column-div");
   }
 
-  block.querySelectorAll('.columns > div > div').forEach((column) => {
-    const buttonGroupContainer = createTag('div', { class: 'button-group-container' });
-    column.querySelectorAll('.button-container').forEach((p, key) => {
-      const prevElement = p.previousElementSibling;
-      if (key === 0) {
-        prevElement.insertAdjacentElement('afterend', buttonGroupContainer);
-      }
-      buttonGroupContainer.appendChild(p);
-    });
-    column.querySelectorAll('ul').forEach((ul) => {
-      ul.parentElement.classList.add('listing');
-      ul.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-    });
-  });
-
   if (!block.classList.contains('link')) {
     block.querySelectorAll('a').forEach((a) => {
       if (!a.classList.contains('button') && !a.classList.contains('spectrum-Button')) {
         a.classList.add('spectrum-Link', 'spectrum-Link--quiet');
-      }
-      if (!a.classList.contains('anchor-link')) {
-        checkExternalLink(a);
       }
     });
 
@@ -125,20 +106,6 @@ export default async function decorate(block) {
       }
     });
   }
-
-  // in devdocs , slot have the lists
-  block.querySelectorAll('div.listing').forEach(data => {
-    data.closest('div')?.classList.add('button-group-container');
-  
-    const a = data.querySelector('a');
-    if (!a) return;
-  
-    a.className = '';
-    const p = createTag('p', { class: 'button-container' });
-    p.append(a);
-  
-    data.replaceChildren(p);
-  });
 
   /* Stop here when metadata is `style: center` */
   if (block.classList.contains('center')) {
@@ -162,20 +129,37 @@ export default async function decorate(block) {
         }
       });
     }
-
-    return;
   }
 
-  block.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
-    column.classList.add('first-column');
-  });
-  block.querySelectorAll('.columns > div > div:nth-child(2)').forEach((column) => {
-    column.classList.add('second-column');
-    const p_text = createTag('p');
-    p_text.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-    p_text.innerHTML = column.innerHTML;
-    column.innerHTML = "";
-    column.append(p_text);
+  if (!block.classList.contains('center')) {
+    block.querySelectorAll('.columns > div > div:first-child').forEach((column) => {
+      column.classList.add('first-column');
+    });
+    block.querySelectorAll('.columns > div > div:last-child').forEach((column) => {
+      column.classList.add('second-column');
+      const p_text = createTag('p');
+      p_text.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+      p_text.innerHTML = column.innerHTML;
+      column.innerHTML = "";
+      column.append(p_text);
+    });
+
+    block.querySelectorAll('.columns > div > div').forEach((column) => {
+      const buttonGroupContainer = createTag('div', { class: 'button-group-container' });
+      column.querySelectorAll('.button-container').forEach((p, key) => {
+        const prevElement = p.previousElementSibling;
+        if (key === 0) {
+          prevElement.insertAdjacentElement('afterend', buttonGroupContainer);
+        }
+        buttonGroupContainer.appendChild(p);
+      });
+    });
+
+  }
+
+  block.querySelectorAll('ul').forEach((ul) => {
+    ul.parentElement.classList.add('listing');
+    ul.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
   });
 
   block.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
@@ -199,6 +183,21 @@ export default async function decorate(block) {
         p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
       }
     });
+
+    // in devdocs , slot have the lists
+    block.querySelectorAll('div.listing').forEach(data => {
+      data.closest('div')?.classList.add('button-group-container');
+    
+      const a = data.querySelector('a');
+      if (!a) return;
+    
+      a.className = '';
+      const p = createTag('p', { class: 'button-container' });
+      p.append(a);
+    
+      data.replaceChildren(p);
+    });
+
   }
 
   const observer = new IntersectionObserver((entries) => {

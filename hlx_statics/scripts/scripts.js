@@ -3,6 +3,7 @@ import {
   buildBlock,
   decorateBlock,
   loadBlock,
+  decoratePictures,
   decorateButtons,
   decorateIcons,
   decorateSections,
@@ -27,6 +28,7 @@ import {
   buildGridAreaMain,
   buildHeadings,
   buildSideNav,
+  buildSiteWideBanner,
   buildOnThisPage,
   createTag,
   toggleScale,
@@ -35,12 +37,15 @@ import {
   decorateNestedCodes,
   isHlxPath,
   decorateProfile,
+  isLocalHostEnvironment,
   isStageEnvironment,
   isProdEnvironment,
   addExtraScript,
   addExtraScriptWithLoad,
   decorateHR,
-  buildNextPrev
+  buildNextPrev,
+  buildResources,
+  checkExternalLink
 } from './lib-adobeio.js';
 
 export {
@@ -91,6 +96,13 @@ function loadHeader(header) {
 
 }
 
+function loadSiteWideBanner(siteWidebanner) {
+  const siteWidebannerBlock = buildBlock('site-wide-banner-container', '');
+  siteWidebanner.append(siteWidebannerBlock);
+  decorateBlock(siteWidebannerBlock);
+  loadBlock(siteWidebannerBlock);
+}
+
 function loadFooter(footer) {
   const footerBlock = buildBlock('footer', '');
   footer.append(footerBlock);
@@ -134,6 +146,9 @@ function buildAutoBlocks(main) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  if(!IS_DEV_DOCS) {
+    decoratePictures(main);
+  }
   // hopefully forward compatible button decoration
   decorateButtons(main);
   decorateInlineCodes(main);
@@ -142,6 +157,7 @@ export function decorateMain(main) {
   decorateBlocks(main);
   decorateNestedCodes(main);
   decorateHR(main);
+  checkExternalLink(main);
 }
 
 /**
@@ -152,6 +168,88 @@ function decorateHTML(html) {
   html.className = 'spectrum spectrum--light spectrum--medium';
   html.dir = 'ltr';
   html.lang = 'en';
+}
+
+/**
+ * Overwrites image optimization done by EDS on image URLs.
+ * 
+ * For example, it replaces:
+ * "./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&format=webply&optimize=medium"
+ * 
+ * with:
+ * "./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=webply&optimize=low"
+ * 
+ * @param {string} url The image URL
+ */
+function optimizeImageUrl(url) {
+  if (!url || !url.includes('?')) {
+    return url;
+  }
+  
+  const [baseUrl, queryString] = url.split('?');
+  const searchParams = new URLSearchParams(queryString);
+  searchParams.delete('width');
+  searchParams.set('optimize', 'low');
+  
+  return baseUrl + '?' + searchParams.toString();
+}
+
+/**
+ * Overwrites image optimization done by EDS on hero blocks.
+ * 
+ * For example, it replaces:
+ *  <picture>
+ *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&amp;format=webply&amp;optimize=medium" media="(min-width: 600px)">
+ *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=750&amp;format=webply&amp;optimize=medium">
+ *    <source type="image/png" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&amp;format=png&amp;optimize=medium" media="(min-width: 600px)">
+ *    <img loading="lazy" alt="" src="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=750&amp;format=png&amp;optimize=medium" width="1600" height="492">
+ *  </picture>
+ *  
+ * with:
+ *  <picture>
+ *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=webply&amp;optimize=low">          
+ *    <source type="image/png" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=png&amp;optimize=low">
+ *    <img loading="eager" alt="" src="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=png&amp;optimize=low">
+ *  </picture>
+ */
+function optimizeHeroPictures() {
+  const heroes = ['hero', 'herosimple', 'site-hero', 'superhero'];
+  const selector = heroes.map(hero => `div.${hero} picture`).join(', ');
+  const pictures = document.querySelectorAll(selector);
+  pictures.forEach(picture => {
+
+    const sources = picture.querySelectorAll('source');
+    sources.forEach(source => {
+      source.removeAttribute('media');
+      const srcset = source.getAttribute('srcset');
+      if (srcset) {
+        source.setAttribute('srcset', optimizeImageUrl(srcset));
+      }
+    });
+
+    const imgs = picture.querySelectorAll('img');
+    imgs.forEach(img => {
+      img.removeAttribute('width');
+      img.removeAttribute('height');
+      const src = img.getAttribute('src');
+      if (src) {
+        img.setAttribute('src', optimizeImageUrl(src));
+      }      
+    });
+
+    // Remove duplicate elements that may have resulted after attribute modifications
+    const seen = new Set();
+    const children = Array.from(picture.children);
+    children.forEach(child => {
+      const outerHtml = child.outerHTML;
+      if (seen.has(outerHtml)) {
+        child.remove();
+      } else {
+        seen.add(outerHtml);
+      }
+    });
+
+  });
 }
 
 /**
@@ -166,6 +264,8 @@ async function loadEager(doc) {
     await runExperiment(experiment, instantExperiment);
   }
 
+  optimizeHeroPictures();
+
   decorateTemplateAndTheme();
   const html = doc.querySelector('html');
   if (html) {
@@ -178,15 +278,19 @@ async function loadEager(doc) {
     await waitForLCP(LCP_BLOCKS);
   }
 
+  const mainContainer = document.querySelector('main');
   if (IS_DEV_DOCS) {
     // check if this page is from dev docs, then change the main container to white background.
-    const mainContainer = document.querySelector('main');
     mainContainer.classList.add('dev-docs', 'white-background');
 
     buildGrid(main);
     buildSideNav(main);
     buildBreadcrumbs(main);
+  } else {
+    mainContainer.classList.add('dev-biz');
   }
+
+  buildSiteWideBanner(main);
 
   document.body.classList.add('appear');
   loadConfig();
@@ -357,7 +461,8 @@ export async function loadIms() {
  * Load config items into the window for use
  */
 function loadConfig() {
-  window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTczMjEzNzQzNSwiZSI6MTc1OTI2NTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iXSwicyI6InBvcnRhbCJ9.gf0tCrK+ApckZEqbuOlYJFlt19NU6UEWpiruC4VIMg9ZYUojkyDGde2aEKpBK2cm57r6yNNFNWHyIRljWAQnsg==`;
+
+  window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTc1OTI2MDMzNiwiZSI6MTc5MDgwMTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iLCJkZXZob21lLmNvcnAuYWRvYmUuY29tIiwiZGV2LmRldmhvbWUuY29ycC5hZG9iZS5jb20iLCJzdGFnZS0tYWRwLWRldnNpdGUtc3RhZ2UtLWFkb2JlZG9jcy5hZW0ucGFnZSJdLCJzIjoicG9ydGFsIn0=.bz4A/pSTnw14pUI64iQ3i/xiPkh2TosUpUJg4C0W/K7ZeyIPB7K9TTX1zo+cr7GZN6eqaAKv6gBGoG4xWL1rxw==`;
 
   // cookie preference
   window.fedsConfig = {
@@ -413,7 +518,7 @@ async function loadLazy(doc) {
 
   loadIms();
   loadAep();
-  
+
   // Load Algolia search scripts
   addExtraScriptWithLoad(
     document.body,
@@ -512,6 +617,7 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header'));
+  loadSiteWideBanner(doc.querySelector('.site-wide-banner-container'));
   decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
@@ -521,7 +627,8 @@ async function loadLazy(doc) {
     footer.style.gridArea = 'footer';
     main.append(footer);
 
-    const hasHero = Boolean(document.querySelector('.hero, .herosimple'));
+    const hasHero = Boolean(document.querySelector('.herosimple, .superhero'));
+    const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     if (!hasHero && hasHeading) {
       buildOnThisPage(main);
@@ -536,6 +643,10 @@ async function loadLazy(doc) {
     }
 
     buildGridAreaMain(main);
+
+    if (hasResources) {
+      buildResources(main);
+    }
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
@@ -586,8 +697,53 @@ function loadPrism(document) {
         window.Prism = { manual: true };
         loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
         import('./prism.js').then(() => {
-          window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
-          window.Prism.highlightAll(true);
+          // Ensure Prism autoloader knows where to fetch language components
+          if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
+            window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
+            window.Prism.plugins.autoloader.use_minified = true;
+          }
+          // Run highlighting without Web Workers (avoids missing filename with dynamic import)
+          window.Prism.highlightAll();
+          // Re-highlight when tab panels become active (without modifying tab block)
+          try {
+            const observer = new MutationObserver((mutations) => {
+              for (const m of mutations) {
+                if (m.type === 'attributes') {
+                  const el = m.target;
+                  if (!(el instanceof HTMLElement)) continue;
+                  if (!el.classList || m.attributeName !== 'class') continue;
+                  const isActive = el.classList.contains('active');
+                  const isPanel = el.matches && el.matches('.tab-content, .sub-tab-content');
+                  const isCodeblockPanel = el.matches && el.matches('[role="tabpanel"]');
+                  const isNowVisible = isCodeblockPanel && !el.classList.contains('hidden');
+                  
+                  if (isActive && isPanel && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    window.Prism.highlightAllUnder(el);
+                  } else if (isNowVisible && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                    // Handle codeblock panels that become visible (not hidden)
+                    window.Prism.highlightAllUnder(el);
+                  } else if (isActive && el.matches && el.matches('.tabs-wrapper, .sub-content-wrapper')) {
+                    // If a wrapper toggled, highlight any active panels inside
+                    el.querySelectorAll('.tab-content.active, .sub-tab-content.active').forEach((panel) => {
+                      window.Prism.highlightAllUnder(panel);
+                    });
+                  }
+                } else if (m.type === 'childList') {
+                  // New nodes added: only highlight if they contain code blocks with language classes
+                  m.addedNodes.forEach((node) => {
+                    if (!(node instanceof HTMLElement)) return;
+                    const hasCodeBlocks = node.querySelector && node.querySelector('code[class*="language-"], [class*="language-"] code');
+                    if (hasCodeBlocks && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+                      window.Prism.highlightAllUnder(node);
+                    }
+                  });
+                }
+              }
+            });
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+          } catch (e) { 
+            console.error('Error loading Prism:', e);
+           }
         }).catch(console.error);
       }
 
@@ -605,7 +761,30 @@ function loadPrism(document) {
   codeBlocks.forEach((block) => observer.observe(block));
 }
 
+function fixLocalDev(document){
+  if(isLocalHostEnvironment(window.location.host)){
+    // replace all images with eds div structure
+    document.querySelectorAll('img').forEach((img) => {
+      if(img.src.includes('raw.githubusercontent.com')) {
+        const lastDotIndex = img.src.lastIndexOf('.');
+        let imageExtension = '';
+        if (lastDotIndex !== -1) {
+          imageExtension= img.src.substring(lastDotIndex + 1);
+        }
+
+        let picture = createTag('picture');
+        let source = createTag('source', { type: `image/${imageExtension}`, srcset: `${img.src}?width=2000&amp;format=png&amp;optimize=medium`, media: `media="(min-width: 600px)`});
+        let image = createTag('img', { alt: img.alt, src: img.src});
+
+        picture.appendChild(source);
+        picture.appendChild(image);
+        img.replaceWith(picture);
+      }
+    });
+  }
+}
 async function loadPage() {
+  fixLocalDev(document);
   await loadEager(document);
   await loadLazy(document);
   loadPrism(document);

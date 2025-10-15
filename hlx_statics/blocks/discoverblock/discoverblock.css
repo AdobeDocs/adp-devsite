@@ -1,43 +1,92 @@
 main div.discoverblock-wrapper:has(.discover.background-color-white) {
-    background-color: white !important;
+  background-color: white !important;
 }
 
-main div.discoverblock-wrapper div.discover-child-container a {
-    font-size: 16px;
-    text-decoration: none;
-    color: #0054b6;
+main div.discoverblock-wrapper .discover-heading {
+  color: #2c2c2c;
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.4;
 }
 
-
-main div.discoverblock-wrapper div.discover-child-inner-container {
-    display: flex;
-    gap: 30px;
+main div.discoverblock-wrapper .discover-text {
+  color: #6c757d;
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
 }
 
-main div.discoverblock-wrapper div.discover-img-child-container {
-    width: 50%;
+main div.discoverblock-wrapper div.discoverblock {
+  font-size: 16px;
+  margin-top: 5px;
+  margin-right: 32px;
 }
 
-main div.discoverblock-wrapper div.discoverblock-container-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    column-gap: 30px;
-    row-gap: 30px;
+/* Wrapper display */
+main div.discoverblock-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  width: 320px;
+  padding-top:0px;
 }
 
-main div.discoverblock-wrapper div.discoverblock-column .discover-child-container{
-    width: 650px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
+/* Responsive design for mobile and tablet */
+@media (max-width: 768px) {
+  main div.discoverblock-wrapper {
+    width: 100% !important;
+  }
 }
-main div.discoverblock-wrapper div.discover-nonheading-child-container.discover-child-container {
-    font-size: 16px;
+
+main div.discoverblock-container div.heading2-wrapper{
+  margin-bottom: 5px;
 }
-main div.discoverblock-wrapper .discover-child-container{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 100%;
+
+main div.discoverblock-container div.heading2-wrapper h2 {
+  border-bottom: 0px;
+  padding-bottom: 3px;
+}
+
+main div.discoverblock-container h2 {
+  border-bottom: 1px solid #e1e1e1;
+  padding-bottom: 8px;
+  margin-bottom: 0px;
+}
+
+main div.discoverblock-container h3 {
+  width: 100%;
+}
+
+/* Hide anchor links by default, show on hover */
+main h2 .anchor-link,
+main h3 .anchor-link {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+main h2:hover .anchor-link,
+main h3:hover .anchor-link {
+  opacity: 1;
+}
+
+/* Override spectrum link hover underline */
+main h2 .anchor-link.spectrum-Link--quiet:hover,
+main h3 .anchor-link.spectrum-Link--quiet:hover {
+  text-decoration: none !important;
+}
+
+main div.discoverblock-wrapper p {
+  color: rgb(34,34,34);
+  font-size: 16px;
+  line-height:1.5;
+  margin-bottom: 0;
+}
+
+main div.discoverblock-container .discover-heading-with-image {
+  padding-left: 126px;
+  margin-bottom: 5px;
+}
+
+main div.discoverblock-wrapper div.discover-content-with-image {
+  padding-left: 126px;
 }

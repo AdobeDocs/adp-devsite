@@ -129,6 +129,28 @@ export async function fetchSideNavHtml() {
 }
 
 /**
+ * Retrieves the site-wide-banner json file
+ * @returns {string} The site-wide-banner json file
+ */
+export async function fetchSiteWideBanner() {
+  let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+  let siteWideBannerFile = `${window.location.origin}/${pathPrefix}/site-wide-banner.json`;
+  let siteWideBannerJSON = await fetch(siteWideBannerFile)
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.warn('Network response was not ok');
+      }
+    })
+    .then(data => data)
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+  return siteWideBannerJSON;
+}
+
+/**
  * Retrieves the redirects json file
  * @returns {string} The redirect json file
  */
@@ -181,8 +203,8 @@ async function fetchNavHtml(name) {
     if (item.innerText === name) {
       navItems = item.parentElement.querySelector('ul');
       // relace annoying p tags
-      const navItemsChild = navItems.querySelectorAll('li');
-      navItemsChild.forEach((liItems) => {
+      const navItemsChild = navItems?.querySelectorAll('li');
+      navItemsChild?.forEach((liItems) => {
         let p = liItems.querySelector('p');
         if (p) {
           p.replaceWith(p.firstChild);
@@ -191,7 +213,7 @@ async function fetchNavHtml(name) {
     }
   });
 
-  return navItems ? navItems.innerHTML : Promise.reject(navItems.innerHTML);
+  return navItems?.innerHTML ? navItems.innerHTML : Promise.reject(navItems?.innerHTML);
 }
 
 /**
@@ -361,7 +383,7 @@ export function decorateBlock(block) {
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
     const childBlock = blockWrapper.querySelector('div')
-    if(IS_DEV_DOCS){
+    if (IS_DEV_DOCS) {
       // ensure all documentation blocks are having white background.
       childBlock?.classList.add('background-color-white');
     }
@@ -369,6 +391,7 @@ export function decorateBlock(block) {
     if (section) section.classList.add(`${shortBlockName}-container`);
   }
 }
+
 
 /**
  * Extracts the config from a block.
@@ -480,10 +503,26 @@ export function updateSectionsStatus(main) {
 }
 
 /**
+ * Replace HTML entities in text nodes, but skip those inside code elements
+ * @param {Element} element The element to process
+ */
+function replaceInTextNodes(element) {
+  if (element.nodeType === Node.TEXT_NODE) {
+    if (!element.parentElement?.closest('code')) {
+      element.textContent = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    }
+  } else {
+    // Recursively process child nodes
+    Array.from(element.childNodes).forEach(replaceInTextNodes);
+  }
+}
+
+/**
  * Decorates all blocks in a container element.
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
+  replaceInTextNodes(main);
   main
     .querySelectorAll('div.section > div > div')
     .forEach((block) => decorateBlock(block));
@@ -582,7 +621,7 @@ export async function loadBlocks(main) {
 export function createOptimizedPicture(src, alt = '', eager = false, breakpoints = [{ media: '(min-width: 400px)', width: '2000' }, { width: '750' }]) {
   const url = new URL(src, window.location.href);
   const picture = document.createElement('picture');
-  const { pathname } = url;
+  const { origin, pathname } = url;
   const ext = pathname.substring(pathname.lastIndexOf('.') + 1);
 
   // webp
@@ -590,7 +629,7 @@ export function createOptimizedPicture(src, alt = '', eager = false, breakpoints
     const source = document.createElement('source');
     if (br.media) source.setAttribute('media', br.media);
     source.setAttribute('type', 'image/webp');
-    source.setAttribute('srcset', `${pathname}?width=${br.width}&format=webply&optimize=medium`);
+    source.setAttribute('srcset', `${origin}${pathname}?width=${br.width}&format=webply&optimize=medium`);
     picture.appendChild(source);
   });
 
@@ -599,14 +638,14 @@ export function createOptimizedPicture(src, alt = '', eager = false, breakpoints
     if (i < breakpoints.length - 1) {
       const source = document.createElement('source');
       if (br.media) source.setAttribute('media', br.media);
-      source.setAttribute('srcset', `${pathname}?width=${br.width}&format=${ext}&optimize=medium`);
+      source.setAttribute('srcset', `${origin}${pathname}?width=${br.width}&format=${ext}&optimize=medium`);
       picture.appendChild(source);
     } else {
       const img = document.createElement('img');
       img.setAttribute('loading', eager ? 'eager' : 'lazy');
       img.setAttribute('alt', alt);
       picture.appendChild(img);
-      img.setAttribute('src', `${pathname}?width=${br.width}&format=${ext}&optimize=medium`);
+      img.setAttribute('src', `${origin}${pathname}?width=${br.width}&format=${ext}&optimize=medium`);
     }
   });
 
@@ -656,13 +695,36 @@ export function decorateTemplateAndTheme() {
   if (theme) addClasses(document.body, theme);
 }
 
+export function getLinks(element, type) {
+  const links = element.querySelectorAll('a');
+  const buttonLinks = Array.from(links).filter(link => {
+    const [_, queryString] = link.href.split('?');
+    const searchParams = new URLSearchParams(queryString);
+    // In Franklin, all links get turned into buttons. However, in EDS DevBiz, we also pass high-res images as links. And so, to support both, we check the aio_type parameter to see if it matches the type we're looking for. Otherwise, we assume it's a button.
+    const aioType = searchParams.get('aio_type');
+    return aioType ? aioType === type : type === 'button';
+  });
+  return buttonLinks;
+}
+
+export function decoratePictures(element) {
+  getLinks(element, 'image').forEach((a) => {
+    let img = document.createElement('img');
+    img.src = a.href;
+    img.alt = a.textContent;
+    let picture = document.createElement('picture');
+    picture.appendChild(img);
+    a.parentNode.replaceChild(picture, a);
+  });
+}
+
 /**
  * decorates paragraphs containing a single link as buttons.
  * @param {Element} element container element
  */
 
 export function decorateButtons(element) {
-  element.querySelectorAll('a').forEach((a) => {
+  getLinks(element, 'button').forEach((a) => {
     a.title = a.title || a.textContent;
     if (a.href !== a.textContent) {
       const up = a.parentElement;
@@ -753,7 +815,8 @@ export function githubActionsBlock(doc) {
   if (!baseUrl) return;
   const githubEditUrl = baseUrl.replace('blob', 'edit');
   const githubIssueUrl = baseUrl.replace('blob', 'issues/new?title=Issue%20in%20');
-  if (!doc.querySelector('.herosimple-container') && !doc.querySelector('.hero-container')) {
+  const hasHero = Boolean(document.querySelector('.hero, .site-hero, .herosimple, .superhero'));
+  if (!hasHero) {
     const newContent = doc.createElement('div');
     newContent.classList.add('section', 'github-actions-wrapper');
     newContent.innerHTML = `
@@ -770,16 +833,55 @@ export function githubActionsBlock(doc) {
                           </div>
                           <div>Log an issue</div>
                       </a>
+                      <a role="button" class="copy-markdown-button action-buttons" data-github-url="${baseUrl}" onclick="copyMarkdownContent(this, event)" role="button">
+                        <div>
+                          <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
+                            <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="9" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="7" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="5" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="3" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="14" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="12" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="10" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="8" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="3" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="5" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="7" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="9" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="8" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="10" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="12" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="14" y="11" /><path class="fill" d="M5,6H1.5a.5.5,0,0,0-.5.5v10a.5.5,0,0,0,.5.5h10a.5.5,0,0,0,.5-.5V13H5.5a.5.5,0,0,1-.5-.5Z" />
+                          </svg>
+                        </div>
+                        <div class="copy-markdown-button-label">Copy as Markdown</div>
+                      </a>
               </div>
       `;
     const contentHeader = doc.querySelector('.content-header');
     contentHeader?.append(newContent);
     const isBreadCrumbs = doc.querySelector('.breadcrumbs-container');
-    if(!isBreadCrumbs){
+    if (!isBreadCrumbs) {
       contentHeader.classList.add('no-breadcrumbs');
     }
   }
 };
+
+/**
+ * Copy markdown content from GitHub to clipboard
+ */
+window.copyMarkdownContent = async function (btn, event) {
+  // Prevent default anchor behavior
+  if (event) {
+    event.preventDefault();
+  }
+
+  const baseUrl = btn.dataset.githubUrl;
+  const rawUrl = baseUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+  const label = btn.querySelector('.copy-markdown-button-label');
+  const originalText = label.textContent;
+
+  try {
+    const response = await fetch(rawUrl);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    await navigator.clipboard.writeText(await response.text());
+    label.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      label.textContent = originalText;
+      btn.classList.remove('copied');
+    }, 3000);
+    console.log('Markdown copied to clipboard!');
+  } catch (error) {
+    console.error('Failed to copy markdown:', error);
+    window.open(rawUrl, '_blank');
+  }
+}
 
 /**
  * parse attributes from row and added to particular blcok

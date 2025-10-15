@@ -26,6 +26,14 @@ main div.title-wrapper>div>div>div {
     gap: 15px;
 }
 
+main div.title-wrapper > div.wide .title-heading {
+    font-size: 38px;
+}
+
+main div.title-wrapper > div.wide {
+    padding: 20px 0;
+}
+
 @media screen and (min-width : 320px) and (max-width : 768px) {
     main div.title-wrapper>div {
         width: fit-content !important;

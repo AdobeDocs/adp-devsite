@@ -17,8 +17,8 @@ main div.herosimple-wrapper div.herosimple > div {
   height: 100%;
 }
 
-main div.herosimple-wrapper div.herosimple > div > div{
-  width: calc(5* 100% / 12);
+main div.herosimple-wrapper div.herosimple > div > div {
+  width: calc(5 * 100% / 12);
   font-size: 20px;
 }
 
@@ -28,7 +28,7 @@ main div.herosimple-wrapper div.herosimple .hero-left-content {
   align-items: center;
 }
 
-main div.herosimple-wrapper div.herosimple div.hero-left-content>div {
+main div.herosimple-wrapper div.herosimple div.hero-left-content > div {
   display: flex;
   gap: 30px;
   flex-direction: column;
@@ -47,20 +47,21 @@ main div.herosimple-wrapper div.halfWidth {
   height: unset;
 }
 
-main div.herosimple-wrapper div.halfWidth>div.herosimple-container-wrapper {
+main div.herosimple-wrapper div.halfWidth > div.herosimple-container-wrapper {
   flex-direction: row;
+  gap: 30px;
 }
 
-main div.herosimple-wrapper div.fullWidth>div {
+main div.herosimple-wrapper div.fullWidth > div {
   align-items: center;
   text-align: center;
 }
 
-main div.herosimple-wrapper div.fullWidth>div>div {
+main div.herosimple-wrapper div.fullWidth > div > div {
   width: unset;
 }
 
-main div.herosimple-wrapper div.button-container > p ,
+main div.herosimple-wrapper div.button-container > p,
 main div.herosimple-wrapper .all-button-container > p {
   margin: 0;
 }
@@ -93,7 +94,7 @@ main div.herosimple-wrapper .text-color-navy {
 }
 
 @media screen and (max-width: 1280px) {
-  main div.herosimple-wrapper div.herosimple > div > div{
+  main div.herosimple-wrapper div.herosimple > div > div {
     width: 100%;
   }
 }
@@ -109,7 +110,7 @@ main div.herosimple-wrapper div.herosimple h1 {
     height: auto;
     padding: 50px 0px;
   }
-  main div.herosimple-wrapper div.herosimple > div{
+  main div.herosimple-wrapper div.herosimple > div {
     margin: auto;
   }
 }

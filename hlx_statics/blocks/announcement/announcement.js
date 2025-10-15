@@ -63,6 +63,7 @@ function setBackgroundImage(block) {
  */
 export default async function decorate(block) {
   const backgroundColor = block.getAttribute("data-backgroundcolor");
+  const hasBorder =  block.getAttribute("data-hasborder");
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
@@ -77,6 +78,9 @@ export default async function decorate(block) {
 
   if (!imageExists) {
     if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
+      if (hasBorder === "true") {
+        block.classList.add("hasborder");
+      }
       block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
       block.classList.add(backgroundColor);
     }

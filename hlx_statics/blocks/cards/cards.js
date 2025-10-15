@@ -31,7 +31,7 @@ export default async function decorate(block) {
     decorateLightOrDark(block);
 
     card.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((header) => {
-      header.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM');
+      header.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'card-heading');
     });
 
     card.querySelectorAll('p').forEach((p) => {
@@ -56,6 +56,13 @@ export default async function decorate(block) {
     }
 
   });
+
+  Array.from(block.querySelectorAll('div')).forEach((div) => {
+    if(div.textContent.trim() !== '') {
+      div.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    }
+  });
+
   const observer = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {
       observer.disconnect();

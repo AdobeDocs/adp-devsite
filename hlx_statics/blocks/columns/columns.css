@@ -8,7 +8,7 @@ main div.columns-wrapper {
 }
 
 main div.columns-wrapper div.columns {
-    width: 1280px;
+    max-width: 1280px;
     box-sizing: border-box;
     margin: auto;
 }
@@ -100,6 +100,7 @@ main div.columns-wrapper div.columns h3.column-header {
     margin-top: 0!important;
     margin-bottom: 16px!important;
     scroll-margin-top:100px;
+    text-align: start;
 }
 
 main div.columns-wrapper div.columns h3.column-header a {
@@ -288,4 +289,29 @@ main div.columns-wrapper div.columns.vertical p+p {
 main div.columns-wrapper div.columns.vertical>div:nth-child(even) ,
 main div.columns-wrapper div.columns.vertical>div:nth-child(odd) {
     flex-direction: column;
+}
+
+main div.columns-wrapper div.columns.wide {
+    padding: 40px 0;
+}
+
+main div.columns-wrapper div.columns.wide.large-font h3.column-header {
+    font-size: 38px;
+}
+
+main div.columns-wrapper div.columns.text-align-center.large-font p.paragraph-wrapper {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+main div.columns-wrapper div.columns.wide p.button-container a {
+    font-size: 16px;
+}
+
+main div.columns-wrapper div.columns.center li{
+    text-align: initial;
+}
+
+main div.columns-wrapper div.columns.heading-center.center h3.column-header  {
+    text-align: center;
 }

@@ -2,8 +2,8 @@
 This is the Adobe I/O Helix repo. It contains all the scripts, styles and other helixy bits to power the adobe.io website. 
 
 ## Installation
-1. Install hlx as a global command. You need Node 10.13 or newer. `$ npm install -g @adobe/helix-cli`
-3. Run `$ hlx up`
+1. Install hlx as a global command. You need Node 10.13 or newer. `$ npm install -g @adobe/aem-cli`
+3. Run `$ aem up`
 4. Navigate to http://localhost:3000/
 
 ## Building styles

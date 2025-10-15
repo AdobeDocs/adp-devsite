@@ -10,6 +10,16 @@ main div.cards-wrapper:has(.cards.background-color-white) {
   background-color: white !important;
 }
 
+main div.cards-wrapper:has(.cards.background-color-dark-gray),
+main div.cards.background-color-dark-gray {
+  background-color: #323232;
+}
+
+main div.cards-wrapper div.cards.background-color-dark-gray .card-heading,
+main div.cards-wrapper div.cards.background-color-dark-gray p {
+  color: white;
+}
+
 main div.cards-wrapper div.cards {
   width: 100%;
   max-width: 1280px;
@@ -85,6 +95,18 @@ main div.cards-wrapper div.cards a.card-button {
   --gap: 16px;
   margin-top: 12px;
   margin-bottom: 12px;
+}
+
+main div.cards-wrapper div.cards.wide {
+  max-width: 80%;
+}
+
+main div.cards-wrapper div.cards.wide div.three-card {
+  width: 33.33%;
+}
+
+main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
+  max-width: 85%;
 }
 
 @media screen and (max-width: 1024px) {

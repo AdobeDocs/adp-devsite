@@ -61,6 +61,14 @@ main div.banner-wrapper div.banner:not(.isH)>div>div {
   align-items: center;
 }
 
+main div.banner-wrapper div.banner.wide {
+      padding: 20px 0;
+}
+
+main div.banner-wrapper div.banner.wide p.button-container a{
+  font-size: 16px;
+}
+
 @media screen and (max-width: 768px) {
   main div.banner-wrapper div.banner h1 {
     line-height: 60px;

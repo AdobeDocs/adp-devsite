@@ -58,6 +58,9 @@ export default async function decorate(block) {
     item.addEventListener("click", () => {
         const heading = item.querySelector('.accordion-itemHeader');
         const content = item.querySelector('.accordion-itemContent');
+        content.querySelectorAll('p').forEach((p) => {
+            p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+        });
         if(!heading.classList.contains('active')){ //click on item - show content
             heading.classList.add('active');
             content.style.display = 'block';

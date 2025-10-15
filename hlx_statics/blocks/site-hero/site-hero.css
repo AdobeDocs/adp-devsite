@@ -29,7 +29,6 @@ main div.site-hero-wrapper div.site-hero .site-hero-content {
   width: 100%;
 }
 
-
 main div.site-hero-wrapper div.site-hero.xl img {
   width: 100%;
   height: 624px;
@@ -64,7 +63,7 @@ main div.site-hero-wrapper div.site-hero .hero-button-container {
   gap: 16px;
 }
 
-@media screen and (min-width:768px) and (max-width:1024px) {
+@media screen and (min-width: 768px) and (max-width: 1024px) {
   main div.site-hero-wrapper div.site-hero .site-hero-content {
     padding: 0 32px;
   }
@@ -82,7 +81,7 @@ main div.site-hero-wrapper div.site-hero .hero-button-container {
   }
 }
 
-@media screen and (min-width:320px) and (max-width:767px) {
+@media screen and (min-width: 320px) and (max-width: 767px) {
   main div.site-hero-wrapper div.site-hero {
     position: relative;
     width: 100%;
@@ -110,5 +109,4 @@ main div.site-hero-wrapper div.site-hero .hero-button-container {
   main div.site-hero-wrapper div.site-hero .site-hero-content {
     padding: 0 32px;
   }
-
 }

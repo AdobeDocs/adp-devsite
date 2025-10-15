@@ -18,8 +18,12 @@ footer {
 
 footer>div {
   box-sizing: border-box;
-  max-width: 1280px;
   margin: 0 auto;
+}
+
+main.dev-docs:not(.no-layout) footer>div,
+main.dev-biz ~ footer>div {
+  max-width: 1280px;
 }
 
 footer>div ul {

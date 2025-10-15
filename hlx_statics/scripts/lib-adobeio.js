@@ -1,4 +1,4 @@
-import { buildBlock, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
+import { buildBlock, getLinks, getMetadata, IS_DEV_DOCS, loadCSS } from './lib-helix.js';
 import decoratePreformattedCode from '../components/code.js';
 
 /**
@@ -12,14 +12,20 @@ export const LARGE_SCREEN_WIDTH = 1280;
  * Updates the tag target and rel attributes accordingly.
  * @param {*} a The a tag to check
  */
-export function checkExternalLink(a) {
-  const url = a.href;
-  if (url.indexOf('developer.adobe.com') === -1
-    && url.indexOf('hlx.page') === -1
-    && url.indexOf('hlx.live') === -1) {
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-  }
+export function checkExternalLink(main) {
+  main.querySelectorAll('a').forEach((a) => {
+    const url = a.href;
+    if (url) {
+      const [_, queryString] = url.split('?');
+      const searchParams = new URLSearchParams(queryString);
+      const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live', 'aem.page', 'aem.live'];
+      const isExternal = !internalDomains.some(domain => url.includes(domain)) || searchParams.has('aio_external');
+      if (isExternal) {
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+    }
+  });
 }
 
 /**
@@ -143,7 +149,7 @@ export function removeEmptyPTags(element) {
  * @param {*} block The block to inspect
  */
 export function decorateButtons(block, secondaryButtonBorderColor, secondaryButtonColor) {
-  block.querySelectorAll('a').forEach((a) => {
+  getLinks(block, 'button').forEach((a) => {
     a.innerHTML = `<span class="spectrum-Button-label" >${a.innerHTML}</span>`;
     const up = a.parentElement;
     const twoup = a.parentElement.parentElement;
@@ -159,8 +165,6 @@ export function decorateButtons(block, secondaryButtonBorderColor, secondaryButt
         innerHTML.style.color = secondaryButtonColor;
       }
     }
-
-    checkExternalLink(a);
 
     if (
       up.childNodes.length === 1
@@ -286,11 +290,32 @@ export function buildHeadings(container) {
 export function buildGrid(main) {
   main.style.display = 'grid';
 
-  const gridAreaMain = main.querySelector(".section");
-  gridAreaMain.style.gridArea = 'main';
+  const mainContainer = document.querySelector('main');
+  mainContainer.style.display = 'grid';
 
-  let contentHeader = createTag('div', { class: 'content-header' });
-  gridAreaMain.prepend(contentHeader)
+  const gridAreaMain = main.querySelector('.section');
+  if (gridAreaMain) {
+    gridAreaMain.style.gridArea = 'main';
+    gridAreaMain.classList.add('grid-main-area');
+  }
+
+  if(getMetadata('layout') === 'none' && gridAreaMain?.classList.contains('redoclyapiblock-container')){
+    main?.classList.add('no-layout');
+  }
+
+  const sideNav = document.querySelector('.side-nav');
+  if (sideNav) sideNav.style.gridArea = 'sidenav';
+
+  const footer = document.querySelector('footer');
+  if (footer) footer.style.gridArea = 'footer';
+
+  const aside = document.querySelector('aside');
+  if (aside) aside.style.gridArea = 'aside';
+
+  if (gridAreaMain) {
+    let contentHeader = createTag('div', { class: 'content-header' });
+    gridAreaMain.prepend(contentHeader);
+  }
 }
 
 /**
@@ -298,17 +323,22 @@ export function buildGrid(main) {
  * @param {*} main The grid container
  */
 export function buildGridAreaMain(main) {
-  const herosimpleWrapper = main.querySelector('.herosimple-wrapper');
-  const gridAreaMain = main.querySelector('main > div[style*="grid-area: main"]');
+  const gridAreaMain = main.querySelector('.grid-main-area');
   const subParent = createTag("div", { class: "sub-parent" });
-  if (herosimpleWrapper) {
+  
+  const heroWrapperClasses = ['herosimple-wrapper', 'superhero-wrapper'];
+  const selector = '.' + heroWrapperClasses.join(', .');
+  const heroWrapper = main.querySelector(selector);
+  const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
+  
+  if (heroWrapper) {
     const children = Array.from(gridAreaMain.children);
     children.forEach((child) => {
-      if (!child.classList.contains("herosimple-wrapper")) {
+      if (!child.classList.contains(heroWrapperClass)) {
         subParent.appendChild(child);
       }
     });
-    gridAreaMain.insertBefore(subParent, herosimpleWrapper.nextSibling);
+    gridAreaMain.insertBefore(subParent, heroWrapper.nextSibling);
   } else {
     gridAreaMain.appendChild(subParent);
   }
@@ -328,6 +358,19 @@ export function buildSideNav(main) {
 }
 
 /**
+ * Builds the side nav
+ * @param {*} main The sitewidebanner container
+ */
+export function buildSiteWideBanner(main) {
+  let siteWideBannerDiv = createTag('div', { class: 'section site-wide-banner-container fixed-banner' });
+  let siteWideBannerWrapper = createTag('div', { class: 'site-wide-banner-wrapper' });
+  let siteWideBannerBlock = createTag('div', { class: 'site-wide-banner block', 'data-block-name': 'site-wide-banner' });
+  siteWideBannerWrapper.append(siteWideBannerBlock);
+  siteWideBannerDiv.append(siteWideBannerWrapper);
+  main.prepend(siteWideBannerDiv);
+}
+
+/**
  * Builds the on this page wrapper
  * @param {*} main The grid container
  */
@@ -337,12 +380,38 @@ export function buildOnThisPage(main) {
 }
 
 /**
+ * Builds resources component
+ * @param {*} main The grid container
+ */
+export function buildResources(main) {
+  let asideWrapper;
+  if (document.querySelector('.onthispage-wrapper') != null) {
+    // if there's onthispage, move it with the onthispage.
+    asideWrapper = document.querySelector('.onthispage-wrapper');
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    if (resourcesWrapper) {
+      asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
+    }
+  } else {
+    // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
+    let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
+    const resourcesWrapper = document.querySelector('.resources-wrapper');
+    mainResourcesWrapper.appendChild(resourcesWrapper);
+    const subparent = document.querySelector('.sub-parent');
+    mainResourcesWrapper.insertBefore(subparent, mainResourcesWrapper.firstChild);
+    const resourceContainer = document.querySelector('.resources-container');
+    resourceContainer.append(mainResourcesWrapper);
+  }
+
+}
+
+/**
  * Builds the next-prev wrapper
  * @param {*} main The grid container
  */
 export function buildNextPrev(main) {
   let nextPrevWrapper = createTag('div', { class: 'next-prev-wrapper block', 'data-block-name': 'next-prev' });
-  const gridAreaMain = main.querySelector('div[style*="grid-area: main"]');
+  const gridAreaMain = main.querySelector('.grid-main-area');
   gridAreaMain.appendChild(nextPrevWrapper)
 }
 
@@ -467,16 +536,16 @@ function activeSubNav(actTab) {
   let showSidenav = false;
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
-    const sidenavItems = navLinksUl.querySelectorAll(':scope > ul li');
+    const sidenavItems = navLinksUl?.querySelectorAll(':scope > ul li') || [];
     const topNavPath = actTab.pathname;
     const pagePath = window.location.pathname;
     sidenavItems.forEach(li => {
       const link = li.querySelector(':scope > a');
       if (link) {
         const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (linkPath === pagePath) {
+        if (linkPath.startsWith(pagePath) && getMetadata("template") === "documentation") {
           showSidenav = true;
-        } 
+        }
         if (!linkPath.startsWith(topNavPath)) {
           li.classList.add('hidden');
         }
@@ -485,6 +554,7 @@ function activeSubNav(actTab) {
       }
     });
   }
+  
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }
@@ -815,7 +885,6 @@ export function createAnchorLink(id) {
  */
 export function decorateAnchorLink(header) {
   //  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-  header.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header');
   const anchorLink = createAnchorLink(header.id);
   header.appendChild(anchorLink);
   // });

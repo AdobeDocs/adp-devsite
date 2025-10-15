@@ -7,7 +7,7 @@ import { createTag, removeEmptyPTags, decorateButtons} from '../../scripts/lib-a
  * @param {*} text The text of the card
  * @returns The resource card HTML
  */
-function getMiniResourceCard(linkHref, heading, text) {
+function getMiniResourceCard(linkHref, heading, text , isWide) {
     if (text === undefined) { //no body just heading
         return `
             <a class="mini-card" href=${linkHref}>
@@ -29,7 +29,7 @@ function getMiniResourceCard(linkHref, heading, text) {
                 <h3 class="spectrum-Heading spectrum-Heading--sizeM">
                     ${heading}
                 </h3>
-                <p class="spectrum-Body spectrum-Body--sizeS ">
+                <p class="${isWide ? "spectrum-Body spectrum-Body--sizeL" : "spectrum-Body spectrum-Body--sizeS" }">
                     ${text}
                 </p>
             </div> `;
@@ -41,6 +41,7 @@ function getMiniResourceCard(linkHref, heading, text) {
  * @param {Element} block The mini-resource-card block element
  */
 export default async function decorate(block) {
+    const isWide = block.classList.contains('wide');
     let containerParent;
     block.setAttribute('daa-lh', 'mini-resource-card');
     if (block.classList.contains('nobox-design')) {
@@ -76,7 +77,7 @@ export default async function decorate(block) {
             img.setAttribute('class', 'image-mini');
         }
 
-        resource.innerHTML = getMiniResourceCard(linkHref, heading, text);
+        resource.innerHTML = getMiniResourceCard(linkHref, heading, text , isWide);
         const pictureContainer = resource.querySelector('.mini-resource-card-image-container');
         pictureContainer.append(picture);
 

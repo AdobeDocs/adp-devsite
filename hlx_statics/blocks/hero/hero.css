@@ -60,8 +60,14 @@ main div.hero-wrapper div.hero div:nth-child(2) > div img {
 }
 
 main div.hero-wrapper:has(.full-width-background) div:nth-child(2) > div img {
-  display:none;
+  display: none;
 }
+
+main div.hero-wrapper:has(.full-width-background) div:nth-child(3) {
+  display: flex;
+  align-items: center;
+}
+
 main div.hero-wrapper div.hero .icon-container {
   height: 48px;
   width: 48px;
@@ -78,7 +84,8 @@ main div.hero-wrapper div.hero .icon {
   object-fit: contain;
 }
 
-main div.hero-wrapper div.hero h3 {
+main div.hero-wrapper div.hero h3,
+main div.hero-wrapper div.hero h1 {
   margin-top: 0;
   margin-bottom: 16px;
 }
@@ -102,6 +109,38 @@ main div.hero-wrapper div.hero h3 {
 
 main div.hero-wrapper div.hero h1 + p.last-of-type {
   margin-bottom: 0 !important;
+}
+
+main div.hero-wrapper div.hero.font-color-white a {
+  text-decoration: underline;
+}
+
+main div.hero-wrapper div.hero.font-color-white h1,
+main div.hero-wrapper div.hero.font-color-white a,
+main div.hero-wrapper div.hero.font-color-white p {
+  color: white !important;
+}
+
+main div.hero-wrapper div.hero.font-color-black {
+  color: black;
+}
+
+main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) {
+  border-color: white;
+}
+
+main div.hero-wrapper div.hero.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) > span {
+  color: white;
+}
+
+main div.hero-wrapper div.hero.over-gradient p.button-container a {
+  font-size: 16px;
+}
+
+main div.hero-wrapper div.hero-video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 @media screen and (max-width: 768px) {

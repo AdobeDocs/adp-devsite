@@ -190,10 +190,17 @@ main.dev-docs.no-sidenav.no-onthispage {
   grid-template-columns: 100%;
 }
 
+main.dev-docs.no-onthispage .main-resources-wrapper {
+  display: flex;
+  flex-direction: row;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
 @media screen and (max-width: 1228px) {
   main.dev-docs .onthispage-wrapper {
     display: none;
-  }  
+  }
 
   main.dev-docs {
     grid-template-areas:
@@ -223,32 +230,37 @@ main.dev-docs.no-sidenav.no-onthispage {
 }
 
 main.dev-docs .herosimple > div,
-main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main .superhero.default > div,
+main.dev-docs:has(.herosimple, .superhero) .sub-parent,
+main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) > .grid-main-area,
 main.dev-docs .footer-wrapper .footer-links-container-inner {
   padding-left: 32px;
   padding-right: 32px;
 }
 
 main.dev-docs .herosimple > div,
-main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
+main .superhero.default > div,
+main.dev-docs:has(.herosimple, .superhero) .sub-parent,
+main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
 main.dev-docs .footer-wrapper {
   margin: 0 auto;
   width: 100%;
 }
 
 main.dev-docs .herosimple > div,
-main.dev-docs:has(.herosimple) .sub-parent,
-main.dev-docs:has(.herosimple) .footer-wrapper {
+main .superhero.default > div,
+main.dev-docs:has(.herosimple, .superhero) .sub-parent,
+main.dev-docs:has(.herosimple, .superhero) .footer-wrapper {
   max-width: 1000px;
 }
 
-main.dev-docs.no-sidenav .herosimple > div,
-main.dev-docs:has(.herosimple).no-sidenav .sub-parent,
-main.dev-docs:has(.herosimple).no-sidenav .footer-wrapper,
-main.dev-docs:not(:has(.herosimple)) > div[style*="grid-area: main"],
-main.dev-docs:not(:has(.herosimple)) .footer-wrapper {
+main.dev-docs:not(.no-layout).no-sidenav .herosimple > div,
+main.dev-docs:not(.no-layout).no-sidenav .superhero.default > div,
+main.dev-biz .superhero.default > div,
+main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .sub-parent,
+main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .footer-wrapper,
+main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
+main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .footer-wrapper {
   max-width: 1280px;
 }
 
@@ -688,7 +700,7 @@ main .heading6 h6>span {
   color: rgb(0, 0, 0);
 }
 
-.spectrum-Heading--sizeS { 
+.spectrum-Heading--sizeS {
   color: rgb(34,34,34)
 }
 
@@ -838,7 +850,7 @@ main .heading6 h6>span {
   border-color: rgb(110, 110, 110);
   color: rgb(255, 255, 255);
   text-decoration: none;
- } 
+ }
 
 .spectrum-Button--secondary.focus-ring {
   background-color: rgb(110, 110, 110);
@@ -1074,7 +1086,6 @@ main .heading6 h6>span {
 
 .spectrum-Link {
   background-color: transparent;
-  font-size: 14px;
   cursor: pointer;
   outline: none;
   text-decoration: underline;
@@ -1162,6 +1173,7 @@ main .github-actions-block{
   display: flex;
   gap: 20px;
   min-width: 250px;
+  align-items: center;
 }
 
 main .action-buttons{
@@ -1179,8 +1191,8 @@ main .action-buttons div{
 }
 
 main .default-content-wrapper img{
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  display: block;
 }
 
 main li h3{
@@ -1227,4 +1239,8 @@ main .content-header.block-display .github-actions-wrapper{
 
 main .no-breadcrumbs {
   justify-content: end;
+}
+
+main .action-buttons.copy-markdown-button{
+  cursor:pointer;
 }

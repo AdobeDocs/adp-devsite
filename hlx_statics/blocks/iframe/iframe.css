@@ -9,6 +9,10 @@ main div.iframe-wrapper iframe.iframe-container {
   border: none;
 }
 
+main div.iframe-wrapper iframe.full-height {
+  height: calc(100vh - 64px) !important ;
+}
+
 main div.iframe-wrapper {
   align-items: center;
   justify-content: center;

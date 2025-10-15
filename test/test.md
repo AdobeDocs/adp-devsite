@@ -54,7 +54,7 @@
     - The block with `primaybutton` does not have `<p>` tag, so cann't go through the forEach at line 34
     - Should check `block.classList.contains('primarybutton')` outside any contional statement
 
-**title.js**:
+**title.js**
 - line 8 & 16 - 18:
     - No element has attribute `data-Padding`
     - The `if(padding)` will always be false
@@ -74,3 +74,140 @@
 **card.js**:
 - line 58 - 62:
     - This can be safely deleted without effecting the display of block
+
+**columns.js**
+- line 40 - 43:
+    - Class name 'columns-container' is assigned by the wrapper function
+    - If remove the parent div of the block, the console.error will trigger
+
+- line 60 - 64:
+    - The if statement always gets false
+
+- line 99 - 106:
+    - No element had class name "button"
+    - `querySelectorAll('.button')` gets empty list
+
+- line 112 - 119:
+    - Block class list does not contain 'test-align-center'
+
+- line 124 - 128:
+    - All section have at least a `<h3>` tag
+    - The if statement always get false
+
+**edition.js**
+- line 19 - 22:
+    - `contentElement` has no attributre
+**carousel.js**
+- line 90 - 103:
+    - There is no ancor tag outside of img tag in the source html
+    - The if statement always get false and does not run through the statement
+-line 132 - 134:
+    - No`<p>` contains "button-contianer"
+    - line 132 `if (p.classList.contains("button-container")) ` always gets false
+
+- line 140 - 146:
+    - No `<span>` under `<p>` tag
+    - Line 140 `if(p.querySelector("span"))` always gets false
+-line 250 - 270:
+    - `block.querySelectorAll("div.embed.block > div > div > a")` gets empty list
+    - Can't run through forEac
+
+**info.js**
+- line 26 - 28:
+    - No longer using `<ul>` in source html
+**contributors.js**
+- line 11 & 13 - 15:
+    - No element has attribute `data-isborder`
+    - Variable `isBordar` is null
+- line 47 - 51 & 53:
+    - resources are hard coded
+    - should accept inputs from google drive table
+
+**list.js**
+- line 25 - 43
+    - `getMetadata('template')` is null
+**embed.js**:
+- line 8 - 17:
+    - Function `loadScript()` not covered
+    - Used by embedIG() and embedTwitter() which are not tested
+
+- line 20 - 28:
+    - Function `getDefaultEmbed()` not covered
+    - Only used when no matching embed type is found
+
+- line 30 - 38:
+    - Function `embedIG()` not covered
+    - No Instagram embed example in test cases
+
+- line 41 - 52:
+    - Function `embedYTShort()` not covered
+    - No YouTube Shorts example in test cases
+
+- line 54 - 63:
+    - Function `embedMP4()` not covered
+    - No MP4 video example in test cases
+
+- line 64 - 70:
+    - Function `embedYTPlaylist()` not covered
+    - No YouTube playlist example in test cases
+
+- line 89 - 93, 96 - 97:
+    - YouTube embed branches not covered
+    - No youtu.be or YouTube shorts/playlist examples
+
+- line 170 - 174:
+    - Function `embedVimeo()` not covered
+    - No Vimeo video example in test cases
+
+- line 175 - 180:
+    - Function `embedTwitter()` not covered
+    - No Twitter embed example in test cases
+
+- line 186 - 192:
+    - Data attributes handling not covered
+    - No examples with data-loop or data-controls attributes
+
+- line 210 - 213:
+    - Custom width handling not covered
+    - No examples with data-width attribute
+**info-card.js**
+- line 14 & 85
+    - No element has class name `primarybutton`
+- line 45
+    - uncessary `row.querySelector('a')`
+- line 47
+    - Inappropriate naming `anchorHref`, should be `anchor` instead
+- line 54
+    - `row.querySelector('a')` never gets `null`
+    - Unreachable `else` statement
+-line 60
+    - unnecessary `row.querySelector('.info-card > div > div:last-child');`
+- line 77 - 83
+    - No element has class name `icon`
+
+
+
+
+**site-hero.js**
+- line 27
+    - unused variable `hasLinks`
+- line 33
+    - No `<p>` tag contains class name `button-container`
+
+**tab.js**
+- line 27 - 31:
+    - Function `handleCode()` branch for `if (codeBlock && !isTable)` not covered
+    - The google drive example does not have a code block without a table
+
+- line 85 - 87:
+    - `getMetadata('template')` gets null
+
+
+**text.js**
+- line 56
+    - inappropriate naming `p`, should be `a`
+    
+- line 66 & 68 & 70
+    - line 68 is checking class name `button-container` before it is assigned by`decorateButtons(block)`
+    - `isImageTextBlock` always true
+    - line 77 never reached 
