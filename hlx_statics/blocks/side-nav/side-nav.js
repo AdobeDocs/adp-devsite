@@ -1,10 +1,14 @@
 import {
   createTag,
+  getClosestFranklinSubfolder,
+  isTopLevelNav,
 } from "../../scripts/lib-adobeio.js";
 import {
   fetchSideNavHtml,
   fetchTopNavHtml,
+  getMetadata,
 } from "../../scripts/lib-helix.js";
+import { loadFragment } from '../fragment/fragment.js';
 
 /**
  * Decorates the side-nav
@@ -53,7 +57,7 @@ export default async function decorate(block) {
   </svg>`;
 
   // Create menu list
-  const menuUl = createTag("ul", {
+  let menuUl = createTag("ul", {
     role: "tree",
     class: "spectrum-SideNav spectrum-SideNav--multiLevel main-menu",
   });
@@ -131,11 +135,41 @@ export default async function decorate(block) {
   productLi.append(productA);
   menuUl.append(productLi);
 
-  const topNavHtml = await fetchTopNavHtml();
-  if (topNavHtml) {
-    menuUl.innerHTML += topNavHtml;
-    processNestedNavigation(menuUl);
+  let navPath;
+  if(getMetadata('pathprefix')) {
+    const topNavHtml = await fetchTopNavHtml();
+    if (topNavHtml) {
+      menuUl.innerHTML += topNavHtml;
+      processNestedNavigation(menuUl);
+    }
+  }  else {
+    navPath = getClosestFranklinSubfolder(window.location.origin,'nav');
+    let fragment = await loadFragment(navPath);
+    if (fragment == null) {
+      // load the default nav in franklin_assets folder nav
+      fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+    }
+    const ul = fragment.querySelector("ul");
+    ul.classList.add("menu");
+    ul.setAttribute("id", "navigation-links");
+    fragment.querySelectorAll("li").forEach((li, index) => {
+      if (index == 0) {
+        if (isTopLevelNav(window.location.pathname)) {
+          const homeLink = ul.querySelector('li:nth-child(1)');
+          homeLink.className = 'navigation-home';
+        } else {
+          li.classList.add("navigation-products");
+        }
+      }
+    });
+    menuUl = ul;
   }
+
+    // const topNavHtml = await fetchTopNavHtml();
+    // if (topNavHtml) {
+    //   navigationLinks.innerHTML += topNavHtml;
+    // }
+
 
   // Add console button
   const consoleButtonLi = createTag("li", {
@@ -159,11 +193,12 @@ export default async function decorate(block) {
   mainMenuSection.append(menuUl);
 
   // Fetch and populate subpages
-  const sideNavHtml = await fetchSideNavHtml();
-  if (sideNavHtml) {
-    navigationLinksUl.innerHTML = sideNavHtml;
+  if (getMetadata('pathprefix')) {
+    const sideNavHtml = await fetchSideNavHtml();
+    if (sideNavHtml) {
+      navigationLinksUl.innerHTML = sideNavHtml;
+    }
   }
-
   block.append(navigationLinks);
 
   block.querySelectorAll("li").forEach((li) => {
