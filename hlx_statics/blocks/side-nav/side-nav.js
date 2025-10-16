@@ -6,7 +6,7 @@ import {
 import {
   fetchSideNavHtml,
   fetchTopNavHtml,
-  getMetadata,
+  IS_DEV_DOCS
 } from "../../scripts/lib-helix.js";
 import { loadFragment } from '../fragment/fragment.js';
 
@@ -35,17 +35,18 @@ export default async function decorate(block) {
   });
   navigationLinksUl.setAttribute("aria-label", "Table of contents");
 
-  // Create subpages section (only for documentation template)
-  const subPagesSection = createTag("div", {
-    class: "side-nav-subpages-section",
-  });
-  const subPagesLabel = createTag("h2", { class: "side-nav-section-label" });
-  subPagesLabel.textContent = "Table of Contents";
-  subPagesSection.appendChild(subPagesLabel);
+  if(IS_DEV_DOCS) {
+    // Create subpages section (only for documentation template)
+    const subPagesSection = createTag("div", {
+      class: "side-nav-subpages-section",
+    });
+    const subPagesLabel = createTag("h2", {class: "side-nav-section-label"});
+    subPagesLabel.textContent = "Table of Contents";
+    subPagesSection.appendChild(subPagesLabel);
 
-  navigationLinksContainer.append(subPagesSection);
-  subPagesSection.append(navigationLinksUl);
-
+    navigationLinksContainer.append(subPagesSection);
+    subPagesSection.append(navigationLinksUl);
+  }
   const rightIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
     <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" />
     <path class="fill" d="M12,9a.994.994,0,0,1-.2925.7045l-3.9915,3.99a1,1,0,1,1-1.4355-1.386l.0245-.0245L9.5905,9,6.3045,5.715A1,1,0,0,1,7.691,4.28l.0245.0245,3.9915,3.99A.994.994,0,0,1,12,9Z" />
@@ -136,7 +137,7 @@ export default async function decorate(block) {
   menuUl.append(productLi);
 
   let navPath;
-  if(getMetadata('pathprefix')) {
+  if(IS_DEV_DOCS) {
     const topNavHtml = await fetchTopNavHtml();
     if (topNavHtml) {
       menuUl.innerHTML += topNavHtml;
@@ -162,7 +163,7 @@ export default async function decorate(block) {
         }
       }
     });
-    menuUl = ul;
+    menuUl.innerHTML = ul.innerHTML;
   }
 
     // const topNavHtml = await fetchTopNavHtml();
@@ -193,7 +194,7 @@ export default async function decorate(block) {
   mainMenuSection.append(menuUl);
 
   // Fetch and populate subpages
-  if (getMetadata('pathprefix')) {
+  if (IS_DEV_DOCS) {
     const sideNavHtml = await fetchSideNavHtml();
     if (sideNavHtml) {
       navigationLinksUl.innerHTML = sideNavHtml;
