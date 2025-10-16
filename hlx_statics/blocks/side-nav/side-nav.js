@@ -164,6 +164,7 @@ export default async function decorate(block) {
       }
     });
     menuUl.innerHTML = ul.innerHTML;
+    processNestedNavigation(menuUl);
   }
 
     // const topNavHtml = await fetchTopNavHtml();
