@@ -522,10 +522,11 @@ function replaceInTextNodes(element) {
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
-  replaceInTextNodes(main);
-  main
-    .querySelectorAll('div.section > div > div')
-    .forEach((block) => decorateBlock(block));
+  const codeSelector = 'pre, code, .code, .codeblock';
+  const savedCodeContent = Array.from(main.querySelectorAll(codeSelector)).map(el => el.innerHTML);
+  main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  main.querySelectorAll(codeSelector).forEach((el, i) => el.innerHTML = savedCodeContent[i]);
+  main.querySelectorAll('div.section > div > div').forEach((block) => decorateBlock(block));
 }
 
 /**
