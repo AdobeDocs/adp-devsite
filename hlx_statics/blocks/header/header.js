@@ -32,7 +32,7 @@ function fetchSearchURLParams() {
 function localSearch() {
   // Remove leading/trailing slashes and split the pathname into segments
   const pathSegments = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
-  
+
   // Limit to the first three levels
   const maxLevels = Math.min(pathSegments.length, 3);
   let bestMatch = null;
@@ -81,7 +81,7 @@ function initSearch() {
     selectedProducts = [localElem.productName]
   }else{
     // from url params set selected products
-    selectedProducts = (urlParams.products === "all" || !urlParams.products) 
+    selectedProducts = (urlParams.products === "all" || !urlParams.products)
     ? allProducts.slice() // Select all products when "all" is in the URL or no products (a new search)
     : urlParams.products.split(",").filter(product => allProducts.includes(product));
   }
@@ -105,8 +105,8 @@ function initSearch() {
 
   // Variable to keep track of results to modify how to render them later
   let results = new Map();
-  
-  search.start(); 
+
+  search.start();
 
   // Function to initialize or update the search
   function updateSearch() {
@@ -119,12 +119,12 @@ function initSearch() {
     let searchBoxContainer = ".merged-results";
     // // Number of results displayed per index changes depending on how many products are selected
     if (suggestionsFlag) {
-      searchBoxContainer = ".suggestion-results"; 
+      searchBoxContainer = ".suggestion-results";
     }
 
      // Calculate hits dynamically based number of selected indices
     const hits = Math.min(15, Math.max(4, Math.floor(SUGGESTION_MAX_RESULTS / selectedIndices.length)));
- 
+
      // Add common widgets like hits per index and how long results are (content)
      search.addWidgets([
        instantsearch.widgets.configure({
@@ -133,7 +133,7 @@ function initSearch() {
          attributesToSnippet: ['content:50'],
        }),
      ]);
-   
+
     // Custom InstantSearch search box to deal with suggestions and full results which depends on user input
     function customSearchBox() { return { init({ helper }) {
       const searchInput = document.querySelector("#search-box input");
@@ -161,7 +161,7 @@ function initSearch() {
         helper.setQuery(queryFromURL).search();
         suggestionsFlag = false;
         searchResults.style.visibility = "visible";
-        outerSearchSuggestions.style.display = "none";              
+        outerSearchSuggestions.style.display = "none";
         searchExecuted = true; // Mark search as executed
         toggleClearButton(); // Update clear button visibility
       }
@@ -171,8 +171,8 @@ function initSearch() {
         toggleClearButton(); // Update clear button visibility on input
         searchCleared = false; // Reset cleared flag when user starts typing
         if (!searchExecuted && searchInput.value.trim() !== "") {
-            searchSuggestions.style.display = "block"; 
-            helper.setQuery(searchInput.value).search(); 
+            searchSuggestions.style.display = "block";
+            helper.setQuery(searchInput.value).search();
         }
       });
 
@@ -181,8 +181,8 @@ function initSearch() {
         if (event.key === 'Enter') {
           searchCleared = false; // Reset cleared flag when user presses Enter
           helper.setQuery(searchInput.value).search();
-          outerSearchSuggestions.style.display = "none";  
-          searchSuggestions.style.display = "none";            
+          outerSearchSuggestions.style.display = "none";
+          searchSuggestions.style.display = "none";
           suggestionsFlag = false; // Prevent suggestions from overriding search results
           searchResults.style.visibility = "visible";
           searchResults.classList.add('has-results');
@@ -192,12 +192,12 @@ function initSearch() {
 
       // Clear search query when clear button is clicked
       clearSearchQueryButton.addEventListener('click', () => {
-        outerSearchSuggestions.style.display = "flex"; 
+        outerSearchSuggestions.style.display = "flex";
         searchInput.value = "";
         helper.setQuery('').search();
         // which results are removed depends on which mode we are in
         if(suggestionsFlag){
-          searchSuggestions.style.display = "none";    
+          searchSuggestions.style.display = "none";
         }else{
           searchResults.classList.remove('has-results');
           searchResults.style.visibility = "hidden";
@@ -207,7 +207,7 @@ function initSearch() {
       });
     }, render() {}, };
   }
-   
+
     // Custom InstantSearch function to merge hits from multiple indices
     function mergedHits({ indices }) {
       if (!indices || !Array.isArray(indices)) {
@@ -215,13 +215,13 @@ function initSearch() {
         return;
       }
       results = new Map();
-    
+
       // Filter the hits first, then iterate through them with forEach
       indices.flatMap(({ hits }) => hits || [])
         .filter((hit) => selectedProducts.includes(hit.product)) // Check if the product is selected
         .forEach((hit) => {
           // Process each hit
-          // 
+          //
           results.set(instantsearch.highlight({ hit, attribute: "title" }), {
             url: hit.url,
             product: hit.product,
@@ -229,20 +229,20 @@ function initSearch() {
           });
         });
       updateSearchParams();
-      
+
       // Don't render results if search was cleared
       if (searchCleared) {
         searchCleared = false; // Reset the flag
         return;
       }
-      
+
       if (suggestionsFlag){
         renderSuggestionResults();
       }else{
         renderMergedResults(); // Call to render the filtered results
       }
     }
-    
+
     const customMergedHits = connectAutocomplete(mergedHits);
     search.addWidgets([
       customSearchBox(),
@@ -259,7 +259,7 @@ function initSearch() {
         }),
       ]);
     });
-   
+
     search.refresh();
   }
 
@@ -267,14 +267,14 @@ function initSearch() {
   function updateSearchParams() {
     // Preserve existing URL parameters
     const params = new URLSearchParams(window.location.search);
-  
+
     // Get the current search query from the input box
     const searchInput = document.querySelector("#search-box input");
     const query = searchInput ? searchInput.value : null;
-  
+
     // Determine if all products are selected
     const allProductsSelected = selectedProducts.length === allProducts.length;
-  
+
     // Update the products parameter
     if (allProductsSelected) {
       params.set("products", "all");
@@ -283,7 +283,7 @@ function initSearch() {
     } else {
       params.delete("products");
     }
-  
+
     // Update the query parameter
     if (query) {
       params.set("query", query);
@@ -366,12 +366,12 @@ function initSearch() {
       }
     });
   }
- 
+
   // Function that attaches event listeners to each checkbox
   function attachCheckboxEventListeners() {
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
     const productCheckboxes = document.querySelectorAll('.filters input[type="checkbox"]:not(#checkbox-all-products)');
-  
+
     // Event listener for "All Products" checkbox
     allProductsCheckbox.addEventListener('change', () => {
       if (allProductsCheckbox.checked) {
@@ -384,7 +384,7 @@ function initSearch() {
       updateSearchParams();
       updateSearch();
     });
-    
+
     // Event listeners for individual product checkboxes
     productCheckboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', () => {
@@ -392,7 +392,7 @@ function initSearch() {
         selectedProducts = Array.from(productCheckboxes)
           .filter((cb) => cb.checked) // Get checked product checkboxes
           .map((cb) => cb.value);
-  
+
         if (selectedProducts.length === 0) {
           // If no products selected, revert to "All Products"
           allProductsCheckbox.checked = true;
@@ -403,7 +403,7 @@ function initSearch() {
       });
     });
   }
-  
+
   // Function that sorts results and makes the custom html for each result
   function renderMergedResults() {
     const container = document.querySelector('.merged-results');
@@ -528,7 +528,7 @@ function initSearch() {
       ul.innerHTML = '<p>No products selected.</p>';
     }
   }
-  
+
   // Initialize the search and render checkboxes
   renderProductCheckboxes();
   attachCheckboxEventListeners();
@@ -601,14 +601,14 @@ function decorateSearchIframeContainer(header) {
 
   // Function to hide suggestions
   function hideSuggestions() {
-    outerSuggestionDiv.style.display = "none";              
+    outerSuggestionDiv.style.display = "none";
     searchSuggestionsDiv.style.display = "none";
   }
 
   // Function to show search with semi-transparent background
   function showSearchBar() {
     searchBar.style.visibility = 'visible';
-    outerSuggestionDiv.style.display = "flex"; 
+    outerSuggestionDiv.style.display = "flex";
     searchResultsDiv.classList.remove('has-results');
   }
 
@@ -870,10 +870,10 @@ function handleMenuButton(header) {
   menuBtn.addEventListener('change', () => {
     const sideNav = document.querySelector('.side-nav');
     if (menuBtn.checked) {
-      sideNav.classList.add('is-visible');
+      sideNav?.classList.add('is-visible');
       document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
     } else {
-      sideNav.classList.remove('is-visible');
+      sideNav?.classList.remove('is-visible');
       document.body.style.overflow = ''; // Restore scrolling
     }
   });
@@ -955,11 +955,11 @@ export default async function decorate(block) {
 
       header.append(navigationLinks);
     }
-    
+
 
     // Handle mobile menu button for side nav
     handleMenuButton(header);
-    
+
 
   } else {
     // Create navigation for non-documentation pages

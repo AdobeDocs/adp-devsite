@@ -172,31 +172,31 @@ function decorateHTML(html) {
 
 /**
  * Overwrites image optimization done by EDS on image URLs.
- * 
+ *
  * For example, it replaces:
  * "./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&format=webply&optimize=medium"
- * 
+ *
  * with:
  * "./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=webply&optimize=low"
- * 
+ *
  * @param {string} url The image URL
  */
 function optimizeImageUrl(url) {
   if (!url || !url.includes('?')) {
     return url;
   }
-  
+
   const [baseUrl, queryString] = url.split('?');
   const searchParams = new URLSearchParams(queryString);
   searchParams.delete('width');
   searchParams.set('optimize', 'low');
-  
+
   return baseUrl + '?' + searchParams.toString();
 }
 
 /**
  * Overwrites image optimization done by EDS on hero blocks.
- * 
+ *
  * For example, it replaces:
  *  <picture>
  *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&amp;format=webply&amp;optimize=medium" media="(min-width: 600px)">
@@ -204,10 +204,10 @@ function optimizeImageUrl(url) {
  *    <source type="image/png" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=2000&amp;format=png&amp;optimize=medium" media="(min-width: 600px)">
  *    <img loading="lazy" alt="" src="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?width=750&amp;format=png&amp;optimize=medium" width="1600" height="492">
  *  </picture>
- *  
+ *
  * with:
  *  <picture>
- *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=webply&amp;optimize=low">          
+ *    <source type="image/webp" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=webply&amp;optimize=low">
  *    <source type="image/png" srcset="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=png&amp;optimize=low">
  *    <img loading="eager" alt="" src="./media_1ca86c84d7c76bbfc48281a85ab4ab2e301692ad7.png?format=png&amp;optimize=low">
  *  </picture>
@@ -234,7 +234,7 @@ function optimizeHeroPictures() {
       const src = img.getAttribute('src');
       if (src) {
         img.setAttribute('src', optimizeImageUrl(src));
-      }      
+      }
     });
 
     // Remove duplicate elements that may have resulted after attribute modifications
@@ -284,12 +284,12 @@ async function loadEager(doc) {
     mainContainer.classList.add('dev-docs', 'white-background');
 
     buildGrid(main);
-    buildSideNav(main);
     buildBreadcrumbs(main);
   } else {
     mainContainer.classList.add('dev-biz');
   }
 
+  buildSideNav(main);
   buildSiteWideBanner(main);
 
   document.body.classList.add('appear');
@@ -716,7 +716,7 @@ function loadPrism(document) {
                   const isPanel = el.matches && el.matches('.tab-content, .sub-tab-content');
                   const isCodeblockPanel = el.matches && el.matches('[role="tabpanel"]');
                   const isNowVisible = isCodeblockPanel && !el.classList.contains('hidden');
-                  
+
                   if (isActive && isPanel && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
                     window.Prism.highlightAllUnder(el);
                   } else if (isNowVisible && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
@@ -741,7 +741,7 @@ function loadPrism(document) {
               }
             });
             observer.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
-          } catch (e) { 
+          } catch (e) {
             console.error('Error loading Prism:', e);
            }
         }).catch(console.error);
