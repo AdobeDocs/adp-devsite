@@ -5,35 +5,23 @@ import { createTag, decorateButtons } from '../../scripts/lib-adobeio.js';
  * @param {*} block The image-text block element
  */
 function rearrangeLinks(block) {
-  if (block.classList.contains('center')) {
-    // Process each wrapper-division individually
-    block.querySelectorAll('.wrapper-division').forEach(wrapper => {
-      const child = wrapper.firstElementChild;
-      const innerDiv = child?.lastElementChild;
+  const container = block.classList.contains('center') ? block.querySelector('.wrapper-division') : block;
 
-      if (innerDiv && innerDiv.querySelector('a')) {
-        const buttonContainer = createTag('div', { class: 'image-text-button-container' });
-        innerDiv.querySelectorAll('p.button-container').forEach(p => buttonContainer.appendChild(p));
-        innerDiv.appendChild(buttonContainer);
-      }
-    });
-  } else {
-    // Original logic for non-center blocks
-    const leftDiv = block.firstElementChild?.lastElementChild;
-    const rightDiv = block.lastElementChild?.lastElementChild;
+  if (!container) return;
 
-    if (!leftDiv || !rightDiv) return;
+  const leftDiv = container.firstElementChild?.lastElementChild;
+  const rightDiv = container.lastElementChild?.lastElementChild;
 
-    if (leftDiv.querySelector('a')) {
-      const leftButtonContainer = createTag('div', { class: 'image-text-button-container' });
-      leftDiv.querySelectorAll('p.button-container').forEach(p => leftButtonContainer.appendChild(p));
-      leftDiv.appendChild(leftButtonContainer);
-    }
-    if (rightDiv.querySelector('a')) {
-      const rightButtonContainer = createTag('div', { class: 'image-text-button-container' });
-      rightDiv.querySelectorAll('p.button-container').forEach(p => rightButtonContainer.appendChild(p));
-      rightDiv.appendChild(rightButtonContainer);
-    }
+  if (!leftDiv || !rightDiv) return;
+  if (leftDiv.querySelector('a')) {
+    const leftButtonContainer = createTag('div', { class: 'image-text-button-container' });
+    leftDiv.querySelectorAll('p.button-container').forEach(p => leftButtonContainer.appendChild(p));
+    leftDiv.appendChild(leftButtonContainer);
+  }
+  if (rightDiv.querySelector('a')) {
+    const rightButtonContainer = createTag('div', { class: 'image-text-button-container' });
+    rightDiv.querySelectorAll('p.button-container').forEach(p => rightButtonContainer.appendChild(p));
+    rightDiv.appendChild(rightButtonContainer);
   }
 }
 
@@ -54,30 +42,37 @@ export default async function decorate(block) {
   if (block.classList.contains('center')) {
     const children = Array.from(block.children);
 
-    // Create wrapper-division for ALL elements
-    children.forEach(child => {
-      const wrapper = createTag('div', { class: 'wrapper-division' });
-      block.insertBefore(wrapper, child);
-      wrapper.appendChild(child);
+    const lastWithAnchor = children.slice().reverse().find(el => el.querySelector('a'));
+    if (!lastWithAnchor) return;
 
-      // Apply button processing if this child has anchors
-      if (child.querySelector('a')) {
-        child.querySelectorAll('a').forEach(anchor => {
-          const parent = anchor.parentElement;
-          const p = createTag('p');
+    const firstTwoElements = children.slice(0, 2);
+    if (firstTwoElements.length < 2) return;
 
-          if (parent?.classList.contains('button-container')) {
-            p.appendChild(anchor);
-            parent.appendChild(p);
-          } else if (parent?.tagName === 'STRONG') {
-            parent.replaceWith(p);
-            p.appendChild(parent);
-          }
+    const wrapper = createTag('div', { class: 'wrapper-division' });
+    block.insertBefore(wrapper, firstTwoElements[0]);
 
-          anchor.closest('div')?.classList.add('all-button-wrapper');
-        });
-      }
-    });
+    firstTwoElements.forEach(el => wrapper.appendChild(el));
+    wrapper.appendChild(lastWithAnchor);
+
+    const lastChild = wrapper.lastElementChild;
+    if (lastChild) {
+      lastChild.querySelectorAll('a').forEach(anchor => {
+        const parent = anchor.parentElement;
+        const p = createTag('p');
+
+        if (parent?.classList.contains('button-container')) {
+          p.appendChild(anchor);
+          parent.appendChild(p);
+        } else if (parent?.tagName === 'STRONG') {
+          parent.replaceWith(p);
+          p.appendChild(parent);
+        }
+
+        anchor.closest('div')?.classList.add('all-button-wrapper');
+      });
+
+      block.insertBefore(lastChild, wrapper.nextSibling);
+    }
   }
 
   rearrangeLinks(block);
