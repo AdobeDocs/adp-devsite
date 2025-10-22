@@ -618,7 +618,7 @@ async function loadLazy(doc) {
 
   loadHeader(doc.querySelector('header'));
   loadSiteWideBanner(doc.querySelector('.site-wide-banner-container'));
-  decorateIcons(main);
+  await decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
   if (IS_DEV_DOCS) {
@@ -676,9 +676,27 @@ function loadDelayed() {
 }
 
 function loadTitle() {
-  if (!document.title || document.title === '') {
-    document.title = window.location.href;
-  }
+    if (!IS_DEV_DOCS) {
+      // Use the first H1 that doesn't contain an image as the title
+      const h1Elements = document.querySelectorAll('h1');
+      let titleFromH1 = null;
+
+      for (const h1 of h1Elements) {
+        // Check if this H1 contains an image
+        const hasImage = h1.querySelector('img');
+        if (!hasImage) {
+          // Use the text content of this H1 (no HTML tags)
+          titleFromH1 = h1.textContent.trim();
+          break; // Use the first H1 without an image
+        }
+      }
+      if (titleFromH1) {
+        document.title = titleFromH1;
+      }
+    } else if (!document.title || document.title === '') {
+      // Fallback to URL if no suitable H1 found
+      document.title = window.location.href;
+    }
 }
 
 function loadPrism(document) {
