@@ -60,6 +60,10 @@ main div.iframe-wrapper div.iframe iframe {
   main div.iframe-wrapper iframe.iframe-container {
     width: 90vw !important;
   }
+  /* Override if iframe has .full-width-mobile class */
+  main div.iframe-wrapper iframe.iframe-container.full-width-mobile {
+    width: 100% !important;
+  }
 }
 
 main div.iframe-wrapper .iframe-custom-width{
