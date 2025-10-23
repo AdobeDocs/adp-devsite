@@ -56,7 +56,7 @@ async function initSearch() {
     window.adp_search.triggerIndexValidation();
   }
 
-  // Wait for index validation to complete if it's in progress
+  // Wait for index validation to complete
   if (window.adp_search.indicesValidationPromise) {
     try {
       await window.adp_search.indicesValidationPromise;
