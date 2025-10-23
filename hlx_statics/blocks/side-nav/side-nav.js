@@ -1,10 +1,14 @@
 import {
   createTag,
+  getClosestFranklinSubfolder,
+  isTopLevelNav,
 } from "../../scripts/lib-adobeio.js";
 import {
   fetchSideNavHtml,
   fetchTopNavHtml,
+  IS_DEV_DOCS
 } from "../../scripts/lib-helix.js";
+import { loadFragment } from '../fragment/fragment.js';
 
 /**
  * Decorates the side-nav
@@ -31,17 +35,18 @@ export default async function decorate(block) {
   });
   navigationLinksUl.setAttribute("aria-label", "Table of contents");
 
-  // Create subpages section (only for documentation template)
-  const subPagesSection = createTag("div", {
-    class: "side-nav-subpages-section",
-  });
-  const subPagesLabel = createTag("h2", { class: "side-nav-section-label" });
-  subPagesLabel.textContent = "Table of Contents";
-  subPagesSection.appendChild(subPagesLabel);
+  if(IS_DEV_DOCS) {
+    // Create subpages section (only for documentation template)
+    const subPagesSection = createTag("div", {
+      class: "side-nav-subpages-section",
+    });
+    const subPagesLabel = createTag("h2", {class: "side-nav-section-label"});
+    subPagesLabel.textContent = "Table of Contents";
+    subPagesSection.appendChild(subPagesLabel);
 
-  navigationLinksContainer.append(subPagesSection);
-  subPagesSection.append(navigationLinksUl);
-
+    navigationLinksContainer.append(subPagesSection);
+    subPagesSection.append(navigationLinksUl);
+  }
   const rightIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
     <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" />
     <path class="fill" d="M12,9a.994.994,0,0,1-.2925.7045l-3.9915,3.99a1,1,0,1,1-1.4355-1.386l.0245-.0245L9.5905,9,6.3045,5.715A1,1,0,0,1,7.691,4.28l.0245.0245,3.9915,3.99A.994.994,0,0,1,12,9Z" />
@@ -53,7 +58,7 @@ export default async function decorate(block) {
   </svg>`;
 
   // Create menu list
-  const menuUl = createTag("ul", {
+  let menuUl = createTag("ul", {
     role: "tree",
     class: "spectrum-SideNav spectrum-SideNav--multiLevel main-menu",
   });
@@ -131,9 +136,34 @@ export default async function decorate(block) {
   productLi.append(productA);
   menuUl.append(productLi);
 
-  const topNavHtml = await fetchTopNavHtml();
-  if (topNavHtml) {
-    menuUl.innerHTML += topNavHtml;
+  let navPath;
+  if(IS_DEV_DOCS) {
+    const topNavHtml = await fetchTopNavHtml();
+    if (topNavHtml) {
+      menuUl.innerHTML += topNavHtml;
+      processNestedNavigation(menuUl);
+    }
+  }  else {
+    navPath = getClosestFranklinSubfolder(window.location.origin,'nav');
+    let fragment = await loadFragment(navPath);
+    if (fragment == null) {
+      // load the default nav in franklin_assets folder nav
+      fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+    }
+    const ul = fragment.querySelector("ul");
+    ul.classList.add("menu");
+    ul.setAttribute("id", "navigation-links");
+    fragment.querySelectorAll("li").forEach((li, index) => {
+      if (index == 0) {
+        if (isTopLevelNav(window.location.pathname)) {
+          const homeLink = ul.querySelector('li:nth-child(1)');
+          homeLink.className = 'navigation-home';
+        } else {
+          li.classList.add("navigation-products");
+        }
+      }
+    });
+    menuUl.innerHTML = ul.innerHTML;
     processNestedNavigation(menuUl);
   }
 
@@ -159,11 +189,12 @@ export default async function decorate(block) {
   mainMenuSection.append(menuUl);
 
   // Fetch and populate subpages
-  const sideNavHtml = await fetchSideNavHtml();
-  if (sideNavHtml) {
-    navigationLinksUl.innerHTML = sideNavHtml;
+  if (IS_DEV_DOCS) {
+    const sideNavHtml = await fetchSideNavHtml();
+    if (sideNavHtml) {
+      navigationLinksUl.innerHTML = sideNavHtml;
+    }
   }
-
   block.append(navigationLinks);
 
   block.querySelectorAll("li").forEach((li) => {
