@@ -318,25 +318,32 @@ export function decorateLightOrDark(block, max = false) {
  * Replace icons with inline SVG and prefix with codeBasePath.
  * @param {Element} element
  */
-export function decorateIcons(element = document) {
-  element.querySelectorAll('span.icon').forEach(async (span) => {
+export async function decorateIcons(element = document) {
+  const iconPromises = [];
+  element.querySelectorAll('span.icon').forEach((span) => {
     if (span.classList.length < 2 || !span.classList[1].startsWith('icon-')) {
       return;
     }
     const icon = span.classList[1].substring(5);
     // eslint-disable-next-line no-use-before-define
-    const resp = await fetch(`${window.hlx.codeBasePath}/icons/${icon}.svg`);
-    if (resp.ok) {
-      const iconHTML = await resp.text();
-      if (iconHTML.match(/<style/i)) {
-        const img = document.createElement('img');
-        img.src = `data:image/svg+xml,${encodeURIComponent(iconHTML)}`;
-        span.appendChild(img);
-      } else {
-        span.innerHTML = iconHTML;
-      }
-    }
+    const iconPromise = fetch(`${window.hlx.codeBasePath}/icons/${icon}.svg`)
+      .then(async (resp) => {
+        if (resp.ok) {
+          const iconHTML = await resp.text();
+          if (iconHTML.match(/<style/i)) {
+            const img = document.createElement('img');
+            img.src = `data:image/svg+xml,${encodeURIComponent(iconHTML)}`;
+            span.appendChild(img);
+          } else {
+            span.innerHTML = iconHTML;
+          }
+        }
+      });
+    iconPromises.push(iconPromise);
   });
+  
+  // Wait for all icons to be processed
+  await Promise.all(iconPromises);
 }
 
 /**
@@ -503,29 +510,15 @@ export function updateSectionsStatus(main) {
 }
 
 /**
- * Replace HTML entities in text nodes, but skip those inside code elements
- * @param {Element} element The element to process
- */
-function replaceInTextNodes(element) {
-  if (element.nodeType === Node.TEXT_NODE) {
-    if (!element.parentElement?.closest('code')) {
-      element.textContent = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    }
-  } else {
-    // Recursively process child nodes
-    Array.from(element.childNodes).forEach(replaceInTextNodes);
-  }
-}
-
-/**
  * Decorates all blocks in a container element.
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
-  replaceInTextNodes(main);
-  main
-    .querySelectorAll('div.section > div > div')
-    .forEach((block) => decorateBlock(block));
+  const codeSelector = 'pre, code, .code, .codeblock';
+  const savedCodeContent = Array.from(main.querySelectorAll(codeSelector)).map(el => el.innerHTML);
+  main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  main.querySelectorAll(codeSelector).forEach((el, i) => el.innerHTML = savedCodeContent[i]);
+  main.querySelectorAll('div.section > div > div').forEach((block) => decorateBlock(block));
 }
 
 /**
