@@ -107,20 +107,10 @@ async function decorateDevBizHalfWidth(block) {
 
   if (backgroundImage) {
     const imgSrc = block.querySelectorAll('picture img')[0].currentSrc;
-    Object.assign(wrapperContainer.style, {
+    wrapperContainer && Object.assign(wrapperContainer.style, {
       backgroundImage: `url(${imgSrc})`,
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
-    });
-  
-    Object.assign(wrapper.style, {
-      backgroundColor: 'transparent',
-    });
-
-    wrapperContainer.querySelectorAll('.superhero-wrapper-container > div > div').forEach((wc) => {
-      Object.assign(wc.style, {
-        backgroundColor: 'transparent',
-      });
     });
   } else {
     // insert a placeholder div (where the background image would be), because it is styled as the space between the text and the image/video.
@@ -130,12 +120,9 @@ async function decorateDevBizHalfWidth(block) {
     block.insertBefore(emptyDiv, block.lastElementChild);
   }
 
-  wrapperContainer.querySelectorAll('.superhero-container > div > div').forEach((wc) => {
-    console.log('~~ wc', wc);
-    Object.assign(wc.style, {
-      width: '75%',
-      margin: 'auto',
-    });
+  wrapper && Object.assign(wrapper.style, {
+    width: '75%',
+    margin: 'auto',
   });
   
   const videoURL = block.lastElementChild.querySelector('a');

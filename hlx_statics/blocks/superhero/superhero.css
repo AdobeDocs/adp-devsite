@@ -121,10 +121,13 @@ main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container
   }
 }
 
-main div.superhero-wrapper-container:has(div.superhero.half-width),
+main div.superhero-wrapper-container:has(div.superhero.half-width) {
+  background: rgb(255, 255, 255);
+}
+
 main div.superhero-wrapper:has(div.superhero.half-width),
 main div.superhero-wrapper div.superhero.half-width {
-  background: rgb(255, 255, 255);
+  background: transparent;  
 }
 
 main div.superhero-wrapper div.superhero.half-width {
