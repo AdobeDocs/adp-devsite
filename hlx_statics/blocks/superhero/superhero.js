@@ -1,5 +1,6 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
+import insertWrapperContainer from '../../components/wrapperContainer.js';
 
 const VARIANTS = {
   default: 'default',
@@ -72,6 +73,8 @@ async function decorateDevBizCentered(block) {
 }
 
 async function decorateDevBizHalfWidth(block) {
+  insertWrapperContainer(block);
+
   // Block decoration
   decorateLightOrDark(block, true);
   // H1 decoration
@@ -99,19 +102,23 @@ async function decorateDevBizHalfWidth(block) {
   });
 
   const backgroundImage = block.classList.contains('full-width-background');
-  const heroWrapper = block?.parentElement?.parentElement;
+  const wrapper = block?.parentElement;
+  const wrapperContainer = wrapper?.parentElement;
 
   if (backgroundImage) {
-    const picsrc = block.querySelectorAll('picture img')[0].currentSrc;
-    heroWrapper.querySelectorAll('.superhero-container > div').forEach((herowrapper) => {
-      Object.assign(herowrapper.style, {
-        backgroundImage: `url(${picsrc})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'cover',
-      });
+    const imgSrc = block.querySelectorAll('picture img')[0].currentSrc;
+    Object.assign(wrapperContainer.style, {
+      backgroundImage: `url(${imgSrc})`,
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
     });
-    heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
-      Object.assign(herowrapper.style, {
+  
+    Object.assign(wrapper.style, {
+      backgroundColor: 'transparent',
+    });
+
+    wrapperContainer.querySelectorAll('.superhero-wrapper-container > div > div').forEach((wc) => {
+      Object.assign(wc.style, {
         backgroundColor: 'transparent',
       });
     });
@@ -123,8 +130,9 @@ async function decorateDevBizHalfWidth(block) {
     block.insertBefore(emptyDiv, block.lastElementChild);
   }
 
-  heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
-    Object.assign(herowrapper.style, {
+  wrapperContainer.querySelectorAll('.superhero-container > div > div').forEach((wc) => {
+    console.log('~~ wc', wc);
+    Object.assign(wc.style, {
       width: '75%',
       margin: 'auto',
     });
@@ -328,7 +336,11 @@ function applyDataAttributeStyles(block) {
   block.style.background = background;
   const wrapper = block.parentElement;
   wrapper.style.background = background;
-
+  const wrapperContainer = block.closest('.superhero-wrapper-container');
+  if(wrapperContainer) {
+    wrapperContainer.style.background = background;
+  }
+  
   const defaultTextColor = variant === VARIANTS.halfWidth ? TEXT_COLORS.black : TEXT_COLORS.white;
   const textColor = block.getAttribute('data-textcolor') || defaultTextColor;
   if (Object.keys(TEXT_COLORS).includes(textColor)) {
