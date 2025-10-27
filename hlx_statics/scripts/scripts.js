@@ -537,6 +537,11 @@ async function loadLazy(doc) {
           }else{
             console.log("Algolia InstantSearch loaded successfully!")
           }
+
+          // Trigger index validation after Algolia is loaded
+          if (window.adp_search && window.adp_search.triggerIndexValidation) {
+            window.adp_search.triggerIndexValidation();
+          }
         }
       );
     }
@@ -544,9 +549,9 @@ async function loadLazy(doc) {
 
   //load search and product map
   window.adp_search = {};
+  
   try {
     const resp = await fetch('/franklin_assets/product-index-map.json');
-
     if (!resp.ok) {
       // Server responded but with an error status
       console.error(`Failed to load product map: ${resp.status} ${resp.statusText}`);
@@ -565,9 +570,7 @@ async function loadLazy(doc) {
             indexPathPrefix: product.indexPathPrefix
         });
       });
-
       window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
-
     }
   } catch (error) {
     // Network error or JSON parsing error
@@ -583,23 +586,104 @@ async function loadLazy(doc) {
   if(!window.adp_search.completeProductMap){
     window.adp_search.map_found = false;
   }else{
-    // Extract indices
-    window.adp_search.indices = Object.keys(window.adp_search.completeProductMap);
-
-    // Create a mapping of indices to their respective products
+    // Create initial mappings (will be updated after validation)
+    const allIndices = Object.keys(window.adp_search.completeProductMap);
+    window.adp_search.indices = allIndices;
     window.adp_search.index_to_product = Object.fromEntries(
       Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
     );
-
-    // Create a mapping of path prefixes to their respective products
     window.adp_search.path_prefix_to_product = Object.fromEntries(
         Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
     );
-
-    // Extract unique products
     window.adp_search.products = Array.from(
         new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
     );
+
+    // Function to validate if an index exists in Algolia
+    async function validateIndex(indexName, searchClient) {
+      try {
+        // Perform a search to validate the index exists
+        const response = await searchClient.search({
+          requests: [{
+            indexName: indexName,
+            query: '',
+            hitsPerPage: 0
+          }]
+        });
+        
+        if (response && response.results && response.results.length > 0) {
+          return { indexName, exists: true };
+        } else {
+          console.warn(`Index "${indexName}" returned empty results`);
+          return { indexName, exists: false };
+        }
+      } catch (error) {
+        console.warn(`Index "${indexName}" is not accessible or does not exist:`, error.message);
+        return { indexName, exists: false };
+      }
+    }
+
+    // Validate all indices in parallel
+    async function validateAndFilterIndices() {
+      if (!window["algoliasearch/lite"]) {
+        console.error('Algolia not loaded, cannot validate indices');
+        return allIndices;
+      }
+
+      const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+      const searchClient = algoliasearch(window.adp_search.APP_KEY, window.adp_search.API_KEY);
+
+      // console.log(`Validating ${allIndices.length} indices...`);
+      const validationResults = await Promise.allSettled(
+        allIndices.map(indexName => validateIndex(indexName, searchClient))
+      );
+
+      // Filter to only include indices that exist
+      const validIndices = validationResults
+        .filter(result => result.status === 'fulfilled' && result.value.exists)
+        .map(result => result.value.indexName);
+
+      const removedIndices = allIndices.filter(idx => !validIndices.includes(idx));
+      
+      if (removedIndices.length > 0) {
+        console.log(`Removed ${removedIndices.length} non-existent indices:`, removedIndices);
+      }
+      return validIndices;
+    }
+
+    window.adp_search.triggerIndexValidation = function() {
+      window.adp_search.indicesValidationPromise = validateAndFilterIndices();
+
+      window.adp_search.indicesValidationPromise.then(validIndices => {
+        // Only update if validation actually removed some indices
+        if (validIndices.length < allIndices.length) {
+          const validProductMap = {};
+          validIndices.forEach(indexName => {
+            if (window.adp_search.completeProductMap[indexName]) {
+              validProductMap[indexName] = window.adp_search.completeProductMap[indexName];
+            }
+          });
+
+          // Update all maps with validated indices
+          window.adp_search.completeProductMap = validProductMap;
+          window.adp_search.indices = validIndices;
+          window.adp_search.index_to_product = Object.fromEntries(
+            Object.entries(validProductMap).map(([indexName, { productName }]) => [indexName, productName])
+          );
+          window.adp_search.path_prefix_to_product = Object.fromEntries(
+            Object.values(validProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+          );
+          window.adp_search.products = Array.from(
+            new Set(Object.values(validProductMap).map(data => data.productName))
+          );
+        }
+      }).catch(error => {
+        console.error('Error during index validation:', error);
+      });
+    };
+
+    // Initialize promise as unresolved
+    window.adp_search.indicesValidationPromise = null;
   }
 
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
