@@ -341,7 +341,7 @@ export async function decorateIcons(element = document) {
       });
     iconPromises.push(iconPromise);
   });
-  
+
   // Wait for all icons to be processed
   await Promise.all(iconPromises);
 }
@@ -531,7 +531,6 @@ function replaceInTextNodes(element) {
 export function decorateBlocks(main) {
   const codeSelector = 'pre, code, .code, .codeblock';
   const savedCodeContent = Array.from(main.querySelectorAll(codeSelector)).map(el => el.innerHTML);
-  main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
   main.querySelectorAll(codeSelector).forEach((el, i) => el.innerHTML = savedCodeContent[i]);
   main.querySelectorAll('div.section > div > div').forEach((block) => decorateBlock(block));
 }
