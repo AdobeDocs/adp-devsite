@@ -1,5 +1,6 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
+import { insertWrapperChild } from '../../components/wrapperContainer.js';
 
 const VARIANTS = {
   default: 'default',
@@ -72,6 +73,8 @@ async function decorateDevBizCentered(block) {
 }
 
 async function decorateDevBizHalfWidth(block) {
+  insertWrapperChild(block);
+
   // Block decoration
   decorateLightOrDark(block, true);
   // H1 decoration
@@ -99,21 +102,14 @@ async function decorateDevBizHalfWidth(block) {
   });
 
   const backgroundImage = block.classList.contains('full-width-background');
-  const heroWrapper = block?.parentElement?.parentElement;
+  const wrapper = block?.parentElement?.parentElement;
 
   if (backgroundImage) {
-    const picsrc = block.querySelectorAll('picture img')[0].currentSrc;
-    heroWrapper.querySelectorAll('.superhero-container > div').forEach((herowrapper) => {
-      Object.assign(herowrapper.style, {
-        backgroundImage: `url(${picsrc})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'cover',
-      });
-    });
-    heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
-      Object.assign(herowrapper.style, {
-        backgroundColor: 'transparent',
-      });
+    const picSrc = block.querySelectorAll('picture img')[0].currentSrc;
+    Object.assign(wrapper.style, {
+      backgroundImage: `url(${picSrc})`,
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
     });
   } else {
     // insert a placeholder div (where the background image would be), because it is styled as the space between the text and the image/video.
@@ -122,13 +118,6 @@ async function decorateDevBizHalfWidth(block) {
     emptyDiv.appendChild(emptyInnerDiv);
     block.insertBefore(emptyDiv, block.lastElementChild);
   }
-
-  heroWrapper.querySelectorAll('.superhero-container > div > div').forEach((herowrapper) => {
-    Object.assign(herowrapper.style, {
-      width: '75%',
-      margin: 'auto',
-    });
-  });
   
   const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
@@ -325,9 +314,12 @@ function applyDataAttributeStyles(block) {
 
   const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(29, 125, 238)';
   const background = block.getAttribute('data-background') || defaultBackgroundColor;
-  block.style.background = background;
-  const wrapper = block.parentElement;
-  wrapper.style.background = background;
+  if(variant === VARIANTS.halfWidth) {
+    const wrapper = block.parentElement;
+    wrapper.style.background = background;
+  } else {
+    block.style.background = background;
+  }
 
   const defaultTextColor = variant === VARIANTS.halfWidth ? TEXT_COLORS.black : TEXT_COLORS.white;
   const textColor = block.getAttribute('data-textcolor') || defaultTextColor;

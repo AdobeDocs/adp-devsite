@@ -7,3 +7,10 @@ export default function insertWrapperContainer(block) {
     wrapper.replaceWith(wrapperContainer);
     wrapperContainer.appendChild(wrapper);
 }
+
+export function insertWrapperChild(block) {
+    const name = block.getAttribute('data-block-name');
+    const wrapperChild = createTag('div', { class: `${name}-wrapper-child` });
+    block.replaceWith(wrapperChild);
+    wrapperChild.appendChild(block);
+}
