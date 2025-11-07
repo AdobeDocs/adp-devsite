@@ -132,17 +132,20 @@ main div.superhero-wrapper:has(div.superhero.half-width) div.superhero-wrapper-c
 
 main div.superhero-wrapper div.superhero.half-width {
   background: transparent;
-  height: 500px;
+  min-height: 500px;
   width: 100%;
   overflow: hidden;
   display: flex;
+  gap: calc(1.75 * 100% / 12);
   justify-content: center;
+  padding: 32px 0;
 }
 
-main div.superhero-wrapper div.superhero.half-width img {
-  width: 100% !important;
-  height: 350px !important;
-  object-fit: cover !important;
+main div.superhero-wrapper div.superhero.half-width > div:last-child img,
+main div.superhero-wrapper div.superhero.half-width > div:last-child video {
+  max-width: 100% !important;
+  max-height: 350px !important;
+  object-fit: contain !important;
 }
 
 main div.superhero-wrapper div.superhero.half-width p.spectrum-Body--sizeL {
@@ -159,38 +162,13 @@ main div.superhero-wrapper div.superhero.half-width > div:first-child {
   flex-direction: column;
   justify-content: center;
   width: calc(5 * 100% / 12);
-
-  margin-left: 40px;
-  margin-right: 32px;
 }
 
-main div.superhero-wrapper div.superhero.half-width div:nth-child(2) {
-  flex: 1;
-}
-
-main div.superhero-wrapper div.superhero.half-width div:nth-child(2) > div {
+main div.superhero-wrapper div.superhero.half-width > div:last-child {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  margin-top: 0;
-}
-
-main div.superhero-wrapper div.superhero.half-width div:nth-child(2) > div img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  border-radius: 0;
-  min-height: 500px !important;
-}
-
-main div.superhero-wrapper div.superhero.half-width div:nth-child(2) > div img {
-  display: none;
-}
-
-main div.superhero-wrapper div.superhero.half-width div:nth-child(3) {
-  display: flex;
-  align-items: center;
+  width: calc(5 * 100% / 12);
 }
 
 main div.superhero-wrapper div.superhero.half-width .icon-container {
@@ -236,7 +214,7 @@ main div.superhero-wrapper div.superhero.half-width h1 + p.last-of-type {
   margin-bottom: 0 !important;
 }
 
-main div.superhero-wrapper div.superhero.half-width.text-color-white a {
+main div.superhero-wrapper div.superhero.half-width a:not(.spectrum-Button) {
   text-decoration: underline;
 }
 
@@ -262,53 +240,16 @@ main div.superhero-wrapper div.superhero.half-width.over-gradient p.button-conta
   font-size: 16px;
 }
 
-main div.superhero-wrapper div.superhero.half-width div.superhero-video-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1024px) {
   main div.superhero-wrapper div.superhero.half-width {
-    padding: 32px;
-    overflow: hidden;
-  }
-
-  main div.superhero-wrapper div.superhero.half-width > div:first-child {
-    margin-left: 64px;
-    margin-right: 32px;
-    width: 100%;
-    margin: 0;
-  }
-
-  main div.superhero-wrapper div.superhero.half-width div:nth-child(2) {
-    display: none;
-  }
-  main div.superhero-wrapper div.superhero.half-width .spectrum-Heading--sizeXXL {
-    font-size: 36px;
-  }
-
-  main div.superhero-wrapper div.superhero.half-width picture {
-    display: none;
-  }
-
-  main div.superhero-wrapper div.superhero.half-width div:nth-child(2) > div div {
-    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    margin-top: 0;
+    gap: 32px;
   }
 
-  main div.superhero-wrapper div.superhero.half-width div:nth-child(2) > div img {
-    width: 100% !important;
-    min-width: 320px !important;
-  }
-}
-
-@media screen and (max-width: 425px) {
-  main div.superhero-wrapper div.superhero.half-width div:nth-child(2) > div img {
-    min-height: 0px;
+  main div.superhero-wrapper div.superhero.half-width > div:first-child,
+  main div.superhero-wrapper div.superhero.half-width > div:last-child {
+    width: 100%;
   }
 }
 
