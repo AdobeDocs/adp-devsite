@@ -32,15 +32,6 @@ main div.banner-wrapper div.banner.isH {
   height: 210px;
 }
 
-main div.banner-wrapper div.banner.isH h1,
-main div.banner-wrapper div.banner:not(.isP) h1 {
-  line-height: 210px;
-}
-
-main div.banner-wrapper div.banner.isP h1 {
-  line-height: unset;
-}
-
 main div.banner-wrapper p.button-container a {
   border-color: #fff;
   color: #696969;
@@ -70,10 +61,6 @@ main div.banner-wrapper div.banner.wide p.button-container a{
 }
 
 @media screen and (max-width: 768px) {
-  main div.banner-wrapper div.banner h1 {
-    line-height: 60px;
-  }
-
   main div.banner-wrapper.black div.banner:not(.isH)>div>div,
   main div.banner-wrapper div.banner:not(.isH)>div>div {
     flex-direction: column;

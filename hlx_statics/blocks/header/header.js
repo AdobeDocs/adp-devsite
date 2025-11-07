@@ -50,7 +50,22 @@ function localSearch() {
   return bestMatch;
 }
 
-function initSearch() {
+async function initSearch() {
+  // Trigger validation if it hasn't been triggered yet
+  if (window.adp_search.triggerIndexValidation && !window.adp_search.indicesValidationPromise) {
+    window.adp_search.triggerIndexValidation();
+  }
+
+  // Wait for index validation to complete
+  if (window.adp_search.indicesValidationPromise) {
+    try {
+      await window.adp_search.indicesValidationPromise;
+      console.log('Index validation complete, initializing search');
+    } catch (error) {
+      console.warn('Index validation failed, proceeding with available indices:', error);
+    }
+  }
+
   const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
 
