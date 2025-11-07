@@ -105,18 +105,14 @@ async function decorateDevBizHalfWidth(block) {
   const wrapper = block?.parentElement?.parentElement;
 
   if (backgroundImage) {
-    const picSrc = block.querySelectorAll('picture img')[0].currentSrc;
+    const placeholderDiv = block.querySelector('div:nth-child(2)');
+    const picSrc = placeholderDiv.querySelectorAll('picture img')[0].currentSrc;
     Object.assign(wrapper.style, {
       backgroundImage: `url(${picSrc})`,
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
     });
-  } else {
-    // insert a placeholder div (where the background image would be), because it is styled as the space between the text and the image/video.
-    const emptyDiv = createTag('div');
-    const emptyInnerDiv = createTag('div');
-    emptyDiv.appendChild(emptyInnerDiv);
-    block.insertBefore(emptyDiv, block.lastElementChild);
+    placeholderDiv.remove();
   }
   
   const videoURL = block.lastElementChild.querySelector('a');
