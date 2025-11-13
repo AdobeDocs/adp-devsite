@@ -624,8 +624,8 @@ export function isHlxPath(host) {
 
 /**
  * Returns the absolute URL for a resource.
- * @param {*} path The resource path. Either absolute or relative within root/static folder.
- * @returns path if absolute. The calculated raw git URL, otherwise.
+ * @param {*} path The resource path. Can be absolute, or relative to current page (./file, ../dir/file), or relative to pathPrefix.
+ * @returns path if absolute. The calculated raw git URL pointing to /src/pages/, otherwise.
  */
 export function getResourceUrl(path) {
   const isAbsolute = path.indexOf("://") > 0 || path.indexOf("//") === 0;
@@ -639,30 +639,49 @@ export function getResourceUrl(path) {
   const blobStr = '/blob/';
   const srcPagesStr = '/src/pages/';
   const blobIndex = blobPath.indexOf(blobStr);
-  const srcPagesIndex = blobPath.indexOf(srcPagesStr)
+  const srcPagesIndex = blobPath.indexOf(srcPagesStr);
+
+  // Handle relative paths (starting with ./ or ../ or not starting with /)
+  let resolvedPath = path;
+  if (path.startsWith('./') || path.startsWith('../') || (!path.startsWith('/') && !path.startsWith(pathPrefix))) {
+    // Get current page path relative to src/pages
+    const currentPagePath = window.location.pathname;
+    const currentDir = currentPagePath.substring(0, currentPagePath.lastIndexOf('/') + 1);
+    
+    // Resolve relative path against current directory
+    try {
+      const resolved = new URL(path, `${window.location.origin}${currentDir}`);
+      resolvedPath = resolved.pathname;
+    } catch (e) {
+      console.error(`Failed to resolve relative path "${path}" from "${currentDir}"`);
+      resolvedPath = path;
+    }
+  }
 
   // check pre-conditions
-
   const isValidRelativePath =
     blobPath.startsWith(githubPath)
     && blobIndex < srcPagesIndex
-    && path.startsWith(pathPrefix);
+    && (resolvedPath.startsWith(pathPrefix) || resolvedPath.startsWith('/'));
 
   if(!isValidRelativePath) {
     // eslint-disable-next-line no-console
-    console.error(`Invalid relative path "${path}" for "${blobPath}"`);
+    console.error(`Invalid relative path "${resolvedPath}" for "${blobPath}"`);
   }
 
   // build raw git URL
-
   const basePath = blobPath
     .substring(0, blobIndex)
     .replace(githubPath, 'https://raw.githubusercontent.com');
 
   const ref = blobPath.substring(blobIndex + blobStr.length, srcPagesIndex);
-  const relativePath = path.replace(pathPrefix, '');
+  
+  // Remove pathPrefix if it exists, otherwise use the resolved path as-is
+  const finalPath = resolvedPath.startsWith(pathPrefix) 
+    ? resolvedPath.replace(pathPrefix, '') 
+    : resolvedPath;
 
-  return `${basePath}/${ref}/static${relativePath}`;
+  return `${basePath}/${ref}/src/pages${finalPath}`;
 }
 
 /**
