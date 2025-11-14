@@ -364,26 +364,26 @@ async function fetchProfileAvatar(userId) {
 }
 
 //is this the right place to add the IMS Methods?
-// window.adobeIMSMethods = {
-//   isSignedIn: () => window.adobeIMS.isSignedInUser(),
-//   signIn: () => {
-//     window.adobeIMS.signIn();
-//   },
-//   signOut() {
-//     window.adobeIMS.signOut({});
-//   },
-//   getProfile() {
-//     window.adobeIMS.getProfile().then((profile) => {
-//       window.adobeid.profile = profile;
-//       window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
-//       decorateProfile(window.adobeid.profile);
-//       fetchProfileAvatar(window.adobeid.profile.userId);
-//     })
-//       .catch((ex) => {
-//         window.adobeid.profile = ex;
-//       });
-//   },
-// };
+window.adobeIMSMethods = {
+  isSignedIn: () => window.adobeIMS.isSignedInUser(),
+  signIn: () => {
+    window.adobeIMS.signIn();
+  },
+  signOut() {
+    window.adobeIMS.signOut({});
+  },
+  getProfile() {
+    window.adobeIMS.getProfile().then((profile) => {
+      window.adobeid.profile = profile;
+      window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
+      decorateProfile(window.adobeid.profile);
+      fetchProfileAvatar(window.adobeid.profile.userId);
+    })
+      .catch((ex) => {
+        window.adobeid.profile = ex;
+      });
+  },
+};
 
 export async function loadAep() {
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
