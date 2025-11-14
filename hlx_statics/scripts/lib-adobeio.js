@@ -641,7 +641,7 @@ export function getResourceUrl(path) {
   const blobIndex = blobPath.indexOf(blobStr);
   const srcPagesIndex = blobPath.indexOf(srcPagesStr);
 
-  // Handle relative paths (starting with ./ or ../ or not starting with /)
+  // Handle relative path (starting with ./ or ../ or not starting with /)
   let resolvedPath = path;
   if (path.startsWith('./') || path.startsWith('../') || (!path.startsWith('/') && !path.startsWith(pathPrefix))) {
     // Get current page path relative to src/pages
@@ -662,7 +662,7 @@ export function getResourceUrl(path) {
   const isValidRelativePath =
     blobPath.startsWith(githubPath)
     && blobIndex < srcPagesIndex
-    && (resolvedPath.startsWith(pathPrefix) || resolvedPath.startsWith('/'));
+    && resolvedPath.startsWith('/');
 
   if(!isValidRelativePath) {
     // eslint-disable-next-line no-console
@@ -676,12 +676,7 @@ export function getResourceUrl(path) {
 
   const ref = blobPath.substring(blobIndex + blobStr.length, srcPagesIndex);
 
-  // Remove pathPrefix if it exists, otherwise use the resolved path as-is
-  const finalPath = resolvedPath.startsWith(pathPrefix)
-    ? resolvedPath.replace(pathPrefix, '')
-    : resolvedPath;
-
-  return `${basePath}/${ref}/src/pages${finalPath}`;
+  return `${basePath}/${ref}/src/pages${resolvedPath}`;
 }
 
 /**
