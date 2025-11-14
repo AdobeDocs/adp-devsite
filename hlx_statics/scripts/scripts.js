@@ -304,7 +304,8 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     scope: scope,
     locale: 'en_US',
     environment: environment,
-    useLocalStorage: true,
+    useLocalStorage: false,
+    autoValidateToken: true,
     logsEnabled: logsEnabled,
     redirect_uri: window.location.href,
     isSignedIn: false,
@@ -686,11 +687,11 @@ async function loadLazy(doc) {
     window.adp_search.indicesValidationPromise = null;
   }
 
-  if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
+  if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib && !window.adobeIMS) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
   }
 
-  if (window.adobeIMS && window.adobeIMS.initialize) {
+  if (window.adobeIMS && window.adobeIMS.initialize && !window.adobeIMS.isInitialized) {
     window.adobeIMS.initialize();
   }
 
