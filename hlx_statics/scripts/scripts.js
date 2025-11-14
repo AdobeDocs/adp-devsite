@@ -309,6 +309,21 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     logsEnabled: logsEnabled,
     redirect_uri: window.location.href,
     isSignedIn: false,
+    refreshToken: function () {
+        adobeIMS.refreshToken();
+    },
+    reAuthenticate: function () {
+        adobeIMS.reAuthenticate({
+        }, "check");
+    },
+    reAuthenticateForce: function () {
+        adobeIMS.reAuthenticate({
+            api: 'apioverride',
+        }, "force");
+    },
+    getReauthAccessToken: function () {
+        // vm.state.rtoken = adobeIMS.getReauthAccessToken();
+    },
     onReady: () => {
       if (window.adobeIMSMethods.isSignedIn()) {
         window.dispatchEvent(imsSignIn);
@@ -349,26 +364,26 @@ async function fetchProfileAvatar(userId) {
 }
 
 //is this the right place to add the IMS Methods?
-window.adobeIMSMethods = {
-  isSignedIn: () => window.adobeIMS.isSignedInUser(),
-  signIn: () => {
-    window.adobeIMS.signIn();
-  },
-  signOut() {
-    window.adobeIMS.signOut({});
-  },
-  getProfile() {
-    window.adobeIMS.getProfile().then((profile) => {
-      window.adobeid.profile = profile;
-      window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
-      decorateProfile(window.adobeid.profile);
-      fetchProfileAvatar(window.adobeid.profile.userId);
-    })
-      .catch((ex) => {
-        window.adobeid.profile = ex;
-      });
-  },
-};
+// window.adobeIMSMethods = {
+//   isSignedIn: () => window.adobeIMS.isSignedInUser(),
+//   signIn: () => {
+//     window.adobeIMS.signIn();
+//   },
+//   signOut() {
+//     window.adobeIMS.signOut({});
+//   },
+//   getProfile() {
+//     window.adobeIMS.getProfile().then((profile) => {
+//       window.adobeid.profile = profile;
+//       window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
+//       decorateProfile(window.adobeid.profile);
+//       fetchProfileAvatar(window.adobeid.profile.userId);
+//     })
+//       .catch((ex) => {
+//         window.adobeid.profile = ex;
+//       });
+//   },
+// };
 
 export async function loadAep() {
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
@@ -685,14 +700,6 @@ async function loadLazy(doc) {
 
     // Initialize promise as unresolved
     window.adp_search.indicesValidationPromise = null;
-  }
-
-  if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib && !window.adobeIMS) {
-    window.adobeImsFactory.createIMSLib(window.adobeid);
-  }
-
-  if (window.adobeIMS && window.adobeIMS.initialize && !window.adobeIMS.isInitialized) {
-    window.adobeIMS.initialize();
   }
 
   await loadBlocks(main);
