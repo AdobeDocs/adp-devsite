@@ -325,12 +325,12 @@ export function buildGrid(main) {
 export function buildGridAreaMain(main) {
   const gridAreaMain = main.querySelector('.grid-main-area');
   const subParent = createTag("div", { class: "sub-parent" });
-  
+
   const heroWrapperClasses = ['herosimple-wrapper', 'superhero-wrapper'];
   const selector = '.' + heroWrapperClasses.join(', .');
   const heroWrapper = main.querySelector(selector);
   const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
-  
+
   if (heroWrapper) {
     const children = Array.from(gridAreaMain.children);
     children.forEach((child) => {
@@ -554,7 +554,7 @@ function activeSubNav(actTab) {
       }
     });
   }
-  
+
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }
@@ -624,8 +624,8 @@ export function isHlxPath(host) {
 
 /**
  * Returns the absolute URL for a resource.
- * @param {*} path The resource path. Can be absolute, or relative to current page (./file, ../dir/file), or relative to pathPrefix.
- * @returns path if absolute. The calculated raw git URL pointing to /src/pages/, otherwise.
+ * @param {*} path The resource path within src/pages. Can be absolute, or relative to current page (./file, ../dir/file), or relative to pathPrefix.
+ * @returns path if absolute. The calculated raw git URL, otherwise.
  */
 export function getResourceUrl(path) {
   const isAbsolute = path.indexOf("://") > 0 || path.indexOf("//") === 0;
@@ -647,7 +647,7 @@ export function getResourceUrl(path) {
     // Get current page path relative to src/pages
     const currentPagePath = window.location.pathname;
     const currentDir = currentPagePath.substring(0, currentPagePath.lastIndexOf('/') + 1);
-    
+
     // Resolve relative path against current directory
     try {
       const resolved = new URL(path, `${window.location.origin}${currentDir}`);
@@ -675,10 +675,10 @@ export function getResourceUrl(path) {
     .replace(githubPath, 'https://raw.githubusercontent.com');
 
   const ref = blobPath.substring(blobIndex + blobStr.length, srcPagesIndex);
-  
+
   // Remove pathPrefix if it exists, otherwise use the resolved path as-is
-  const finalPath = resolvedPath.startsWith(pathPrefix) 
-    ? resolvedPath.replace(pathPrefix, '') 
+  const finalPath = resolvedPath.startsWith(pathPrefix)
+    ? resolvedPath.replace(pathPrefix, '')
     : resolvedPath;
 
   return `${basePath}/${ref}/src/pages${finalPath}`;
