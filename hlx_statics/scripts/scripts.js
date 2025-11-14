@@ -296,8 +296,6 @@ async function loadEager(doc) {
   loadConfig();
 }
 
-const imsSignIn = new Event('imsSignIn');
-
 function setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout) {
   window.adobeid = {
     client_id: client_id,
@@ -363,28 +361,6 @@ async function fetchProfileAvatar(userId) {
   }
 }
 
-//is this the right place to add the IMS Methods?
-window.adobeIMSMethods = {
-  isSignedIn: () => window.adobeIMS.isSignedInUser(),
-  signIn: () => {
-    window.adobeIMS.signIn();
-  },
-  signOut() {
-    window.adobeIMS.signOut({});
-  },
-  getProfile() {
-    window.adobeIMS.getProfile().then((profile) => {
-      window.adobeid.profile = profile;
-      window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
-      decorateProfile(window.adobeid.profile);
-      fetchProfileAvatar(window.adobeid.profile.userId);
-    })
-      .catch((ex) => {
-        window.adobeid.profile = ex;
-      });
-  },
-};
-
 export async function loadAep() {
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
 
@@ -417,6 +393,11 @@ export async function loadAep() {
 }
 
 export async function loadIms() {
+  const imsSignIn = new Event('imsSignIn');
+  window.addEventListener('imsSignIn', (event) => {
+    console.log('IMS Sign In event received', event);
+  });
+
   window.imsLoaded =
     window.imsLoaded ||
     new Promise((resolve, reject) => {
@@ -477,6 +458,26 @@ export async function loadIms() {
  * Load config items into the window for use
  */
 function loadConfig() {
+  window.adobeIMSMethods = {
+    isSignedIn: () => window.adobeIMS.isSignedInUser(),
+    signIn: () => {
+      window.adobeIMS.signIn();
+    },
+    signOut() {
+      window.adobeIMS.signOut({});
+    },
+    getProfile() {
+      window.adobeIMS.getProfile().then((profile) => {
+        window.adobeid.profile = profile;
+        window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
+        decorateProfile(window.adobeid.profile);
+        fetchProfileAvatar(window.adobeid.profile.userId);
+      })
+        .catch((ex) => {
+          window.adobeid.profile = ex;
+        });
+    },
+  };
 
   window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTc1OTI2MDMzNiwiZSI6MTc5MDgwMTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iLCJkZXZob21lLmNvcnAuYWRvYmUuY29tIiwiZGV2LmRldmhvbWUuY29ycC5hZG9iZS5jb20iLCJzdGFnZS0tYWRwLWRldnNpdGUtc3RhZ2UtLWFkb2JlZG9jcy5hZW0ucGFnZSJdLCJzIjoicG9ydGFsIn0=.bz4A/pSTnw14pUI64iQ3i/xiPkh2TosUpUJg4C0W/K7ZeyIPB7K9TTX1zo+cr7GZN6eqaAKv6gBGoG4xWL1rxw==`;
 
