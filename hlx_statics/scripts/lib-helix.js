@@ -516,10 +516,24 @@ export function updateSectionsStatus(main) {
 function replaceInTextNodes(element) {
   if (element.nodeType === Node.TEXT_NODE) {
     if (!element.parentElement?.closest('code')) {
-      element.textContent = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      const text = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      
+      if (text.includes('<!--')) {
+        const parent = element.parentNode;
+        const parts = text.split(/(<!--[\s\S]*?-->)/g);
+        parts.forEach(part => {
+          if (part.startsWith('<!--') && part.endsWith('-->')) {
+            parent.insertBefore(document.createComment(part.slice(4, -3)), element);
+          } else if (part) {
+            parent.insertBefore(document.createTextNode(part), element);
+          }
+        });
+        parent.removeChild(element);
+      } else {
+        element.textContent = text;
+      }
     }
   } else {
-    // Recursively process child nodes
     Array.from(element.childNodes).forEach(replaceInTextNodes);
   }
 }
@@ -529,11 +543,10 @@ function replaceInTextNodes(element) {
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
-  const codeSelector = 'pre, code, .code, .codeblock';
-  const savedCodeContent = Array.from(main.querySelectorAll(codeSelector)).map(el => el.innerHTML);
-  main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  main.querySelectorAll(codeSelector).forEach((el, i) => el.innerHTML = savedCodeContent[i]);
-  main.querySelectorAll('div.section > div > div').forEach((block) => decorateBlock(block));
+  replaceInTextNodes(main);
+  main
+    .querySelectorAll('div.section > div > div')
+    .forEach((block) => decorateBlock(block));
 }
 
 /**
