@@ -13,6 +13,9 @@ function penpalOnLoad() {
         //childOrigin: isExternalLink(src) ? new URL(src).origin : window.origin,
         // Methods the parent is exposing to the child
         methods: {
+            setOverflow(overflow) {
+                document.body.style.overflow = overflow;
+            },
             scrollTop(position = 0) {
             if (document?.scrollingElement) {
                 document.scrollingElement.scrollTop = position;
