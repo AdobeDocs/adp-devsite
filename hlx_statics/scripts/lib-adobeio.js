@@ -325,12 +325,12 @@ export function buildGrid(main) {
 export function buildGridAreaMain(main) {
   const gridAreaMain = main.querySelector('.grid-main-area');
   const subParent = createTag("div", { class: "sub-parent" });
-  
+
   const heroWrapperClasses = ['herosimple-wrapper', 'superhero-wrapper'];
   const selector = '.' + heroWrapperClasses.join(', .');
   const heroWrapper = main.querySelector(selector);
   const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
-  
+
   if (heroWrapper) {
     const children = Array.from(gridAreaMain.children);
     children.forEach((child) => {
@@ -554,7 +554,7 @@ function activeSubNav(actTab) {
       }
     });
   }
-  
+
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }
@@ -624,7 +624,7 @@ export function isHlxPath(host) {
 
 /**
  * Returns the absolute URL for a resource.
- * @param {*} path The resource path. Either absolute or relative within root/static folder.
+ * @param {*} path The resource path within src/pages. Can be absolute, or relative to current page (./file, ../dir/file), or relative to pathPrefix.
  * @returns path if absolute. The calculated raw git URL, otherwise.
  */
 export function getResourceUrl(path) {
@@ -639,30 +639,44 @@ export function getResourceUrl(path) {
   const blobStr = '/blob/';
   const srcPagesStr = '/src/pages/';
   const blobIndex = blobPath.indexOf(blobStr);
-  const srcPagesIndex = blobPath.indexOf(srcPagesStr)
+  const srcPagesIndex = blobPath.indexOf(srcPagesStr);
+
+  // Handle relative path (starting with ./ or ../ or not starting with /)
+  let resolvedPath = path;
+  if (path.startsWith('./') || path.startsWith('../') || (!path.startsWith('/') && !path.startsWith(pathPrefix))) {
+    // Get current page path relative to src/pages
+    const currentPagePath = window.location.pathname;
+    const currentDir = currentPagePath.substring(0, currentPagePath.lastIndexOf('/') + 1);
+
+    // Resolve relative path against current directory
+    try {
+      const resolved = new URL(path, `${window.location.origin}${currentDir}`);
+      resolvedPath = resolved.pathname;
+    } catch (e) {
+      console.error(`Failed to resolve relative path "${path}" from "${currentDir}"`);
+      resolvedPath = path;
+    }
+  }
 
   // check pre-conditions
-
   const isValidRelativePath =
     blobPath.startsWith(githubPath)
     && blobIndex < srcPagesIndex
-    && path.startsWith(pathPrefix);
+    && resolvedPath.startsWith('/');
 
   if(!isValidRelativePath) {
     // eslint-disable-next-line no-console
-    console.error(`Invalid relative path "${path}" for "${blobPath}"`);
+    console.error(`Invalid relative path "${resolvedPath}" for "${blobPath}"`);
   }
 
   // build raw git URL
-
   const basePath = blobPath
     .substring(0, blobIndex)
     .replace(githubPath, 'https://raw.githubusercontent.com');
 
   const ref = blobPath.substring(blobIndex + blobStr.length, srcPagesIndex);
-  const relativePath = path.replace(pathPrefix, '');
 
-  return `${basePath}/${ref}/static${relativePath}`;
+  return `${basePath}/${ref}/src/pages${resolvedPath}`;
 }
 
 /**
