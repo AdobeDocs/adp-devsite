@@ -723,6 +723,12 @@ function globalMobileConsoleButton() {
   return div;
 }
 
+function globalSpinner() {
+  const div = createTag('div', { id: 'nav-spinner', class: 'nav-spinner-container' });
+  div.innerHTML = `<div class="spinner"></div>`;
+  return div;
+}
+
 function globalSignIn() {
   const div = createTag('div', { class: 'nav-sign-in' });
   div.innerHTML = `<button class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
@@ -1079,7 +1085,8 @@ export default async function decorate(block) {
     rightContainer.appendChild(globalDistributeButton());
   }
   rightContainer.appendChild(globalConsoleButton());
-  rightContainer.appendChild(globalSignIn());
+  //rightContainer.appendChild(globalSignIn());
+  rightContainer.appendChild(globalSpinner());
   header.append(rightContainer);
   header.append(globalNavSearchDropDown());
 
