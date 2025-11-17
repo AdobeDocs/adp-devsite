@@ -510,18 +510,27 @@ export function updateSectionsStatus(main) {
 }
 
 /**
- * Replace HTML entities in text nodes, but skip those inside code elements
+ * Replace HTML entities, but skip those inside code elements
  * @param {Element} element The element to process
  */
-function replaceInTextNodes(element) {
-  if (element.nodeType === Node.TEXT_NODE) {
-    if (!element.parentElement?.closest('code')) {
-      element.textContent = element.textContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    }
-  } else {
-    // Recursively process child nodes
-    Array.from(element.childNodes).forEach(replaceInTextNodes);
-  }
+function decodeHtmlEntitiesExceptInCode(element) {
+  // Store code element contents temporarily
+  const codeElements = [];
+  const placeholder = '___ADP_DEV_SITE_CODE_ELEMENT_PLACEHOLDER___';
+  
+  // Replace code elements with placeholders and save their content
+  element.innerHTML = element.innerHTML.replace(/<code[^>]*>[\s\S]*?<\/code>/gi, (match) => {
+    codeElements.push(match);
+    return `${placeholder}${codeElements.length - 1}${placeholder}`;
+  });
+  
+  // Now do the entity replacement on everything except code elements
+  element.innerHTML = element.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  
+  // Restore code elements with their original content
+  element.innerHTML = element.innerHTML.replace(new RegExp(`${placeholder}(\\d+)${placeholder}`, 'g'), (_, index) => {
+    return codeElements[parseInt(index)];
+  });
 }
 
 /**
@@ -529,11 +538,10 @@ function replaceInTextNodes(element) {
  * @param {Element} main The container element
  */
 export function decorateBlocks(main) {
-  const codeSelector = 'pre, code, .code, .codeblock';
-  const savedCodeContent = Array.from(main.querySelectorAll(codeSelector)).map(el => el.innerHTML);
-  main.innerHTML = main.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  main.querySelectorAll(codeSelector).forEach((el, i) => el.innerHTML = savedCodeContent[i]);
-  main.querySelectorAll('div.section > div > div').forEach((block) => decorateBlock(block));
+  decodeHtmlEntitiesExceptInCode(main);
+  main
+    .querySelectorAll('div.section > div > div')
+    .forEach((block) => decorateBlock(block));
 }
 
 /**
