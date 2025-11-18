@@ -393,6 +393,7 @@ export function buildResources(main) {
       asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
     }
   } else {
+    // TODO
     // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
     let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
     const resourcesWrapper = document.querySelector('.resources-wrapper');
