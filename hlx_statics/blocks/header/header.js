@@ -4,6 +4,7 @@ import {
   focusRing,
   isTopLevelNav,
   getClosestFranklinSubfolder,
+  decorateProfile
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
@@ -1132,7 +1133,7 @@ export default async function decorate(block) {
 
   showSpinner();
 
-  // Listen for IMS events
+  // IMS events fire before header.js so just check if they are ready
   if (window.adp.imsReady) {
     hideSpinner();
     showSignIn();
@@ -1143,19 +1144,19 @@ export default async function decorate(block) {
     showSignIn();
   }
 
-  window.addEventListener('imsGetProfile', () => {
+  if(window.adp.imsGetProfile) {
     hideSignIn();
     showSpinner();
-  });
+  }
 
-  window.addEventListener('imsGetProfileSuccess', () => {
-    hideSpinner();
-  });
+  if(window.adp.imsGetProfileSuccess) {
+    decorateProfile(window.adobeid.profile);
+  }
 
-  window.addEventListener('imsGetProfileError', () => {
+  if(window.adp.imsGetProfileError) {
     hideSpinner();
     showSignIn();
-  });
+  }
 
   setActiveTab();
   focusRing(header);
