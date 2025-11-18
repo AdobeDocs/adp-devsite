@@ -724,13 +724,13 @@ function globalMobileConsoleButton() {
 }
 
 function globalSpinner() {
-  const div = createTag('div', { id: 'nav-spinner', class: 'nav-spinner-container' });
+  const div = createTag('div', { id: 'nav-spinner', class: 'nav-spinner-container', style: 'display: none;' });
   div.innerHTML = `<div class="spinner"></div>`;
   return div;
 }
 
 function globalSignIn() {
-  const div = createTag('div', { class: 'nav-sign-in' });
+  const div = createTag('div', { id: 'nav-sign-in', class: 'nav-sign-in' });
   div.innerHTML = `<button class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
     <span id="signIn" class="spectrum-ActionButton-label">Sign in</span>
   </button>`;
@@ -1085,8 +1085,9 @@ export default async function decorate(block) {
     rightContainer.appendChild(globalDistributeButton());
   }
   rightContainer.appendChild(globalConsoleButton());
-  //rightContainer.appendChild(globalSignIn());
   rightContainer.appendChild(globalSpinner());
+  rightContainer.appendChild(globalSignIn());
+
   header.append(rightContainer);
   header.append(globalNavSearchDropDown());
 
@@ -1101,6 +1102,32 @@ export default async function decorate(block) {
   const signIn = header.querySelector('#signIn');
   signIn?.addEventListener('click', () => {
     window.adobeIMSMethods?.signIn();
+  });
+
+  // Listen for IMS profile events
+  window.addEventListener('imsGetProfile', () => {
+    const signInElement = document.querySelector('#nav-sign-in');
+    const spinner = document.querySelector('#nav-spinner');
+    if (signInElement) {
+      signInElement.style.display = 'none';
+    }
+    if (spinner) {
+      spinner.style.display = 'block';
+    }
+  });
+
+  window.addEventListener('imsGetProfileSuccess', () => {
+    const spinner = document.querySelector('#nav-spinner');
+    if (spinner) {
+      spinner.style.display = 'none';
+    }
+  });
+
+  window.addEventListener('imsGetProfileError', () => {
+    const spinner = document.querySelector('#nav-spinner');
+    if (spinner) {
+      spinner.style.display = 'none';
+    }
   });
 
   setActiveTab();

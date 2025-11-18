@@ -296,7 +296,9 @@ async function loadEager(doc) {
   loadConfig();
 }
 
-const imsSignIn = new Event('imsSignIn');
+const imsGetProfile = new Event('imsGetProfile');
+const imsGetProfileSuccess = new Event('imsGetProfileSuccess');
+const imsGetProfileError = new Event('imsGetProfileError');
 
 function setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout) {
   window.adobeid = {
@@ -304,16 +306,23 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     scope: scope,
     locale: 'en_US',
     environment: environment,
-    useLocalStorage: true,
+    useLocalStorage: false,
     logsEnabled: logsEnabled,
     redirect_uri: window.location.href,
-    isSignedIn: false,
     onReady: () => {
+      window.dispatchEvent(imsGetProfile);
       if (window.adobeIMSMethods.isSignedIn()) {
-        window.dispatchEvent(imsSignIn);
-        window.adobeIMSMethods.getProfile();
+        window.adobeIMS.getProfile().then((profile) => {
+          window.adobeid.profile = profile;
+          window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
+          decorateProfile(window.adobeid.profile);
+          fetchProfileAvatar(window.adobeid.profile.userId);
+          window.dispatchEvent(imsGetProfileSuccess);
+        })
+        .catch((ex) => {
+          window.dispatchEvent(imsGetProfileError, ex);
+        });
       }
-      console.log('Adobe IMS Ready!');
       resolve(); // resolve the promise, consumers can now use window.adobeIMS
       clearTimeout(timeout);
     },
@@ -344,30 +353,9 @@ async function fetchProfileAvatar(userId) {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.warn(e);
+    window.dispatchEvent(imsGetProfileError);
   }
 }
-
-//is this the right place to add the IMS Methods?
-window.adobeIMSMethods = {
-  isSignedIn: () => window.adobeIMS.isSignedInUser(),
-  signIn: () => {
-    window.adobeIMS.signIn();
-  },
-  signOut() {
-    window.adobeIMS.signOut({});
-  },
-  getProfile() {
-    window.adobeIMS.getProfile().then((profile) => {
-      window.adobeid.profile = profile;
-      window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
-      decorateProfile(window.adobeid.profile);
-      fetchProfileAvatar(window.adobeid.profile.userId);
-    })
-      .catch((ex) => {
-        window.adobeid.profile = ex;
-      });
-  },
-};
 
 export async function loadAep() {
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
