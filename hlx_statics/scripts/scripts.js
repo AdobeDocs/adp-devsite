@@ -102,6 +102,7 @@ window.addEventListener('imsGetProfileSuccess', () => {
 });
 
 window.addEventListener('imsGetProfileError', () => {
+  window.adp.imsGetProfile = false;
   window.adp.imsGetProfileSuccess = false;
   window.adp.imsGetProfileError = true;
 });
