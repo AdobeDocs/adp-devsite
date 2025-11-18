@@ -1107,7 +1107,7 @@ export default async function decorate(block) {
       signInElement.style.display = 'block';
       const signIn = header.querySelector('#signIn');
       signIn?.addEventListener('click', () => {
-        window.adobeIMSMethods?.signIn();
+        window.adobeIMS.signIn();
       });
     }
   });
