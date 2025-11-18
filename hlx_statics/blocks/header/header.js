@@ -925,6 +925,9 @@ function showSignIn() {
   const signIn = document.querySelector('#nav-sign-in');
   if (signIn) {
     signIn.style.display = 'block';
+    signIn?.addEventListener('click', () => {
+      window.adobeIMS.signIn();
+    });
   }
 }
 
@@ -1132,14 +1135,12 @@ export default async function decorate(block) {
   // Listen for IMS events
   if (window.adp.imsReady) {
     hideSpinner();
-    const signInElement = document.querySelector('#nav-sign-in');
-    if (signInElement) {
-      showSignIn();
-      const signIn = header.querySelector('#signIn');
-      signIn?.addEventListener('click', () => {
-        window.adobeIMS.signIn();
-      });
-    }
+    showSignIn();
+  }
+
+  if(window.adp.imsError) {
+    hideSpinner();
+    showSignIn();
   }
 
   window.addEventListener('imsGetProfile', () => {
@@ -1156,14 +1157,9 @@ export default async function decorate(block) {
     showSignIn();
   });
 
-  window.addEventListener('imsError', () => {
-    hideSpinner();
-    showSignIn();
-  });
-
   setActiveTab();
   focusRing(header);
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
-  }
+}

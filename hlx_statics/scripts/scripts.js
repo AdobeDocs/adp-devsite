@@ -86,6 +86,10 @@ window.addEventListener('imsReady', () => {
   window.adp.imsReady = true;
 });
 
+window.addEventListener('imsError', () => {
+  window.adp.imsError = true;
+});
+
 window.addEventListener('imsGetProfile', () => {
   window.adp.imsGetProfile = true;
 });
