@@ -653,7 +653,7 @@ export function getResourceUrl(path) {
       const resolved = new URL(path, window.location.href);
       resolvedPath = resolved.pathname;
     } catch (e) {
-      console.error(`Failed to resolve relative path "${path}" from "${currentDir}"`);
+      console.error(`Failed to resolve relative path "${path}"`);
       resolvedPath = path;
     }
   }
