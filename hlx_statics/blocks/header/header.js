@@ -1099,12 +1099,19 @@ export default async function decorate(block) {
 
   handleButtons(header);
 
-  const signIn = header.querySelector('#signIn');
-  signIn?.addEventListener('click', () => {
-    window.adobeIMSMethods?.signIn();
+  // Listen for IMS events
+  window.addEventListener('imsReady', () => {
+    const signInElement = document.querySelector('#nav-sign-in');
+    const spinner = document.querySelector('#nav-spinner');
+    if (signInElement) {
+      signInElement.style.display = 'block';
+      const signIn = header.querySelector('#signIn');
+      signIn?.addEventListener('click', () => {
+        window.adobeIMSMethods?.signIn();
+      });
+    }
   });
 
-  // Listen for IMS profile events
   window.addEventListener('imsGetProfile', () => {
     const signInElement = document.querySelector('#nav-sign-in');
     const spinner = document.querySelector('#nav-spinner');

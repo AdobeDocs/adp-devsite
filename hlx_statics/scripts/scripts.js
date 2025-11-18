@@ -296,6 +296,7 @@ async function loadEager(doc) {
   loadConfig();
 }
 
+const imsReady = new Event('imsReady');
 const imsGetProfile = new Event('imsGetProfile');
 const imsGetProfileSuccess = new Event('imsGetProfileSuccess');
 const imsGetProfileError = new Event('imsGetProfileError');
@@ -310,8 +311,9 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     logsEnabled: logsEnabled,
     redirect_uri: window.location.href,
     onReady: () => {
+      window.dispatchEvent(imsReady);
       window.dispatchEvent(imsGetProfile);
-      if (window.adobeIMSMethods.isSignedIn()) {
+      if (window.adobeIMS.isSignedInUser()) {
         window.adobeIMS.getProfile().then((profile) => {
           window.adobeid.profile = profile;
           window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
