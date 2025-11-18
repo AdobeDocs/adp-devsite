@@ -723,8 +723,14 @@ function globalMobileConsoleButton() {
   return div;
 }
 
+function globalSpinner() {
+  const div = createTag('div', { id: 'nav-spinner', class: 'nav-spinner-container', style: 'display: none;' });
+  div.innerHTML = `<div class="spinner"></div>`;
+  return div;
+}
+
 function globalSignIn() {
-  const div = createTag('div', { class: 'nav-sign-in' });
+  const div = createTag('div', { id: 'nav-sign-in', class: 'nav-sign-in' });
   div.innerHTML = `<button class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
     <span id="signIn" class="spectrum-ActionButton-label">Sign in</span>
   </button>`;
@@ -892,6 +898,37 @@ function handleMenuButton(header) {
       document.body.style.overflow = ''; // Restore scrolling
     }
   });
+}
+
+function hideSpinner() {
+  const spinner = document.querySelector('#nav-spinner');
+  if (spinner) {
+    spinner.style.display = 'none';
+  }
+}
+
+function showSpinner() {
+  const spinner = document.querySelector('#nav-spinner');
+  if (spinner) {
+    spinner.style.display = 'block';
+  }
+}
+
+function hideSignIn() {
+  const signIn = document.querySelector('#nav-sign-in');
+  if (signIn) {
+    signIn.style.display = 'none';
+  }
+}
+
+function showSignIn() {
+  const signIn = document.querySelector('#nav-sign-in');
+  if (signIn) {
+    signIn.style.display = 'block';
+    signIn?.addEventListener('click', () => {
+      window.adobeIMS.signIn();
+    });
+  }
 }
 
 /**
@@ -1079,7 +1116,9 @@ export default async function decorate(block) {
     rightContainer.appendChild(globalDistributeButton());
   }
   rightContainer.appendChild(globalConsoleButton());
+  rightContainer.appendChild(globalSpinner());
   rightContainer.appendChild(globalSignIn());
+
   header.append(rightContainer);
   header.append(globalNavSearchDropDown());
 
@@ -1091,9 +1130,31 @@ export default async function decorate(block) {
 
   handleButtons(header);
 
-  const signIn = header.querySelector('#signIn');
-  signIn?.addEventListener('click', () => {
-    window.adobeIMSMethods?.signIn();
+  showSpinner();
+
+  // Listen for IMS events
+  if (window.adp.imsReady) {
+    hideSpinner();
+    showSignIn();
+  }
+
+  if(window.adp.imsError) {
+    hideSpinner();
+    showSignIn();
+  }
+
+  window.addEventListener('imsGetProfile', () => {
+    hideSignIn();
+    showSpinner();
+  });
+
+  window.addEventListener('imsGetProfileSuccess', () => {
+    hideSpinner();
+  });
+
+  window.addEventListener('imsGetProfileError', () => {
+    hideSpinner();
+    showSignIn();
   });
 
   setActiveTab();
@@ -1101,4 +1162,4 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
-  }
+}

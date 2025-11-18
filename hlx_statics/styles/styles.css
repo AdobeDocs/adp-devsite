@@ -1244,3 +1244,22 @@ main .no-breadcrumbs {
 main .action-buttons.copy-markdown-button{
   cursor:pointer;
 }
+
+.nav-spinner-container {
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgb(4, 105, 227);
+  border-top: 2px solid rgb(230, 230, 230);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

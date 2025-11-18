@@ -64,6 +64,8 @@ export {
 
 window.hlx = window.hlx || {};
 window.adobeid = window.adobeid || {};
+window.adp = window.adp || {};
+
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 window.hlx.RUM_GENERATION = 'project-1'; // add your RUM generation information here
@@ -78,6 +80,30 @@ window.addEventListener('unhandledrejection', (event) => {
 
 window.addEventListener('error', (event) => {
   sampleRUM('error', { source: event.filename, target: event.lineno });
+});
+
+window.addEventListener('imsReady', () => {
+  window.adp.imsReady = true;
+  window.adp.imsError = false;
+});
+
+window.addEventListener('imsError', () => {
+  window.adp.imsError = true;
+  window.adp.imsReady = false;
+});
+
+window.addEventListener('imsGetProfile', () => {
+  window.adp.imsGetProfile = true;
+});
+
+window.addEventListener('imsGetProfileSuccess', () => {
+  window.adp.imsGetProfileSuccess = true;
+  window.adp.imsGetProfileError = false;
+});
+
+window.addEventListener('imsGetProfileError', () => {
+  window.adp.imsGetProfileSuccess = false;
+  window.adp.imsGetProfileError = true;
 });
 
 window.addEventListener('resize', toggleScale);
@@ -296,7 +322,11 @@ async function loadEager(doc) {
   loadConfig();
 }
 
-const imsSignIn = new Event('imsSignIn');
+const imsReady = new Event('imsReady');
+const imsError = new Event('imsError');
+const imsGetProfile = new Event('imsGetProfile');
+const imsGetProfileSuccess = new Event('imsGetProfileSuccess');
+const imsGetProfileError = new Event('imsGetProfileError');
 
 function setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout) {
   window.adobeid = {
@@ -304,20 +334,33 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     scope: scope,
     locale: 'en_US',
     environment: environment,
-    useLocalStorage: true,
+    useLocalStorage: false,
     logsEnabled: logsEnabled,
     redirect_uri: window.location.href,
-    isSignedIn: false,
     onReady: () => {
-      if (window.adobeIMSMethods.isSignedIn()) {
-        window.dispatchEvent(imsSignIn);
-        window.adobeIMSMethods.getProfile();
+      window.adp = window.adp || {};
+      window.adp.imsReady = true;
+      window.dispatchEvent(imsReady);
+      window.dispatchEvent(imsGetProfile);
+      if (window.adobeIMS.isSignedInUser()) {
+        window.adobeIMS.getProfile().then((profile) => {
+          window.adobeid.profile = profile;
+          window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
+          decorateProfile(window.adobeid.profile);
+          fetchProfileAvatar(window.adobeid.profile.userId);
+          window.dispatchEvent(imsGetProfileSuccess);
+        })
+        .catch((ex) => {
+          window.dispatchEvent(imsGetProfileError, ex);
+        });
       }
-      console.log('Adobe IMS Ready!');
       resolve(); // resolve the promise, consumers can now use window.adobeIMS
       clearTimeout(timeout);
     },
-    onError: reject,
+    onError: (error) => {
+      window.dispatchEvent(imsError);
+      reject(error);
+    },
   };
 }
 
@@ -344,30 +387,9 @@ async function fetchProfileAvatar(userId) {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.warn(e);
+    window.dispatchEvent(imsGetProfileError);
   }
 }
-
-//is this the right place to add the IMS Methods?
-window.adobeIMSMethods = {
-  isSignedIn: () => window.adobeIMS.isSignedInUser(),
-  signIn: () => {
-    window.adobeIMS.signIn();
-  },
-  signOut() {
-    window.adobeIMS.signOut({});
-  },
-  getProfile() {
-    window.adobeIMS.getProfile().then((profile) => {
-      window.adobeid.profile = profile;
-      window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
-      decorateProfile(window.adobeid.profile);
-      fetchProfileAvatar(window.adobeid.profile.userId);
-    })
-      .catch((ex) => {
-        window.adobeid.profile = ex;
-      });
-  },
-};
 
 export async function loadAep() {
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
