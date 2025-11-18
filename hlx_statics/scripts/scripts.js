@@ -315,6 +315,7 @@ async function loadEager(doc) {
 }
 
 const imsReady = new Event('imsReady');
+const imsError = new Event('imsError');
 const imsGetProfile = new Event('imsGetProfile');
 const imsGetProfileSuccess = new Event('imsGetProfileSuccess');
 const imsGetProfileError = new Event('imsGetProfileError');
@@ -348,7 +349,10 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
       resolve(); // resolve the promise, consumers can now use window.adobeIMS
       clearTimeout(timeout);
     },
-    onError: reject,
+    onError: (error) => {
+      window.dispatchEvent(imsError);
+      reject(error);
+    },
   };
 }
 

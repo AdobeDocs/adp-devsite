@@ -1156,6 +1156,11 @@ export default async function decorate(block) {
     showSignIn();
   });
 
+  window.addEventListener('imsError', () => {
+    hideSpinner();
+    showSignIn();
+  });
+
   setActiveTab();
   focusRing(header);
 
