@@ -374,7 +374,7 @@ export function buildSiteWideBanner(main) {
  * Builds the on this page wrapper
  * @param {*} main The grid container
  */
-export function buildOnThisPage(main) {
+export function buildOnThisPageWrapper(main) {
   let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
   main.append(asideWrapper);
 }
