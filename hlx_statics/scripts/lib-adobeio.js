@@ -650,10 +650,10 @@ export function getResourceUrl(path) {
 
     // Resolve relative path against current directory
     try {
-      const resolved = new URL(path, `${window.location.origin}${currentDir}`);
+      const resolved = new URL(path, window.location.href);
       resolvedPath = resolved.pathname;
     } catch (e) {
-      console.error(`Failed to resolve relative path "${path}" from "${currentDir}"`);
+      console.error(`Failed to resolve relative path "${path}"`);
       resolvedPath = path;
     }
   }
@@ -673,6 +673,11 @@ export function getResourceUrl(path) {
   const basePath = blobPath
     .substring(0, blobIndex)
     .replace(githubPath, 'https://raw.githubusercontent.com');
+
+  // Strip pathPrefix since it maps to /src/pages/ in the repo
+  if (pathPrefix && resolvedPath.startsWith(pathPrefix)) {
+    resolvedPath = resolvedPath.substring(pathPrefix.length);
+  }
 
   const ref = blobPath.substring(blobIndex + blobStr.length, srcPagesIndex);
 
