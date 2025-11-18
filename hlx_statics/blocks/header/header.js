@@ -1133,30 +1133,54 @@ export default async function decorate(block) {
 
   showSpinner();
 
-  // IMS events fire before header.js so just check if they are ready
-  if (window.adp.imsReady) {
+  // Handle IMS ready state - check current state and listen for future events
+  if (window.adp && window.adp.imsReady) {
     hideSpinner();
     showSignIn();
   }
 
-  if(window.adp.imsError) {
+  if (window.adp && window.adp.imsError) {
     hideSpinner();
     showSignIn();
   }
 
-  if(window.adp.imsGetProfile) {
+  if (window.adp && window.adp.imsGetProfile) {
     hideSignIn();
     showSpinner();
   }
 
-  if(window.adp.imsGetProfileSuccess) {
-    decorateProfile(window.adobeid.profile);
+  if (window.adp && window.adp.imsGetProfileSuccess) {
+    hideSpinner();
   }
 
-  if(window.adp.imsGetProfileError) {
+  if (window.adp && window.adp.imsGetProfileError) {
     hideSpinner();
     showSignIn();
   }
+
+  window.addEventListener('imsReady', () => {
+    hideSpinner();
+    showSignIn();
+  });
+
+  window.addEventListener('imsError', () => {
+    hideSpinner();
+    showSignIn();
+  });
+
+  window.addEventListener('imsGetProfile', () => {
+    hideSignIn();
+    showSpinner();
+  });
+
+  window.addEventListener('imsGetProfileSuccess', () => {
+    hideSpinner();
+  });
+
+  window.addEventListener('imsGetProfileError', () => {
+    hideSpinner();
+    showSignIn();
+  });
 
   setActiveTab();
   focusRing(header);
