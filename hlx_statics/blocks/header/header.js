@@ -1100,9 +1100,8 @@ export default async function decorate(block) {
   handleButtons(header);
 
   // Listen for IMS events
-  window.addEventListener('imsReady', () => {
+  if (window.adp.imsReady) {
     const signInElement = document.querySelector('#nav-sign-in');
-    const spinner = document.querySelector('#nav-spinner');
     if (signInElement) {
       signInElement.style.display = 'block';
       const signIn = header.querySelector('#signIn');
@@ -1110,7 +1109,20 @@ export default async function decorate(block) {
         window.adobeIMS.signIn();
       });
     }
-  });
+  }
+  // } else {
+  // window.addEventListener('imsReady', () => {
+  //   const signInElement = document.querySelector('#nav-sign-in');
+  //   const spinner = document.querySelector('#nav-spinner');
+  //   if (signInElement) {
+  //     signInElement.style.display = 'block';
+  //     const signIn = header.querySelector('#signIn');
+  //     signIn?.addEventListener('click', () => {
+  //       window.adobeIMS.signIn();
+  //     });
+  //   }
+  // });
+  
 
   window.addEventListener('imsGetProfile', () => {
     const signInElement = document.querySelector('#nav-sign-in');

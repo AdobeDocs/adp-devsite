@@ -64,6 +64,8 @@ export {
 
 window.hlx = window.hlx || {};
 window.adobeid = window.adobeid || {};
+window.adp = window.adp || {};
+
 
 const LCP_BLOCKS = []; // add your LCP blocks to the list
 window.hlx.RUM_GENERATION = 'project-1'; // add your RUM generation information here
@@ -78,6 +80,22 @@ window.addEventListener('unhandledrejection', (event) => {
 
 window.addEventListener('error', (event) => {
   sampleRUM('error', { source: event.filename, target: event.lineno });
+});
+
+window.addEventListener('imsReady', () => {
+  window.adp.imsReady = true;
+});
+
+window.addEventListener('imsGetProfile', () => {
+  window.adp.imsGetProfile = true;
+});
+
+window.addEventListener('imsGetProfileSuccess', () => {
+  window.adp.imsGetProfileSuccess = true;
+});
+
+window.addEventListener('imsGetProfileError', () => {
+  window.adp.imsGetProfileError = true;
 });
 
 window.addEventListener('resize', toggleScale);
@@ -311,6 +329,8 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     logsEnabled: logsEnabled,
     redirect_uri: window.location.href,
     onReady: () => {
+      window.adp = window.adp || {};
+      window.adp.imsReady = true;
       window.dispatchEvent(imsReady);
       window.dispatchEvent(imsGetProfile);
       if (window.adobeIMS.isSignedInUser()) {
