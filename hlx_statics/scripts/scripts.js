@@ -84,10 +84,12 @@ window.addEventListener('error', (event) => {
 
 window.addEventListener('imsReady', () => {
   window.adp.imsReady = true;
+  window.adp.imsError = false;
 });
 
 window.addEventListener('imsError', () => {
   window.adp.imsError = true;
+  window.adp.imsReady = false;
 });
 
 window.addEventListener('imsGetProfile', () => {
@@ -96,9 +98,11 @@ window.addEventListener('imsGetProfile', () => {
 
 window.addEventListener('imsGetProfileSuccess', () => {
   window.adp.imsGetProfileSuccess = true;
+  window.adp.imsGetProfileError = false;
 });
 
 window.addEventListener('imsGetProfileError', () => {
+  window.adp.imsGetProfileSuccess = false;
   window.adp.imsGetProfileError = true;
 });
 
