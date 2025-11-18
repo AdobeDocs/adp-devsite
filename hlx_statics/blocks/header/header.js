@@ -1131,6 +1131,7 @@ export default async function decorate(block) {
 
   // Listen for IMS events
   if (window.adp.imsReady) {
+    hideSpinner();
     const signInElement = document.querySelector('#nav-sign-in');
     if (signInElement) {
       showSignIn();
