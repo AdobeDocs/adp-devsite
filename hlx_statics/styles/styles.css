@@ -1253,8 +1253,8 @@ main .action-buttons.copy-markdown-button{
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid #000;
-  border-top: 2px solid #fff;
+  border: 2px solid rgb(4, 105, 227);
+  border-top: 2px solid rgb(110, 110, 110);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
