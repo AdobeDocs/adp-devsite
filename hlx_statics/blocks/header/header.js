@@ -900,6 +900,34 @@ function handleMenuButton(header) {
   });
 }
 
+function hideSpinner() {
+  const spinner = document.querySelector('#nav-spinner');
+  if (spinner) {
+    spinner.style.display = 'none';
+  }
+}
+
+function showSpinner() {
+  const spinner = document.querySelector('#nav-spinner');
+  if (spinner) {
+    spinner.style.display = 'block';
+  }
+}
+
+function hideSignIn() {
+  const signIn = document.querySelector('#nav-sign-in');
+  if (signIn) {
+    signIn.style.display = 'none';
+  }
+}
+
+function showSignIn() {
+  const signIn = document.querySelector('#nav-sign-in');
+  if (signIn) {
+    signIn.style.display = 'block';
+  }
+}
+
 /**
  * Decorates the header
  * @param {*} block The header
@@ -1099,54 +1127,32 @@ export default async function decorate(block) {
 
   handleButtons(header);
 
+  showSpinner();
+
   // Listen for IMS events
   if (window.adp.imsReady) {
     const signInElement = document.querySelector('#nav-sign-in');
     if (signInElement) {
-      signInElement.style.display = 'block';
+      showSignIn();
       const signIn = header.querySelector('#signIn');
       signIn?.addEventListener('click', () => {
         window.adobeIMS.signIn();
       });
     }
   }
-  // } else {
-  // window.addEventListener('imsReady', () => {
-  //   const signInElement = document.querySelector('#nav-sign-in');
-  //   const spinner = document.querySelector('#nav-spinner');
-  //   if (signInElement) {
-  //     signInElement.style.display = 'block';
-  //     const signIn = header.querySelector('#signIn');
-  //     signIn?.addEventListener('click', () => {
-  //       window.adobeIMS.signIn();
-  //     });
-  //   }
-  // });
-  
 
   window.addEventListener('imsGetProfile', () => {
-    const signInElement = document.querySelector('#nav-sign-in');
-    const spinner = document.querySelector('#nav-spinner');
-    if (signInElement) {
-      signInElement.style.display = 'none';
-    }
-    if (spinner) {
-      spinner.style.display = 'block';
-    }
+    hideSignIn();
+    showSpinner();
   });
 
   window.addEventListener('imsGetProfileSuccess', () => {
-    const spinner = document.querySelector('#nav-spinner');
-    if (spinner) {
-      spinner.style.display = 'none';
-    }
+    hideSpinner();
   });
 
   window.addEventListener('imsGetProfileError', () => {
-    const spinner = document.querySelector('#nav-spinner');
-    if (spinner) {
-      spinner.style.display = 'none';
-    }
+    hideSpinner();
+    showSignIn();
   });
 
   setActiveTab();
