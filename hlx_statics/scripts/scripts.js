@@ -94,6 +94,7 @@ window.addEventListener('imsError', () => {
 
 window.addEventListener('imsGetProfile', () => {
   window.adp.imsGetProfile = true;
+  window.adp.imsGetProfileError = false;
 });
 
 window.addEventListener('imsGetProfileSuccess', () => {
@@ -354,6 +355,8 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
         .catch((ex) => {
           window.dispatchEvent(imsGetProfileError, ex);
         });
+      } else {
+        window.dispatchEvent(imsGetProfileError);
       }
       resolve(); // resolve the promise, consumers can now use window.adobeIMS
       clearTimeout(timeout);
