@@ -163,6 +163,7 @@ main.white-background {
 }
 
 main.dev-docs {
+  /* TODO */
   grid-template-areas:
     "sidenav main aside"
     "sidenav footer .";
