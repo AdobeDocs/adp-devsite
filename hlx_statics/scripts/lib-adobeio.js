@@ -8,6 +8,15 @@ export const MOBILE_SCREEN_WIDTH = 700;
 export const LARGE_SCREEN_WIDTH = 1280;
 
 /**
+ * IMS events
+ */
+export const imsReady = new Event('imsReady');
+export const imsError = new Event('imsError');
+export const imsGetProfile = new Event('imsGetProfile');
+export const imsGetProfileSuccess = new Event('imsGetProfileSuccess');
+export const imsGetProfileError = new Event('imsGetProfileError');
+
+/**
  * Loading states
  */
 export const LoadingState = {
@@ -861,6 +870,38 @@ export function decorateProfile(profile) {
     evt.preventDefault();
     window.adobeIMSMethods.signOut();
   });
+}
+
+/**
+ * Fetches the profile avatar from the API
+ * @param {*} userId The user ID
+ * @returns The profile avatar
+ */
+export async function fetchProfileAvatar(userId) {
+  try {
+    const req = await fetch(`https://cc-api-behance.adobe.io/v2/users/${userId}?api_key=SUSI2`);
+    if (req) {
+      const res = await req.json();
+      const avatarUrl = res?.user?.images?.['138'] ?? '/hlx_statics/icons/avatar.svg';
+      if (document.querySelector('#nav-profile-popover-avatar-img')) {
+        document.querySelector('#nav-profile-popover-avatar-img').src = avatarUrl;
+      }
+
+      const profileButton = document.querySelector('#nav-profile-dropdown-button');
+      if (profileButton.querySelector('svg')) {
+        profileButton.querySelector('svg').remove();
+      }
+      profileButton.innerHTML = `
+        <div class="nav-profile-popover-avatar-button">
+          <img alt="Avatar" src=${avatarUrl} alt="Profile avatar" />
+        </div>
+      `;
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(e);
+    window.dispatchEvent(imsGetProfileError);
+  }
 }
 
 /**

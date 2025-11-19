@@ -5,6 +5,7 @@ import {
   isTopLevelNav,
   getClosestFranklinSubfolder,
   decorateProfile,
+  fetchProfileAvatar,
   LoadingState
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
@@ -1152,6 +1153,10 @@ export default async function decorate(block) {
 
   if (window.adp && window.adp.imsProfile === LoadingState.SUCCESS) {
     hideSpinner();
+    if(window.adobeid && window.adobeid.profile) {
+      decorateProfile(window.adobeid.profile);
+      fetchProfileAvatar(window.adobeid.profile.userId);
+    }
   }
 
   if (window.adp && window.adp.imsProfile === LoadingState.ERROR) {
@@ -1176,6 +1181,10 @@ export default async function decorate(block) {
 
   window.addEventListener('imsGetProfileSuccess', () => {
     hideSpinner();
+    if(window.adobeid && window.adobeid.profile) {
+      decorateProfile(window.adobeid.profile);
+      fetchProfileAvatar(window.adobeid.profile.userId);
+    }
   });
 
   window.addEventListener('imsGetProfileError', () => {

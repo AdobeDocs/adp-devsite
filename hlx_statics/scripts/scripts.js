@@ -46,7 +46,12 @@ import {
   buildNextPrev,
   buildResources,
   checkExternalLink,
-  LoadingState
+  LoadingState,
+  imsReady,
+  imsError,
+  imsGetProfile,
+  imsGetProfileSuccess,
+  imsGetProfileError,
 } from './lib-adobeio.js';
 
 export {
@@ -319,12 +324,6 @@ async function loadEager(doc) {
   loadConfig();
 }
 
-const imsReady = new Event('imsReady');
-const imsError = new Event('imsError');
-const imsGetProfile = new Event('imsGetProfile');
-const imsGetProfileSuccess = new Event('imsGetProfileSuccess');
-const imsGetProfileError = new Event('imsGetProfileError');
-
 function setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout) {
   window.adobeid = {
     client_id: client_id,
@@ -342,8 +341,6 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
         window.adobeIMS.getProfile().then((profile) => {
           window.adobeid.profile = profile;
           window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
-          decorateProfile(window.adobeid.profile);
-          fetchProfileAvatar(window.adobeid.profile.userId);
           window.dispatchEvent(imsGetProfileSuccess);
         })
         .catch((ex) => {
@@ -360,33 +357,6 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
       reject(error);
     },
   };
-}
-
-async function fetchProfileAvatar(userId) {
-  try {
-    const req = await fetch(`https://cc-api-behance.adobe.io/v2/users/${userId}?api_key=SUSI2`);
-    if (req) {
-      const res = await req.json();
-      const avatarUrl = res?.user?.images?.['138'] ?? '/hlx_statics/icons/avatar.svg';
-      if (document.querySelector('#nav-profile-popover-avatar-img')) {
-        document.querySelector('#nav-profile-popover-avatar-img').src = avatarUrl;
-      }
-
-      const profileButton = document.querySelector('#nav-profile-dropdown-button');
-      if (profileButton.querySelector('svg')) {
-        profileButton.querySelector('svg').remove();
-      }
-      profileButton.innerHTML = `
-        <div class="nav-profile-popover-avatar-button">
-          <img alt="Avatar" src=${avatarUrl} alt="Profile avatar" />
-        </div>
-      `;
-    }
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn(e);
-    window.dispatchEvent(imsGetProfileError);
-  }
 }
 
 export async function loadAep() {
