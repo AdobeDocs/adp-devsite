@@ -334,7 +334,7 @@ export function buildGridAreaMain(main) {
   if (heroWrapper) {
     const children = Array.from(gridAreaMain.children);
     children.forEach((child) => {
-      if (!child.classList.contains(heroWrapperClass)) {
+      if (!child.classList.contains(heroWrapperClass) && !child.classList.contains('resources-wrapper')) {
         subParent.appendChild(child);
       }
     });
@@ -394,14 +394,6 @@ export function buildResources(main) {
     }
   } else {
     // TODO
-    // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
-    let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
-    const resourcesWrapper = document.querySelector('.resources-wrapper');
-    mainResourcesWrapper.appendChild(resourcesWrapper);
-    const subparent = document.querySelector('.sub-parent');
-    mainResourcesWrapper.insertBefore(subparent, mainResourcesWrapper.firstChild);
-    const resourceContainer = document.querySelector('.resources-container');
-    resourceContainer.append(mainResourcesWrapper);
   }
 
 }

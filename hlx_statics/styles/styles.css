@@ -190,14 +190,6 @@ main.dev-docs.no-sidenav.no-onthispage {
   grid-template-columns: 100%;
 }
 
-/* TODO */
-main.dev-docs.no-onthispage .main-resources-wrapper {
-  display: flex;
-  flex-direction: row;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
 @media screen and (max-width: 1228px) {
   main.dev-docs .onthispage-wrapper {
     display: none;
