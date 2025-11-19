@@ -868,7 +868,7 @@ export function decorateProfile(profile) {
   const signOut = parentContainer.querySelector('#signOut');
   signOut.addEventListener('click', (evt) => {
     evt.preventDefault();
-    window.adobeIMSMethods.signOut();
+    window.adobeIMS.signOut();
   });
 }
 
