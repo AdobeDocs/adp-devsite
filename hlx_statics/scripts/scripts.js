@@ -83,32 +83,24 @@ window.addEventListener('error', (event) => {
   sampleRUM('error', { source: event.filename, target: event.lineno });
 });
 
-
-
 window.addEventListener('imsReady', () => {
-  window.adp.imsReady = LoadingState.SUCCESS;
-  window.adp.imsError = LoadingState.ERROR;
+  window.adp.imsStatus = LoadingState.SUCCESS;
 });
 
 window.addEventListener('imsError', () => {
-  window.adp.imsError = LoadingState.ERROR;
-  window.adp.imsReady = LoadingState.IDLE;
+  window.adp.imsStatus = LoadingState.ERROR;
 });
 
 window.addEventListener('imsGetProfile', () => {
-  window.adp.imsGetProfile = LoadingState.LOADING;
-  window.adp.imsGetProfileError = LoadingState.IDLE;
+  window.adp.imsProfile = LoadingState.LOADING;
 });
 
 window.addEventListener('imsGetProfileSuccess', () => {
-  window.adp.imsGetProfileSuccess = LoadingState.SUCCESS;
-  window.adp.imsGetProfileError = LoadingState.IDLE;
+  window.adp.imsProfile = LoadingState.SUCCESS;
 });
 
 window.addEventListener('imsGetProfileError', () => {
-  window.adp.imsGetProfile = LoadingState.IDLE;
-  window.adp.imsGetProfileSuccess = LoadingState.IDLE;
-  window.adp.imsGetProfileError = LoadingState.ERROR;
+  window.adp.imsProfile = LoadingState.ERROR;
 });
 
 window.addEventListener('resize', toggleScale);

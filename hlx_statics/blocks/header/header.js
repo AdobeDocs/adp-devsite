@@ -1135,26 +1135,26 @@ export default async function decorate(block) {
   showSpinner();
 
   // Handle IMS ready state - check current state and listen for future events
-  if (window.adp && window.adp.imsReady === LoadingState.SUCCESS) {
+  if (window.adp && window.adp.imsStatus === LoadingState.SUCCESS) {
     hideSpinner();
     showSignIn();
   }
 
-  if (window.adp && window.adp.imsError === LoadingState.ERROR) {
+  if (window.adp && window.adp.imsStatus === LoadingState.ERROR) {
     hideSpinner();
     showSignIn();
   }
 
-  if (window.adp && window.adp.imsGetProfile === LoadingState.LOADING) {
+  if (window.adp && window.adp.imsProfile === LoadingState.LOADING) {
     hideSignIn();
     showSpinner();
   }
 
-  if (window.adp && window.adp.imsGetProfileSuccess === LoadingState.SUCCESS) {
+  if (window.adp && window.adp.imsProfile === LoadingState.SUCCESS) {
     hideSpinner();
   }
 
-  if (window.adp && window.adp.imsGetProfileError === LoadingState.ERROR) {
+  if (window.adp && window.adp.imsProfile === LoadingState.ERROR) {
     hideSpinner();
     showSignIn();
   }
