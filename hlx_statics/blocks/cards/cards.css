@@ -113,6 +113,9 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
   main div.cards-wrapper div.cards {
     flex-direction: column;
   }
+  main div.cards-wrapper div.cards.wide {
+    flex-direction: row;
+  } 
   main div.cards-wrapper div.cards > div {
     padding: 40px 0;
   }
