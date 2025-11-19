@@ -719,7 +719,7 @@ async function loadLazy(doc) {
       buildAsideWrapper(main);
       loadOnThisPage(doc.querySelector('.aside-wrapper'));
     } else {
-      main.classList.add('no-onthispage');
+      main.classList.add('no-aside');
     }
 
     if(document.querySelector('.side-nav-subpages-section')) {
