@@ -8,6 +8,16 @@ export const MOBILE_SCREEN_WIDTH = 700;
 export const LARGE_SCREEN_WIDTH = 1280;
 
 /**
+ * Loading states
+ */
+export const LoadingState = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error'
+};
+
+/**
  * Checks if an a tag href points to an external link.
  * Updates the tag target and rel attributes accordingly.
  * @param {*} a The a tag to check

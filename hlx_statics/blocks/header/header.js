@@ -4,6 +4,8 @@ import {
   focusRing,
   isTopLevelNav,
   getClosestFranklinSubfolder,
+  decorateProfile,
+  LoadingState
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
@@ -1132,16 +1134,40 @@ export default async function decorate(block) {
 
   showSpinner();
 
-  // Listen for IMS events
-  if (window.adp.imsReady) {
+  // Handle IMS ready state - check current state and listen for future events
+  if (window.adp && window.adp.imsStatus === LoadingState.SUCCESS) {
     hideSpinner();
     showSignIn();
   }
 
-  if(window.adp.imsError) {
+  if (window.adp && window.adp.imsStatus === LoadingState.ERROR) {
     hideSpinner();
     showSignIn();
   }
+
+  if (window.adp && window.adp.imsProfile === LoadingState.LOADING) {
+    hideSignIn();
+    showSpinner();
+  }
+
+  if (window.adp && window.adp.imsProfile === LoadingState.SUCCESS) {
+    hideSpinner();
+  }
+
+  if (window.adp && window.adp.imsProfile === LoadingState.ERROR) {
+    hideSpinner();
+    showSignIn();
+  }
+
+  window.addEventListener('imsReady', () => {
+    hideSpinner();
+    showSignIn();
+  });
+
+  window.addEventListener('imsError', () => {
+    hideSpinner();
+    showSignIn();
+  });
 
   window.addEventListener('imsGetProfile', () => {
     hideSignIn();

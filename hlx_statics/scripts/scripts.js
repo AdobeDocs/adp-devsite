@@ -45,7 +45,8 @@ import {
   decorateHR,
   buildNextPrev,
   buildResources,
-  checkExternalLink
+  checkExternalLink,
+  LoadingState
 } from './lib-adobeio.js';
 
 export {
@@ -83,27 +84,23 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('imsReady', () => {
-  window.adp.imsReady = true;
-  window.adp.imsError = false;
+  window.adp.imsStatus = LoadingState.SUCCESS;
 });
 
 window.addEventListener('imsError', () => {
-  window.adp.imsError = true;
-  window.adp.imsReady = false;
+  window.adp.imsStatus = LoadingState.ERROR;
 });
 
 window.addEventListener('imsGetProfile', () => {
-  window.adp.imsGetProfile = true;
+  window.adp.imsProfile = LoadingState.LOADING;
 });
 
 window.addEventListener('imsGetProfileSuccess', () => {
-  window.adp.imsGetProfileSuccess = true;
-  window.adp.imsGetProfileError = false;
+  window.adp.imsProfile = LoadingState.SUCCESS;
 });
 
 window.addEventListener('imsGetProfileError', () => {
-  window.adp.imsGetProfileSuccess = false;
-  window.adp.imsGetProfileError = true;
+  window.adp.imsProfile = LoadingState.ERROR;
 });
 
 window.addEventListener('resize', toggleScale);
@@ -339,7 +336,6 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     redirect_uri: window.location.href,
     onReady: () => {
       window.adp = window.adp || {};
-      window.adp.imsReady = true;
       window.dispatchEvent(imsReady);
       window.dispatchEvent(imsGetProfile);
       if (window.adobeIMS.isSignedInUser()) {
@@ -353,6 +349,8 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
         .catch((ex) => {
           window.dispatchEvent(imsGetProfileError, ex);
         });
+      } else {
+        window.dispatchEvent(imsGetProfileError);
       }
       resolve(); // resolve the promise, consumers can now use window.adobeIMS
       clearTimeout(timeout);
