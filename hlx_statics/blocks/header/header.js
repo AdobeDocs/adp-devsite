@@ -4,7 +4,8 @@ import {
   focusRing,
   isTopLevelNav,
   getClosestFranklinSubfolder,
-  decorateProfile
+  decorateProfile,
+  LoadingState
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
@@ -1134,26 +1135,26 @@ export default async function decorate(block) {
   showSpinner();
 
   // Handle IMS ready state - check current state and listen for future events
-  if (window.adp && window.adp.imsReady) {
+  if (window.adp && window.adp.imsReady === LoadingState.SUCCESS) {
     hideSpinner();
     showSignIn();
   }
 
-  if (window.adp && window.adp.imsError) {
+  if (window.adp && window.adp.imsError === LoadingState.ERROR) {
     hideSpinner();
     showSignIn();
   }
 
-  if (window.adp && window.adp.imsGetProfile) {
+  if (window.adp && window.adp.imsGetProfile === LoadingState.LOADING) {
     hideSignIn();
     showSpinner();
   }
 
-  if (window.adp && window.adp.imsGetProfileSuccess) {
+  if (window.adp && window.adp.imsGetProfileSuccess === LoadingState.SUCCESS) {
     hideSpinner();
   }
 
-  if (window.adp && window.adp.imsGetProfileError) {
+  if (window.adp && window.adp.imsGetProfileError === LoadingState.ERROR) {
     hideSpinner();
     showSignIn();
   }

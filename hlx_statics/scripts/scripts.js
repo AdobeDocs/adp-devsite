@@ -45,7 +45,8 @@ import {
   decorateHR,
   buildNextPrev,
   buildResources,
-  checkExternalLink
+  checkExternalLink,
+  LoadingState
 } from './lib-adobeio.js';
 
 export {
@@ -82,30 +83,32 @@ window.addEventListener('error', (event) => {
   sampleRUM('error', { source: event.filename, target: event.lineno });
 });
 
+
+
 window.addEventListener('imsReady', () => {
-  window.adp.imsReady = true;
-  window.adp.imsError = false;
+  window.adp.imsReady = LoadingState.SUCCESS;
+  window.adp.imsError = LoadingState.ERROR;
 });
 
 window.addEventListener('imsError', () => {
-  window.adp.imsError = true;
-  window.adp.imsReady = false;
+  window.adp.imsError = LoadingState.ERROR;
+  window.adp.imsReady = LoadingState.IDLE;
 });
 
 window.addEventListener('imsGetProfile', () => {
-  window.adp.imsGetProfile = true;
-  window.adp.imsGetProfileError = false;
+  window.adp.imsGetProfile = LoadingState.LOADING;
+  window.adp.imsGetProfileError = LoadingState.IDLE;
 });
 
 window.addEventListener('imsGetProfileSuccess', () => {
-  window.adp.imsGetProfileSuccess = true;
-  window.adp.imsGetProfileError = false;
+  window.adp.imsGetProfileSuccess = LoadingState.SUCCESS;
+  window.adp.imsGetProfileError = LoadingState.IDLE;
 });
 
 window.addEventListener('imsGetProfileError', () => {
-  window.adp.imsGetProfile = false;
-  window.adp.imsGetProfileSuccess = false;
-  window.adp.imsGetProfileError = true;
+  window.adp.imsGetProfile = LoadingState.IDLE;
+  window.adp.imsGetProfileSuccess = LoadingState.IDLE;
+  window.adp.imsGetProfileError = LoadingState.ERROR;
 });
 
 window.addEventListener('resize', toggleScale);
@@ -341,7 +344,6 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     redirect_uri: window.location.href,
     onReady: () => {
       window.adp = window.adp || {};
-      window.adp.imsReady = true;
       window.dispatchEvent(imsReady);
       window.dispatchEvent(imsGetProfile);
       if (window.adobeIMS.isSignedInUser()) {
