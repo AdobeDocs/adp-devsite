@@ -29,7 +29,7 @@ import {
   buildHeadings,
   buildSideNav,
   buildSiteWideBanner,
-  buildOnThisPageWrapper,
+  buildAsideWrapper,
   createTag,
   toggleScale,
   decorateAnchorLink,
@@ -110,9 +110,9 @@ function loadFooter(footer) {
   loadBlock(footerBlock);
 }
 
-function loadOnThisPage(onthispage) {
+function loadOnThisPage(wrapper) {
   const onthispageBlock = buildBlock('onthispage', '');
-  onthispage.append(onthispageBlock);
+  wrapper.append(onthispageBlock);
   decorateBlock(onthispageBlock);
   loadBlock(onthispageBlock);
 }
@@ -716,8 +716,8 @@ async function loadLazy(doc) {
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     if (!hasHero && hasHeading) {
-      buildOnThisPageWrapper(main);
-      loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+      buildAsideWrapper(main);
+      loadOnThisPage(doc.querySelector('.aside-wrapper'));
     } else {
       main.classList.add('no-onthispage');
     }

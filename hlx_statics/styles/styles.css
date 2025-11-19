@@ -191,7 +191,7 @@ main.dev-docs.no-sidenav.no-onthispage {
 }
 
 @media screen and (max-width: 1228px) {
-  main.dev-docs .onthispage-wrapper {
+  main.dev-docs .aside-wrapper {
     display: none;
   }
 
@@ -297,7 +297,7 @@ main div.title-wrapper {
   padding-bottom: 20px;
 }
 
-main .onthispage-wrapper {
+main .aside-wrapper {
   position: sticky;
   top: 128px;
   bottom: 0;
@@ -309,22 +309,22 @@ main .onthispage-wrapper {
   padding-bottom: 16px;
 }
 
-main .onthispage-wrapper a {
+main .aside-wrapper a {
   text-decoration: none;
   font-size: 16px;
   color: rgb(0, 84, 182);
 }
 
-main .onthispage-wrapper a:hover {
+main .aside-wrapper a:hover {
   text-decoration: underline;
 }
 
-main .onthispage-wrapper .active {
+main .aside-wrapper .active {
   font-weight: bold;
   color: black !important;
 }
 
-main .onthispage-wrapper .onthispage-header {
+main .aside-wrapper .onthispage-header {
   color: rgb(109, 109, 109);
 }
 

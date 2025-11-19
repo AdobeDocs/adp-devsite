@@ -371,11 +371,11 @@ export function buildSiteWideBanner(main) {
 }
 
 /**
- * Builds the on this page wrapper
+ * Builds the aside wrapper, where 'on this page' and 'resources' blocks are placed
  * @param {*} main The grid container
  */
-export function buildOnThisPageWrapper(main) {
-  let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
+export function buildAsideWrapper(main) {
+  let asideWrapper = createTag('div', { class: 'aside-wrapper' });
   main.append(asideWrapper);
 }
 
@@ -385,9 +385,9 @@ export function buildOnThisPageWrapper(main) {
  */
 export function buildResources(main) {
   let asideWrapper;
-  if (document.querySelector('.onthispage-wrapper') != null) {
+  if (document.querySelector('.aside-wrapper') != null) {
     // if there's onthispage, move it with the onthispage.
-    asideWrapper = document.querySelector('.onthispage-wrapper');
+    asideWrapper = document.querySelector('.aside-wrapper');
     const resourcesWrapper = document.querySelector('.resources-wrapper');
     if (resourcesWrapper) {
       asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
