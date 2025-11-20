@@ -53,6 +53,10 @@ main div.announcement-wrapper>.block>div>div {
   margin: auto;
 }
 
+main div.announcement-wrapper div.announcement>div>div:nth-child(2) {
+  display: block;
+}
+
 main div.announcement-wrapper>.block>div {
   display: flex;
   margin-left: 5%;
