@@ -693,14 +693,22 @@ export function getResourceUrl(path) {
     .substring(0, blobIndex)
     .replace(githubPath, 'https://raw.githubusercontent.com');
 
-  // Strip pathPrefix since it maps to /src/pages/ in the repo
-  if (pathPrefix && resolvedPath.startsWith(pathPrefix)) {
-    resolvedPath = resolvedPath.substring(pathPrefix.length);
-  }
-
   const ref = blobPath.substring(blobIndex + blobStr.length, srcPagesIndex);
 
-  return `${basePath}/${ref}/src/pages${resolvedPath}`;
+  let finalPath;
+  // TODO: Remove this if case after we remove the static folder
+  if (path.startsWith(pathPrefix)) {
+    // if the path starts with the pathPrefix, use static folder.
+    const relativePath = path.replace(pathPrefix, '');
+    finalPath = `${basePath}/${ref}/static${relativePath}`
+  } else {
+    if (pathPrefix && resolvedPath.startsWith(pathPrefix)) {
+      resolvedPath = resolvedPath.substring(pathPrefix.length);
+    }
+    finalPath = `${basePath}/${ref}/src/pages${resolvedPath}`;
+  }
+
+  return finalPath;
 }
 
 /**
