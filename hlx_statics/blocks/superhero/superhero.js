@@ -178,12 +178,12 @@ async function decorateDevBizDefault(block) {
   const parentDiv = pictureElement?.parentElement;
   if (parentDiv) parentDiv.remove();
 
-  Object.assign(block.style, {
-    backgroundImage: `url(${url})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-  });
+  const existingBackground = block.style.background;
+  const backgroundLayers = [
+    `url(${url}) center center / cover no-repeat`,
+    existingBackground,
+  ].filter(Boolean);
+  block.style.background = backgroundLayers.join(', ');
 
   normalizeButtonContainer(block);
   decorateButtons(block);
