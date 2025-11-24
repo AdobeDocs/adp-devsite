@@ -42,7 +42,6 @@ export default async function decorate(block) {
   const footerPath = cfg.footer || '/franklin_assets/footer';
   const resp = await fetch(`${footerPath}.plain.html`);
   const html = await resp.text();
-  block.classList.add('footer-links-container');
   block.append(buildFooter(html));
 
   block.querySelectorAll('.footer-links-container-inner ul').forEach((ul) => {
