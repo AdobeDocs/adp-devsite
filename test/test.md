@@ -35,16 +35,6 @@
     - `para.scrollHeight` and `para.clientHeight` are both 0 in the test case
     - Can't run through the if statement to cover line 91
 
-
-**link-block.js**
-- line 13 - 24
-    - The source code html is no longer using `<li>` tag for link list
-    - `block.querySelectorAll('li')` will get null and can not run through the forEach
-- line 33 -37
-    - The source code html is no longer using class `sub-parent`
-    - `document.querySelector('.sub-parent')` will get null in line 26
-    - Can't run through `Array.from(subParent.children).forEach` if subParent is null
-
 **summary.js**
 - line 24 - 28:
     - Parent-child relation is changed
