@@ -322,15 +322,6 @@ export function buildGrid(main) {
     main?.classList.add('no-layout');
   }
 
-  const sideNav = document.querySelector('.side-nav');
-  if (sideNav) sideNav.style.gridArea = 'sidenav';
-
-  const footer = document.querySelector('footer');
-  if (footer) footer.style.gridArea = 'footer';
-
-  const aside = document.querySelector('aside');
-  if (aside) aside.style.gridArea = 'aside';
-
   if (gridAreaMain) {
     let contentHeader = createTag('div', { class: 'content-header' });
     gridAreaMain.prepend(contentHeader);
@@ -394,7 +385,7 @@ export function buildSiteWideBanner(main) {
  * @param {*} main The grid container
  */
 export function buildOnThisPage(main) {
-  let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
+  let asideWrapper = createTag('div', { class: 'onthispage-wrapper' });
   main.append(asideWrapper);
 }
 
