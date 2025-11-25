@@ -164,6 +164,7 @@ main.white-background {
 
 main.dev-docs {
   grid-template-areas:
+    "sidenav hero hero"
     "sidenav main aside"
     "sidenav footer .";
   grid-template-columns: 256px minmax(0, 1fr) 256px;
@@ -171,6 +172,7 @@ main.dev-docs {
 
 main.dev-docs.no-sidenav {
   grid-template-areas:
+    "hero hero"
     "main aside"
     "footer .";
   grid-template-columns: minmax(0, 1fr) 256px;
@@ -178,6 +180,7 @@ main.dev-docs.no-sidenav {
 
 main.dev-docs.no-aside {
   grid-template-areas:
+    "sidenav hero"
     "sidenav main"
     "sidenav footer";
   grid-template-columns: 256px minmax(0, 1fr);
@@ -185,6 +188,7 @@ main.dev-docs.no-aside {
 
 main.dev-docs.no-sidenav.no-aside {
   grid-template-areas:
+    "hero"
     "main"
     "footer";
   grid-template-columns: 100%;
@@ -209,6 +213,7 @@ main.dev-docs .aside {
 
   main.dev-docs {
     grid-template-areas:
+      "sidenav hero"
       "sidenav main"
       "sidenav footer";
     grid-template-columns: 256px minmax(0, 1fr);
@@ -216,6 +221,7 @@ main.dev-docs .aside {
 
   main.dev-docs.no-sidenav {
     grid-template-areas:
+      "hero"
       "main"
       "footer";
     grid-template-columns: 100%;
@@ -228,6 +234,7 @@ main.dev-docs .aside {
   main.dev-docs.no-aside,
   main.dev-docs.no-sidenav.no-aside {
     grid-template-areas:
+      "hero"
       "main"
       "footer";
     grid-template-columns: 100%;
