@@ -385,7 +385,7 @@ export function buildSiteWideBanner(main) {
  * @param {*} main The grid container
  */
 export function buildOnThisPage(main) {
-  let asideWrapper = createTag('div', { class: 'onthispage-wrapper' });
+  let asideWrapper = createTag('div', { class: 'aside-wrapper' });
   main.append(asideWrapper);
 }
 
@@ -395,9 +395,9 @@ export function buildOnThisPage(main) {
  */
 export function buildResources(main) {
   let asideWrapper;
-  if (document.querySelector('.onthispage-wrapper') != null) {
+  if (document.querySelector('.aside-wrapper') != null) {
     // if there's onthispage, move it with the onthispage.
-    asideWrapper = document.querySelector('.onthispage-wrapper');
+    asideWrapper = document.querySelector('.aside-wrapper');
     const resourcesWrapper = document.querySelector('.resources-wrapper');
     if (resourcesWrapper) {
       asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);

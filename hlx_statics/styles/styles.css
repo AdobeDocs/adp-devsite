@@ -198,7 +198,7 @@ main.dev-docs.no-aside .main-resources-wrapper {
 }
 
 @media screen and (max-width: 1228px) {
-  main.dev-docs .onthispage-wrapper {
+  main.dev-docs .aside-wrapper {
     display: none;
   }
 

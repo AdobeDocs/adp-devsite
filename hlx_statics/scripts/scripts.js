@@ -706,7 +706,7 @@ async function loadLazy(doc) {
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     if (!hasHero && hasHeading) {
       buildOnThisPage(main);
-      loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+      loadOnThisPage(doc.querySelector('.aside-wrapper'));
     } else {
       main.classList.add('no-aside');
     }
