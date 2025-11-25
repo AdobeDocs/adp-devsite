@@ -708,7 +708,7 @@ async function loadLazy(doc) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
     } else {
-      main.classList.add('no-onthispage');
+      main.classList.add('no-aside');
     }
 
     if(document.querySelector('.side-nav-subpages-section')) {

@@ -176,21 +176,21 @@ main.dev-docs.no-sidenav {
   grid-template-columns: minmax(0, 1fr) 256px;
 }
 
-main.dev-docs.no-onthispage {
+main.dev-docs.no-aside {
   grid-template-areas:
     "sidenav main"
     "sidenav footer";
   grid-template-columns: 256px minmax(0, 1fr);
 }
 
-main.dev-docs.no-sidenav.no-onthispage {
+main.dev-docs.no-sidenav.no-aside {
   grid-template-areas:
     "main"
     "footer";
   grid-template-columns: 100%;
 }
 
-main.dev-docs.no-onthispage .main-resources-wrapper {
+main.dev-docs.no-aside .main-resources-wrapper {
   display: flex;
   flex-direction: row;
   max-width: 1280px;
@@ -220,8 +220,8 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 @media screen and (max-width: 768px) {
   main.dev-docs,
   main.dev-docs.no-sidenav,
-  main.dev-docs.no-onthispage,
-  main.dev-docs.no-sidenav.no-onthispage {
+  main.dev-docs.no-aside,
+  main.dev-docs.no-sidenav.no-aside {
     grid-template-areas:
       "main"
       "footer";
