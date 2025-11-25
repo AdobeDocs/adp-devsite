@@ -381,11 +381,11 @@ export function buildSiteWideBanner(main) {
 }
 
 /**
- * Builds the on this page wrapper
+ * Builds the aside wrapper, which will contain onthispage block and resources block
  * @param {*} main The grid container
  */
-export function buildOnThisPage(main) {
-  let asideWrapper = createTag('div', { class: 'aside-wrapper' });
+export function buildAsideWrapper(main) {
+  let asideWrapper = createTag('aside', { class: 'aside-wrapper' });
   main.append(asideWrapper);
 }
 

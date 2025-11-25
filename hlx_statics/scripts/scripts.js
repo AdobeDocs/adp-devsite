@@ -29,7 +29,7 @@ import {
   buildHeadings,
   buildSideNav,
   buildSiteWideBanner,
-  buildOnThisPage,
+  buildAsideWrapper,
   createTag,
   toggleScale,
   decorateAnchorLink,
@@ -705,7 +705,7 @@ async function loadLazy(doc) {
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     if (!hasHero && hasHeading) {
-      buildOnThisPage(main);
+      buildAsideWrapper(main);
       loadOnThisPage(doc.querySelector('.aside-wrapper'));
     } else {
       main.classList.add('no-aside');
