@@ -713,7 +713,7 @@ async function loadLazy(doc) {
     }
 
     if (hasOnThisPage) {
-      loadOnThisPage(doc.querySelector('.aside-wrapper'));
+      loadOnThisPage(doc.querySelector('.aside'));
     }
 
     if(document.querySelector('.side-nav-subpages-section')) {

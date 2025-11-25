@@ -190,20 +190,20 @@ main.dev-docs.no-sidenav.no-aside {
   grid-template-columns: 100%;
 }
 
-main.dev-docs .aside-wrapper {
+main.dev-docs .aside {
   position: sticky;
   top: 128px;
   bottom: 0;
   left: 0;
   margin: 128px 32px 0 32px;
-  height: calc(100vh - 128px);
+  max-height: calc(100vh - 128px);
   overflow: auto;
   box-sizing: border-box;
   padding-bottom: 16px;
 }
 
 @media screen and (max-width: 1228px) {
-  main.dev-docs .aside-wrapper {
+  main.dev-docs .aside {
     display: none;
   }
 

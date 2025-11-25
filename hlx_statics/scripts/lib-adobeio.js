@@ -385,7 +385,10 @@ export function buildSiteWideBanner(main) {
  * @param {*} main The grid container
  */
 export function buildAsideWrapper(main) {
-  let asideWrapper = createTag('aside', { class: 'aside-wrapper' });
+  let asideWrapper = createTag('div', { class: 'aside-wrapper' });
+  asideWrapper.style.gridArea = 'aside';
+  let aside = createTag('aside', { class: 'aside' });
+  asideWrapper.append(aside);
   main.append(asideWrapper);
 }
 
@@ -393,10 +396,10 @@ export function buildAsideWrapper(main) {
  * Builds resources component
  */
 export function buildResources() {
-  const asideWrapper = document.querySelector('.aside-wrapper');
+  const aside = document.querySelector('.aside');
   const resourcesWrapper = document.querySelector('.resources-wrapper');
-  if (asideWrapper && resourcesWrapper) {
-    asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
+  if (aside && resourcesWrapper) {
+    aside.insertBefore(resourcesWrapper, aside.firstChild);
   }
 }
 
