@@ -63,7 +63,8 @@ function setBackgroundImage(block) {
  */
 export default async function decorate(block) {
   const backgroundColor = block.getAttribute("data-backgroundcolor");
-  const hasBorder =  block.getAttribute("data-hasborder");
+  const hasBorder = block.getAttribute("data-hasborder");
+  const borderColor = block.getAttribute("data-bordercolor") || "#e5e5e5";
   block.setAttribute('daa-lh', 'announcement');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'announcement-heading');
@@ -76,11 +77,13 @@ export default async function decorate(block) {
   const imageExists = block.querySelector('picture img');
   const allowedBackgroundColors = ["background-color-white", "background-color-navy", "background-color-dark-gray", "background-color-gray"];
 
+  if (hasBorder) {
+    block.classList.add("hasborder");
+    block.style.borderColor = borderColor;
+  }
+
   if (!imageExists) {
     if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
-      if (hasBorder === "true") {
-        block.classList.add("hasborder");
-      }
       block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
       block.classList.add(backgroundColor);
     }
