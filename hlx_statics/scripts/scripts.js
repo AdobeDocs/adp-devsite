@@ -704,11 +704,16 @@ async function loadLazy(doc) {
     const hasHero = Boolean(document.querySelector('.herosimple, .superhero'));
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
-    if (!hasHero && hasHeading) {
+    const hasOnThisPage = !hasHero && hasHeading;
+
+    if (hasResources || hasOnThisPage) {
       buildAsideWrapper(main);
-      loadOnThisPage(doc.querySelector('.aside-wrapper'));
     } else {
       main.classList.add('no-aside');
+    }
+
+    if (hasOnThisPage) {
+      loadOnThisPage(doc.querySelector('.aside-wrapper'));
     }
 
     if(document.querySelector('.side-nav-subpages-section')) {

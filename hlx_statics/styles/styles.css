@@ -190,13 +190,6 @@ main.dev-docs.no-sidenav.no-aside {
   grid-template-columns: 100%;
 }
 
-main.dev-docs.no-aside .main-resources-wrapper {
-  display: flex;
-  flex-direction: row;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
 main.dev-docs .aside-wrapper {
   position: sticky;
   top: 128px;
