@@ -333,6 +333,8 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
     useLocalStorage: false,
     logsEnabled: logsEnabled,
     redirect_uri: window.location.href,
+    autoValidateToken: true,
+    alwaysRemoveTokenFromUrl: true,
     onReady: () => {
       window.adp = window.adp || {};
       window.dispatchEvent(imsReady);
