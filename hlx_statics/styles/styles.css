@@ -1262,3 +1262,10 @@ main .action-buttons.copy-markdown-button{
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Putting header icon here so it doesn't flash when it inits */
+header.global-nav-header img.icon {
+  height: 18px;
+  width: 22px;
+  margin-right: 8px;
+}

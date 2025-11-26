@@ -103,12 +103,6 @@ header.global-nav-header a.nav-console-adobeio-link {
   text-decoration: none;
 }
 
-header.global-nav-header img.icon {
-  height: 18px;
-  width: 22px;
-  margin-right: 8px;
-}
-
 header.global-nav-header p {
   color: rgb(70, 70, 70);
   display: flex;
@@ -178,12 +172,6 @@ header.global-nav-header {
   width: 100%;
   box-sizing: border-box;
   flex-shrink: 0;
-}
-
-header.global-nav-header img.icon {
-  height: 18px;
-  width: 22px;
-  margin-right: 8px;
 }
 
 header.global-nav-header p {
