@@ -341,7 +341,7 @@ export function buildGridAreaMain(main) {
 
   if (heroWrapper) {
     gridAreaMain.removeChild(heroWrapper);
-    let heroDiv = createTag('div', { class: 'hero-container' });
+    let heroDiv = createTag('div', { class: 'hero-container', style: 'grid-area: hero;' });
     heroDiv.appendChild(heroWrapper);
     main.append(heroDiv);
   }
