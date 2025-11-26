@@ -341,19 +341,11 @@ export function buildGridAreaMain(main) {
 
   const superheroDefaultContent = main.querySelector('div.superhero-wrapper div.superhero.default > div');
   // superheroDefaultContent.style.outline = '2px solid blue';
-  superheroDefaultContent.remove();
-  superheroDefaultContent.className = "superhero-default-content";
+  // superheroDefaultContent.remove();
 
   if (heroWrapper) {
     gridAreaMain.removeChild(heroWrapper);
-    main.insertBefore(superheroDefaultContent, gridAreaMain);
-    superheroDefaultContent.after(heroWrapper);
-
-    heroWrapper.style.gridArea = '1 / hero-content-and-background / 1 / hero-background';
-    superheroDefaultContent.style.gridArea = 'hero-content-and-background';
-    heroWrapper.style.zIndex = '0';
-    superheroDefaultContent.style.zIndex = '1';
-    
+    main.insertBefore(heroWrapper, gridAreaMain);
   }
 }
 
