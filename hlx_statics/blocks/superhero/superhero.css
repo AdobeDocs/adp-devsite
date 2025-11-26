@@ -261,9 +261,15 @@ main div.superhero-wrapper div.superhero.default {
   height: 272px;
   overflow: hidden;
   position: relative;
+  display: grid;
+  grid-template-areas:
+    "content-and-background background";
+    grid-template-columns: minmax(0, 1fr) 256px;
 }
 
 main div.superhero-wrapper div.superhero.default > div {
+  grid-area: content-and-background;
+  outline: 2px solid blue;
   margin: 0 auto;
   width: 100%;
   display: flex;

@@ -342,6 +342,7 @@ export function buildGridAreaMain(main) {
   if (heroWrapper) {
     gridAreaMain.removeChild(heroWrapper);
     main.insertBefore(heroWrapper, gridAreaMain);
+    heroWrapper.style.gridArea = 'hero';
   }
 }
 
