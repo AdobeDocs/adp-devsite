@@ -267,6 +267,10 @@ main div.superhero-wrapper div.superhero.default {
     grid-template-columns: minmax(0, 1fr) 256px;
 }
 
+main .grid-main-area {
+  outline: 2px solid blue;
+}
+
 main div.superhero-wrapper div.superhero.default > div {
   grid-area: content-and-background;
   outline: 2px solid blue;
