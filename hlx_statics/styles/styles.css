@@ -162,6 +162,12 @@ main.white-background {
   background-color: white;
 }
 
+main.dev-docs div.superhero-wrapper div.superhero.default {
+  display: grid;
+  grid-template-areas:
+    "content-and-background background";
+}
+
 main.dev-docs {
   grid-template-areas:
     "sidenav hero hero"
@@ -175,6 +181,10 @@ main.dev-docs.no-sidenav {
     "hero hero"
     "main aside"
     "footer .";
+}
+
+main.dev-docs.no-sidenav,
+main.dev-docs div.superhero-wrapper div.superhero.default {
   grid-template-columns: minmax(0, 1fr) 256px;
 }
 
