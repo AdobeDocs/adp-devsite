@@ -253,11 +253,6 @@ main div.superhero-wrapper div.superhero.half-width.over-gradient p.button-conta
   }
 }
 
-main.dev-docs .hero-container {
-  grid-column: hero-content-start / hero-background-end;
-  grid-row: 1;
-}
-
 main div.superhero-wrapper:has(div.superhero.default) {
   width: 100%;
 }
@@ -266,11 +261,9 @@ main div.superhero-wrapper div.superhero.default {
   height: 272px;
   overflow: hidden;
   position: relative;
-  /* outline: 2px solid magenta; */
 }
 
 main div.superhero-wrapper div.superhero.default > div {
-  outline: 2px solid blue;
   margin: 0 auto;
   width: 100%;
   display: flex;
