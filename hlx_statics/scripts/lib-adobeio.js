@@ -339,10 +339,6 @@ export function buildGridAreaMain(main) {
   const selector = '.' + heroWrapperClasses.join(', .');
   const heroWrapper = main.querySelector(selector);
 
-  const superheroDefaultContent = main.querySelector('div.superhero-wrapper div.superhero.default > div');
-  // superheroDefaultContent.style.outline = '2px solid blue';
-  // superheroDefaultContent.remove();
-
   if (heroWrapper) {
     gridAreaMain.removeChild(heroWrapper);
     let heroDiv = createTag('div', { class: 'hero-container' });
