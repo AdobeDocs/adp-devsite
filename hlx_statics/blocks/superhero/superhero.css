@@ -263,6 +263,16 @@ main div.superhero-wrapper div.superhero.default {
   position: relative;
 }
 
+main.dev-docs div.superhero-wrapper div.superhero.default {
+  display: grid;
+  grid-template-areas:
+    "background-and-content background";
+}
+
+main.dev-docs div.superhero-wrapper div.superhero.default > div {
+  grid-area: background-and-content;
+}
+
 main div.superhero-wrapper div.superhero.default > div {
   margin: 0 auto;
   width: 100%;

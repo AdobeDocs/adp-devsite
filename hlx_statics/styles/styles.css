@@ -175,6 +175,10 @@ main.dev-docs.no-sidenav {
     "hero hero"
     "main aside"
     "footer .";
+}
+
+main.dev-docs.no-sidenav,
+main.dev-docs div.superhero-wrapper div.superhero.default {
   grid-template-columns: minmax(0, 1fr) 256px;
 }
 
@@ -191,6 +195,10 @@ main.dev-docs.no-sidenav.no-aside {
     "hero"
     "main"
     "footer";
+}
+
+main.dev-docs.no-sidenav.no-aside,
+main.dev-docs.no-aside div.superhero-wrapper div.superhero.default {
   grid-template-columns: 100%;
 }
 
@@ -212,6 +220,10 @@ main.dev-docs.no-sidenav.no-aside {
       "hero"
       "main"
       "footer";
+  }
+
+  main.dev-docs.no-sidenav,
+  main.dev-docs div.superhero-wrapper div.superhero.default {
     grid-template-columns: 100%;
   }
 }
@@ -225,6 +237,10 @@ main.dev-docs.no-sidenav.no-aside {
       "hero"
       "main"
       "footer";
+    grid-template-columns: 100%;
+  }
+
+  main.dev-docs div.superhero-wrapper div.superhero.default {
     grid-template-columns: 100%;
   }
 }
