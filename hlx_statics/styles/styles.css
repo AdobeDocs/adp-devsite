@@ -277,7 +277,7 @@ main.dev-docs .aside-wrapper .aside {
   bottom: 0;
   left: 0;
   margin: 128px 32px 0 32px;
-  height: calc(100vh - 128px);
+  max-height: calc(100vh - 128px);
   overflow: auto;
   box-sizing: border-box;
   padding-bottom: 16px;
