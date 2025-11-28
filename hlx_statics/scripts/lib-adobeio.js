@@ -381,12 +381,24 @@ export function buildSiteWideBanner(main) {
 }
 
 /**
+ * Builds the aside grid area
+ * @param {*} main The grid container
+ */
+export function buildAside(main) {
+  const asideWrapper = createTag('div', { class: 'aside-wrapper', style: 'grid-area: aside;' });
+  const aside = createTag('aside', { class: 'aside' });
+  asideWrapper.append(aside);
+  main.append(asideWrapper);
+}
+
+/**
  * Builds the on this page wrapper
  * @param {*} main The grid container
  */
 export function buildOnThisPage(main) {
-  let asideWrapper = createTag('div', { class: 'onthispage-wrapper' });
-  main.append(asideWrapper);
+  const aside = main.querySelector('.aside-wrapper .aside');
+  const onThisPageWrapper = createTag('div', { class: 'onthispage-wrapper' });
+  aside?.append(onThisPageWrapper);
 }
 
 /**
@@ -394,13 +406,12 @@ export function buildOnThisPage(main) {
  * @param {*} main The grid container
  */
 export function buildResources(main) {
-  let asideWrapper;
-  if (document.querySelector('.onthispage-wrapper') != null) {
+  const aside = main.querySelector('.aside-wrapper .aside');
+  if (aside) {
     // if there's onthispage, move it with the onthispage.
-    asideWrapper = document.querySelector('.onthispage-wrapper');
     const resourcesWrapper = document.querySelector('.resources-wrapper');
     if (resourcesWrapper) {
-      asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
+      aside.insertBefore(resourcesWrapper, aside.firstChild);
     }
   } else {
     // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.

@@ -176,21 +176,21 @@ main.dev-docs.no-sidenav {
   grid-template-columns: minmax(0, 1fr) 256px;
 }
 
-main.dev-docs.no-onthispage {
+main.dev-docs.no-aside {
   grid-template-areas:
     "sidenav main"
     "sidenav footer";
   grid-template-columns: 256px minmax(0, 1fr);
 }
 
-main.dev-docs.no-sidenav.no-onthispage {
+main.dev-docs.no-sidenav.no-aside {
   grid-template-areas:
     "main"
     "footer";
   grid-template-columns: 100%;
 }
 
-main.dev-docs.no-onthispage .main-resources-wrapper {
+main.dev-docs.no-aside .main-resources-wrapper {
   display: flex;
   flex-direction: row;
   max-width: 1280px;
@@ -198,7 +198,7 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 }
 
 @media screen and (max-width: 1228px) {
-  main.dev-docs .onthispage-wrapper {
+  main.dev-docs .aside-wrapper {
     display: none;
   }
 
@@ -220,8 +220,8 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 @media screen and (max-width: 768px) {
   main.dev-docs,
   main.dev-docs.no-sidenav,
-  main.dev-docs.no-onthispage,
-  main.dev-docs.no-sidenav.no-onthispage {
+  main.dev-docs.no-aside,
+  main.dev-docs.no-sidenav.no-aside {
     grid-template-areas:
       "main"
       "footer";
@@ -262,6 +262,18 @@ main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .footer-wr
 main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
 main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .footer-wrapper {
   max-width: 1280px;
+}
+
+main.dev-docs .aside-wrapper .aside {
+  position: sticky;
+  top: 128px;
+  bottom: 0;
+  left: 0;
+  margin: 128px 32px 0 32px;
+  height: calc(100vh - 128px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding-bottom: 16px;
 }
 
 main div.accordion-wrapper,

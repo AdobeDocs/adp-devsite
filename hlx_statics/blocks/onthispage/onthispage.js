@@ -8,8 +8,6 @@ import insertWrapperContainer from '../../components/wrapperContainer.js';
  * @param {Element} block The onthispage block element.
  */
 export default async function decorate(block) {
-    insertWrapperContainer(block);
-
     // delete first div that gets inserted for some reason
     block.querySelector('div').remove();
     let aside = createTag('aside');
