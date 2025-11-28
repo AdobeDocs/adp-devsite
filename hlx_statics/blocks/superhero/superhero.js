@@ -150,7 +150,7 @@ async function decorateDevBizDefault(block) {
     newChildren.push(textDiv);
   }
 
-  if (buttonsContent) {
+  if (buttonsContent?.length > 0) {
     const buttonsDiv = createTag('div');
     buttonsContent.forEach((button) => {
       buttonsDiv.appendChild(button);
@@ -251,7 +251,7 @@ function restructureAsDevBiz(block) {
     contentInnerDiv.appendChild(p);
   }
 
-  if (buttonsContent) {
+  if (buttonsContent?.length > 0) {
     buttonsContent.forEach((button, index) => {
       const p = createTag('p', { class: 'button-container' });
       if (index === 0) {
