@@ -194,13 +194,6 @@ main.dev-docs.no-sidenav.no-aside {
   grid-template-columns: 100%;
 }
 
-main.dev-docs.no-aside .main-resources-wrapper {
-  display: flex;
-  flex-direction: row;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
 @media screen and (max-width: 1228px) {
   main.dev-docs .aside-wrapper {
     display: none;
@@ -276,7 +269,7 @@ main.dev-docs .aside-wrapper .aside {
   top: 128px;
   bottom: 0;
   left: 0;
-  margin: 128px 32px 0 32px;
+  margin: 32px 32px 0 32px;
   max-height: calc(100vh - 128px);
   overflow: auto;
   box-sizing: border-box;

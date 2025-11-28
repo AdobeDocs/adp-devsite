@@ -411,23 +411,10 @@ export function buildOnThisPage(main) {
  */
 export function buildResources(main) {
   const aside = main.querySelector('.aside-wrapper .aside');
-  if (aside) {
-    // if there's onthispage, move it with the onthispage.
-    const resourcesWrapper = document.querySelector('.resources-wrapper');
-    if (resourcesWrapper) {
-      aside.insertBefore(resourcesWrapper, aside.firstChild);
-    }
-  } else {
-    // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
-    let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
-    const resourcesWrapper = document.querySelector('.resources-wrapper');
-    mainResourcesWrapper.appendChild(resourcesWrapper);
-    const subparent = document.querySelector('.sub-parent');
-    mainResourcesWrapper.insertBefore(subparent, mainResourcesWrapper.firstChild);
-    const resourceContainer = document.querySelector('.resources-container');
-    resourceContainer.append(mainResourcesWrapper);
+  const resourcesWrapper = document.querySelector('.resources-wrapper');
+  if (aside && resourcesWrapper) {
+    aside.insertBefore(resourcesWrapper, aside.firstChild);
   }
-
 }
 
 /**
