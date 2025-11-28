@@ -322,15 +322,6 @@ export function buildGrid(main) {
     main?.classList.add('no-layout');
   }
 
-  const sideNav = document.querySelector('.side-nav');
-  if (sideNav) sideNav.style.gridArea = 'sidenav';
-
-  const footer = document.querySelector('footer');
-  if (footer) footer.style.gridArea = 'footer';
-
-  const aside = document.querySelector('aside');
-  if (aside) aside.style.gridArea = 'aside';
-
   if (gridAreaMain) {
     let contentHeader = createTag('div', { class: 'content-header' });
     gridAreaMain.prepend(contentHeader);
@@ -338,28 +329,19 @@ export function buildGrid(main) {
 }
 
 /**
- * Builds the div with style*="grid-area: main"
+ * Adds the hero to the grid
  * @param {*} main The grid container
  */
-export function buildGridAreaMain(main) {
+export function buildHero(main) {
   const gridAreaMain = main.querySelector('.grid-main-area');
-  const subParent = createTag("div", { class: "sub-parent" });
-
   const heroWrapperClasses = ['herosimple-wrapper', 'superhero-wrapper'];
   const selector = '.' + heroWrapperClasses.join(', .');
   const heroWrapper = main.querySelector(selector);
-  const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
 
-  if (heroWrapper) {
-    const children = Array.from(gridAreaMain.children);
-    children.forEach((child) => {
-      if (!child.classList.contains(heroWrapperClass)) {
-        subParent.appendChild(child);
-      }
-    });
-    gridAreaMain.insertBefore(subParent, heroWrapper.nextSibling);
-  } else {
-    gridAreaMain.appendChild(subParent);
+  if (gridAreaMain && heroWrapper) {
+    gridAreaMain.removeChild(heroWrapper);
+    main.insertBefore(heroWrapper, gridAreaMain);
+    heroWrapper.style.gridArea = 'hero';
   }
 }
 
@@ -390,12 +372,24 @@ export function buildSiteWideBanner(main) {
 }
 
 /**
+ * Builds the aside grid area
+ * @param {*} main The grid container
+ */
+export function buildAside(main) {
+  const asideWrapper = createTag('div', { class: 'aside-wrapper', style: 'grid-area: aside;' });
+  const aside = createTag('aside', { class: 'aside' });
+  asideWrapper.append(aside);
+  main.append(asideWrapper);
+}
+
+/**
  * Builds the on this page wrapper
  * @param {*} main The grid container
  */
 export function buildOnThisPage(main) {
-  let asideWrapper = createTag('div', { class: 'onthispage-wrapper block', 'data-block-name': 'onthispage' });
-  main.append(asideWrapper);
+  const aside = main.querySelector('.aside-wrapper .aside');
+  const onThisPageWrapper = createTag('div', { class: 'onthispage-wrapper' });
+  aside?.append(onThisPageWrapper);
 }
 
 /**
@@ -403,25 +397,11 @@ export function buildOnThisPage(main) {
  * @param {*} main The grid container
  */
 export function buildResources(main) {
-  let asideWrapper;
-  if (document.querySelector('.onthispage-wrapper') != null) {
-    // if there's onthispage, move it with the onthispage.
-    asideWrapper = document.querySelector('.onthispage-wrapper');
-    const resourcesWrapper = document.querySelector('.resources-wrapper');
-    if (resourcesWrapper) {
-      asideWrapper.insertBefore(resourcesWrapper, asideWrapper.firstChild);
-    }
-  } else {
-    // if there's no onthispage, make a main-resources-wrapper div that contains the sub-parent and the resources block.
-    let mainResourcesWrapper = createTag('div', { class: 'main-resources-wrapper'});
-    const resourcesWrapper = document.querySelector('.resources-wrapper');
-    mainResourcesWrapper.appendChild(resourcesWrapper);
-    const subparent = document.querySelector('.sub-parent');
-    mainResourcesWrapper.insertBefore(subparent, mainResourcesWrapper.firstChild);
-    const resourceContainer = document.querySelector('.resources-container');
-    resourceContainer.append(mainResourcesWrapper);
+  const aside = main.querySelector('.aside-wrapper .aside');
+  const resourcesWrapper = document.querySelector('.resources-wrapper');
+  if (aside && resourcesWrapper) {
+    aside.insertBefore(resourcesWrapper, aside.firstChild);
   }
-
 }
 
 /**

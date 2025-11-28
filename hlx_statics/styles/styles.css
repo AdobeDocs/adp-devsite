@@ -164,6 +164,7 @@ main.white-background {
 
 main.dev-docs {
   grid-template-areas:
+    "sidenav hero hero"
     "sidenav main aside"
     "sidenav footer .";
   grid-template-columns: 256px minmax(0, 1fr) 256px;
@@ -171,39 +172,44 @@ main.dev-docs {
 
 main.dev-docs.no-sidenav {
   grid-template-areas:
+    "hero hero"
     "main aside"
     "footer .";
+}
+
+main.dev-docs.no-sidenav,
+main.dev-docs div.superhero-wrapper div.superhero.default {
   grid-template-columns: minmax(0, 1fr) 256px;
 }
 
-main.dev-docs.no-onthispage {
+main.dev-docs.no-aside {
   grid-template-areas:
+    "sidenav hero"
     "sidenav main"
     "sidenav footer";
   grid-template-columns: 256px minmax(0, 1fr);
 }
 
-main.dev-docs.no-sidenav.no-onthispage {
+main.dev-docs.no-sidenav.no-aside {
   grid-template-areas:
+    "hero"
     "main"
     "footer";
+}
+
+main.dev-docs.no-sidenav.no-aside,
+main.dev-docs.no-aside div.superhero-wrapper div.superhero.default {
   grid-template-columns: 100%;
 }
 
-main.dev-docs.no-onthispage .main-resources-wrapper {
-  display: flex;
-  flex-direction: row;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
 @media screen and (max-width: 1228px) {
-  main.dev-docs .onthispage-wrapper {
+  main.dev-docs .aside-wrapper {
     display: none;
   }
 
   main.dev-docs {
     grid-template-areas:
+      "sidenav hero"
       "sidenav main"
       "sidenav footer";
     grid-template-columns: 256px minmax(0, 1fr);
@@ -211,8 +217,13 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 
   main.dev-docs.no-sidenav {
     grid-template-areas:
+      "hero"
       "main"
       "footer";
+  }
+
+  main.dev-docs.no-sidenav,
+  main.dev-docs div.superhero-wrapper div.superhero.default {
     grid-template-columns: 100%;
   }
 }
@@ -220,19 +231,23 @@ main.dev-docs.no-onthispage .main-resources-wrapper {
 @media screen and (max-width: 768px) {
   main.dev-docs,
   main.dev-docs.no-sidenav,
-  main.dev-docs.no-onthispage,
-  main.dev-docs.no-sidenav.no-onthispage {
+  main.dev-docs.no-aside,
+  main.dev-docs.no-sidenav.no-aside {
     grid-template-areas:
+      "hero"
       "main"
       "footer";
+    grid-template-columns: 100%;
+  }
+
+  main.dev-docs div.superhero-wrapper div.superhero.default {
     grid-template-columns: 100%;
   }
 }
 
 main.dev-docs .herosimple > div,
 main .superhero.default > div,
-main.dev-docs:has(.herosimple, .superhero) .sub-parent,
-main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) > .grid-main-area,
+main.dev-docs .grid-main-area,
 main.dev-docs .footer-wrapper .footer-links-container-inner {
   padding-left: 32px;
   padding-right: 32px;
@@ -240,8 +255,7 @@ main.dev-docs .footer-wrapper .footer-links-container-inner {
 
 main.dev-docs .herosimple > div,
 main .superhero.default > div,
-main.dev-docs:has(.herosimple, .superhero) .sub-parent,
-main.dev-docs:not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
+main.dev-docs .grid-main-area,
 main.dev-docs .footer-wrapper {
   margin: 0 auto;
   width: 100%;
@@ -249,7 +263,7 @@ main.dev-docs .footer-wrapper {
 
 main.dev-docs .herosimple > div,
 main .superhero.default > div,
-main.dev-docs:has(.herosimple, .superhero) .sub-parent,
+main.dev-docs:has(.herosimple, .superhero) .grid-main-area,
 main.dev-docs:has(.herosimple, .superhero) .footer-wrapper {
   max-width: 1000px;
 }
@@ -257,11 +271,23 @@ main.dev-docs:has(.herosimple, .superhero) .footer-wrapper {
 main.dev-docs:not(.no-layout).no-sidenav .herosimple > div,
 main.dev-docs:not(.no-layout).no-sidenav .superhero.default > div,
 main.dev-biz .superhero.default > div,
-main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .sub-parent,
+main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .grid-main-area,
 main.dev-docs:not(.no-layout):has(.herosimple, .superhero).no-sidenav .footer-wrapper,
 main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .grid-main-area,
 main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .footer-wrapper {
   max-width: 1280px;
+}
+
+main.dev-docs .aside-wrapper .aside {
+  position: sticky;
+  top: 128px;
+  bottom: 0;
+  left: 0;
+  margin: 32px 32px 0 32px;
+  max-height: calc(100vh - 128px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding-bottom: 16px;
 }
 
 main div.accordion-wrapper,

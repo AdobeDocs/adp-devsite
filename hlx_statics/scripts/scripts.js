@@ -25,10 +25,11 @@ import {
   buildCodes,
   buildEmbeds,
   buildGrid,
-  buildGridAreaMain,
+  buildHero,
   buildHeadings,
   buildSideNav,
   buildSiteWideBanner,
+  buildAside,
   buildOnThisPage,
   createTag,
   toggleScale,
@@ -704,21 +705,30 @@ async function loadLazy(doc) {
     main.append(footer);
 
     const hasHero = Boolean(document.querySelector('.herosimple, .superhero'));
+    if (hasHero) {
+      buildHero(main);
+    }
+
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
-    if (!hasHero && hasHeading) {
+    const hasOnThisPage = !hasHero && hasHeading;
+
+    const hasAside = hasOnThisPage || hasResources;
+    if (hasAside) {
+      buildAside(main);
+    } else {
+      main.classList.add('no-aside');
+    }
+
+    if (hasOnThisPage) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
-    } else {
-      main.classList.add('no-onthispage');
     }
 
     if(document.querySelector('.side-nav-subpages-section')) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
-
-    buildGridAreaMain(main);
 
     if (hasResources) {
       buildResources(main);
