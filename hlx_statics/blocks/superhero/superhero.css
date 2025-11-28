@@ -9,12 +9,14 @@ main div.superhero-wrapper:has(div.superhero.centered-xl) {
 main div.superhero-wrapper div.superhero.centered {
   position: relative;
   width: 100%;
+  /* TODO */
   height: 350px;
 }
 
 main div.superhero-wrapper div.superhero.centered-xl {
   position: relative;
   width: 100%;
+  /* TODO */
   height: 624px;
 }
 
@@ -33,12 +35,14 @@ main div.superhero-wrapper div.superhero.centered-xl .superhero-content {
 
 main div.superhero-wrapper div.superhero.centered-xl img {
   width: 100%;
+  /* TODO */
   height: 624px;
   object-fit: cover;
 }
 
 main div.superhero-wrapper div.superhero.centered img {
   width: 100%;
+  /* TODO */
   height: 350px;
   object-fit: cover;
 }
@@ -77,12 +81,14 @@ main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container
   main div.superhero-wrapper div.superhero.centered img,
   main div.superhero-wrapper div.superhero.centered-xl img {
     width: 100%;
+    /* TODO */
     height: 350px;
     object-fit: cover;
   }
 
   main div.superhero-wrapper .centered-xl img {
     width: 100%;
+    /* TODO */
     height: 350px;
     object-fit: cover;
   }
@@ -93,12 +99,14 @@ main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container
   main div.superhero-wrapper div.superhero.centered-xl {
     position: relative;
     width: 100%;
+    /* TODO */
     height: 75vh !important;
   }
 
   main div.superhero-wrapper div.superhero.centered-xl {
     position: relative;
     width: 100%;
+    /* TODO */
     height: 100vh !important;
   }
 
@@ -106,12 +114,14 @@ main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container
   main div.superhero-wrapper div.superhero.centered-xl img {
     overflow-clip-margin: content-box;
     overflow: clip;
+    /* TODO */
     height: 75vh !important;
   }
 
   main div.superhero-wrapper div.superhero.centered-xl img {
     overflow-clip-margin: content-box;
     overflow: clip;
+    /* TODO */
     height: 100vh !important;
   }
 
@@ -258,6 +268,7 @@ main div.superhero-wrapper:has(div.superhero.default) {
 }
 
 main div.superhero-wrapper div.superhero.default {
+  /* TODO */
   height: 272px;
   overflow: hidden;
   position: relative;
