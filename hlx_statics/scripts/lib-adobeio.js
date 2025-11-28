@@ -342,13 +342,17 @@ export function buildGridAreaMain(main) {
   const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
 
   if (heroWrapper) {
+    gridAreaMain.removeChild(heroWrapper);
+    main.insertBefore(heroWrapper, gridAreaMain);
+    heroWrapper.style.gridArea = 'hero';
+
     const children = Array.from(gridAreaMain.children);
     children.forEach((child) => {
       if (!child.classList.contains(heroWrapperClass)) {
         subParent.appendChild(child);
       }
     });
-    gridAreaMain.insertBefore(subParent, heroWrapper.nextSibling);
+    gridAreaMain.appendChild(subParent);
   } else {
     gridAreaMain.appendChild(subParent);
   }
