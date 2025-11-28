@@ -25,7 +25,7 @@ import {
   buildCodes,
   buildEmbeds,
   buildGrid,
-  buildGridAreaMain,
+  buildHero,
   buildHeadings,
   buildSideNav,
   buildSiteWideBanner,
@@ -705,6 +705,10 @@ async function loadLazy(doc) {
     main.append(footer);
 
     const hasHero = Boolean(document.querySelector('.herosimple, .superhero'));
+    if (hasHero) {
+      buildHero(main);
+    }
+
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
     const hasOnThisPage = !hasHero && hasHeading;
@@ -725,8 +729,6 @@ async function loadLazy(doc) {
       buildNextPrev(main);
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
-
-    buildGridAreaMain(main);
 
     if (hasResources) {
       buildResources(main);

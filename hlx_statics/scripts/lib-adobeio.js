@@ -329,32 +329,19 @@ export function buildGrid(main) {
 }
 
 /**
- * Builds the div with style*="grid-area: main"
+ * Adds the hero to the grid
  * @param {*} main The grid container
  */
-export function buildGridAreaMain(main) {
+export function buildHero(main) {
   const gridAreaMain = main.querySelector('.grid-main-area');
-  const subParent = createTag("div", { class: "sub-parent" });
-
   const heroWrapperClasses = ['herosimple-wrapper', 'superhero-wrapper'];
   const selector = '.' + heroWrapperClasses.join(', .');
   const heroWrapper = main.querySelector(selector);
-  const heroWrapperClass = heroWrapperClasses.find(c => heroWrapper?.classList.contains(c));
 
-  if (heroWrapper) {
+  if (gridAreaMain && heroWrapper) {
     gridAreaMain.removeChild(heroWrapper);
     main.insertBefore(heroWrapper, gridAreaMain);
     heroWrapper.style.gridArea = 'hero';
-
-    const children = Array.from(gridAreaMain.children);
-    children.forEach((child) => {
-      if (!child.classList.contains(heroWrapperClass)) {
-        subParent.appendChild(child);
-      }
-    });
-    gridAreaMain.appendChild(subParent);
-  } else {
-    gridAreaMain.appendChild(subParent);
   }
 }
 
