@@ -125,7 +125,7 @@ function loadHeader(header) {
 }
 
 function loadSiteWideBanner(siteWidebanner) {
-  const siteWidebannerBlock = buildBlock('site-wide-banner-container', '');
+  const siteWidebannerBlock = buildBlock('site-wide-banner', '');
   siteWidebanner.append(siteWidebannerBlock);
   decorateBlock(siteWidebannerBlock);
   loadBlock(siteWidebannerBlock);
@@ -691,7 +691,7 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header'));
-  loadSiteWideBanner(doc.querySelector('.site-wide-banner-container'));
+  loadSiteWideBanner(doc.querySelector('.site-wide-banner'));
   await decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
