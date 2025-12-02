@@ -1,6 +1,5 @@
 import {
     createTag,
-    getBlockSectionContainer
   } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
@@ -44,7 +43,6 @@ export function getVariant(classList) {
  * @param {Element} block The columns block element
  */
 export default async function decorate(block) {
-    const container = getBlockSectionContainer(block);
 
         block.classList.add('spectrum-InLineAlert');
         // figure out variant based on parent element or on the block itself
