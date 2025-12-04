@@ -125,13 +125,6 @@ function loadHeader(header) {
 
 }
 
-function loadSiteWideBanner(siteWidebanner) {
-  const siteWidebannerBlock = buildBlock('site-wide-banner-container', '');
-  siteWidebanner.append(siteWidebannerBlock);
-  decorateBlock(siteWidebannerBlock);
-  loadBlock(siteWidebannerBlock);
-}
-
 function loadFooter(footer) {
   const footerBlock = buildBlock('footer', '');
   footer.append(footerBlock);
@@ -694,7 +687,6 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header'));
-  loadSiteWideBanner(doc.querySelector('.site-wide-banner-container'));
   await decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 

@@ -1023,10 +1023,12 @@ export async function applyAnalytic(domObj = document) {
       a.setAttribute('daa-ll', a.innerText);
     }
   });
-  let analyticPath = getClosestFranklinSubfolder(window.location.origin, 'analytic');
-  if (analyticPath) {
-    const analytic = await loadCustomAnalytic(domObj, analyticPath);
-  }
+
+  // TODO: Remove setting custom analytic for now and re-visit implementing a new custom analytic tracking system
+  // let analyticPath = getClosestFranklinSubfolder(window.location.origin, 'analytic');
+  // if (analyticPath) {
+  //   const analytic = await loadCustomAnalytic(domObj, analyticPath);
+  // }
 }
 
 /**
