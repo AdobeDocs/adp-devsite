@@ -64,8 +64,8 @@ export default async function decorate(block) {
     if (icon) {
       const iconEl = createTag("div", { class: `site-wide-banner-icon ${icon}` });
       const variant = getVariant(iconEl.classList);
-      iconEl.classList.add(variant.class || "spectrum-InLineAlert--info");
-      iconEl.insertAdjacentHTML("afterbegin", variant.icon || "");
+      iconEl.classList.add(variant.class);
+      iconEl.insertAdjacentHTML("afterbegin", variant.icon);
       
       textWrap.appendChild(iconEl);
     }
