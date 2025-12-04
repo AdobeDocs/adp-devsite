@@ -541,6 +541,12 @@ function activeSubNav(actTab) {
     sidenavItems.forEach(li => {
       const link = li.querySelector(':scope > a');
       if (link) {
+        const fullPath = link.getAttribute('href');
+       
+        if (fullPath.startsWith("http")) {
+          return;
+        }
+
         const linkPath = new URL(link.href, window.location.origin).pathname;
         if (linkPath.startsWith(pagePath) && getMetadata("template") === "documentation") {
           showSidenav = true;
