@@ -56,11 +56,4 @@ export default async function decorate(block) {
             block.appendChild(inlineP);
             divContent.replaceWith(inlineP);
         });
-        if (slots?.includes('title')) {
-            const paragraphTag = block.querySelector('p');
-            const firstDiv = paragraphTag.querySelector('div');
-            if (firstDiv) {
-                firstDiv.remove();
-            }
-        }
 }
