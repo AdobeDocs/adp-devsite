@@ -50,10 +50,11 @@ export default async function decorate(block) {
         block.insertAdjacentHTML("afterbegin", classVariant.icon);
 
         // need to wrap content into p
-        block.querySelectorAll(':scope > div > div').forEach((divContent) =>{
-            const inlineP = createTag('p', { class: 'spectrum-InLineAlert-content' });
-            inlineP.innerHTML = divContent.innerHTML;
+        block.querySelectorAll(':scope > div > div').forEach((div, i) =>{
+            const className = slots?.[i] === 'heading' ? 'spectrum-InLineAlert-header' : 'spectrum-InLineAlert-content';
+            const inlineP = createTag('p', { class: className });
+            inlineP.innerHTML = div.innerHTML;
             block.appendChild(inlineP);
-            divContent.replaceWith(inlineP);
+            div.replaceWith(inlineP);
         });
 }
