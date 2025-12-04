@@ -54,12 +54,11 @@ export default async function decorate(block) {
         }else{
             classVariant = getVariant(block.parentElement.parentElement.classList);
         }
-        if(classVariant) {
-            const inlineClass = classVariant.class ? classVariant.class : 'spectrum-InLineAlert--info';
-            const inlineIcon = classVariant.icon ? classVariant.icon : infoIcon;
-            block.classList.add(inlineClass);
-            block.insertAdjacentHTML("afterbegin", inlineIcon);
-        }
+        
+        const inlineClass = classVariant.class ? classVariant.class : 'spectrum-InLineAlert--info';
+        const inlineIcon = classVariant.icon ? classVariant.icon : infoIcon;
+        block.classList.add(inlineClass);
+        block.insertAdjacentHTML("afterbegin", inlineIcon);
 
         // need to wrap content into p
         block.querySelectorAll('div').forEach((divContent) =>{
