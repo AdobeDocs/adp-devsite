@@ -162,7 +162,7 @@ main div.inlinealert-wrapper .inlinealert img {
     height: 100%;
 }
 
-main div.inlinealert-wrapper div.inlinealert > p.spectrum-InLineAlert-content{
+main div.inlinealert-wrapper div.inlinealert > div {
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
