@@ -15,23 +15,23 @@ export function getVariant(classList) {
     if(classList.contains('neutral')){
         classVariant.class = 'spectrum-InLineAlert--neutral';
     }
-    if(classList.contains('info')){
+    else if(classList.contains('info')){
         classVariant.class = 'spectrum-InLineAlert--info';
         classVariant.icon = infoIcon;
     }
-    if(classList.contains('help')){
+    else if(classList.contains('help')){
         classVariant.class = 'spectrum-InLineAlert--help';
         classVariant.icon = `<svg class="spectrum-Icon spectrum-UIIcon-HelpMedium spectrum-InLineAlert-icon" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/help-icon.svg#icon-help"></use></svg>`;
     }
-    if(classList.contains('success')){
+    else if(classList.contains('success')){
         classVariant.class = 'spectrum-InLineAlert--success';
         classVariant.icon =  `<svg class="spectrum-Icon spectrum-UIIcon-SuccessMedium spectrum-InLineAlert-icon" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/success-icon.svg#icon-success"></use></svg>`;
     }
-    if(classList.contains('warning')){
+    else if(classList.contains('warning')){
         classVariant.class = 'spectrum-InLineAlert--warning';
         classVariant.icon = `<svg class="spectrum-Icon spectrum-UIIcon-AlertMedium spectrum-InLineAlert-icon" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/warning-icon.svg#icon-alert"></use></svg>`;
     }
-    if(classList.contains('error')){
+    else if(classList.contains('error')){
         classVariant.class = 'spectrum-InLineAlert--error';
         classVariant.icon =`<svg class="spectrum-Icon spectrum-UIIcon-AlertMedium spectrum-InLineAlert-icon" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/warning-icon.svg#icon-alert"></use></svg>`;
     }
