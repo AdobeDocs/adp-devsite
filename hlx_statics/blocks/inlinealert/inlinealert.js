@@ -43,16 +43,9 @@ export function getVariant(classList) {
 export default async function decorate(block) {
 
         block.classList.add('spectrum-InLineAlert');
-        // figure out variant based on parent element or on the block itself
-        // TODO: may need to refactor this logic
-        let classVariant;
         const slots = block?.getAttribute('data-slots')?.split(',');
-        if(getMetadata('template') === 'documentation'){
-            classVariant = getVariant(block.classList);
-        }else{
-            classVariant = getVariant(block.parentElement.parentElement.classList);
-        }
-        
+        const classVariant = getVariant(block.classList);
+
         block.classList.add(classVariant.class);
         block.insertAdjacentHTML("afterbegin", classVariant.icon);
 
