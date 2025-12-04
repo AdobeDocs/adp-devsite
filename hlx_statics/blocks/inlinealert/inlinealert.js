@@ -3,8 +3,6 @@ import {
   } from '../../scripts/lib-adobeio.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
-const infoIcon = `<svg class="spectrum-Icon spectrum-UIIcon-InfoMedium spectrum-InLineAlert-icon" focusable="false" aria-hidden="true" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/info.svg#icon-info"></use></svg>`
-
 export function getVariant(classList) {
     // variants: neutral, info, help, success, warning, error
     let classVariant = {
@@ -14,10 +12,6 @@ export function getVariant(classList) {
 
     if(classList.contains('neutral')){
         classVariant.class = 'spectrum-InLineAlert--neutral';
-    }
-    else if(classList.contains('info')){
-        classVariant.class = 'spectrum-InLineAlert--info';
-        classVariant.icon = infoIcon;
     }
     else if(classList.contains('help')){
         classVariant.class = 'spectrum-InLineAlert--help';
@@ -34,6 +28,10 @@ export function getVariant(classList) {
     else if(classList.contains('error')){
         classVariant.class = 'spectrum-InLineAlert--error';
         classVariant.icon =`<svg class="spectrum-Icon spectrum-UIIcon-AlertMedium spectrum-InLineAlert-icon" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/warning-icon.svg#icon-alert"></use></svg>`;
+    }
+    else{
+        classVariant.class = 'spectrum-InLineAlert--info';
+        classVariant.icon = `<svg class="spectrum-Icon spectrum-UIIcon-InfoMedium spectrum-InLineAlert-icon" focusable="false" aria-hidden="true" style="width: 22px; height: 22px;"><use href="/hlx_statics/icons/info.svg#icon-info"></use></svg>`;
     }
     return classVariant;
 }
@@ -55,10 +53,8 @@ export default async function decorate(block) {
             classVariant = getVariant(block.parentElement.parentElement.classList);
         }
         
-        const inlineClass = classVariant.class ? classVariant.class : 'spectrum-InLineAlert--info';
-        const inlineIcon = classVariant.icon ? classVariant.icon : infoIcon;
-        block.classList.add(inlineClass);
-        block.insertAdjacentHTML("afterbegin", inlineIcon);
+        block.classList.add(classVariant.class);
+        block.insertAdjacentHTML("afterbegin", classVariant.icon);
 
         // need to wrap content into p
         block.querySelectorAll('div').forEach((divContent) =>{
