@@ -1,7 +1,6 @@
 import {
     createTag,
   } from '../../scripts/lib-adobeio.js';
-import { getMetadata } from '../../scripts/scripts.js';
 
 export function getVariant(classList) {
     // variants: neutral, info, help, success, warning, error
