@@ -44,12 +44,25 @@ export default async function decorate(block) {
         block.classList.add('spectrum-InLineAlert');
         const slots = block?.getAttribute('data-slots')?.split(',');
         const classVariant = getVariant(block.classList);
-
         block.classList.add(classVariant.class);
-        block.insertAdjacentHTML("afterbegin", classVariant.icon);
+
+        const row = createTag('div', { class: 'row' });
+        const iconPosition = block.getAttribute('data-iconposition') || 'right';
+        row.style.flexDirection = iconPosition === 'right' ? 'row' : 'row-reverse';
+
+        const messageWrapper = block.querySelector(':scope > div')
+        messageWrapper?.classList.add('message-wrapper');
+        messageWrapper?.replaceWith(row);
+        row.appendChild(messageWrapper);
+
+        if (classVariant.icon) {
+            const iconWrapper = createTag('div', { class: 'icon-wrapper' });
+            iconWrapper.insertAdjacentHTML("afterbegin", classVariant.icon);
+            row.appendChild(iconWrapper);
+        }
 
         // need to wrap content into p
-        block.querySelectorAll(':scope > div > div').forEach((div, i) =>{
+        block.querySelectorAll(':scope div.message-wrapper > div').forEach((div, i) =>{
             const className = slots?.[i] === 'heading' ? 'spectrum-InLineAlert-header' : 'spectrum-InLineAlert-content';
             const inlineP = createTag('p', { class: className });
             inlineP.innerHTML = div.innerHTML;
