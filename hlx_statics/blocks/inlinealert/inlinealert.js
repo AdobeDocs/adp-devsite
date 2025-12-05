@@ -47,6 +47,8 @@ export default async function decorate(block) {
         block.classList.add(classVariant.class);
 
         const row = createTag('div', { class: 'row' });
+        const iconPosition = block.getAttribute('data-iconposition') || 'right';
+        row.style.flexDirection = iconPosition === 'right' ? 'row' : 'row-reverse';
 
         const messageWrapper = block.querySelector(':scope > div')
         messageWrapper?.classList.add('message-wrapper');
