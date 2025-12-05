@@ -43,10 +43,10 @@ main div.inlinealert-wrapper .spectrum-InLineAlert-header {
     min-height: 0;
     margin: 0;
     padding: 0;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     font-style: normal;
-    line-height: 14px;
+    line-height: 24px;
     text-transform: none;
     color: rgb(44, 44, 44);
 }
@@ -126,11 +126,11 @@ main div.inlinealert-wrapper .spectrum-InLineAlert--success .spectrum-InLineAler
     color: rgb(0, 101, 62);
 }
 
-main div.inlinealert-wrapper .spectrum-InLineAlert--negative {
+main div.inlinealert-wrapper .spectrum-InLineAlert--warning {
     border-color: rgb(246, 133, 17);
 }
 
-main div.inlinealert-wrapper .spectrum-InLineAlert--negative .spectrum-InLineAlert-icon {
+main div.inlinealert-wrapper .spectrum-InLineAlert--warning .spectrum-InLineAlert-icon {
     color: rgb(203, 93, 0);
 }
 main div.inlinealert-wrapper .inlinealert{
@@ -162,12 +162,7 @@ main div.inlinealert-wrapper .inlinealert img {
     height: 100%;
 }
 
-main div.inlinealert-wrapper .inlinealert.warning{
-    border-color: rgb(246,133,17);
-    color: rgb(203, 93, 0);
-}
-
-main div.inlinealert-wrapper div.inlinealert > p.spectrum-InLineAlert-content{
+main div.inlinealert-wrapper div.inlinealert > div {
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
