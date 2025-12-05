@@ -43,12 +43,19 @@ export default async function decorate(block) {
 
         block.classList.add('spectrum-InLineAlert');
         const slots = block?.getAttribute('data-slots')?.split(',');
+
         const classVariant = getVariant(block.classList);
-
-        block.querySelector(':scope > div')?.classList.add('body');
-
         block.classList.add(classVariant.class);
-        block.insertAdjacentHTML("afterbegin", classVariant.icon);
+
+        const body = block.querySelector(':scope > div')
+        body?.classList.add('body');
+        const iconContainer = createTag('div', { class: 'icon-container' });
+        body.replaceWith(iconContainer);
+        iconContainer.appendChild(body);
+        const icon = createTag('div', { class: 'icon' });
+        icon.insertAdjacentHTML("afterbegin", classVariant.icon);
+        iconContainer.appendChild(icon);
+
 
         
         // need to wrap content into p

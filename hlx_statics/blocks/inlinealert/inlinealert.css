@@ -1,7 +1,3 @@
-main div.inlinealert-wrapper .spectrum-InLineAlert-content {
-    padding-right: 30px !important;
-}
-
 main div.inlinealert-wrapper .spectrum-InLineAlert {
     position: relative;
     display: inline-block;
@@ -14,27 +10,21 @@ main div.inlinealert-wrapper .spectrum-InLineAlert {
     border-radius: 4px;
     background-color: rgb(255, 255, 255);
 }
-
+/* 
 [dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
     right: 20px;
 }
 
 [dir="rtl"] main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
     left: 20px;
-}
+} */
 
 main div.inlinealert-wrapper .spectrum-InLineAlert-icon {
-    position: absolute;
-    display: block;
-    top: 20px;
-}
-
-[dir="ltr"] main div.inlinealert-wrapper .spectrum-InLineAlert-header {
-    padding-right: 30px;
-}
-
-[dir="rtl"] main div.inlinealert-wrapper .spectrum-InLineAlert-header {
-    padding-left: 30px;
+    /* position: absolute; */
+    /* display: block; */
+    /* top: 20px; */
+    width: 22px;
+    height: 22px;
 }
 
 main div.inlinealert-wrapper .spectrum-InLineAlert-header {
@@ -162,10 +152,18 @@ main div.inlinealert-wrapper .inlinealert img {
     height: 100%;
 }
 
-main div.inlinealert-wrapper div.inlinealert > div.body {
+main div.inlinealert-wrapper div.inlinealert > div.icon-container {
+    outline: 1px solid magenta;
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+}
+
+main div.inlinealert-wrapper div.inlinealert div.body {
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
+    flex: 1;
 }
 
 
