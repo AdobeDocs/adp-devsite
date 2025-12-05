@@ -45,11 +45,14 @@ export default async function decorate(block) {
         const slots = block?.getAttribute('data-slots')?.split(',');
         const classVariant = getVariant(block.classList);
 
+        block.querySelector(':scope > div')?.classList.add('body');
+
         block.classList.add(classVariant.class);
         block.insertAdjacentHTML("afterbegin", classVariant.icon);
 
+        
         // need to wrap content into p
-        block.querySelectorAll(':scope > div > div').forEach((div, i) =>{
+        block.querySelectorAll(':scope div.body > div').forEach((div, i) =>{
             const className = slots?.[i] === 'heading' ? 'spectrum-InLineAlert-header' : 'spectrum-InLineAlert-content';
             const inlineP = createTag('p', { class: className });
             inlineP.innerHTML = div.innerHTML;

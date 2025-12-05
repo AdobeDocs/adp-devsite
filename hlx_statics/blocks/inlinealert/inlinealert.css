@@ -162,7 +162,7 @@ main div.inlinealert-wrapper .inlinealert img {
     height: 100%;
 }
 
-main div.inlinealert-wrapper div.inlinealert > div {
+main div.inlinealert-wrapper div.inlinealert > div.body {
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
