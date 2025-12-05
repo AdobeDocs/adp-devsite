@@ -53,10 +53,12 @@ export default async function decorate(block) {
         messageWrapper?.replaceWith(row);
         row.appendChild(messageWrapper);
 
-        const iconWrapper = createTag('div', { class: 'icon-wrapper' });
-        iconWrapper.insertAdjacentHTML("afterbegin", classVariant.icon);
-        row.appendChild(iconWrapper);
-        
+        if (classVariant.icon) {
+            const iconWrapper = createTag('div', { class: 'icon-wrapper' });
+            iconWrapper.insertAdjacentHTML("afterbegin", classVariant.icon);
+            row.appendChild(iconWrapper);
+        }
+
         // need to wrap content into p
         block.querySelectorAll(':scope div.message-wrapper > div').forEach((div, i) =>{
             const className = slots?.[i] === 'heading' ? 'spectrum-InLineAlert-header' : 'spectrum-InLineAlert-content';
