@@ -764,10 +764,10 @@ function globalNavLinkItemDropdown(id, name, links) {
     `;
 }
 
-function globalNavLinkItemDropdownItem(url, name) {
+function globalNavLinkItemDropdownItem(url, name, description) {
   return `
       <li class="spectrum-Menu-item menu-item">
-        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
+        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}<span class="spectrum-Body spectrum-Body--sizeXS">${description}</span></a></span>
       </li>
     `;
 }
@@ -996,8 +996,8 @@ export default async function decorate(block) {
         let dropdownLinksHTML = '';
 
         dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
-          dropdownLinksHTML
-            += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+          const desc = dropdownLinks.parentElement.innerText.split('description')[1]?.trim() || '';
+          dropdownLinksHTML += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText, desc);
         });
 
         dropdownLinkDropdownHTML = globalNavLinkItemDropdown(

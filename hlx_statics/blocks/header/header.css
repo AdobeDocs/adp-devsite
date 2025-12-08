@@ -858,3 +858,8 @@ header .menu-btn {
   }
 }
 
+header.global-nav-header a.nav-dropdown-links {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 5px;
+}
