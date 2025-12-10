@@ -258,7 +258,9 @@ function restructureAsDevBiz(block) {
   const contentInnerDiv = createTag('div');
 
   if (iconContent) {
-    contentInnerDiv.appendChild(iconContent);
+    const p = createTag('p');
+    p.appendChild(iconContent);
+    contentInnerDiv.appendChild(p);
   }
 
   if (headingContent) {
