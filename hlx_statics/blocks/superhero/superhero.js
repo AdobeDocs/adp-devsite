@@ -45,11 +45,24 @@ function hasAnyClass(block, classes) {
   return classes.some((c) => block.classList.contains(c));
 }
 
+function unwrapIcons(block) {
+  block.querySelectorAll('span.icon').forEach((span) => {
+    span.textContent = '';  
+    
+    const spanParent = span.parentElement;
+    spanParent.replaceWith(span);
+  });
+}
+
 async function decorateDevBizCentered(block) {
   const defaultTextColor = TEXT_COLORS.white;
 
   removeEmptyPTags(block);
   decorateButtons(block);
+  unwrapIcons(block);
+
+  const background_div = block.querySelector(':scope div:nth-child(2)');
+  background_div?.classList.add('background-image-container');
 
   const button_div = createTag('div', { class: 'superhero-button-container' });
 
@@ -87,10 +100,8 @@ async function decorateDevBizHalfWidth(block) {
     picture.media = '';
   });
 
-  // Removes content for span.icon
-  block.querySelectorAll('span.icon').forEach((span) => {
-    span.textContent = '';
-  });
+  unwrapIcons(block);
+
   // Link decoration
   rearrangeLinks(block);
   decorateButtons(block);
@@ -125,9 +136,12 @@ async function decorateDevBizHalfWidth(block) {
 }
 
 async function decorateDevBizDefault(block) {
+  unwrapIcons(block);
+
   const newChildren = [];
 
   const pictureContent = block.querySelector('div:nth-child(2) > div > picture');
+  const iconContent = block.querySelector('div:nth-child(1) > div span.icon');
   const headingContent = block.querySelector('div:nth-child(1) > div > h1');
   const textContent = block.querySelector('div:nth-child(1) > div > p:first-of-type');
   const buttonsContent = block.querySelectorAll('div:nth-child(1) > div > p.button-container');
@@ -136,6 +150,12 @@ async function decorateDevBizDefault(block) {
     const pictureDiv = createTag('div');
     pictureDiv.appendChild(pictureContent);
     newChildren.push(pictureDiv);
+  }
+
+  if (iconContent) {
+    const iconDiv = createTag('div');
+    iconDiv.appendChild(iconContent);
+    newChildren.push(iconDiv);
   }
 
   if (headingContent) {
