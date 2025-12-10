@@ -87,10 +87,14 @@ async function decorateDevBizHalfWidth(block) {
     picture.media = '';
   });
 
-  // Removes content for span.icon
+  // Removes content for span.icon and unwraps from parent
   block.querySelectorAll('span.icon').forEach((span) => {
     span.textContent = '';
+
+    const spanParent = span.parentElement;
+    spanParent.replaceWith(span);
   });
+
   // Link decoration
   rearrangeLinks(block);
   decorateButtons(block);

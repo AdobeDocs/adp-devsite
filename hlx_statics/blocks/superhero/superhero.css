@@ -171,22 +171,17 @@ main div.superhero-wrapper div.superhero.half-width > div:last-child {
   width: calc(5 * 100% / 12);
 }
 
-main div.superhero-wrapper div.superhero.half-width .icon-container {
+main div.superhero-wrapper div.superhero.half-width span.icon {
+  display: inline-block;
+}
+
+main div.superhero-wrapper div.superhero.half-width span.icon img {
   height: 48px;
   width: 48px;
-  margin-top: 0 !important;
-  margin-bottom: 24px !important;
-}
-
-main div.superhero-wrapper div.superhero.half-width span.icon {
-  display: none;
-}
-
-main div.superhero-wrapper div.superhero.half-width .icon {
-  height: 100%;
   object-fit: contain;
 }
 
+main div.superhero-wrapper div.superhero.half-width span.icon,
 main div.superhero-wrapper div.superhero.half-width h3,
 main div.superhero-wrapper div.superhero.half-width h1 {
   margin-top: 0;
