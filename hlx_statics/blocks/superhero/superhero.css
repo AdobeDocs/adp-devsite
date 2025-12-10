@@ -74,16 +74,15 @@ main div.superhero-wrapper div.superhero.centered-xl .superhero-button-container
     padding: 0 32px;
   }
 
-  main div.superhero-wrapper div.superhero.centered img,
-  main div.superhero-wrapper div.superhero.centered-xl img {
+  main div.superhero-wrapper div.superhero.centered img {
     width: 100%;
     height: 350px;
     object-fit: cover;
   }
 
-  main div.superhero-wrapper .centered-xl img {
+  main div.superhero-wrapper div.superhero.centered-xl img {
     width: 100%;
-    height: 350px;
+    height: 624px;
     object-fit: cover;
   }
 }
