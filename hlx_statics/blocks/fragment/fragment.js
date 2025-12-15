@@ -7,11 +7,11 @@
 import {
     decorateMain,
   } from '../../scripts/scripts.js';
-  
+
   import {
     loadSections,
   } from '../../scripts/lib-helix.js';
-  
+
   /**
    * Loads a fragment.
    * @param {string} path The path to the fragment
@@ -61,7 +61,7 @@ import {
 
 export default async function decorate(block) {
   const link = block.querySelector('a');
-  const path = link ? link.getAttribute('href') : block.textContent.trim();
+  const path = link ? link.getAttribute('href') : block.getAttribute("data-src").trim();
   const fragment = await loadFragment(path);
   if (fragment) {
     const fragmentSection = fragment.querySelector(':scope .section');
