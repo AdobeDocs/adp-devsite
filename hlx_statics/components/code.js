@@ -55,9 +55,9 @@ export function applyLanguageDirectives(pre, codeEl, languageText) {
     codeEl.setAttribute('data-line', value);
   }
 
-  const offsetRaw = readAttr(rest, 'data-line-offset');
-  if (offsetRaw != null) {
-    codeEl.setAttribute('data-line-offset', offsetRaw);
+  const dataLineOffsetRaw = readAttr(rest, 'data-line-offset');
+  if (dataLineOffsetRaw != null) {
+    codeEl.setAttribute('data-line-offset', dataLineOffsetRaw);
   }
 }
 
