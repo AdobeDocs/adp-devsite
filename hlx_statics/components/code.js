@@ -21,7 +21,7 @@ export default function decoratePreformattedCode(block) {
       }
 
       if(className.includes('disableLineNumbers')) {
-        pre.classList.add('disableLineNumbers');
+        pre.classList.add('no-line-numbers');
         cleanClassName = cleanClassName.replace(/-disableLineNumbers/, '');
       }
       
@@ -29,11 +29,8 @@ export default function decoratePreformattedCode(block) {
     }).filter(className => className.trim()).join(' ');
   }
 
-  if (pre?.classList.contains("disableLineNumbers")) {
-    pre?.classList.add('no-line-numbers');
-  }
-  else {
-    pre?.classList.add('line-numbers');
+  if(!pre.className.includes('no-line-numbers')) {
+    pre.classList.add('line-numbers');
   }
   
   if (!code.className.match(/language-/)) {
