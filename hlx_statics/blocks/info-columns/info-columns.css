@@ -19,6 +19,12 @@ main div.info-columns-wrapper div.info-columns > div {
   align-items: start;
 }
 
+@media screen and (min-width: 1280px) {
+  main div.info-columns-wrapper div.info-columns > div {
+    gap: 32px;
+  }
+}
+
 main div.info-columns-wrapper div.info-columns > div:nth-child(even) {
   flex-direction: row-reverse;
 }
@@ -30,7 +36,6 @@ main div.info-columns-wrapper div.info-column {
   justify-content: center;
   text-align: left;
   box-sizing: border-box;
-  padding-left: 32px;
 }
 
 @media screen and (max-width: 1280px) {
