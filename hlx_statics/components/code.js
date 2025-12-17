@@ -10,12 +10,14 @@ export default function decoratePreformattedCode(block) {
 
       const dataLineMatch = className.match(/data-line="([^"]*)"/);
       if(dataLineMatch) {
+        // see https://prismjs.com/plugins/line-highlight/#how-to-use
         pre.setAttribute('data-line', dataLineMatch[1]);
         cleanClassName = cleanClassName.replace(/-data-line="[^"]*"/, '');
       }
 
       const dataLineOffsetMatch = className.match(/data-line-offset="([^"]*)"/);
       if(dataLineOffsetMatch) {
+        // see https://prismjs.com/plugins/line-highlight/#how-to-use
         pre.setAttribute('data-line-offset', dataLineOffsetMatch[1]);
         cleanClassName = cleanClassName.replace(/-data-line-offset="[^"]*"/, '');
       }
@@ -30,13 +32,16 @@ export default function decoratePreformattedCode(block) {
   }
 
   if(!pre.className.includes('no-line-numbers')) {
+    // see https://prismjs.com/plugins/line-numbers/#how-to-use
     pre.classList.add('line-numbers');
   }
   
   if (!code.className.match(/language-/)) {
+    // needed by loadPrism in scripts.js
     pre.classList.add('language-none');
   }
 
+  // see https://prismjs.com/plugins/copy-to-clipboard/#settings
   code.setAttribute('data-prismjs-copy', 'Copy');
   code.setAttribute('data-prismjs-copy-success', 'Copied to your clipboard');
   code.setAttribute('data-prismjs-copy-timeout', '3000');
