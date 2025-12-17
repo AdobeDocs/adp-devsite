@@ -11,6 +11,17 @@ import {
 import { loadFragment } from '../fragment/fragment.js';
 
 /**
+ * Helper function to create a navigation section with a label
+ */
+function createNavSection(className, labelText) {
+  const section = createTag("div", { class: className });
+  const label = createTag("h2", { class: "side-nav-section-label" });
+  label.textContent = labelText;
+  section.appendChild(label);
+  return section;
+}
+
+/**
  * Decorates the side-nav
  * @param {Element} block The site-nav block element
  */
@@ -22,10 +33,7 @@ export default async function decorate(block) {
   navigationLinks.append(navigationLinksContainer);
 
   // Create main menu section (needed for all templates)
-  const mainMenuSection = createTag("div", { class: "side-nav-menu-section" });
-  const mainMenuLabel = createTag("h2", { class: "side-nav-section-label" });
-  mainMenuLabel.textContent = "Global Navigation";
-  mainMenuSection.appendChild(mainMenuLabel);
+  const mainMenuSection = createNavSection("side-nav-menu-section", "Global Navigation");
   navigationLinksContainer.append(mainMenuSection);
 
   // Create navigation links UL that will be used in both cases
@@ -37,13 +45,7 @@ export default async function decorate(block) {
 
   if(IS_DEV_DOCS) {
     // Create subpages section (only for documentation template)
-    const subPagesSection = createTag("div", {
-      class: "side-nav-subpages-section",
-    });
-    const subPagesLabel = createTag("h2", {class: "side-nav-section-label"});
-    subPagesLabel.textContent = "Table of Contents";
-    subPagesSection.appendChild(subPagesLabel);
-
+    const subPagesSection = createNavSection("side-nav-subpages-section", "Table of Contents");
     navigationLinksContainer.append(subPagesSection);
     subPagesSection.append(navigationLinksUl);
   }
@@ -80,11 +82,7 @@ export default async function decorate(block) {
         expandableLink.innerHTML = text;
 
         // Replace the text/link with the expandable link
-        if (label.nodeType === Node.TEXT_NODE) {
-          li.removeChild(label);
-        } else {
-          li.removeChild(label);
-        }
+        li.removeChild(label);
         li.insertBefore(expandableLink, nestedUl);
 
         // Set up proper nesting structure
@@ -110,12 +108,12 @@ export default async function decorate(block) {
         expandableLink.onclick = (e) => {
           e.preventDefault();
           const isExpanded = li.getAttribute('aria-expanded') === 'true';
+          const newState = !isExpanded;
 
-          li.setAttribute('aria-expanded', !isExpanded);
-          li.classList.toggle('is-expanded', !isExpanded);
-          nestedUl.style.display = isExpanded ? 'none' : 'block';
-
-          updateIcon(expandableLink, !isExpanded, true);
+          li.setAttribute('aria-expanded', newState);
+          li.classList.toggle('is-expanded', newState);
+          nestedUl.style.display = newState ? 'block' : 'none';
+          updateIcon(expandableLink, newState, true);
         };
 
         // Initialize icon
@@ -128,62 +126,49 @@ export default async function decorate(block) {
   }
 
 
-  // Fetch and populate main menu for documentation template
   // Add Products link first
   const productLi = createTag('li');
-  const productA = createTag('a', {href: 'https://developer.adobe.com/apis'});
-  productA.innerHTML = 'Products';
-  productLi.append(productA);
+  productLi.innerHTML = '<a href="https://developer.adobe.com/apis">Products</a>';
   menuUl.append(productLi);
 
-  let navPath;
   if(IS_DEV_DOCS) {
     const topNavHtml = await fetchTopNavHtml();
     if (topNavHtml) {
       menuUl.innerHTML += topNavHtml;
       processNestedNavigation(menuUl);
     }
-  }  else {
-    navPath = getClosestFranklinSubfolder(window.location.origin,'nav');
+  } else {
+    const navPath = getClosestFranklinSubfolder(window.location.origin,'nav');
     let fragment = await loadFragment(navPath);
-    if (fragment == null) {
+    if (!fragment) {
       // load the default nav in franklin_assets folder nav
       fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
     }
     const ul = fragment.querySelector("ul");
     ul.classList.add("menu");
     ul.setAttribute("id", "navigation-links");
-    fragment.querySelectorAll("li").forEach((li, index) => {
-      if (index == 0) {
-        if (isTopLevelNav(window.location.pathname)) {
-          const homeLink = ul.querySelector('li:nth-child(1)');
-          homeLink.className = 'navigation-home';
-        } else {
-          li.classList.add("navigation-products");
-        }
+    const firstLi = fragment.querySelector("li");
+    if (firstLi) {
+      if (isTopLevelNav(window.location.pathname)) {
+        ul.querySelector('li:first-child').className = 'navigation-home';
+      } else {
+        firstLi.classList.add("navigation-products");
       }
-    });
+    }
     menuUl.innerHTML = ul.innerHTML;
     processNestedNavigation(menuUl);
   }
 
   // Add console button
-  const consoleButtonLi = createTag("li", {
-    class: "spectrum-SideNav-item",
-  });
-  const consoleButtonDiv = createTag("div", {
-    class: "nav-console-button",
-  });
-  const consoleButton = createTag("a", {
-    href: "https://developer.adobe.com/console/",
-    class:
-      "spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM",
-  });
-  const buttonLabel = createTag("span", { class: "spectrum-Button-label" });
-  buttonLabel.textContent = "Console";
-  consoleButton.appendChild(buttonLabel);
-  consoleButtonDiv.appendChild(consoleButton);
-  consoleButtonLi.appendChild(consoleButtonDiv);
+  const consoleButtonLi = createTag("li", { class: "spectrum-SideNav-item" });
+  consoleButtonLi.innerHTML = `
+    <div class="nav-console-button">
+      <a href="https://developer.adobe.com/console/" 
+         class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM">
+        <span class="spectrum-Button-label">Console</span>
+      </a>
+    </div>
+  `;
   menuUl.appendChild(consoleButtonLi);
 
   mainMenuSection.append(menuUl);
@@ -197,13 +182,9 @@ export default async function decorate(block) {
   }
   block.append(navigationLinks);
 
-  block.querySelectorAll("li").forEach((li) => {
-    li.classList.add("spectrum-SideNav-item");
-  });
-
-  block.querySelectorAll("a").forEach((a) => {
-    a.classList.add("spectrum-SideNav-itemLink");
-  });
+  // Add spectrum classes to navigation items
+  block.querySelectorAll("li").forEach((li) => li.classList.add("spectrum-SideNav-item"));
+  block.querySelectorAll("a").forEach((a) => a.classList.add("spectrum-SideNav-itemLink"));
 
   function assignLayerNumbers(ul, layer = 1) {
     const listItems = ul.children;
@@ -229,26 +210,21 @@ export default async function decorate(block) {
           e.preventDefault();
           const isExpanded = li.getAttribute("aria-expanded") === "true";
 
-          li.setAttribute("aria-expanded", !isExpanded);
-          li.classList.toggle("is-expanded", !isExpanded);
+          // Toggle expanded state if it has children
           if (childUl) {
-            childUl.style.display = isExpanded ? "none" : "block";
+            toggleNavItem(li, !isExpanded, childUl, getAnchorTag);
           }
 
-          updateIcon(getAnchorTag, !isExpanded, Boolean(childUl));
-          console.log('getAnchorTag.href', getAnchorTag.href)
-
+          // Handle navigation and selection
           if (currentUrl === getAnchorTag.href) {
             getAnchorTag.setAttribute("aria-current", "page");
-            const parentElement = li.parentElement.closest("li");
-            // Remove 'is-selected' from all other elements
             document.querySelectorAll('.is-selected').forEach(el => {
               el.classList.remove('is-selected');
             });
-            // Add 'is-selected' to the matched <li>
             li.classList.add("is-selected");
             toggleParent(li, true);
-          } else {
+          } else if (!childUl || !isExpanded) {
+            // Only navigate if it has no children or we're opening it
             window.location.href = getAnchorTag.href;
           }
         };
@@ -256,13 +232,9 @@ export default async function decorate(block) {
         if (currentUrl === getAnchorTag.href) {
           li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
+          // Check to make sure only the child is selected and not the parent
           const header = li.parentElement.closest("li");
-          // Check to make sure only the child is selected and not the parent.
-          if (header) {
-            if (header.classList.contains("is-selected")){
-              header.classList.remove("is-selected");
-            }
-          }
+          header?.classList.remove("is-selected");
           li.classList.add("is-expanded", "is-selected");
           toggleParent(li, true);
         } else {
@@ -279,50 +251,97 @@ export default async function decorate(block) {
     }
   }
 
+  // Session storage helpers for tracking opened toggleParent elements
+  function getOpenedPaths() {
+    const stored = sessionStorage.getItem('sideNavOpenedPaths');
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  function updateOpenedPath(pathname, shouldAdd) {
+    const paths = getOpenedPaths();
+    const newPaths = shouldAdd
+      ? (paths.includes(pathname) ? paths : [...paths, pathname])
+      : paths.filter(path => path !== pathname);
+    sessionStorage.setItem('sideNavOpenedPaths', JSON.stringify(newPaths));
+  }
+
+  // Unified function to toggle navigation item state
+  function toggleNavItem(li, isExpanded, childUl, anchorTag) {
+    li.setAttribute("aria-expanded", isExpanded);
+    li.classList.toggle("is-expanded", isExpanded);
+
+    if (childUl) {
+      childUl.style.display = isExpanded ? "block" : "none";
+      updateIcon(anchorTag, isExpanded, true);
+
+      // Update session storage
+      if (anchorTag?.href) {
+        //const pathname = new URL(anchorTag.href).pathname;
+        const pathname = anchorTag.getAttribute("href");
+        updateOpenedPath(pathname, isExpanded);
+      }
+    }
+  }
+
   function toggleParent(li, isExpanded) {
     let parentLi = li.parentElement.closest("li");
+
     while (parentLi) {
-      parentLi.classList.toggle("is-expanded", isExpanded);
-      parentLi.setAttribute("aria-expanded", isExpanded);
+      const parentAnchor = parentLi.querySelector("a");
       const parentUl = parentLi.querySelector("ul");
-      if (parentUl) {
-        parentUl.style.display = isExpanded ? "block" : "none";
-      }
+
+      toggleNavItem(parentLi, isExpanded, parentUl, parentAnchor);
       parentLi = parentLi.parentElement.closest("li");
     }
   }
 
   function updateState(li, childUl) {
-    if (childUl && childUl.querySelector(".is-expanded")) {
-      li.setAttribute("aria-expanded", true);
-      li.classList.add("is-expanded");
-      childUl.style.display = "block";
+    const shouldExpand = childUl?.querySelector(".is-expanded");
+    const anchorTag = li.querySelector("a");
+
+    if (shouldExpand) {
+      toggleNavItem(li, true, childUl, anchorTag);
     } else {
       li.setAttribute("aria-expanded", false);
-      li.querySelector("a").removeAttribute("aria-current");
+      anchorTag?.removeAttribute("aria-current");
       li.classList.remove("is-expanded", "is-selected");
       if (childUl) childUl.style.display = "none";
     }
   }
 
   function updateIcon(anchorTag, isExpanded, hasChildren) {
+    const existingIcon = anchorTag.querySelector("svg");
+    if (existingIcon) {
+      existingIcon.remove();
+    }
+
     if (hasChildren) {
       const icon = isExpanded ? downIcon : rightIcon;
-      const existingIcon = anchorTag.querySelector("svg");
-
-      if (existingIcon) {
-        existingIcon.remove();
-      }
-
-      anchorTag.innerHTML += icon;
-    } else {
-      anchorTag.innerHTML = anchorTag.innerHTML
-        .replace(rightIcon, "")
-        .replace(downIcon, "");
+      anchorTag.insertAdjacentHTML('beforeend', icon);
     }
   }
 
   assignLayerNumbers(navigationLinksUl);
+
+  // Restore opened state from session storage
+  function restoreOpenedState() {
+    const openedPaths = getOpenedPaths();
+
+    openedPaths.forEach(pathname => {
+      const anchor = Array.from(navigationLinksUl.querySelectorAll("a"))
+        .find(a => a.href && a.getAttribute("href") === pathname);
+
+      if (anchor) {
+        const li = anchor.closest("li");
+        const childUl = li?.querySelector("ul");
+        if (li && childUl) {
+          toggleNavItem(li, true, childUl, anchor);
+        }
+      }
+    });
+  }
+
+  restoreOpenedState();
 
   const sideNav = document.querySelector(".side-nav>nav>div");
   sideNav.addEventListener('scroll', () => {
