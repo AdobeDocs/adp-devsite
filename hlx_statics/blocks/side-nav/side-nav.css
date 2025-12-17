@@ -86,14 +86,11 @@ main div.side-nav-wrapper .spectrum-SideNav-item.active>a {
     color: #000;
 }
 
-main div.side-nav-wrapper .spectrum-SideNav-item.open>a::before {
-    content: url('./CheronIcon.svg');
-    margin-right: 8px;
-}
-
-main div.side-nav-wrapper .spectrum-SideNav-itemLink a>svg {
-    width: 10px !important;
-    height: 10px !important;
+main div.side-nav-wrapper .spectrum-SideNav-itemLink > svg {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    flex-shrink: 0;
 }
 
 main div.side-nav-wrapper .active-link>a {
@@ -317,6 +314,10 @@ main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item ul .spec
 
 main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item.is-expanded > button.spectrum-SideNav-itemLink {
   color: #000;
+}
+
+main div.side-nav-wrapper .side-nav-subpages-section {
+  width: 192px;
 }
 
 /* Ensure consistent section header spacing */
