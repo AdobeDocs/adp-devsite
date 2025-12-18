@@ -118,7 +118,6 @@ export default function decoratePreformattedCode(block) {
     code.classList.add('language-none');
   }
 
-  code.classList.forEach(cls => pre?.classList.add(cls));
   code.setAttribute('data-prismjs-copy', 'Copy');
   code.setAttribute('data-prismjs-copy-success', 'Copied to your clipboard');
   code.setAttribute('data-prismjs-copy-timeout', '3000');
