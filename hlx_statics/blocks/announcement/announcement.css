@@ -85,7 +85,7 @@ main div.announcement-wrapper .announcement.end>div {
 }
 
 main div.announcement-wrapper .announcement.end>div>div {
-  width: 750px;
+  align-items: end;
 }
 
 main div.announcement-wrapper .announcement .announcement-heading {

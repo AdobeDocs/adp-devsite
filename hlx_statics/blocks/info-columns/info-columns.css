@@ -19,6 +19,12 @@ main div.info-columns-wrapper div.info-columns > div {
   align-items: start;
 }
 
+@media screen and (min-width: 1280px) {
+  main div.info-columns-wrapper div.info-columns > div {
+    gap: 32px;
+  }
+}
+
 main div.info-columns-wrapper div.info-columns > div:nth-child(even) {
   flex-direction: row-reverse;
 }
