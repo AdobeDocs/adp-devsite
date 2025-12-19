@@ -119,5 +119,5 @@ main div.codeblock-wrapper div.codeblock .hidden {
 }
 
 main div.codeblock-wrapper div.codeblock pre[class*=language-].no-line-numbers .line-highlight {
-  transform: translateY(22.6px);
+  transform: translateY(-1.6em);
 }
