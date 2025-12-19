@@ -54,11 +54,6 @@ export function applyLanguageDirectives(pre, codeEl, languageText) {
     if (value.endsWith(',')) value = value.slice(0, -1);
     codeEl.setAttribute('data-line', value);
   }
-
-  const dataLineOffsetRaw = readAttr(rest, 'data-line-offset');
-  if (dataLineOffsetRaw != null) {
-    codeEl.setAttribute('data-line-offset', dataLineOffsetRaw);
-  }
 }
 
 export default function decoratePreformattedCode(block) {
@@ -75,13 +70,6 @@ export default function decoratePreformattedCode(block) {
           pre.setAttribute('data-line', dataLineMatch[1]);
           code?.setAttribute('data-line', dataLineMatch[1]);
           cleanClassName = cleanClassName.replace(/-data-line="[^"]*"/, '');
-        }
-
-        const dataLineOffsetMatch = className.match(/data-line-offset="([^"]*)"/);
-        if(dataLineOffsetMatch) {
-          pre.setAttribute('data-line-offset', dataLineOffsetMatch[1]);
-          code?.setAttribute('data-line-offset', dataLineOffsetMatch[1]);
-          cleanClassName = cleanClassName.replace(/-data-line-offset="[^"]*"/, '');
         }
 
         if(className.includes('disableLineNumbers')) {
@@ -108,11 +96,6 @@ export default function decoratePreformattedCode(block) {
   if (dataLine) {
     pre.setAttribute('data-line', dataLine);
   }
-
-  const dataLineOffset = code.getAttribute('data-line-offset');
-  if (dataLineOffset) {
-    pre.setAttribute('data-line-offset', dataLineOffset);
-  } 
   
   if (!code.className.match(/language-/)) {
     code.classList.add('language-none');
