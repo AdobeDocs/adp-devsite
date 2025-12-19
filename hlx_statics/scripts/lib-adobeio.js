@@ -371,6 +371,21 @@ export function buildSiteWideBanner(main) {
   main.prepend(siteWideBannerDiv);
 }
 
+
+/**
+ * Builds the ask AI 
+ * @param {*} main The ask AI container
+ */
+export function buildAskAI(main) {
+  let askAIDiv = createTag('div', { class: 'ask-ai-container' });
+  let askAIWrapper = createTag('div', { class: 'ask-ai-wrapper' });
+  let askAIBlock = createTag('div', { class: 'ask-ai block', 'data-block-name': 'ask-ai' });
+  askAIWrapper.append(askAIBlock);
+  askAIDiv.append(askAIWrapper);
+  main.prepend(askAIDiv);
+}
+
+
 /**
  * Builds the aside grid area
  * @param {*} main The grid container
@@ -1017,12 +1032,10 @@ export async function applyAnalytic(domObj = document) {
       a.setAttribute('daa-ll', a.innerText);
     }
   });
-
-  // TODO: Remove setting custom analytic for now and re-visit implementing a new custom analytic tracking system
-  // let analyticPath = getClosestFranklinSubfolder(window.location.origin, 'analytic');
-  // if (analyticPath) {
-  //   const analytic = await loadCustomAnalytic(domObj, analyticPath);
-  // }
+  let analyticPath = getClosestFranklinSubfolder(window.location.origin, 'analytic');
+  if (analyticPath) {
+    const analytic = await loadCustomAnalytic(domObj, analyticPath);
+  }
 }
 
 /**

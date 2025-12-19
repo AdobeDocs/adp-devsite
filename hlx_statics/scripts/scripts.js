@@ -29,6 +29,7 @@ import {
   buildHeadings,
   buildSideNav,
   buildSiteWideBanner,
+  buildAskAI,
   buildAside,
   buildOnThisPage,
   createTag,
@@ -123,6 +124,13 @@ function loadHeader(header) {
     contentHeader.classList.add('block-display');
   }
 
+}
+
+function loadSiteWideBanner(siteWidebanner) {
+  const siteWidebannerBlock = buildBlock('site-wide-banner-container', '');
+  siteWidebanner.append(siteWidebannerBlock);
+  decorateBlock(siteWidebannerBlock);
+  loadBlock(siteWidebannerBlock);
 }
 
 function loadFooter(footer) {
@@ -313,6 +321,7 @@ async function loadEager(doc) {
 
   buildSideNav(main);
   buildSiteWideBanner(main);
+  buildAskAI(main);
 
   document.body.classList.add('appear');
   loadConfig();
@@ -687,6 +696,7 @@ async function loadLazy(doc) {
   if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header'));
+  loadSiteWideBanner(doc.querySelector('.site-wide-banner-container'));
   await decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
 
@@ -778,7 +788,9 @@ function loadTitle() {
 }
 
 function loadPrism(document) {
+  console.log("loadPrism");
   const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
+  console.log("codeBlocks",codeBlocks);
   if (!codeBlocks.length) return;
 
   let prismLoaded = false;
