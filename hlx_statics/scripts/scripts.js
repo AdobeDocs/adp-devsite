@@ -798,6 +798,8 @@ function loadPrism(document) {
             window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
             window.Prism.plugins.autoloader.use_minified = true;
           }
+          // Add the completion callback
+          window.Prism.hooks.add('complete', onPrismComplete);
           // Run highlighting without Web Workers (avoids missing filename with dynamic import)
           window.Prism.highlightAll();
           // Re-highlight when tab panels become active (without modifying tab block)
@@ -855,6 +857,10 @@ function loadPrism(document) {
   }, { rootMargin: '200px 0px', threshold: 0.1 });
 
   codeBlocks.forEach((block) => observer.observe(block));
+}
+
+function onPrismComplete(env) {
+  console.log('~~ Code block rendered:', env.element);
 }
 
 function fixLocalDev(document){
