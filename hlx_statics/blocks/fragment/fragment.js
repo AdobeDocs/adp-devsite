@@ -22,7 +22,9 @@ import {
       const lastSlashIndex = path?.lastIndexOf('/');
       const lastPrefix = path?.substring(lastSlashIndex + 1);
 
-      const fetchPathUrl = (lastPrefix && lastPrefix === 'config') ? `${path}` : `${path}.plain.html`;
+      const fetchPathUrl = (lastPrefix && lastPrefix === 'config') 
+        ? path 
+        : `${path.replace(/\.\w+$/, '')}.plain.html`;
 
       const hashCode = (s) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0);
       const fragmentHash = `${hashCode(fetchPathUrl)}`;
@@ -59,7 +61,7 @@ import {
 
 export default async function decorate(block) {
   const link = block.querySelector('a');
-  const path = link ? link.getAttribute('href') : block.textContent.trim();
+  const path = link ? link.getAttribute('href') : block.getAttribute("data-src");
   const fragment = await loadFragment(path);
   if (fragment) {
     const fragmentSection = fragment.querySelector(':scope .section');
