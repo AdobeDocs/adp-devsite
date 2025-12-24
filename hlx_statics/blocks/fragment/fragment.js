@@ -68,8 +68,17 @@ export default async function decorate(block) {
   if (fragment) {
     const fragmentSection = fragment.querySelector(':scope .section');
     if (fragmentSection) {
-      block.closest('.section').classList.add(...fragmentSection.classList);
-      block.closest('.fragment').replaceWith(...fragment.childNodes);
+      // Get the wrapper that contains this specific block
+      const wrapper = block.parentElement;
+      
+      // Add classes from fragment section to the current section
+      const currentSection = block.closest('.section');
+      if (currentSection) {
+        currentSection.classList.add(...fragmentSection.classList);
+      }
+      
+      // Replace only this fragment's wrapper with the fragment content
+      wrapper.replaceWith(...fragment.childNodes);
     }
   }
 }
