@@ -10,7 +10,7 @@ import {
   import {
     loadSections,
   } from '../../scripts/lib-helix.js';
-  import { getMetadata } from '../../scripts/lib-adobeio.js';
+  import { getResourceUrl } from '../../scripts/lib-adobeio.js';
   /**
    * Loads a fragment.
    * @param {string} path The path to the fragment
@@ -29,7 +29,7 @@ import {
       } else {
         // Remove existing extension and add .plain.html
         let resolvedPath = path.replace(/\.\w+$/, '');
-        
+
         // Handle absolute paths by prepending pathPrefix if needed
         if (resolvedPath.startsWith('/')) {
           const pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
@@ -87,13 +87,13 @@ export default async function decorate(block) {
     if (fragmentSection) {
       // Get the wrapper that contains this specific block
       const wrapper = block.parentElement;
-      
+
       // Add classes from fragment section to the current section
       const currentSection = block.closest('.section');
       if (currentSection) {
         currentSection.classList.add(...fragmentSection.classList);
       }
-      
+
       // Replace only this fragment's wrapper with the fragment content
       wrapper.replaceWith(...fragment.childNodes);
     }
