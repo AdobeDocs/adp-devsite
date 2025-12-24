@@ -10,6 +10,7 @@ import {
   import {
     loadSections,
   } from '../../scripts/lib-helix.js';
+  import { getMetadata } from '../../scripts/lib-adobeio.js';
   /**
    * Loads a fragment.
    * @param {string} path The path to the fragment
@@ -22,9 +23,25 @@ import {
       const lastSlashIndex = path?.lastIndexOf('/');
       const lastPrefix = path?.substring(lastSlashIndex + 1);
 
-      const fetchPathUrl = (lastPrefix && lastPrefix === 'config') 
-        ? path 
-        : `${path.replace(/\.\w+$/, '')}.plain.html`;
+      let fetchPathUrl;
+      if (lastPrefix && lastPrefix === 'config') {
+        fetchPathUrl = path;
+      } else {
+        // Remove existing extension and add .plain.html
+        let resolvedPath = path.replace(/\.\w+$/, '');
+        
+        // Handle absolute paths by prepending pathPrefix if needed
+        if (resolvedPath.startsWith('/')) {
+          const pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+          if (pathPrefix && !resolvedPath.startsWith(`/${pathPrefix}`)) {
+            resolvedPath = `/${pathPrefix}${resolvedPath}`;
+          }
+          fetchPathUrl = `${window.location.origin}${resolvedPath}.plain.html`;
+        } else {
+          // Relative paths work as-is with fetch
+          fetchPathUrl = `${resolvedPath}.plain.html`;
+        }
+      }
 
       const hashCode = (s) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0);
       const fragmentHash = `${hashCode(fetchPathUrl)}`;
