@@ -32,7 +32,7 @@ import {
 
         // Handle absolute paths by prepending pathPrefix if needed
         if (resolvedPath.startsWith('/')) {
-          const pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+          const pathPrefix = getResourceUrl('pathprefix')?.replace(/^\/|\/$/g, '');
           if (pathPrefix && !resolvedPath.startsWith(`/${pathPrefix}`)) {
             resolvedPath = `/${pathPrefix}${resolvedPath}`;
           }
