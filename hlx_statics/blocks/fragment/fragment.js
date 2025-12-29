@@ -94,8 +94,11 @@ export default async function decorate(block) {
         currentSection.classList.add(...fragmentSection.classList);
       }
 
-      // Replace only this fragment's wrapper with the fragment content
-      wrapper.replaceWith(...fragment.childNodes);
+      // Extract content from fragment section, not the section wrapper itself
+      const fragmentContent = [...fragmentSection.childNodes];
+
+      // Replace only this fragment's wrapper with the fragment's content
+      wrapper.replaceWith(...fragmentContent);
     }
   }
 }
