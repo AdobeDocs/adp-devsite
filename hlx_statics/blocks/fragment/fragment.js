@@ -9,8 +9,8 @@ import {
   } from '../../scripts/scripts.js';
   import {
     loadSections,
+    getMetadata
   } from '../../scripts/lib-helix.js';
-  import { getResourceUrl } from '../../scripts/lib-adobeio.js';
   /**
    * Loads a fragment.
    * @param {string} path The path to the fragment
@@ -32,7 +32,7 @@ import {
 
         // Handle absolute paths by prepending pathPrefix if needed
         if (resolvedPath.startsWith('/')) {
-          const pathPrefix = getResourceUrl('pathprefix')?.replace(/^\/|\/$/g, '');
+          const pathPrefix = getMetadata('pathprefix');
           if (pathPrefix && !resolvedPath.startsWith(`/${pathPrefix}`)) {
             resolvedPath = `/${pathPrefix}${resolvedPath}`;
           }
