@@ -87,18 +87,15 @@ export default async function decorate(block) {
     if (fragmentSection) {
       // Get the wrapper that contains this specific block
       const wrapper = block.parentElement;
-      
+
       // Add classes from fragment section to the current section
       const currentSection = block.closest('.section');
       if (currentSection) {
         currentSection.classList.add(...fragmentSection.classList);
       }
 
-      // Extract content from fragment section, not the section wrapper itself
-      const fragmentContent = [...fragmentSection.childNodes];
-
-      // Replace only this fragment's wrapper with the fragment's content
-      wrapper.replaceWith(...fragmentContent);
+      // Replace only this fragment's wrapper with the fragment content
+      wrapper.replaceWith(...fragment.childNodes);
     }
   }
 }
