@@ -34,7 +34,7 @@ import {
         if (resolvedPath.startsWith('/')) {
           const pathPrefix = getMetadata('pathprefix');
           if (pathPrefix && !resolvedPath.startsWith(`/${pathPrefix}`)) {
-            resolvedPath = `/${pathPrefix}${resolvedPath}`;
+            resolvedPath = `${pathPrefix}${resolvedPath}`;
           }
           fetchPathUrl = `${window.location.origin}${resolvedPath}.plain.html`;
         } else {
