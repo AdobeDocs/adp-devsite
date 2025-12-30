@@ -740,6 +740,57 @@ function globalSignIn() {
   return div;
 }
 
+function processButtonsHtml(topNavButtonsHtml, isMobile = false) {
+  const buttons = [];
+  if (!topNavButtonsHtml) return buttons;
+
+  const tempWrapper = createTag('div');
+  tempWrapper.innerHTML = topNavButtonsHtml;
+
+  const links = tempWrapper.querySelectorAll('li');
+  
+  links.forEach((li) => {
+    const a = li.querySelector('a');
+    if (!a) return;
+
+    // Check if the li contains "primary" or "secondary" keyword
+    const liText = li.textContent.trim().split(' ');
+    const isPrimary = liText.includes('primary');
+    const isSecondary = liText.includes('secondary');
+
+    const buttonDiv = createTag('div', {
+      class: isMobile ? 'nav-mobile-dynamic-button' : 'nav-dynamic-button'
+    });
+
+    // Apply different styles based on keywords
+    if (isPrimary) {
+      // Primary button: CTA filled style (solid blue background)
+      a.className = 'spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM';
+    } else if (isSecondary) {
+      // Secondary button: Outline style (gray border) - same as Console button
+      a.className = 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM';
+    } else {
+      // Default: Secondary outline for desktop, secondary for mobile
+      a.className = isMobile
+        ? 'spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM'
+        : 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM';
+    }
+
+    const span = createTag('span', { class: 'spectrum-Button-label' });
+    // Remove "primary" and "secondary" keywords from the button text
+    span.textContent = a.textContent
+      .replace(/\s*primary\s*/gi, '')
+      .replace(/\s*secondary\s*/gi, '')
+      .trim();
+    a.innerHTML = '';
+    a.appendChild(span);
+    buttonDiv.appendChild(a);
+    buttons.push(buttonDiv);
+  });
+
+  return buttons;
+}
+
 function globalNavLinkItemDropdown(id, name, links) {
   return `
       <button id="nav-dropdown-button_${id}" class="spectrum-Picker spectrum-Picker--sizeM spectrum-Picker--quiet navigation-dropdown" aria-haspopup="listbox">
@@ -1083,16 +1134,27 @@ export default async function decorate(block) {
 
     addCheckmarkSvg(navigationLinks);
 
+    // Add mobile dynamic buttons (if available)
+    let hasMobileDynamicButtons = false;
+    if (getMetadata('pathprefix')) {
+      const topNavButtonsHtml = await fetchTopNavButtonsHtml();
+      const buttons = processButtonsHtml(topNavButtonsHtml, true);
+      if (buttons.length > 0) {
+        hasMobileDynamicButtons = true;
+        buttons.forEach(buttonDiv => navigationLinks.appendChild(buttonDiv));
+      }
+    }
+
     let buttonDiv;
     if (window.location.pathname.includes('/developer-distribution')) {
       buttonDiv = createTag('div');
       navigationLinks.appendChild(buttonDiv);
       buttonDiv.appendChild(globalMobileDistributeButton());
-    } else {
+    } else if (!hasMobileDynamicButtons) {
       buttonDiv = createTag('li', { class: 'button-container' });
       navigationLinks.appendChild(buttonDiv);
+      buttonDiv.appendChild(globalMobileConsoleButton());
     }
-    buttonDiv.appendChild(globalMobileConsoleButton());
     navigationLinks.querySelectorAll('a').forEach((a) => {
       if (a.parentElement.tagName === 'STRONG') {
         a.className = 'spectrum-Button spectrum-Button--secondary  spectrum-Button--sizeM';
@@ -1115,10 +1177,24 @@ export default async function decorate(block) {
   const rightContainer = createTag('div', { class: 'nav-console-right-container' });
 
   rightContainer.appendChild(globalNavSearchButton());
+
+  // Add dynamic buttons from navigation config (if available)
+  let hasDynamicButtons = false;
+  if (getMetadata('pathprefix')) {
+    const topNavButtonsHtml = await fetchTopNavButtonsHtml();
+    const buttons = processButtonsHtml(topNavButtonsHtml, false);
+    if (buttons.length > 0) {
+      hasDynamicButtons = true;
+      buttons.forEach(buttonDiv => rightContainer.appendChild(buttonDiv));
+    }
+  }
+
   if (window.location.pathname.includes('/developer-distribution')) {
     rightContainer.appendChild(globalDistributeButton());
+  } else if (!hasDynamicButtons) {
+    // Only add static console button if no dynamic buttons were added
+    rightContainer.appendChild(globalConsoleButton());
   }
-  rightContainer.appendChild(globalConsoleButton());
   rightContainer.appendChild(globalSpinner());
   rightContainer.appendChild(globalSignIn());
 
@@ -1153,7 +1229,7 @@ export default async function decorate(block) {
 
   if (window.adp && window.adp.imsProfile === LoadingState.SUCCESS) {
     hideSpinner();
-    if(window.adobeid && window.adobeid.profile) {
+    if (window.adobeid && window.adobeid.profile) {
       decorateProfile(window.adobeid.profile);
       fetchProfileAvatar(window.adobeid.profile.userId);
     }
@@ -1181,7 +1257,7 @@ export default async function decorate(block) {
 
   window.addEventListener('imsGetProfileSuccess', () => {
     hideSpinner();
-    if(window.adobeid && window.adobeid.profile) {
+    if (window.adobeid && window.adobeid.profile) {
       decorateProfile(window.adobeid.profile);
       fetchProfileAvatar(window.adobeid.profile.userId);
     }
