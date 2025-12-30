@@ -129,6 +129,14 @@ export async function fetchSideNavHtml() {
 }
 
 /**
+ * Retrieves the buttons in the top nav from the config.
+ * @returns {string} The buttons in the top nav HTML
+ */
+export async function fetchTopNavButtonsHtml() {
+  return fetchNavHtml('buttons:');
+}
+
+/**
  * Retrieves the site-wide-banner json file
  * @returns {string} The site-wide-banner json file
  */
