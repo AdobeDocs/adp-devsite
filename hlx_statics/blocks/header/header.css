@@ -754,6 +754,17 @@ header .menu-btn {
   display: none;
 }
 
+header.global-nav-header div.nav-console-code-playground-button {
+  margin-right: 24px;
+  margin-top: 6px;
+}
+
+header.global-nav-header div.nav-buttons-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 @media screen and (max-width: 768px) {
   main {
     overflow-y: hidden;
