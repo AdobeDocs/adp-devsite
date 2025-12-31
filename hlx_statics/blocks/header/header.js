@@ -8,7 +8,7 @@ import {
   fetchProfileAvatar,
   LoadingState
 } from '../../scripts/lib-adobeio.js';
-import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
+import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const ALGOLIA_CONFIG = {
@@ -696,14 +696,34 @@ function globalDistributeButton() {
   return div;
 }
 
-function globalConsoleButton() {
-  const div = createTag('div', { class: 'nav-console-button' });
-  div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary  spectrum-Button--sizeM">
-    <span class="spectrum-Button-label">
-      Console
-    </span>
-  </a>`;
-  return div;
+function codePlaygroundButton(topButtonsNavHtml) {
+  const container = createTag('div', { class: 'nav-buttons-container' });
+  
+  // Parse the HTML and loop through each li
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = topButtonsNavHtml;
+  const items = tempDiv.querySelectorAll('li');
+  
+  items.forEach(item => {
+    const link = item.querySelector('a');
+    if (!link) return;
+    
+    const href = link.getAttribute('href');
+    const title = link.getAttribute('title') || link.textContent;
+    const isPrimary = item.textContent.includes('primary');
+    
+    const buttonClass = isPrimary 
+      ? 'spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM'
+      : 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM';
+    
+    const buttonDiv = createTag('div', { class: isPrimary ? ' nav-primary-button' : ' nav-secondary-button' });
+    buttonDiv.innerHTML = `<a href="${href}" class="${buttonClass}" target="_blank" rel="noopener noreferrer">
+      <span class="spectrum-Button-label">${title}</span>
+    </a>`;
+    container.appendChild(buttonDiv);
+  });
+  
+  return container;
 }
 
 function globalMobileDistributeButton() {
@@ -1119,6 +1139,8 @@ export default async function decorate(block) {
     header.append(navigationLinks);
   }
 
+  const topButtonsNavHtml = await fetchTopButtonsNavHtml();
+
   // Add right container for all templates
   const rightContainer = createTag('div', { class: 'nav-console-right-container' });
 
@@ -1126,7 +1148,8 @@ export default async function decorate(block) {
   if (window.location.pathname.includes('/developer-distribution')) {
     rightContainer.appendChild(globalDistributeButton());
   }
-  rightContainer.appendChild(globalConsoleButton());
+  if(topButtonsNavHtml)
+    rightContainer.appendChild(codePlaygroundButton(topButtonsNavHtml));
   rightContainer.appendChild(globalSpinner());
   rightContainer.appendChild(globalSignIn());
 

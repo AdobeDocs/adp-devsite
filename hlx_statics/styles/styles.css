@@ -1295,3 +1295,14 @@ header.global-nav-header img.icon {
   width: 22px;
   margin-right: 8px;
 }
+
+.toolbar{
+  display: flex;
+  gap: 10px;
+}
+
+.spectrum-Button.spectrum-Button--outline.spectrum-Button--accent{
+  background-color: transparent;
+  border-color: rgb(2,101,220);
+  color: rgb(2,101,220);
+}
