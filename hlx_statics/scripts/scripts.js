@@ -798,6 +798,27 @@ function loadPrism(document) {
             window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
             window.Prism.plugins.autoloader.use_minified = true;
           }
+
+          // Register "Try it" button for code blocks with "try" class
+          if (window.Prism?.plugins?.toolbar) {
+            window.Prism.plugins.toolbar.registerButton('try-code', (env) => {
+              const pre = env.element.closest('pre');
+              const sessionId = pre.getAttribute('data-playground-session-id');
+              const playgroundMode = pre.getAttribute('data-playground-mode');
+              const playgroundExecutionMode = pre.getAttribute('data-playground-execution-mode');
+              const expressURL = pre.getAttribute('data-express-url');
+              if (!sessionId || !playgroundMode || !playgroundExecutionMode || !expressURL) return null;
+              const btn = createTag('button' , {class : 'try-code-button'});
+              btn.textContent = 'Try in playground';
+              const url = `${expressURL}?mode=${playgroundMode}&session=new&sessionId=${sessionId}&executionMode=${playgroundExecutionMode}`;
+              btn.onclick = () => {
+                window.open(`https://express.adobe.com/new?mode=playground&session=new&sessionId=${sessionId}&executionMode=script`, '_blank');
+                // window.open(url, '_blank');
+              };
+              return btn;
+            });
+          }
+
           // Run highlighting without Web Workers (avoids missing filename with dynamic import)
           window.Prism.highlightAll();
           // Re-highlight when tab panels become active (without modifying tab block)
