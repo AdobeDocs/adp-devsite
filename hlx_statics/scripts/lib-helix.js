@@ -121,6 +121,14 @@ export async function fetchTopNavHtml() {
 }
 
 /**
+ * Retrieves the buttons nav from the config.
+ * @returns {string} The top nav HTML
+ */
+export async function fetchTopButtonsNavHtml() {
+  return fetchNavHtml('buttons:');
+}
+
+/**
  * Retrieves the side nav from the config.
  * @returns {string} The side nav HTML
  */
