@@ -11,6 +11,9 @@ import {
     loadSections,
     getMetadata
   } from '../../scripts/lib-helix.js';
+  import {
+    isLocalHostEnvironment
+  } from '../../scripts/lib-adobeio.js';
   /**
    * Loads a fragment.
    * @param {string} path The path to the fragment
@@ -22,13 +25,18 @@ import {
 
       const lastSlashIndex = path?.lastIndexOf('/');
       const lastPrefix = path?.substring(lastSlashIndex + 1);
+      const isLocalHost = isLocalHostEnvironment(window.location.origin);
 
       let fetchPathUrl;
       if (lastPrefix && lastPrefix === 'config') {
         fetchPathUrl = path;
       } else {
-        // Remove existing extension and add .plain.html
+        // Remove existing extension
         let resolvedPath = path.replace(/\.\w+$/, '');
+
+
+        // Use .md for localhost, .plain.html for production
+        const fileExtension = isLocalHost ? '.md' : '.plain.html';
 
         // Handle absolute paths by prepending pathPrefix if needed
         if (resolvedPath.startsWith('/')) {
@@ -36,10 +44,18 @@ import {
           if (pathPrefix && !resolvedPath.startsWith(`/${pathPrefix}`)) {
             resolvedPath = `${pathPrefix}${resolvedPath}`;
           }
-          fetchPathUrl = `${window.location.origin}${resolvedPath}.plain.html`;
+          const origin = isLocalHost
+            ? window.location.origin.replace(':3000', ':3002')
+            : window.location.origin;
+          fetchPathUrl = `${origin}${resolvedPath}${fileExtension}`;
         } else {
-          // Relative paths work as-is with fetch
-          fetchPathUrl = `${resolvedPath}.plain.html`;
+          // Relative paths
+          if (isLocalHost) {
+            const fullUrl = new URL(`${resolvedPath}${fileExtension}`, window.location.href);
+            fetchPathUrl = fullUrl.href.replace(':3000', ':3002');
+          } else {
+            fetchPathUrl = `${resolvedPath}${fileExtension}`;
+          }
         }
       }
 
@@ -53,8 +69,19 @@ import {
     } else {
       const resp = await fetch(fetchPathUrl);
       if (resp.ok) {
+        const htmlText = await resp.text();
         main = document.createElement('main');
-        main.innerHTML = await resp.text();
+        if (isLocalHost) {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlText, 'text/html');
+          const mainContent = doc.querySelector('main');
+          if (mainContent) {
+            main.innerHTML = mainContent.innerHTML;
+          }
+        } else {
+          main.innerHTML = htmlText;
+        }
+
         sessionStorage.setItem(fragmentHash, main.innerHTML);
       }
     }
