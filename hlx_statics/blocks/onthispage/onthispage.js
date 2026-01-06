@@ -40,11 +40,17 @@ export default async function decorate(block) {
         if (heading.tagName === 'H3') {
             anchor.style.paddingLeft = '16px';
         }
-        if (index === 0) {
-            anchor.classList.add('active');
-        }
     });
 
+    // Set initial active item based on URL hash or default to first item
+    const initialHash = window.location.hash;
+    const correspondingAnchor = initialHash 
+        ? anchors.find(anchor => anchor.getAttribute('href') === initialHash)
+        : null;
+    const initialActiveAnchor = correspondingAnchor || anchors[0];
+    initialActiveAnchor?.classList.add('active');
+
+    // Set active item based on scroll position
     const observer = new IntersectionObserver((entries) => {
         if (isClick) return;
         let maxVisibleSection = null;
