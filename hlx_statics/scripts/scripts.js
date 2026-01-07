@@ -53,6 +53,7 @@ import {
   imsGetProfile,
   imsGetProfileSuccess,
   imsGetProfileError,
+  scrollWithLayoutAdjustment,
 } from './lib-adobeio.js';
 
 export {
@@ -729,10 +730,6 @@ async function loadLazy(doc) {
 
   await loadBlocks(main);
 
-  const { hash } = window.location;
-  const element = hash ? doc.getElementById(hash.substring(1)) : false;
-  if (hash && element) element.scrollIntoView();
-
   loadHeader(doc.querySelector('header'));
   await decorateIcons(main);
   loadFooter(doc.querySelector('footer'));
@@ -779,6 +776,8 @@ async function loadLazy(doc) {
   sampleRUM('lazy');
   sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
   sampleRUM.observe(main.querySelectorAll('picture > img'));
+
+  scrollToHash(doc);
 
   if (window.location.hostname.endsWith('hlx.page') || window.location.hostname === ('localhost')) {
     // eslint-disable-next-line import/no-cycle
@@ -902,6 +901,18 @@ function loadPrism(document) {
   }, { rootMargin: '200px 0px', threshold: 0.1 });
 
   codeBlocks.forEach((block) => observer.observe(block));
+}
+
+function scrollToHash(doc) {
+  const { hash } = window.location;
+  const element = hash ? doc.getElementById(hash.substring(1)) : false;
+  if (element) {    
+    if (document.readyState === 'complete') {
+      scrollWithLayoutAdjustment(element);
+    } else {
+      window.addEventListener('load', () => scrollWithLayoutAdjustment(element));
+    }
+  }
 }
 
 function fixLocalDev(document){
