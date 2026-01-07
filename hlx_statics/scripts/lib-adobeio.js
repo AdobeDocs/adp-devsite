@@ -955,6 +955,17 @@ export function decorateAnchorLink(header) {
 }
 
 /**
+ * Scrolls element into view with adjustment for lazy-loaded decorations.
+ * @param {Element} element The element to scroll to
+ */
+export function scrollWithLayoutAdjustment(element) {
+  // Scroll to element (triggers lazy decorations)
+  element.scrollIntoView();
+  // Re-scroll after decorations settle (no completion event available)
+  setTimeout(() => element.scrollIntoView(), 500);
+}
+
+/**
  * Set the width of a block from Section Metadata.
  *
  * Nov 15th 2024: Removed from all blocks and will refactor in the future if there's demand.
