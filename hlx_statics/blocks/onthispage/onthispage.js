@@ -80,10 +80,8 @@ export default async function decorate(block) {
     anchors.forEach(anchor => {
         anchor.addEventListener('click', (event) => {
             isClick = true;
-            const anchorId = event.target.href.split('#')[1];
             anchors.forEach(a => a.classList.remove('active'));
             event.target.classList.add('active');
-            document.getElementById(anchorId).scrollIntoView({ behavior: 'smooth' });
             setTimeout(() => {
                 isClick = false;
             }, 500);
