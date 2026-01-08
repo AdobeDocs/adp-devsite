@@ -553,6 +553,16 @@ async function initSearch() {
   updateSearch();
 }
 
+function globalConsoleButton() {
+  const div = createTag('div', { class: 'nav-console-button' });
+  div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary  spectrum-Button--sizeM">
+    <span class="spectrum-Button-label">
+      Console
+    </span>
+  </a>`;
+  return div;
+}
+
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
   div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
@@ -1131,7 +1141,12 @@ export default async function decorate(block) {
     header.append(navigationLinks);
   }
 
-  const topButtonsNavHtml = await fetchTopButtonsNavHtml();
+  let topButtonsNavHtml = null;
+  try {
+    topButtonsNavHtml = await fetchTopButtonsNavHtml();
+  } catch (e) {
+    // No buttons config found, will fallback to console button
+  }
 
   // Add right container for all templates
   const rightContainer = createTag('div', { class: 'nav-console-right-container' });
@@ -1140,8 +1155,11 @@ export default async function decorate(block) {
   if (window.location.pathname.includes('/developer-distribution')) {
     rightContainer.appendChild(globalDistributeButton());
   }
-  if(topButtonsNavHtml)
+  if (topButtonsNavHtml) {
     rightContainer.appendChild(codePlaygroundButton(topButtonsNavHtml));
+  } else {
+    rightContainer.appendChild(globalConsoleButton());
+  }
   rightContainer.appendChild(globalSpinner());
   rightContainer.appendChild(globalSignIn());
 
