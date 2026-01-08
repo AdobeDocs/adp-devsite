@@ -727,7 +727,7 @@ function codePlaygroundButton(topButtonsNavHtml) {
       : 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM';
     
     const buttonDiv = createTag('div', { class: isPrimary ? ' nav-primary-button' : ' nav-secondary-button' });
-    buttonDiv.innerHTML = `<a href="${href}" class="${buttonClass}" target="_blank" rel="noopener noreferrer">
+    buttonDiv.innerHTML = `<a href="${href}" class="${buttonClass}" rel="noopener noreferrer">
       <span class="spectrum-Button-label">${title}</span>
     </a>`;
     container.appendChild(buttonDiv);
