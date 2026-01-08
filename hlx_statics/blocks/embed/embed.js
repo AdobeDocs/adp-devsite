@@ -227,7 +227,6 @@ export default function decorate(block) {
   }
   else {
     link = block.querySelector('.embed > div > div').innerText;
-    block.style.maxWidth = "800px";
   }
 
   block.textContent = '';
