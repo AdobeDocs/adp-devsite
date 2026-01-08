@@ -3,10 +3,30 @@
  * @param {Element} block The title block element {Parameter Type} Name of the Parameter
  */
 export default async function decorate(block) {
+    // Define allowed colors
+    const colorMap = {
+        'red': 'rgb(187, 2, 2)',
+        'green': 'rgb(0, 128, 0)',
+        'blue': 'rgb(4, 105, 227)'
+    };
+
+    // Get background color from data attribute or class name
+    let requestedColor = block.getAttribute('data-backgroundcolor')?.toLowerCase();
+    
+    // If no data attribute, check for class name like 'background-color-blue'
+    if (!requestedColor) {
+        const classList = Array.from(block.classList);
+        const colorClass = classList.find(cls => cls.startsWith('background-color-'));
+        if (colorClass) {
+            requestedColor = colorClass.replace('background-color-', '');
+        }
+    }
+    
+    const backgroundColor = colorMap[requestedColor] || colorMap['red'];
 
     block.querySelectorAll('.edition > div > div').forEach((div) => {
         Object.assign(div.style, {
-            backgroundColor: "rgb(187 2 2)",
+            backgroundColor: backgroundColor,
             color: "white",
             fontSize: "12px"
         });
