@@ -1,5 +1,6 @@
 import {
-    createTag
+    createTag,
+    scrollWithLayoutAdjustment
 } from '../../scripts/lib-adobeio.js';
 import insertWrapperContainer from '../../components/wrapperContainer.js';
 
@@ -85,9 +86,22 @@ export default async function decorate(block) {
 
     anchors.forEach(anchor => {
         anchor.addEventListener('click', (event) => {
+            event.preventDefault();
             isClick = true;
+            
+            const anchorId = event.target.href.split('#')[1];
+            const element = document.getElementById(anchorId);
+            
+            // Set active item
             anchors.forEach(a => a.classList.remove('active'));
             event.target.classList.add('active');
+            
+            // Scroll page
+            scrollWithLayoutAdjustment(element);
+            
+            // Update URL
+            history.pushState(null, '', `#${anchorId}`);
+            
             setTimeout(() => {
                 isClick = false;
             }, 500);
