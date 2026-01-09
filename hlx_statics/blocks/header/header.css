@@ -764,6 +764,11 @@ header.global-nav-header div.nav-buttons-container {
   align-items: center;
   gap: 10px;
 }
+@media screen and (min-width: 320px) and (max-width: 768px) {
+  header.global-nav-header div.nav-buttons-container {
+    display: none;
+  }
+}
 
 @media screen and (max-width: 768px) {
   main {

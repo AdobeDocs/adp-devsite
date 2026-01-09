@@ -713,20 +713,17 @@ function codePlaygroundButton(topButtonsNavHtml) {
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = topButtonsNavHtml;
   const items = tempDiv.querySelectorAll('li');
-  
-  items.forEach(item => {
+  [...items].forEach((item, index) => {
     const link = item.querySelector('a');
     if (!link) return;
     
     const href = link.getAttribute('href');
     const title = link.getAttribute('title') || link.textContent;
-    const isPrimary = item.textContent.includes('primary');
-    
-    const buttonClass = isPrimary 
+    const buttonClass = index === 0
       ? 'spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM'
       : 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM';
     
-    const buttonDiv = createTag('div', { class: isPrimary ? ' nav-primary-button' : ' nav-secondary-button' });
+    const buttonDiv = createTag('div');
     buttonDiv.innerHTML = `<a href="${href}" class="${buttonClass}" rel="noopener noreferrer">
       <span class="spectrum-Button-label">${title}</span>
     </a>`;
@@ -1072,9 +1069,10 @@ export default async function decorate(block) {
       navigationLinks.append(productLi);
     }
 
-    // check if there's a path prefix then retrieve it otherwise default back to google drive path
+    // check if documentation template then retrieve from config otherwise default back to google drive path
     let navPath;
-    if(getMetadata('pathprefix')) {
+    const isDocumentation = getMetadata('template') === 'documentation';
+    if (isDocumentation) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
@@ -1149,11 +1147,15 @@ export default async function decorate(block) {
     header.append(navigationLinks);
   }
 
+  // Fetch dynamic buttons for documentation template
   let topButtonsNavHtml = null;
-  try {
-    topButtonsNavHtml = await fetchTopButtonsNavHtml();
-  } catch (e) {
-    // No buttons config found, will fallback to console button
+  const hasDocumentationTemplate = getMetadata('template') === 'documentation';
+  if (hasDocumentationTemplate) {
+    try {
+      topButtonsNavHtml = await fetchTopButtonsNavHtml();
+    } catch (e) {
+      // No buttons config found, will fallback to console button
+    }
   }
 
   // Add right container for all templates

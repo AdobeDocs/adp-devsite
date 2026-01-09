@@ -171,6 +171,17 @@ export default async function decorate(block) {
   `;
   menuUl.appendChild(consoleButtonLi);
 
+  const codePlaygroundButtonLi = createTag("li");
+  codePlaygroundButtonLi.innerHTML = `
+      <div class="nav-playground-button">
+      <a href="https://www.adobe.com/go/addon-playground?session=saved" 
+         class="spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM">
+        <span class="spectrum-Button-label">Code Playground</span>
+      </a>
+    </div>
+  `;
+  menuUl.appendChild(codePlaygroundButtonLi);
+
   mainMenuSection.append(menuUl);
 
   // Fetch and populate subpages
