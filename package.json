@@ -26,6 +26,7 @@
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
+        "@octokit/rest": "^22.0.1",
         "minimist": "^1.2.6"
     }
 }
