@@ -212,6 +212,18 @@ main div.section.side-nav-container {
     visibility: hidden;
 }
 
+main div.side-nav-wrapper .side-nav-menu-section .nav-playground-button a{
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background-color 130ms ease-out, border-color 130ms ease-out, color 130ms ease-out;
+}
 
 /* Desktop behavior */
 @media screen and (min-width: 769px) {
