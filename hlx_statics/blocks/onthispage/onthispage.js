@@ -1,5 +1,6 @@
 import {
-    createTag
+    createTag,
+    scrollWithLayoutAdjustment
 } from '../../scripts/lib-adobeio.js';
 import insertWrapperContainer from '../../components/wrapperContainer.js';
 
@@ -40,11 +41,17 @@ export default async function decorate(block) {
         if (heading.tagName === 'H3') {
             anchor.style.paddingLeft = '16px';
         }
-        if (index === 0) {
-            anchor.classList.add('active');
-        }
     });
 
+    // Set initial active item based on URL hash or default to first item
+    const initialHash = window.location.hash;
+    const correspondingAnchor = initialHash 
+        ? anchors.find(anchor => anchor.getAttribute('href') === initialHash)
+        : null;
+    const initialActiveAnchor = correspondingAnchor || anchors[0];
+    initialActiveAnchor?.classList.add('active');
+
+    // Set active item based on scroll position
     const observer = new IntersectionObserver((entries) => {
         if (isClick) return;
         let maxVisibleSection = null;
@@ -79,11 +86,22 @@ export default async function decorate(block) {
 
     anchors.forEach(anchor => {
         anchor.addEventListener('click', (event) => {
+            event.preventDefault();
             isClick = true;
+            
             const anchorId = event.target.href.split('#')[1];
+            const element = document.getElementById(anchorId);
+            
+            // Set active item
             anchors.forEach(a => a.classList.remove('active'));
             event.target.classList.add('active');
-            document.getElementById(anchorId).scrollIntoView({ behavior: 'smooth' });
+            
+            // Scroll page
+            scrollWithLayoutAdjustment(element);
+            
+            // Update URL
+            history.pushState(null, '', `#${anchorId}`);
+            
             setTimeout(() => {
                 isClick = false;
             }, 500);
