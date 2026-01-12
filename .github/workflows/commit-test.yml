@@ -16,7 +16,10 @@ jobs:
           node-version: 18
       - run: npm install
       - name: Run tests with coverage
-        run: npm test
+        id: test
+        run: |
+          npm test 2>&1 | tee test-output.txt
+          exit ${PIPESTATUS[0]}
         continue-on-error: true
       - name: Post coverage comment
         if: always() && github.event_name == 'pull_request'
@@ -24,3 +27,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_ID: ${{ github.event.pull_request.number }}
+          TEST_OUTCOME: ${{ steps.test.outcome }}
+      # Reveal and report the test failures
+      - name: Fail if tests failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1
