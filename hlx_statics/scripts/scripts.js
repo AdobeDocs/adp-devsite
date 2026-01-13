@@ -872,7 +872,8 @@ function fixLocalDev(document){
   if(isLocalHostEnvironment(window.location.host)){
     // replace all images with eds div structure
     document.querySelectorAll('img').forEach((img) => {
-      if(img.src.includes('raw.githubusercontent.com')) {
+      // Check for both GitHub raw URLs AND localhost URLs
+      if(img.src.includes('raw.githubusercontent.com') || img.src.includes('127.0.0.1:3003') || img.src.includes('localhost:3003')) {
         const lastDotIndex = img.src.lastIndexOf('.');
         let imageExtension = '';
         if (lastDotIndex !== -1) {
@@ -890,6 +891,7 @@ function fixLocalDev(document){
     });
   }
 }
+
 async function loadPage() {
   fixLocalDev(document);
   await loadEager(document);
