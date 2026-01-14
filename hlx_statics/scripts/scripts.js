@@ -502,30 +502,113 @@ function loadConfig() {
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
+  // ==========================================
+  // COOKIE CONSENT CHECKING
+  // ==========================================
+  // Check for C0002 (Performance/Analytics) consent before loading AEP
+  function checkConsent() {
+    // Check if adobePrivacy is available
+    if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
+      console.log('⏳ Privacy library not loaded yet, waiting for consent events...');
+      return;
+    }
+
+    const activeGroups = window.adobePrivacy.activeCookieGroups();
+    console.log('🍪 Active consent groups:', activeGroups);
+    
+    // Check if user gave permission for performance/analytics tracking (C0002)
+    if (activeGroups.indexOf('C0002') !== -1) {
+      console.log('✅ Performance consent granted - loading Adobe Experience Platform');
+      loadAep();
+    } else {
+      console.log('⚠️ Performance consent not granted - Adobe Experience Platform will not be loaded');
+    }
+  }
+
+  // Listen for consent events from the privacy library
+  window.addEventListener('adobePrivacy:PrivacyConsent', () => {
+    console.log('📋 Event: User accepted all consent');
+    checkConsent();
+  });
+
+  window.addEventListener('adobePrivacy:PrivacyCustom', () => {
+    console.log('📋 Event: User customized consent preferences');
+    checkConsent();
+  });
+
+  window.addEventListener('adobePrivacy:PrivacyReject', () => {
+    console.log('📋 Event: User rejected optional consent');
+    checkConsent();
+  });
+
+  // Check immediately if privacy library already loaded (return visitor)
+  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
+    console.log('🔄 Privacy library already available, checking consent immediately');
+    checkConsent();
+  }
+  // ==========================================
+  // END COOKIE CONSENT CHECKING
+  // ==========================================
+
+  // Load IMS (authentication - doesn't need consent)
   loadIms();
-  loadAep();
+  
+  // NOTE: loadAep() is now called conditionally in checkConsent() based on C0002 consent
+
+  // // Load Algolia search scripts
+  // addExtraScriptWithLoad(
+  //   document.body,
+  //   "https://cdn.jsdelivr.net/npm/algoliasearch@5.20.1/dist/lite/builds/browser.umd.js",
+  //   () => {
+  //     addExtraScriptWithLoad(
+  //       document.body,
+  //       "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
+  //       () => {
+  //         const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+  //         // const searchClient = algoliasearch("E642SEDTHL", "424b546ba7ae75391585a10c6ea38dab");
+
+  //         if (!algoliasearch || !instantsearch) {
+  //           console.error("Required search libraries not loaded");
+  //           return;
+  //         }else{
+  //           console.log("Algolia InstantSearch loaded successfully!")
+  //         }
+
+  //         // Trigger index validation after Algolia is loaded
+  //         if (window.adp_search && window.adp_search.triggerIndexValidation) {
+  //           window.adp_search.triggerIndexValidation();
+  //         }
+  //       }
+  //     );
+  //   }
+  // );
 
   // Load Algolia search scripts
   addExtraScriptWithLoad(
     document.body,
-    "https://cdn.jsdelivr.net/npm/algoliasearch@5.20.1/dist/lite/builds/browser.umd.js",
+    "https://cdn.jsdelivr.net/npm/algoliasearch@5.20.1/dist/algoliasearch.umd.js",
     () => {
       addExtraScriptWithLoad(
         document.body,
         "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
         () => {
-          const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-          // const searchClient = algoliasearch("E642SEDTHL", "424b546ba7ae75391585a10c6ea38dab");
+          const algoliasearch = window.algoliasearch;
+          const instantsearch = window.instantsearch;
 
           if (!algoliasearch || !instantsearch) {
             console.error("Required search libraries not loaded");
             return;
-          }else{
-            console.log("Algolia InstantSearch loaded successfully!")
           }
 
+          // const searchClient = algoliasearch(
+          //   "E642SEDTHL",
+          //   "424b546ba7ae75391585a10c6ea38dab"
+          // );
+
+          console.log("Algolia InstantSearch loaded successfully!");
+
           // Trigger index validation after Algolia is loaded
-          if (window.adp_search && window.adp_search.triggerIndexValidation) {
+          if (window.adp_search?.triggerIndexValidation) {
             window.adp_search.triggerIndexValidation();
           }
         }
@@ -565,7 +648,9 @@ async function loadLazy(doc) {
   }
 
   window.adp_search.APP_KEY = 'E642SEDTHL';
-  window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
+  // window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
+  // window.adp_search.API_KEY = '4d1503b0ad83047fd96a8340f33695d3';
+  window.adp_search.API_KEY = '6d498e750458eb371e764fcc11212df4';
   window.adp_search.map_found = true;
 
   //if no map found then don't initialze search at all
@@ -611,13 +696,32 @@ async function loadLazy(doc) {
 
     // Validate all indices in parallel
     async function validateAndFilterIndices() {
-      if (!window["algoliasearch/lite"]) {
+      // if (!window["algoliasearch/lite"]) {
+      //   console.error('Algolia not loaded, cannot validate indices');
+      //   return allIndices;
+      // }
+
+      if (!window.algoliasearch) {
         console.error('Algolia not loaded, cannot validate indices');
         return allIndices;
       }
 
-      const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-      const searchClient = algoliasearch(window.adp_search.APP_KEY, window.adp_search.API_KEY);
+      // const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+      // const algoliasearch = window.algoliasearch;
+
+      const searchClient = window.algoliasearch.algoliasearch(
+        window.adp_search.APP_KEY, window.adp_search.API_KEY);
+
+      // Call the API
+      // const response = await client.getApiKey({ key: '4d1503b0ad83047fd96a8340f33695d3' });
+
+
+      // print the response
+      // console.log(response);
+
+      const items = await searchClient.listIndices();
+      console.log("INDEX NAMES:");
+      console.log(items);
 
       // console.log(`Validating ${allIndices.length} indices...`);
       const validationResults = await Promise.allSettled(
