@@ -547,6 +547,10 @@ async function loadLazy(doc) {
     console.log('🔄 Privacy library already available, checking consent immediately');
     checkConsent();
   }
+
+  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
+    console.log('🔄 Privacy library already available, checking consent immediately');
+  }
   // ==========================================
   // END COOKIE CONSENT CHECKING
   // ==========================================
@@ -662,11 +666,6 @@ async function loadLazy(doc) {
     // Validate all indices in parallel
     async function validateAndFilterIndices() {
       if (!window["algoliasearch/lite"]) {
-        console.error('Algolia not loaded, cannot validate indices');
-        return allIndices;
-      }
-
-      if (!window.algoliasearch) {
         console.error('Algolia not loaded, cannot validate indices');
         return allIndices;
       }
