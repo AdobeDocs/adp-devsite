@@ -502,64 +502,57 @@ function loadConfig() {
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
-  // ==========================================
-  // COOKIE CONSENT CHECKING
-  // ==========================================
   // Check for C0002 (Performance/Analytics) consent before loading AEP
   function checkConsent() {
     // Check if adobePrivacy is available
-    console.log('🔍 Checking cookie consent for Adobe Experience Platform...');
+    console.log('test: check cookie consent');
     if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
-      console.log('⏳ Privacy library not loaded yet, waiting for consent events...');
+      console.log('Privacy library not loaded yet, waiting for consent events');
       return;
     }
 
     const activeGroups = window.adobePrivacy.activeCookieGroups();
-    console.log('🍪 Active consent groups:', activeGroups);
+    console.log('Active consent groups:', activeGroups);
     
     // Check if user gave permission for performance/analytics tracking (C0002)
     if (activeGroups.indexOf('C0002') !== -1) {
-      console.log('✅ Performance consent granted - loading Adobe Experience Platform');
+      console.log('Performance consent granted - loading Adobe Experience Platform');
       loadAep();
     } else {
-      console.log('⚠️ Performance consent not granted - Adobe Experience Platform will not be loaded');
+      console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
     }
+  }
+
+  if (activeGroups.indexOf('C0002') !== -1) {
+    console.log('Performance consent granted - loading Adobe Experience Platform');
+  } else {
+    console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
   }
 
   // Listen for consent events from the privacy library
   window.addEventListener('adobePrivacy:PrivacyConsent', () => {
-    console.log('📋 Event: User accepted all consent');
+    console.log('Event: User accepted all consent');
     checkConsent();
   });
 
   window.addEventListener('adobePrivacy:PrivacyCustom', () => {
-    console.log('📋 Event: User customized consent preferences');
+    console.log('Event: User customized consent preferences');
     checkConsent();
   });
 
   window.addEventListener('adobePrivacy:PrivacyReject', () => {
-    console.log('📋 Event: User rejected optional consent');
+    console.log('Event: User rejected optional consent');
     checkConsent();
   });
 
   // Check immediately if privacy library already loaded (return visitor)
   if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
-    console.log('🔄 Privacy library already available, checking consent immediately');
+    console.log('Privacy library already available, checking consent immediately');
     checkConsent();
   }
 
-  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
-    console.log('🔄 Privacy library already available, checking consent immediately');
-  }
-  // ==========================================
-  // END COOKIE CONSENT CHECKING
-  // ==========================================
-
-  // Load IMS (authentication - doesn't need consent)
   loadIms();
   
-  // NOTE: loadAep() is now called conditionally in checkConsent() based on C0002 consent
-
   // Load Algolia search scripts
   addExtraScriptWithLoad(
     document.body,
