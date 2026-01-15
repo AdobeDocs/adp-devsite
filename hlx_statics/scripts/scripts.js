@@ -523,7 +523,7 @@ async function loadLazy(doc) {
       console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
     }
   }
-
+  
   // Listen for consent events from the privacy library
   window.addEventListener('adobePrivacy:PrivacyConsent', () => {
     console.log('Event: User accepted all consent');
