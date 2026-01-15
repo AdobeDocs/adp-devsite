@@ -524,12 +524,6 @@ async function loadLazy(doc) {
     }
   }
 
-  if (activeGroups.indexOf('C0002') !== -1) {
-    console.log('Performance consent granted - loading Adobe Experience Platform');
-  } else {
-    console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
-  }
-
   // Listen for consent events from the privacy library
   window.addEventListener('adobePrivacy:PrivacyConsent', () => {
     console.log('Event: User accepted all consent');
