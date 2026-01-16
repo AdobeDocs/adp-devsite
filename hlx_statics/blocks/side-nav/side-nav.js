@@ -6,6 +6,7 @@ import {
 import {
   fetchSideNavHtml,
   fetchTopNavHtml,
+  fetchTopButtonsNavHtml,
   IS_DEV_DOCS
 } from "../../scripts/lib-helix.js";
 import { loadFragment } from '../fragment/fragment.js';
@@ -159,28 +160,39 @@ export default async function decorate(block) {
     processNestedNavigation(menuUl);
   }
 
-  // Add console button
-  const consoleButtonLi = createTag("li", { class: "spectrum-SideNav-item" });
-  consoleButtonLi.innerHTML = `
-    <div class="nav-console-button">
-      <a href="https://developer.adobe.com/console/" 
-         class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM">
-        <span class="spectrum-Button-label">Console</span>
-      </a>
-    </div>
-  `;
-  menuUl.appendChild(consoleButtonLi);
+  // Add dynamic buttons from config, or fall back to console button
+  let topButtonsNavHtml = null;
+  if (IS_DEV_DOCS) {
+    try {
+      topButtonsNavHtml = await fetchTopButtonsNavHtml();
+    } catch (e) {
+      // No buttons config found, will fallback to console button
+    }
+  }
 
-  const codePlaygroundButtonLi = createTag("li");
-  codePlaygroundButtonLi.innerHTML = `
-      <div class="nav-playground-button">
-      <a href="https://www.adobe.com/go/addon-playground?session=saved" 
-         class="spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM">
-        <span class="spectrum-Button-label">Code Playground</span>
+  // Parse buttons from config or use default console button
+  const buttons = [];
+  if (topButtonsNavHtml) {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = topButtonsNavHtml;
+    tempDiv.querySelectorAll('li a').forEach((link) => {
+      buttons.push({ href: link.getAttribute('href'), title: link.getAttribute('title') || link.textContent });
+    });
+  }
+  if (!buttons.length) {
+    buttons.push({ href: 'https://developer.adobe.com/console/', title: 'Console' });
+  }
+
+  buttons.forEach(({ href, title }, index) => {
+    const style = index === 0 && buttons.length > 1 ? 'accent' : 'secondary';
+    const buttonLi = createTag("li", { class: "spectrum-SideNav-item" });
+    buttonLi.innerHTML = `<div class="nav-buttons-container">
+      <a href="${href}" class="spectrum-Button spectrum-Button--outline spectrum-Button--${style} spectrum-Button--sizeM">
+        <span class="spectrum-Button-label">${title}</span>
       </a>
-    </div>
-  `;
-  menuUl.appendChild(codePlaygroundButtonLi);
+    </div>`;
+    menuUl.appendChild(buttonLi);
+  });
 
   mainMenuSection.append(menuUl);
 
@@ -193,9 +205,9 @@ export default async function decorate(block) {
   }
   block.append(navigationLinks);
 
-  // Add spectrum classes to navigation items
+  // Add spectrum classes to navigation items (exclude button anchors)
   block.querySelectorAll("li").forEach((li) => li.classList.add("spectrum-SideNav-item"));
-  block.querySelectorAll("a").forEach((a) => a.classList.add("spectrum-SideNav-itemLink"));
+  block.querySelectorAll("a:not(.spectrum-Button)").forEach((a) => a.classList.add("spectrum-SideNav-itemLink"));
 
   function assignLayerNumbers(ul, layer = 1) {
     const listItems = ul.children;

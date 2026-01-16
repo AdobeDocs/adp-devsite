@@ -344,3 +344,12 @@ main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hidden {
     display:none;
 }
 
+main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container {
+  display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container a {
+  width: calc(100% - 32px);
+}
