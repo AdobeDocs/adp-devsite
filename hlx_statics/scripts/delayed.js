@@ -42,7 +42,7 @@ async function preloadPage(href) {
 // Core Web Vitals RUM collection
 sampleRUM('cwv');
 
-addExtraScript(document.body, 'https://wwwimages2.adobe.com/etc/beagle/public/globalnav/adobe-privacy/latest/privacy.min.js');
+addExtraScript(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js');
 
 document.querySelectorAll('.embed').forEach((embed) => {
   const iframe = embed.querySelector('iframe');
