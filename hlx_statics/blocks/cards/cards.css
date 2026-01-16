@@ -115,7 +115,7 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
   }
   main div.cards-wrapper div.cards.wide {
     flex-direction: row;
-  } 
+  }
   main div.cards-wrapper div.cards > div {
     padding: 40px 0;
   }
@@ -125,4 +125,9 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
   main div.cards-wrapper {
     padding: 40px 0px 0px 0px;
   }
+}
+
+main.dev-docs div.cards-wrapper {
+  display: inline-flex;
+  flex-direction: column;
 }

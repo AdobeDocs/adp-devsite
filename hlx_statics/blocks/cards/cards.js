@@ -25,6 +25,17 @@ export default async function decorate(block) {
   if (!isLink) {
     decorateButtons(block);
   }
+
+  // for devdocs, the author can put in an attribute width to change the width of the cards.
+  const width = block.getAttribute('data-width');
+  if (width) {
+    const wrapper = block.closest('.cards-wrapper');
+    if (wrapper) {
+      wrapper.style.width = width;
+    }
+  }
+
+
   block.setAttribute('daa-lh', 'cards');
   block.querySelectorAll('.cards > div').forEach((card, index, array) => {
 
