@@ -8,7 +8,7 @@ import {
   fetchProfileAvatar,
   LoadingState
 } from '../../scripts/lib-adobeio.js';
-import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml } from '../../scripts/lib-helix.js';
+import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const ALGOLIA_CONFIG = {
@@ -1063,8 +1063,7 @@ export default async function decorate(block) {
 
     // check if documentation template then retrieve from config otherwise default back to google drive path
     let navPath;
-    const isDocumentation = getMetadata('template') === 'documentation';
-    if (isDocumentation) {
+    if (IS_DEV_DOCS) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
@@ -1141,8 +1140,7 @@ export default async function decorate(block) {
 
   // Fetch dynamic buttons for documentation template
   let topButtonsNavHtml = null;
-  const hasDocumentationTemplate = getMetadata('template') === 'documentation';
-  if (hasDocumentationTemplate) {
+  if (IS_DEV_DOCS) {
     try {
       topButtonsNavHtml = await fetchTopButtonsNavHtml();
     } catch (e) {
