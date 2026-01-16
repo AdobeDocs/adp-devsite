@@ -454,7 +454,6 @@ function loadConfig() {
   // cookie preference
   window.fedsConfig = {
     privacy: {
-      // TODO config from adobe.com
       otDomainId: '7a5eb705-95ed-4cc4-a11d-0cc5760e93db',
       footerLinkSelector: '#openPrivacy',
     },
@@ -503,21 +502,18 @@ function loadConfig() {
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
-  // Check for C0002 (Performance/Analytics) consent before loading AEP
+  // Check for C0002 (Performance/Analytics) consent before loading AEP - part of new privacy library implementation
   function checkConsent() {
     // Check if adobePrivacy is available
-    console.log('test: check cookie consent');
     if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
-      console.log('Privacy library not loaded yet, waiting for consent events');
+      console.error('Privacy library not loaded yet, waiting for consent events');
       return;
     }
 
     const activeGroups = window.adobePrivacy.activeCookieGroups();
-    console.log('Active consent groups:', activeGroups);
     
     // Check if user gave permission for performance/analytics tracking (C0002)
     if (activeGroups.indexOf('C0002') !== -1) {
-      console.log('Performance consent granted - loading Adobe Experience Platform');
       loadAep();
     } else {
       console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
@@ -526,23 +522,23 @@ async function loadLazy(doc) {
   
   // Listen for consent events from the privacy library
   window.addEventListener('adobePrivacy:PrivacyConsent', () => {
-    console.log('Event: User accepted all consent');
+    // Event: User accepted all consent
     checkConsent();
   });
 
   window.addEventListener('adobePrivacy:PrivacyCustom', () => {
-    console.log('Event: User customized consent preferences');
+    // Event: User customized consent preferences
     checkConsent();
   });
 
   window.addEventListener('adobePrivacy:PrivacyReject', () => {
-    console.log('Event: User rejected optional consent');
+    // Event: User rejected optional consent
     checkConsent();
   });
 
   // Check immediately if privacy library already loaded (return visitor)
   if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
-    console.log('Privacy library already available, checking consent immediately');
+    // Privacy library already available, checking consent immediately
     checkConsent();
   }
 
@@ -558,13 +554,10 @@ async function loadLazy(doc) {
         "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
         () => {
           const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-          // const searchClient = algoliasearch("E642SEDTHL", "424b546ba7ae75391585a10c6ea38dab");
 
           if (!algoliasearch || !instantsearch) {
             console.error("Required search libraries not loaded");
             return;
-          }else{
-            console.log("Algolia InstantSearch loaded successfully!")
           }
 
           // Trigger index validation after Algolia is loaded
