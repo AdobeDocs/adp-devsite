@@ -806,11 +806,11 @@ function loadPrism(document) {
               const sessionId = pre?.getAttribute('data-playground-session-id');
               const playgroundMode = pre?.getAttribute('data-playground-mode');
               const playgroundExecutionMode = pre?.getAttribute('data-playground-execution-mode');
-              const expressURL = pre?.getAttribute('data-express-url');
-              if (!sessionId || !playgroundMode || !playgroundExecutionMode || !expressURL) return null;
+              const playgroundURL = pre?.getAttribute('data-playground-url');
+              if (!sessionId || !playgroundMode || !playgroundExecutionMode || !playgroundURL) return null;
               const btn = createTag('button', { class: 'try-code-button' });
               btn.textContent = 'Try in playground';
-              const url = `${expressURL}?mode=${playgroundMode}&session=new&sessionId=${sessionId}&executionMode=${playgroundExecutionMode}`;
+              const url = `${playgroundURL}?mode=${playgroundMode}&session=new&sessionId=${sessionId}&executionMode=${playgroundExecutionMode}`;
               btn.onclick = () => {
                 window.open(url, '_blank');
               };
