@@ -990,6 +990,13 @@ export default async function decorate(block) {
     if (topNavHtml) {
       navigationLinks.innerHTML += topNavHtml;
 
+      // external links (aio_external query param)
+      navigationLinks.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
+        link.href = link.href.replace(/[?&]aio_external/, '');
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+
       // Process dropdowns for documentation template navigation
       navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
         let dropdownLinkDropdownHTML = '';
