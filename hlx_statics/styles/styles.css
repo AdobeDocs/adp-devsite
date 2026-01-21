@@ -1186,7 +1186,7 @@ main .default-content-wrapper strong{
 main .content-header {
   display:flex;
   gap: 32px;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -1198,7 +1198,7 @@ main .github-actions-block{
   display: flex;
   gap: 20px;
   min-width: 250px;
-  align-items: start;
+  align-items: center;
 }
 
 main .action-buttons{
