@@ -10,6 +10,7 @@ import {
   createOptimizedPicture,
   decorateLightOrDark,
   getMetadata,
+  IS_DEV_DOCS,
 } from '../../scripts/lib-helix.js';
 
 /**
@@ -33,7 +34,7 @@ function processImages(block) {
 export default async function decorate(block) {
   const container = getBlockSectionContainer(block);
   const variant = block.getAttribute('data-variant')
-  const isDocs = getMetadata('template') === "documentation";
+  const isDocs = IS_DEV_DOCS;
 
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
