@@ -203,7 +203,13 @@ export async function fetchRedirectJson() {
  */
 async function fetchNavHtml(name) {
   let pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
-  let navPath = `${window.location.origin}/${pathPrefix}/config`;
+  let githubblobpath = getMetadata('githubblobpath');
+  let isPrivateOrg = githubblobpath && githubblobpath.includes('AdobeDocsPrivate');
+
+  // if private org, use config.html file
+  let navPath = isPrivateOrg
+    ? `${window.location.origin}/${pathPrefix}/config.html`
+    : `${window.location.origin}/${pathPrefix}/config`;
   const fragment = await loadFragment(navPath);
 
   let navItems;
