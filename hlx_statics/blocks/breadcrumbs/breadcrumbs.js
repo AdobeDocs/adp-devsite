@@ -99,14 +99,7 @@ export default async function decorate(block) {
       const li = document.createElement('li');
       li.classList.add('spectrum-Breadcrumbs-item');
       
-      if (isLast) {
-        // Last item - use span instead of anchor (non-clickable)
-        const span = document.createElement('span');
-        span.classList.add('spectrum-Breadcrumbs-itemLink');
-        span.setAttribute('aria-current', 'page');
-        span.innerText = crumb.title;
-        li.append(span);
-      } else {
+      if (!isLast) {
         // Regular clickable breadcrumb
         const a = document.createElement('a');
         a.classList.add('spectrum-Breadcrumbs-itemLink');
