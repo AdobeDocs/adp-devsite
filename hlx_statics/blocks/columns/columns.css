@@ -70,6 +70,7 @@ main div.columns-wrapper div.columns div.first-column {
 }
 
 main div.columns-wrapper div.columns div.first-column img {
+    max-width: 100%;
     max-height: 350px;
     height: auto;
     width: auto;
