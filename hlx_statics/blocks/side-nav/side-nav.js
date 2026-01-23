@@ -218,6 +218,9 @@ export default async function decorate(block) {
       const getAnchorTag = li.querySelector("a");
       const childUl = li.querySelector("ul");
 
+      // Check if this item contains "- header"
+      const isHeaderLabel = li.textContent.includes('- header');
+
       if (layer === 1 && childUl) {
         li.classList.add("header");
       }
@@ -226,7 +229,31 @@ export default async function decorate(block) {
       li.setAttribute("aria-level", layer);
 
       const currentUrl = window.location.href.split('#')[0];
-      if (getAnchorTag) {
+
+      // Handle header labels (items with "- header")
+      if (isHeaderLabel) {
+        // Convert to non-clickable span
+        const textContent = getAnchorTag
+          ? getAnchorTag.textContent.replace('- header', '').trim()
+          : li.textContent.replace('- header', '').trim();
+
+        const label = document.createElement('span');
+        label.className = 'spectrum-SideNav-itemLink';
+        label.textContent = textContent;
+        label.style.paddingLeft = `calc(${layer} * 12px)`;
+
+        // Replace content with label
+        if (getAnchorTag) {
+          li.replaceChild(label, getAnchorTag);
+        } else {
+          li.textContent = '';
+          li.appendChild(label);
+        }
+
+        li.classList.add('nav-header-label');
+
+      } else if (getAnchorTag) {
+        // Normal anchor behavior (existing code unchanged)
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
         getAnchorTag.onclick = (e) => {
