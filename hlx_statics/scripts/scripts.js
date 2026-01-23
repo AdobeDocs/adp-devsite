@@ -702,8 +702,9 @@ async function loadLazy(doc) {
     }
 
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
+    const hasCredential = Boolean(document.querySelector('.getcredential-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
-    const hasOnThisPage = !hasHero && hasHeading;
+    const hasOnThisPage = !hasHero && hasHeading && !hasCredential;
 
     const hasAside = hasOnThisPage || hasResources;
     if (hasAside) {
