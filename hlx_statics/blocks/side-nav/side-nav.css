@@ -353,3 +353,13 @@ main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container {
 main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container a {
   width: calc(100% - 32px);
 }
+
+/* Non-clickable header labels in TOC */
+main div.side-nav-wrapper .spectrum-SideNav-item.nav-header-label > span {
+  color: black;
+  font-weight: 700;
+  cursor: default;
+  pointer-events: none;
+  display: block;
+  text-transform: uppercase;
+}

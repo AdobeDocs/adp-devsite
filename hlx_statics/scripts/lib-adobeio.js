@@ -531,6 +531,10 @@ function activateTab(tabItem, isMainPage) {
   underlineItem.parentElement.classList.add("activeTab");
 }
 
+function shouldHideNavItem(linkPath, topNavPath) {
+  return !linkPath.startsWith(topNavPath);
+}
+
 function activeSubNav(actTab) {
   let showSidenav = false;
   if (actTab) {
@@ -538,7 +542,31 @@ function activeSubNav(actTab) {
     const sidenavItems = navLinksUl?.querySelectorAll(':scope > ul li') || [];
     const topNavPath = actTab.pathname;
     const pagePath = window.location.pathname;
+
     sidenavItems.forEach(li => {
+      // Handle header labels - check the next sibling's link
+      if (li.classList.contains('nav-header-label')) {
+        let nextSibling = li.nextElementSibling;
+
+        // Find the next sibling that has a link
+        while (nextSibling && !nextSibling.querySelector('a')) {
+          nextSibling = nextSibling.nextElementSibling;
+        }
+
+        if (nextSibling) {
+          const nextLink = nextSibling.querySelector('a');
+          if (nextLink) {
+            const nextLinkPath = new URL(nextLink.href, window.location.origin).pathname;
+            if (shouldHideNavItem(nextLinkPath, topNavPath)) {
+              li.classList.add('hidden');
+            }
+          }
+        } else {
+          li.classList.add('hidden');
+        }
+        return;
+      }
+
       const link = li.querySelector(':scope > a');
       if (link) {
         const fullPath = link.getAttribute('href');
@@ -551,6 +579,7 @@ function activeSubNav(actTab) {
         if (linkPath.startsWith(pagePath) && getMetadata("template") === "documentation") {
           showSidenav = true;
         }
+
         if (!linkPath.startsWith(topNavPath)) {
           li.classList.add('hidden');
         }
@@ -566,6 +595,8 @@ function activeSubNav(actTab) {
   const sidecontainer = document.querySelector(".side-nav-container");
   sidecontainer.style.visibility = "visible";
 }
+
+
 /**
  * Checks whether the current URL is one of the top level navigation items
  * @param {*} urlPathname The current URL path name
