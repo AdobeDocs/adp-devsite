@@ -77,7 +77,9 @@ export default async function decorate(block) {
       ?.split(',')
       .map((slot) => slot.trim());
 
-    console.log('~~ slotNames', slotNames);
+    const repeat = block.getAttribute('data-repeat');
+
+    console.log('~~ slotNames, repeat', slotNames, repeat);
     
 
     Array.from(block.children).forEach((data) => {
