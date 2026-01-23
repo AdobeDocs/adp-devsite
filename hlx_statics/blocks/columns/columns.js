@@ -73,6 +73,7 @@ export default async function decorate(block) {
 
   if (isDocs) {
     Array.from(block.children).forEach((data) => {
+      // TODO
       const imageSlot = data.querySelector('img');
       if (imageSlot) {
         const wrapperImage = imageSlot.parentElement.closest('div');
