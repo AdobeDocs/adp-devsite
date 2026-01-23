@@ -72,6 +72,8 @@ export default async function decorate(block) {
   });
 
   if (isDocs) {
+    const imageSrc = block.getAttribute('data-imagesrc');
+    console.log('~~ imageSrc', imageSrc);
     Array.from(block.children).forEach((data) => {
       // TODO
       const imageSlot = data.querySelector('img');
