@@ -79,9 +79,9 @@ export default async function decorate(block) {
 
     const repeat = block.getAttribute('data-repeat');
 
-    console.log('~~ slotNames, repeat', slotNames, repeat);
+    console.log('~~ slotNames, repeat, block.children', slotNames, repeat, block.children);
     
-
+    const rows = block.children;
     Array.from(block.children).forEach((data) => {
       // TODO
       const imageSlot = data.querySelector('img');
