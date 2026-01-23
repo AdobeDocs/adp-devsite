@@ -356,7 +356,7 @@ main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container a {
 
 /* Non-clickable header labels in TOC */
 main div.side-nav-wrapper .spectrum-SideNav-item.nav-header-label > span {
-  color: black;
+  color: rgb(70, 70, 70);
   font-weight: 700;
   cursor: default;
   pointer-events: none;
