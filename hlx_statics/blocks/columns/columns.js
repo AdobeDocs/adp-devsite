@@ -77,13 +77,15 @@ export default async function decorate(block) {
       ?.split(',')
       .map((slot) => slot.trim());
 
-    const repeat = block.getAttribute('data-repeat');
+    const repeatRows = block.children;
 
-    console.log('~~ slotNames, repeat, block.children', slotNames, repeat, block.children);
-    
-    const rows = block.children;
-    Array.from(block.children).forEach((data) => {
-      // TODO
+    if(slotNames.includes('imageSrc')) {
+      
+    }
+    else { 
+
+    }
+    Array.from(repeatRows).forEach((data) => {
       const imageSlot = data.querySelector('img');
       if (imageSlot) {
         const wrapperImage = imageSlot.parentElement.closest('div');
@@ -93,6 +95,7 @@ export default async function decorate(block) {
         data.appendChild(newWrapper);
       }
     });
+    
   }
 
   const columnList = block.querySelectorAll('.columns > div');
