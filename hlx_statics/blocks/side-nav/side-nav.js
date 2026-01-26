@@ -219,7 +219,7 @@ export default async function decorate(block) {
       const childUl = li.querySelector("ul");
 
       // Check if this item contains "- header"
-      const isHeaderLabel = li.textContent.includes('- header');
+      const isHeaderLabel = li.textContent.includes('header');
 
       if (layer === 1 && childUl) {
         li.classList.add("header");
@@ -234,8 +234,8 @@ export default async function decorate(block) {
       if (isHeaderLabel) {
         // Convert to non-clickable span
         const textContent = getAnchorTag
-          ? getAnchorTag.textContent.replace('- header', '').trim()
-          : li.textContent.replace('- header', '').trim();
+          ? getAnchorTag.textContent.replace('header', '').trim()
+          : li.textContent.replace('header', '').trim();
 
         const label = document.createElement('span');
         label.className = 'spectrum-SideNav-itemLink';
