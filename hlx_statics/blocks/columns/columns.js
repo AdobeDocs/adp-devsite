@@ -88,6 +88,13 @@ export default async function decorate(block) {
         );
         
         const imageSrc = slotElements.imageSrc.textContent;
+        slotElements.imageSrc.textContent = ''; 
+
+        const picture = createTag('picture');
+        const img = createTag('img', { src: imageSrc });
+        picture.appendChild(img);
+        slotElements.imageSrc.appendChild(picture);
+        
   
         console.log('~~ imageSrc', imageSrc);
       });
@@ -95,16 +102,16 @@ export default async function decorate(block) {
 
     }
     else { 
-      Array.from(repeatRows).forEach((data) => {
-        const imageSlot = data.querySelector('img');
-        if (imageSlot) {
-          const wrapperImage = imageSlot.parentElement.closest('div');
-          const newWrapper = createTag('div');
+      // Array.from(repeatRows).forEach((data) => {
+      //   const imageSlot = data.querySelector('img');
+      //   if (imageSlot) {
+      //     const wrapperImage = imageSlot.parentElement.closest('div');
+      //     const newWrapper = createTag('div');
   
-          Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
-          data.appendChild(newWrapper);
-        }
-      });
+      //     Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
+      //     data.appendChild(newWrapper);
+      //   }
+      // });
     }
 
     
