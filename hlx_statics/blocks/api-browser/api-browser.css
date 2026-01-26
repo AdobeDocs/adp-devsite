@@ -16,10 +16,12 @@ main div.api-browser-wrapper .picker {
 
 main div.api-browser-wrapper .picker .sort-group {
   display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 main div.api-browser-wrapper .picker .sort-by-label {
-  margin: 8px;
+  margin: 0;
 }
 
 main div.api-browser-wrapper .picker .filter-by-popover {
