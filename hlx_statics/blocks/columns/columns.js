@@ -80,21 +80,33 @@ export default async function decorate(block) {
     const repeatRows = block.children;
 
     if(slotNames.includes('imageSrc')) {
-      
+      Array.from(repeatRows).forEach((repeatRow) => {
+        const children = Array.from(repeatRow.children);
+
+        const slotElements = Object.fromEntries(
+          slotNames.map((slotName, index) => [slotName, children[index]])
+        );
+        
+        const imageSrc = slotElements.imageSrc.textContent;
+  
+        console.log('~~ imageSrc', imageSrc);
+      });
+
+
     }
     else { 
-
+      Array.from(repeatRows).forEach((data) => {
+        const imageSlot = data.querySelector('img');
+        if (imageSlot) {
+          const wrapperImage = imageSlot.parentElement.closest('div');
+          const newWrapper = createTag('div');
+  
+          Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
+          data.appendChild(newWrapper);
+        }
+      });
     }
-    Array.from(repeatRows).forEach((data) => {
-      const imageSlot = data.querySelector('img');
-      if (imageSlot) {
-        const wrapperImage = imageSlot.parentElement.closest('div');
-        const newWrapper = createTag('div');
 
-        Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
-        data.appendChild(newWrapper);
-      }
-    });
     
   }
 
