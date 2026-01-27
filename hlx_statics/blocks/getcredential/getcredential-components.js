@@ -14,7 +14,9 @@ export const COPY_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" height="18
 
 export const EXTERNAL_LINK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18"><rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18"></rect><path d="M16.5,9h-1a.5.5,0,0,0-.5.5V15H3V3H8.5A.5.5,0,0,0,9,2.5v-1A.5.5,0,0,0,8.5,1h-7a.5.5,0,0,0-.5.5v15a.5.5,0,0,0,.5.5h15a.5.5,0,0,0,.5-.5v-7A.5.5,0,0,0,16.5,9Z"></path><path d="M16.75,1H11.377A.4.4,0,0,0,11,1.4a.392.392,0,0,0,.1175.28l1.893,1.895L9.4895,7.096a.5.5,0,0,0-.00039.70711l.00039.00039.707.707a.5.5,0,0,0,.707,0l3.5215-3.521L16.318,6.882A.39051.39051,0,0,0,16.6,7a.4.4,0,0,0,.4-.377V1.25A.25.25,0,0,0,16.75,1Z"></path></svg>';
 
-export const PROJECT_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 0 18 18" width="32" fill="var(--spectrum-global-color-gray-700)"><path d="M17.761,4.3875,14.53,1.156a.75.75,0,0,0-1.06066-.00034L13.469,1.156,6.5885,8.0365A4.45,4.45,0,0,0,4.5,7.5,4.5,4.5,0,1,0,9,12a4.45,4.45,0,0,0-.5245-2.0665l3.363-3.363,1.87,1.87a.375.375,0,0,0,.53033.00017L14.239,8.4405l1.672-1.672L13.776,4.633l.6155-.6155,2.135,2.1355L17.761,4.918A.37543.37543,0,0,0,17.761,4.3875ZM3.75,14.25a1.5,1.5,0,1,1,1.5-1.5A1.5,1.5,0,0,1,3.75,14.25Z"></path></svg>';
+export const PROJECT_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 0 18 18" width="32" fill="var(--spectrum-global-color-gray-700)">
+  <path d="M17.761,4.3875,14.53,1.156a.75.75,0,0,0-1.06066-.00034L13.469,1.156,6.5885,8.0365A4.45,4.45,0,0,0,4.5,7.5,4.5,4.5,0,1,0,9,12a4.45,4.45,0,0,0-.5245-2.0665l3.363-3.363,1.87,1.87a.375.375,0,0,0,.53033.00017L14.239,8.4405l1.672-1.672L13.776,4.633l.6155-.6155,2.135,2.1355L17.761,4.918A.37543.37543,0,0,0,17.761,4.3875ZM3.75,14.25a1.5,1.5,0,1,1,1.5-1.5A1.5,1.5,0,0,1,3.75,14.25Z"></path>
+</svg>`;
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -24,14 +26,53 @@ export function separator() {
   return createTag('div', { class: 'separator' });
 }
 
-export function createHelpIcon(config) {
+function createHelpIcon(config) {
   if (!config.contextHelp) return null;
-  const helpIcon = createTag('span', {
-    class: 'help-icon',
-    'data-heading': config.contextHelpHeading || ''
+  
+  const wrapper = createTag('div', { class: 'context-help-wrapper' });
+  const button = createTag('button', { class: 'help-icon', type: 'button' });
+  button.innerHTML = HELP_ICON_SVG;
+  
+  const popover = createTag('div', { class: 'context-help-popover', style: 'display: none;' });
+  
+  if (config.contextHelpHeading) {
+    const heading = createTag('h4', { class: 'context-help-heading spectrum-Heading spectrum-Heading--sizeXXS' });
+    heading.textContent = config.contextHelpHeading;
+    popover.appendChild(heading);
+  }
+  
+  if (config.contextHelpText) {
+    const text = createTag('p', { class: 'context-help-text spectrum-Body spectrum-Body--sizeXS' });
+    text.textContent = config.contextHelpText;
+    popover.appendChild(text);
+  }
+  
+  if (config.contextHelpLink) {
+    const link = createTag('a', { 
+      class: 'context-help-link',
+      href: config.contextHelpLink,
+      target: '_blank',
+      rel: 'noreferrer'
+    });
+    link.textContent = config.contextHelpLinkLabel || 'Learn more';
+    popover.appendChild(link);
+  }
+  
+  button.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.context-help-popover').forEach(p => {
+      p.style.display = p === popover && popover.style.display !== 'flex' ? 'flex' : 'none';
+    });
   });
-  helpIcon.innerHTML = HELP_ICON_SVG;
-  return helpIcon;
+  
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target)) popover.style.display = 'none';
+  });
+  
+  wrapper.appendChild(button);
+  wrapper.appendChild(popover);
+  
+  return wrapper;
 }
 
 export function createFieldLabel(config, fieldName, isCheckbox = false) {
@@ -59,7 +100,7 @@ export function createDivider() {
   return createTag('div', { class: 'card-divider' });
 }
 
-export function createCopyButton(textToCopy) {
+function createCopyButton(textToCopy) {
   const copyButton = createTag('button', {
     class: 'copy-button spectrum-ActionButton spectrum-ActionButton--sizeM',
     'data-copy': textToCopy
@@ -100,7 +141,7 @@ export function createExternalLink(text, href) {
 }
 
 // ============================================================================
-// ORGANIZATION MODAL
+// ORGANIZATION MODAL - Done
 // ============================================================================
 
 export function createOrganizationModal() {
@@ -207,7 +248,7 @@ export function createCredentialDetailField(label, value, showCopy = false) {
   return field;
 }
 
-export function createProjectHeader(projectTitle, productIcons) {
+export function createProjectHeader(projectTitle, products) {
   const projectHeader = createTag('div', { class: 'return-project-header' });
 
   const projectIconWrapper = createTag('div', { class: 'project-icon' });
@@ -219,15 +260,70 @@ export function createProjectHeader(projectTitle, productIcons) {
   title.textContent = projectTitle;
   projectTitleGroup.appendChild(title);
 
-  if (productIcons && productIcons.length > 0) {
+  // Handle both array of icon URLs and products object with items
+  const productItems = products?.items || (Array.isArray(products) ? products : null);
+  if (productItems?.length) {
     const productsRow = createTag('div', { class: 'product-icons' });
-    productIcons.forEach((icon) => {
-      const productIcon = createTag('img', { class: 'product-icon icon', src: icon });
-      productsRow.appendChild(productIcon);
+    productItems.forEach((item) => {
+      const iconSrc = typeof item === 'string' ? item : item.Product?.icon;
+      if (iconSrc) {
+        const productIcon = createTag('img', { class: 'product-icon icon', src: iconSrc });
+        productsRow.appendChild(productIcon);
+      }
     });
     projectTitleGroup.appendChild(productsRow);
   }
 
   projectHeader.appendChild(projectTitleGroup);
   return projectHeader;
+}
+
+export function createCredentialSection(config) {
+  const credentialSection = createTag('div', { class: 'credential-section' });
+  const credentialTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
+  credentialTitle.textContent = config.heading;
+  credentialSection.appendChild(credentialTitle);
+
+  const components = config.components;
+  if (components?.APIKey) {
+    credentialSection.appendChild(createCredentialDetailField(
+      components.APIKey.heading,
+      components.APIKey.value || 'c89a083272b247f1beb4a59d37b982e9',
+      true
+    ));
+  }
+
+  if (components?.AllowedOrigins) {
+    credentialSection.appendChild(createCredentialDetailField(
+      components.AllowedOrigins.heading,
+      components.AllowedOrigins.value || 'localhost:8000',
+      true
+    ));
+  }
+
+  if (components?.OrganizationName) {
+    credentialSection.appendChild(createCredentialDetailField(
+      components.OrganizationName.heading,
+      components.OrganizationName.value || 'deepesh-testusr2-adobetest.com'
+    ));
+  }
+
+  return credentialSection;
+}
+
+export function createOrgNotice(text, className = 'org-notice') {
+  const orgNotice = createTag('div', { class: className });
+  const orgText = createTag('span', { class: 'org-text' });
+  orgText.textContent = text;
+  
+  const changeOrgLink = createTag('a', { class: 'change-org-link', href: '#' });
+  changeOrgLink.textContent = 'Change organization';
+  changeOrgLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.body.appendChild(createOrganizationModal());
+  });
+  
+  orgNotice.appendChild(orgText);
+  orgNotice.appendChild(changeOrgLink);
+  return orgNotice;
 }
