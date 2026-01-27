@@ -649,78 +649,115 @@ async function loadLazy(doc) {
         new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
     );
 
-    // Function to validate if an index exists in Algolia
-    async function validateIndex(indexName, searchClient) {
-      try {
-        // Perform a search to validate the index exists
-        const response = await searchClient.search({
-          requests: [{
-            indexName: indexName,
-            query: '',
-            hitsPerPage: 0
-          }]
-        });
-        
-        if (response && response.results && response.results.length > 0) {
-          return { indexName, exists: true };
-        } else {
-          console.warn(`Index "${indexName}" returned empty results`);
-          return { indexName, exists: false };
-        }
-      } catch (error) {
-        console.warn(`Index "${indexName}" is not accessible or does not exist:`, error.message);
-        return { indexName, exists: false };
-      }
-    }
+    // OLD APPROACH: Validate each index individually with empty search
+    // async function validateIndex(indexName, searchClient) {
+    //   try {
+    //     // Perform a search to validate the index exists
+    //     const response = await searchClient.search({
+    //       requests: [{
+    //         indexName: indexName,
+    //         query: '',
+    //         hitsPerPage: 0
+    //       }]
+    //     });
+    //     
+    //     if (response && response.results && response.results.length > 0) {
+    //       return { indexName, exists: true };
+    //     } else {
+    //       console.warn(`Index "${indexName}" returned empty results`);
+    //       return { indexName, exists: false };
+    //     }
+    //   } catch (error) {
+    //     console.warn(`Index "${indexName}" is not accessible or does not exist:`, error.message);
+    //     return { indexName, exists: false };
+    //   }
+    // }
 
-    // Validate all indices in parallel
+    // Validate indices using listIndices() and cross-reference with JSON map
     async function validateAndFilterIndices() {
       if (!window.algoliasearch) {
         console.error('Algolia not loaded, cannot validate indices');
         return allIndices;
       }
 
-      // const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-      // const algoliasearch = window.algoliasearch;
+      try {
+        // Create Algolia search client
+        const searchClient = window.algoliasearch.algoliasearch(
+          window.adp_search.APP_KEY, 
+          window.adp_search.API_KEY
+        );
 
-      const searchClient = window.algoliasearch.algoliasearch(
-        window.adp_search.APP_KEY, window.adp_search.API_KEY);
+        // Fetch all available indices from Algolia
+        console.log('Fetching indices from Algolia using listIndices()...');
+        const algoliaResponse = await searchClient.listIndices();
+        // console.log('Algolia listIndices() response:', algoliaResponse);
 
-      // Call the API
-      // const response = await client.getApiKey({ key: '4d1503b0ad83047fd96a8340f33695d3' });
+        // Extract index names from Algolia response
+        // The response structure may vary, handle different formats
+        let algoliaIndexNames = [];
+        if (algoliaResponse.items) {
+          // Algolia v3/v4 format
+          console.log('Detected Algolia v3/v4 listIndices() response format');
+          algoliaIndexNames = Object.values(algoliaResponse.items).map(index => index.name);
+        } else if (algoliaResponse.results) {
+          // Algolia v5 format (if exists)
+          console.log('Detected Algolia v5 listIndices() response format');
+          algoliaIndexNames = algoliaResponse.results.map(index => index.name);
+        } else if (Array.isArray(algoliaResponse)) {
+          // Direct array response
+          console.log('Detected direct array listIndices() response format');
+          algoliaIndexNames = algoliaResponse.map(index => index.name || index);
+        } else {
+          console.warn('Unexpected listIndices() response format:', algoliaResponse);
+        }
 
+        // console.log(`Found ${algoliaIndexNames.length} indices in Algolia:`, algoliaIndexNames);
+        // console.log(`JSON map contains ${allIndices.length} indices:`, allIndices);
 
-      // print the response
-      // console.log(response);
+        // Cross-validate: Only keep indices that exist in BOTH Algolia AND product index JSON map
+        const validIndices = allIndices.filter(indexName => 
+          algoliaIndexNames.includes(indexName)
+        );
 
-      const items = await searchClient.listIndices();
-      console.log("INDEX NAMES:");
-      console.log(items);
+        // Identify indices that are in JSON but NOT in Algolia (should be removed)
+        // const removedIndices = allIndices.filter(idx => !validIndices.includes(idx));
+        
+        // if (removedIndices.length > 0) {
+        //   console.warn(`⚠️ Removed ${removedIndices.length} indices from JSON map that don't exist in Algolia:`, removedIndices);
+        // }
 
-      // if (!window["algoliasearch/lite"]) {
-      //   console.error('Algolia not loaded, cannot validate indices');
-      //   return allIndices;
-      // }
+        // // Identify indices that are in Algolia but NOT in JSON (informational only)
+        // const unmappedIndices = algoliaIndexNames.filter(idx => !allIndices.includes(idx));
+        // if (unmappedIndices.length > 0) {
+        //   console.log(`ℹ️ Found ${unmappedIndices.length} Algolia indices not in JSON map (these will be ignored):`, unmappedIndices);
+        // }
 
-      // const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-      // const searchClient = algoliasearch(window.adp_search.APP_KEY, window.adp_search.API_KEY);
+        console.log(`✅ Validated ${validIndices.length} indices that exist in both Algolia and JSON map`);
+        return validIndices;
 
-      // console.log(`Validating ${allIndices.length} indices...`);
-      const validationResults = await Promise.allSettled(
-        allIndices.map(indexName => validateIndex(indexName, searchClient))
-      );
-
-      // Filter to only include indices that exist
-      const validIndices = validationResults
-        .filter(result => result.status === 'fulfilled' && result.value.exists)
-        .map(result => result.value.indexName);
-
-      const removedIndices = allIndices.filter(idx => !validIndices.includes(idx));
-      
-      if (removedIndices.length > 0) {
-        console.log(`Removed ${removedIndices.length} non-existent indices:`, removedIndices);
+      } catch (error) {
+        console.error('Error during index validation with listIndices():', error);
+        console.warn('Falling back to using all indices from JSON map');
+        return allIndices;
       }
-      return validIndices;
+
+      // OLD APPROACH: Validate each index individually with empty searches
+      // This has been replaced with the listIndices() cross-validation approach above
+      // 
+      // const validationResults = await Promise.allSettled(
+      //   allIndices.map(indexName => validateIndex(indexName, searchClient))
+      // );
+      // 
+      // const validIndices = validationResults
+      //   .filter(result => result.status === 'fulfilled' && result.value.exists)
+      //   .map(result => result.value.indexName);
+      // 
+      // const removedIndices = allIndices.filter(idx => !validIndices.includes(idx));
+      // 
+      // if (removedIndices.length > 0) {
+      //   console.log(`Removed ${removedIndices.length} non-existent indices:`, removedIndices);
+      // }
+      // return validIndices;
     }
 
     window.adp_search.triggerIndexValidation = function() {

@@ -69,10 +69,10 @@ async function initSearch() {
     }
   }
 
-  const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+  // const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
 
-  const searchClient = algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
+  const searchClient = window.algoliasearch.algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
   const SUGGESTION_MAX_RESULTS = 50;
   const SEARCH_MAX_RESULTS = 100;
 
