@@ -854,7 +854,13 @@ export default async function decorate(block) {
 
   // Setup navigation handlers
   signInContainer?.querySelector('.sign-in-button')?.addEventListener('click', () => {
-    navigateTo(signInContainer, returnContainer);
+    if(window.adobeIMS.isSignedInUser()) { 
+      navigateTo(signInContainer, returnContainer);
+     }
+     else{
+       window.adobeIMS.signIn();
+     }
+
   });
 
   returnContainer?.querySelector('.create-new-button')?.addEventListener('click', () => {
