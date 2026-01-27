@@ -9,7 +9,8 @@ import {
   } from '../../scripts/scripts.js';
   import {
     loadSections,
-    getMetadata
+    getMetadata,
+    IS_DEV_DOCS
   } from '../../scripts/lib-helix.js';
   import {
     isLocalHostEnvironment
@@ -25,7 +26,7 @@ import {
 
       const lastSlashIndex = path?.lastIndexOf('/');
       const lastPrefix = path?.substring(lastSlashIndex + 1);
-      const isLocalHost = isLocalHostEnvironment(window.location.origin);
+      const isLocalHostForDocs = isLocalHostEnvironment(window.location.origin) && IS_DEV_DOCS;
 
       let fetchPathUrl;
       if (lastPrefix && lastPrefix === 'config') {
@@ -36,7 +37,7 @@ import {
 
 
         // Use .md for localhost, .plain.html for production
-        const fileExtension = isLocalHost ? '.md' : '.plain.html';
+        const fileExtension = isLocalHostForDocs ? '.md' : '.plain.html';
 
         // Handle absolute paths by prepending pathPrefix if needed
         if (resolvedPath.startsWith('/')) {
@@ -44,13 +45,13 @@ import {
           if (pathPrefix && !resolvedPath.startsWith(`/${pathPrefix}`)) {
             resolvedPath = `${pathPrefix}${resolvedPath}`;
           }
-          const origin = isLocalHost
+          const origin = isLocalHostForDocs
             ? window.location.origin.replace(':3000', ':3002')
             : window.location.origin;
           fetchPathUrl = `${origin}${resolvedPath}${fileExtension}`;
         } else {
           // Relative paths
-          if (isLocalHost) {
+          if (isLocalHostForDocs) {
             const fullUrl = new URL(`${resolvedPath}${fileExtension}`, window.location.href);
             fetchPathUrl = fullUrl.href.replace(':3000', ':3002');
           } else {
@@ -71,7 +72,7 @@ import {
       if (resp.ok) {
         const htmlText = await resp.text();
         main = document.createElement('main');
-        if (isLocalHost) {
+        if (isLocalHostForDocs ) {
           const parser = new DOMParser();
           const doc = parser.parseFromString(htmlText, 'text/html');
           const mainContent = doc.querySelector('main');
