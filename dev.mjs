@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,6 +15,34 @@ const corsOptions = {
 
 const app = express();
 app.use(cors(corsOptions));
+
+// Proxy for Console API
+app.use(
+  "/console/api",
+  createProxyMiddleware({
+    target: "https://developer-stage.adobe.com/console/api",
+    secure: false,
+    changeOrigin: true,
+  })
+);
+
+app.use(
+  "/templates",
+  createProxyMiddleware({
+    target: "https://developer-stage.adobe.com/templates",
+    secure: false,
+    changeOrigin: true,
+  })
+);
+
+app.use(
+  "/ims",
+  createProxyMiddleware({
+    target: "https://ims-na1-stg1.adobelogin.com/ims",
+    secure: false,
+    changeOrigin: true,
+  })
+);
 
 let devsitePaths = {};
 // TODO: should this switch between stage/prod version of this file or always pull from stage?
