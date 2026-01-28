@@ -51,7 +51,7 @@ function hideToast(toast) {
  * @param {string} variant - The toast variant: 'error', 'success', 'info', or 'neutral'
  * @param {number} duration - Auto-hide duration in milliseconds (default: 3000)
  */
-export function showToast(message, variant = 'neutral', duration = 3000) {
+export function showToast(message, variant = 'neutral', duration = 3000, container = null) {
   // Create toast container
   const toast = createTag('div', { class: `toast-notification toast-${variant}` });
   
@@ -77,8 +77,18 @@ export function showToast(message, variant = 'neutral', duration = 3000) {
   closeButton.addEventListener('click', () => hideToast(toast));
   toast.appendChild(closeButton);
   
-  // Add to body
-  document.body.appendChild(toast);
+  // Add to container or body
+  if (container) {
+    // Make container position relative if not already
+    const containerPosition = window.getComputedStyle(container).position;
+    if (containerPosition === 'static') {
+      container.style.position = 'relative';
+    }
+    toast.classList.add('toast-in-container');
+    container.appendChild(toast);
+  } else {
+    document.body.appendChild(toast);
+  }
   
   // Auto-hide after duration
   if (duration > 0) {
@@ -86,6 +96,60 @@ export function showToast(message, variant = 'neutral', duration = 3000) {
   }
   
   return toast;
+}
+
+/**
+ * Download a ZIP file
+ * @param {string} downloadAPI - The API endpoint to download the ZIP file
+ * @param {string} fileName - The name of the file to download
+ * @returns {boolean} - True if the download was successful, false otherwise
+ */
+export async function downloadZIP(downloadAPI, fileName = 'download') {
+  try {
+    const token = window.adobeIMS?.getTokenFromStorage()?.token;
+    if (!token) {
+      showToast('Please sign in to download', 'error', 3000);
+      return false;
+    }
+
+    const options = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+      },
+    };
+
+    const response = await fetch(downloadAPI, options);
+    console.log('response--downloadZIP', response);
+
+    if (response.status === 200) {
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${fileName}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      return true;
+    } else {
+      console.error('Failed to download. Response status:', response.status);
+      showToast('Download failed. Please try again.', 'error', 3000);
+      return false;
+    }
+  } catch (error) {
+    console.error('Download error:', error);
+    showToast(`Download error: ${error.message}`, 'error', 3000);
+    return false;
+  }
 }
 
 // ============================================================================
