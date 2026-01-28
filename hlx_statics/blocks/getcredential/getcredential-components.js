@@ -247,7 +247,7 @@ export function createOrganizationModal(organizations, currentOrg, onOrgChange) 
 // CREDENTIAL DETAILS
 // ============================================================================
 
-export function createCredentialDetailField(label, value, showCopy = false) {
+export function createCredentialDetailField(label, value, showCopy = false, fieldName = null) {
   const field = createTag('div', { class: 'credential-detail-field' });
   const fieldLabel = createTag('label', { class: 'credential-detail-label spectrum-Body spectrum-Body--sizeS' });
   fieldLabel.textContent = label;
@@ -257,12 +257,24 @@ export function createCredentialDetailField(label, value, showCopy = false) {
     const valueWrapper = createTag('div', { class: 'credential-detail-value-wrapper' });
     const valueDiv = createTag('div', { class: 'credential-detail-value' });
     valueDiv.textContent = value;
+    
+    // Add data-field attribute for dynamic updates
+    if (fieldName) {
+      valueDiv.setAttribute('data-field', fieldName);
+    }
+    
     valueWrapper.appendChild(valueDiv);
     valueWrapper.appendChild(createCopyButton(value));
     field.appendChild(valueWrapper);
   } else {
     const valueText = createTag('div', { class: 'credential-detail-text' });
     valueText.textContent = value;
+    
+    // Add data-field attribute for dynamic updates
+    if (fieldName) {
+      valueText.setAttribute('data-field', fieldName);
+    }
+    
     field.appendChild(valueText);
   }
 
@@ -309,23 +321,27 @@ export function createCredentialSection(config) {
   if (components?.APIKey) {
     credentialSection.appendChild(createCredentialDetailField(
       components.APIKey.heading,
-      components.APIKey.value || 'c89a083272b247f1beb4a59d37b982e9',
-      true
+      components.APIKey.value || 'Loading...',
+      true,
+      'apiKey'  // Add fieldName for dynamic updates
     ));
   }
 
   if (components?.AllowedOrigins) {
     credentialSection.appendChild(createCredentialDetailField(
       components.AllowedOrigins.heading,
-      components.AllowedOrigins.value || 'localhost:8000',
-      true
+      components.AllowedOrigins.value || 'Loading...',
+      true,
+      'allowedOrigins'  // Add fieldName for dynamic updates
     ));
   }
 
   if (components?.OrganizationName) {
     credentialSection.appendChild(createCredentialDetailField(
       components.OrganizationName.heading,
-      components.OrganizationName.value || 'deepesh-testusr2-adobetest.com'
+      components.OrganizationName.value || 'Loading...',
+      false,
+      'organization'  // Add fieldName for dynamic updates
     ));
   }
 
