@@ -306,8 +306,6 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   
   // Clear existing options
   dropdown.innerHTML = '';
-  // Reverse projects array to show newest first
-  projects = [...projects].reverse();
 
   // Populate dropdown with projects (use project ID as value)
   projects.forEach((project, index) => {
@@ -1172,7 +1170,7 @@ function createReturnContent(config) {
             : existingCreds;
 
           // Populate dropdown with new org's projects (filter from cached data)
-          const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass.reverse());
+          const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass);
 
           if (!hasProjects) {
           }
