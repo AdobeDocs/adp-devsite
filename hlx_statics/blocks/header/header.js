@@ -63,16 +63,14 @@ async function initSearch() {
   if (window.adp_search.indicesValidationPromise) {
     try {
       await window.adp_search.indicesValidationPromise;
-      console.log('Index validation complete, initializing search');
     } catch (error) {
       console.warn('Index validation failed, proceeding with available indices:', error);
     }
   }
 
-  const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
 
-  const searchClient = algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
+  const searchClient = window.algoliasearch.algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
   const SUGGESTION_MAX_RESULTS = 50;
   const SEARCH_MAX_RESULTS = 100;
 
