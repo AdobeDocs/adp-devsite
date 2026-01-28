@@ -311,6 +311,38 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   
   console.log('[POPULATE DROPDOWN] Extracted projects array:', projects);
   console.log('[POPULATE DROPDOWN] Projects count:', projects.length);
+  
+  // Log summary of all projects with their key data
+  console.log('[POPULATE DROPDOWN] Projects Summary:');
+  projects.forEach((proj, idx) => {
+    const workspace = proj.workspaces?.[0];
+    const credential = workspace?.credentials?.[0];
+    console.log(`  Project ${idx + 1}:`, {
+      id: proj.id,
+      name: proj.title || proj.name,
+      hasWorkspaces: !!proj.workspaces?.length,
+      hasCredentials: !!credential,
+      clientId: credential?.clientId || 'NOT FOUND',
+      allowedDomain: credential?.metadata?.['adobeid.domain'] || 'NOT FOUND'
+    });
+  });
+  
+  // Log first project structure for debugging
+  if (projects.length > 0) {
+    console.log('[POPULATE DROPDOWN] ==== FIRST PROJECT FULL STRUCTURE ====');
+    console.log('[POPULATE DROPDOWN] First project structure:', projects[0]);
+    console.log('[POPULATE DROPDOWN] First project workspaces:', projects[0].workspaces);
+    if (projects[0].workspaces?.[0]) {
+      console.log('[POPULATE DROPDOWN] First workspace:', projects[0].workspaces[0]);
+      console.log('[POPULATE DROPDOWN] First workspace credentials:', projects[0].workspaces[0].credentials);
+      if (projects[0].workspaces[0].credentials?.[0]) {
+        console.log('[POPULATE DROPDOWN] First credential:', projects[0].workspaces[0].credentials[0]);
+        console.log('[POPULATE DROPDOWN] First credential clientId:', projects[0].workspaces[0].credentials[0].clientId);
+        console.log('[POPULATE DROPDOWN] First credential metadata:', projects[0].workspaces[0].credentials[0].metadata);
+      }
+    }
+  }
+  
   // Clear existing options
   dropdown.innerHTML = '';
   // Reverse projects array to show newest first
@@ -335,28 +367,16 @@ function populateProjectsDropdown(returnContainer, projectsData) {
       return;
     }
 
-    const orgCode = selectedOrganization?.code;
-    if (!orgCode) {
-      console.error('[DROPDOWN CHANGE] No organization code available');
-      return;
+    // Find the selected project from the existing projects array (already has full data)
+    const selectedProject = projects.find(p => p.id === selectedProjectId);
+    
+    if (selectedProject) {
+      console.log('[DROPDOWN CHANGE] Found project in array:', selectedProject);
+      console.log('[DROPDOWN CHANGE] Updating card with project data (no API call needed)');
+      updateProjectCardDetails(returnContainer, selectedProject);
+    } else {
+      console.error('[DROPDOWN CHANGE] Project not found in array:', selectedProjectId);
     }
-
-    console.log('[DROPDOWN CHANGE] Fetching details for project:', selectedProjectId, 'in org:', orgCode);
-
-    // Fetch full project details and update card
-    fetchProjectDetails(orgCode, selectedProjectId)
-      .then(fullProjectData => {
-        console.log('[DROPDOWN CHANGE] Received fullProjectData:', fullProjectData);
-        if (fullProjectData) {
-          console.log('[DROPDOWN CHANGE] Updating card with project data');
-          updateProjectCardDetails(returnContainer, fullProjectData);
-        } else {
-          console.warn('[DROPDOWN CHANGE] No project data received');
-        }
-      })
-      .catch(error => {
-        console.error('[DROPDOWN CHANGE] Error fetching project details:', error);
-      });
 
   });
 
@@ -364,47 +384,14 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   if (projects[0]?.id) {
     dropdown.value = projects[0].id;
     console.log('[POPULATE DROPDOWN] Initial project selected:', projects[0].id);
-
-    // Fetch full project details (includes workspaces and credentials)
-    const orgCode = selectedOrganization?.code;
-
-    if (!orgCode) {
-      console.warn('[POPULATE DROPDOWN] No org code, using basic project data');
-      // Update card with basic data only (no API key/origins)
-      updateProjectCardDetails(returnContainer, projects[0]);
-      return true; // Still return true since dropdown is populated
-    }
+    console.log('[POPULATE DROPDOWN] Updating card with initial project data (already has full data from search API)');
     
-    console.log('[POPULATE DROPDOWN] Fetching full details for initial project:', projects[0].id);
-    fetchProjectDetails(orgCode, projects[0].id).then(fullProjectData => {
-      console.log('[POPULATE DROPDOWN] Received initial project data:', fullProjectData);
-
-      if (fullProjectData) {
-
-        if (fullProjectData.workspaces?.[0]) {
-          console.log('[POPULATE DROPDOWN] Initial project has workspaces');
-        }
-
-        // Update card with FULL project data
-        console.log('[POPULATE DROPDOWN] Updating card with initial project');
-        updateProjectCardDetails(returnContainer, fullProjectData);
-        const verifyTitle = returnContainer.querySelector('.project-title');
-        const verifyApiKey = returnContainer.querySelector('[data-field="apiKey"]');
-        const verifyOrigins = returnContainer.querySelector('[data-field="allowedOrigins"]');
-        if (!verifyTitle?.textContent || !verifyApiKey?.textContent) {
-        } else {
-        }
-      } else {
-        console.warn('[POPULATE DROPDOWN] No full project data, using basic data');
-        updateProjectCardDetails(returnContainer, projects[0]);
-      }
-    }).catch(error => {
-      console.error('[POPULATE DROPDOWN] Error fetching initial project:', error);
-      // Update card with basic data
-      updateProjectCardDetails(returnContainer, projects[0]);
-    });
+    // Update card with project data (search API already includes workspaces/credentials)
+    updateProjectCardDetails(returnContainer, projects[0]);
   } else {
+    console.warn('[POPULATE DROPDOWN] No projects to display');
   }
+  
   return true; // Return true to indicate projects exist
 }
 
