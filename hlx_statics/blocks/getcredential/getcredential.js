@@ -107,6 +107,481 @@ const validationState = {
   AllowedOrigins: { valid: true, errors: [] }
 };
 
+// Store API response data
+let credentialResponse = null;
+let templateData = "664e39607dcc7c0e5a4a035b";
+let selectedOrganization = null;
+let organizationsData = null;
+const token = window.adobeIMS?.getTokenFromStorage()?.token;
+
+// Local storage key for organization
+const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
+
+// ============================================================================
+// API FUNCTIONS
+// ============================================================================
+
+async function createCredential() {
+  console.log('[CREATE CREDENTIAL] Starting credential creation...');
+  console.log('[CREATE CREDENTIAL] Template Data:', templateData);
+  console.log('[CREATE CREDENTIAL] Form Data:', formData);
+  console.log('[CREATE CREDENTIAL] Selected Organization:', selectedOrganization);
+  console.log('[CREATE CREDENTIAL] Token available:', !!token);
+
+  if (!token) {
+    console.error('[CREATE CREDENTIAL] User not logged in');
+    throw new Error('Please sign in to create credentials');
+  }
+
+  if (!templateData) {
+    console.error('[CREATE CREDENTIAL] Template data not available');
+    throw new Error('Template configuration missing');
+  }
+
+  // Prepare APIs data
+  const apis = templateData.apis?.map(api => ({
+    code: api.code,
+    credentialType: api.credentialType,
+    flowType: api.flowType,
+    licenseConfigs: Array.isArray(api.licenseConfigs) && api.licenseConfigs.length > 0
+      ? [{ ...api.licenseConfigs[0], op: 'add' }]
+      : [],
+  })) || [];
+
+  console.log('[CREATE CREDENTIAL] APIs prepared:', apis);
+
+  const data = {
+    projectName: formData.CredentialName,
+    description: 'created for get credential',
+    metadata: {
+      domain: formData.AllowedOrigins,
+    },
+    orgId: selectedOrganization?.code || templateData.orgId,
+    apis,
+  };
+
+  console.log('[CREATE CREDENTIAL] Request payload:', data);
+
+  const url = `/templates/install/${templateData.id}`;
+  console.log('[CREATE CREDENTIAL] API URL:', url);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  console.log('[CREATE CREDENTIAL] Response status:', response.status);
+
+  const resResp = await response?.json();
+  console.log('[CREATE CREDENTIAL] Response body:', resResp);
+
+  if (response.ok) {
+    console.log('[CREATE CREDENTIAL] Success! Credential created:', resResp);
+    return { success: true, data: resResp };
+  } else {
+    // Parse error message
+    let errorMessage = 'Failed to create credential';
+    if (resResp.errors && resResp.errors.length > 0) {
+      const errorText = resResp.errors[0].message;
+      const jsonMatch = errorText.match(/\((\{.*\})\)/);
+      if (jsonMatch) {
+        const errorDetails = JSON.parse(jsonMatch[1]);
+        errorMessage = errorDetails.messages[0]?.message || errorMessage;
+      } else {
+        errorMessage = errorText;
+      }
+    }
+    console.error('[CREATE CREDENTIAL] Error:', errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+
+async function fetchExistingCredentials(orgCode) {
+  console.log('[FETCH CREDENTIALS] Starting fetch...');
+  console.log('[FETCH CREDENTIALS] Org Code:', orgCode);
+  
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  console.log('[FETCH CREDENTIALS] Token available:', !!token);
+  
+  if (!token) {
+    console.log('[FETCH CREDENTIALS] User not logged in, skipping fetch');
+    return null;
+  }
+
+  // Use selected organization if available
+  const selectedOrgCode = orgCode || selectedOrganization?.code;
+  console.log('[FETCH CREDENTIALS] Using org code:', selectedOrgCode);
+  
+  try {
+    // Fetch user's projects/credentials for the organization
+    const url = selectedOrgCode 
+      ? `/console/api/organizations/${selectedOrgCode}/projects`
+      : '/console/api/projects';
+    
+    console.log('[FETCH CREDENTIALS] API URL:', url);
+      
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+      },
+    });
+
+    console.log('[FETCH CREDENTIALS] Response status:', response.status);
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('[FETCH CREDENTIALS] Projects fetched successfully:', data);
+      return data;
+    } else {
+      console.error('[FETCH CREDENTIALS] Failed with status:', response.status);
+    }
+  } catch (error) {
+    console.error('[FETCH CREDENTIALS] Error:', error);
+  }
+  
+  return null;
+}
+
+async function fetchOrganizations() {
+  console.log('[FETCH ORGANIZATIONS] Starting fetch...');
+  
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  console.log('[FETCH ORGANIZATIONS] Token available:', !!token);
+  
+  if (!token) {
+    console.error('[FETCH ORGANIZATIONS] User not logged in');
+    return null;
+  }
+
+  try {
+    // Fetch accounts with organizations (matching React component)
+    const url = '/console/api/accounts?includeOrganizations=true';
+    console.log('[FETCH ORGANIZATIONS] API URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+      },
+    });
+
+    console.log('[FETCH ORGANIZATIONS] Response status:', response.status);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.log('[FETCH ORGANIZATIONS] Unauthorized, triggering sign-in');
+        window.adobeIMS?.signIn();
+      }
+      throw new Error('Could not fetch accounts');
+    }
+
+    const accountsResult = await response.json();
+    console.log('[FETCH ORGANIZATIONS] Accounts fetched:', accountsResult);
+
+    // Extract organizations from accounts
+    const organizations = [];
+    accountsResult.accounts?.forEach(account => {
+      console.log('[FETCH ORGANIZATIONS] Processing account:', account.id, account.type);
+      if (account.organizations?.length > 0) {
+        console.log('[FETCH ORGANIZATIONS] Found', account.organizations.length, 'organizations in account');
+        account.organizations.forEach(org => {
+          organizations.push({
+            ...org,
+            accountId: account.id,
+            accountType: account.type
+          });
+        });
+      }
+    });
+
+    // Sort organizations by name
+    organizations.sort((a, b) => a.name.localeCompare(b.name));
+    
+    console.log('[FETCH ORGANIZATIONS] Total organizations processed:', organizations.length, organizations);
+    return organizations;
+  } catch (error) {
+    console.error('[FETCH ORGANIZATIONS] Error fetching organizations:', error);
+    
+    // Fallback: Try to get from IMS profile
+    console.log('[FETCH ORGANIZATIONS] Attempting IMS profile fallback...');
+    try {
+      const profile = await window.adobeIMS?.getProfile();
+      const accountId = profile?.userId;
+      console.log('[FETCH ORGANIZATIONS] IMS Profile:', profile);
+      console.log('[FETCH ORGANIZATIONS] Account ID:', accountId);
+      
+      if (profile?.projectedProductContext) {
+        const orgs = profile.projectedProductContext.map((ctx, index) => ({
+          code: ctx.prodCtx.owningEntity,
+          name: ctx.prodCtx.serviceCode || ctx.prodCtx.owningEntity,
+          id: ctx.prodCtx.owningEntity,
+          accountId: accountId,
+          default: index === 0
+        }));
+        console.log('[FETCH ORGANIZATIONS] Organizations from IMS profile fallback:', orgs);
+        return orgs;
+      }
+    } catch (profileError) {
+      console.error('[FETCH ORGANIZATIONS] Error fetching from IMS profile:', profileError);
+    }
+  }
+  
+  console.log('[FETCH ORGANIZATIONS] No organizations found');
+  return null;
+}
+
+async function getCredentialSecrets(response, orgCode) {
+  console.log('[GET SECRETS] Starting fetch...');
+  console.log('[GET SECRETS] Response:', response);
+  console.log('[GET SECRETS] Org Code:', orgCode);
+  
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  console.log('[GET SECRETS] Token available:', !!token);
+  
+  if (!token) {
+    console.error('[GET SECRETS] User not logged in');
+    return null;
+  }
+
+  try {
+    // Get project/credential ID from response
+    const projectId = response?.workspaces 
+      ? response.workspaces[0]?.credentials[0]?.id 
+      : response?.id;
+    
+    const selectedOrgCode = orgCode || selectedOrganization?.code;
+    
+    console.log('[GET SECRETS] Project ID:', projectId);
+    console.log('[GET SECRETS] Org Code:', selectedOrgCode);
+    
+    if (!selectedOrgCode || !projectId) {
+      console.error('[GET SECRETS] Missing organization code or project ID');
+      return null;
+    }
+
+    const secretsUrl = `/console/api/organizations/${selectedOrgCode}/integrations/${projectId}/secrets`;
+    console.log('[GET SECRETS] API URL:', secretsUrl);
+    
+    const secretsResponse = await fetch(secretsUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+      },
+    });
+
+    console.log('[GET SECRETS] Response status:', secretsResponse.status);
+
+    if (secretsResponse.ok) {
+      const secrets = await secretsResponse.json();
+      console.log('[GET SECRETS] Secrets response:', secrets);
+      
+      const secret = secrets.client_secrets?.[0]?.client_secret;
+      const result = { 
+        clientId: secrets?.client_id, 
+        clientSecret: secret 
+      };
+      
+      console.log('[GET SECRETS] Secrets retrieved:', { 
+        clientId: result.clientId, 
+        clientSecret: secret ? '***' + secret.slice(-4) : 'N/A' 
+      });
+      return result;
+    } else {
+      console.error('[GET SECRETS] Failed with status:', secretsResponse.status);
+    }
+  } catch (error) {
+    console.error('[GET SECRETS] Error:', error);
+  }
+  
+  return null;
+}
+
+async function generateToken(apiKey, secret, scopesDetails) {
+  console.log('[GENERATE TOKEN] Starting token generation...');
+  console.log('[GENERATE TOKEN] API Key:', apiKey);
+  console.log('[GENERATE TOKEN] Secret available:', !!secret);
+  console.log('[GENERATE TOKEN] Scopes:', scopesDetails);
+  
+  try {
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: apiKey,
+        client_secret: secret,
+        grant_type: 'client_credentials',
+        scope: scopesDetails?.scope || '',
+      }),
+    };
+
+    const url = '/ims/token/v3';
+    console.log('[GENERATE TOKEN] API URL:', url);
+    console.log('[GENERATE TOKEN] Request body params:', {
+      client_id: apiKey,
+      grant_type: 'client_credentials',
+      scope: scopesDetails?.scope || '',
+      client_secret: '***'
+    });
+
+    const tokenResponse = await fetch(url, options);
+    console.log('[GENERATE TOKEN] Response status:', tokenResponse.status);
+    
+    if (tokenResponse.ok) {
+      const tokenJson = await tokenResponse.json();
+      console.log('[GENERATE TOKEN] Token generated successfully');
+      console.log('[GENERATE TOKEN] Token preview:', tokenJson.access_token?.substring(0, 20) + '...');
+      return tokenJson.access_token;
+    } else {
+      const errorText = await tokenResponse.text();
+      console.error('[GENERATE TOKEN] Failed:', errorText);
+    }
+  } catch (error) {
+    console.error('[GENERATE TOKEN] Error:', error);
+  }
+  
+  console.log('[GENERATE TOKEN] No token generated');
+  return null;
+}
+
+async function switchOrganization(org) {
+  console.log('[SWITCH ORG] Starting organization switch...');
+  console.log('[SWITCH ORG] Input org:', org);
+  console.log('[SWITCH ORG] Organizations data available:', organizationsData?.length || 0, 'orgs');
+  
+  const profile = await window.adobeIMS?.getProfile();
+  const accountId = profile?.userId;
+  console.log('[SWITCH ORG] Current account ID:', accountId);
+
+  if (!org) {
+    // This means it's initial load. Try reading from local storage
+    console.log('[SWITCH ORG] No org provided, checking localStorage...');
+    const savedOrgString = localStorage.getItem(LOCAL_STORAGE_ORG_KEY);
+    
+    if (!savedOrgString) {
+      console.log('[SWITCH ORG] localStorage is empty (first time user or cleared)');
+    }
+    
+    const orgInLocalStorage = savedOrgString ? JSON.parse(savedOrgString) : null;
+    console.log('[SWITCH ORG] Found in localStorage:', orgInLocalStorage ? orgInLocalStorage.name : 'Nothing', orgInLocalStorage);
+
+    // Check if the user has access to the org
+    if (orgInLocalStorage) {
+      org = organizationsData?.filter(o => 
+        o.code === orgInLocalStorage.code && accountId === orgInLocalStorage.accountId
+      )[0];
+      console.log(`[SWITCH ORG] Org in localStorage ${org ? 'accessible' : 'not accessible'}`);
+    }
+
+    // If no accessible org found in local storage, we pick the default org
+    if (!org) {
+      if (orgInLocalStorage) {
+        console.log('[SWITCH ORG] No accessible org in localStorage. Picking default...');
+        localStorage.removeItem(LOCAL_STORAGE_ORG_KEY);
+        console.log('[SWITCH ORG] Removed invalid localStorage entry');
+      } else {
+        console.log('[SWITCH ORG] First time initialization - picking default org...');
+      }
+      
+      if (organizationsData && organizationsData.length > 0) {
+        const currentAccountOrgs = organizationsData.filter(o => o.accountId === accountId);
+        console.log('[SWITCH ORG] Current account orgs:', currentAccountOrgs.length);
+        org = currentAccountOrgs.filter(o => o.default)[0] ?? currentAccountOrgs[0];
+        console.log('[SWITCH ORG] Selected default org (first in list):', org);
+      }
+    }
+  }
+
+  console.log('[SWITCH ORG] Target org:', org?.name, org);
+  
+  if (!org) {
+    console.error('[SWITCH ORG] No org found to switch to');
+    throw new Error('No org found to switch to');
+  }
+
+  // Switch accounts if org requires account switch
+  if (accountId !== org.accountId) {
+    console.log('[SWITCH ORG] Account switch required');
+    console.log('[SWITCH ORG] Switching account from', accountId, 'to', org.accountId);
+    await window.adobeIMS?.switchProfile(org.accountId);
+    console.log('[SWITCH ORG] Account switch completed');
+  } else {
+    console.log('[SWITCH ORG] No account switch needed');
+  }
+
+  // Set the org in local storage
+  localStorage.setItem(LOCAL_STORAGE_ORG_KEY, JSON.stringify(org));
+  console.log('[SWITCH ORG] Saved to localStorage');
+  
+  selectedOrganization = org;
+  console.log('[SWITCH ORG] Organization switched successfully to:', org.name);
+  console.log('[SWITCH ORG] Selected organization:', selectedOrganization);
+  
+  return org;
+}
+
+function updateCredentialCard(cardContainer, responseData) {
+  if (!cardContainer || !responseData) return;
+
+  // Extract data from API response
+  const projectName = responseData.projectName || responseData.name || formData.CredentialName;
+  const projectId = responseData.projectId || responseData.id;
+  const apiKey = responseData.credentials?.[0]?.apiKey || responseData.apiKey;
+  const allowedOrigins = responseData.credentials?.[0]?.allowedOrigins || formData.AllowedOrigins;
+  const orgName = responseData.orgName || selectedOrganization?.name || 'Your Organization';
+
+  // Update project title
+  const projectTitle = cardContainer.querySelector('.project-title');
+  if (projectTitle) projectTitle.textContent = projectName;
+
+  // Update API Key value
+  const apiKeyValue = cardContainer.querySelector('.credential-detail-field:nth-child(1) .credential-detail-value');
+  if (apiKeyValue && apiKey) {
+    apiKeyValue.textContent = apiKey;
+    // Update copy button data attribute
+    const copyButton = apiKeyValue.parentElement.querySelector('.copy-button');
+    if (copyButton) copyButton.setAttribute('data-copy', apiKey);
+  }
+
+  // Update Allowed Origins value
+  const originsValue = cardContainer.querySelector('.credential-detail-field:nth-child(2) .credential-detail-value');
+  if (originsValue) {
+    originsValue.textContent = allowedOrigins;
+    // Update copy button data attribute
+    const copyButton = originsValue.parentElement.querySelector('.copy-button');
+    if (copyButton) copyButton.setAttribute('data-copy', allowedOrigins);
+  }
+
+  // Update Organization Name
+  const orgNameValue = cardContainer.querySelector('.credential-detail-field:nth-child(3) .credential-detail-text');
+  if (orgNameValue) orgNameValue.textContent = orgName;
+
+  // Update project link if available
+  if (projectId) {
+    const projectLink = cardContainer.querySelector('.project-link');
+    const consoleUrl = `https://developer.adobe.com/console/projects/${projectId}`;
+    if (projectLink) {
+      projectLink.href = consoleUrl;
+      const projectLinkText = projectLink.querySelector('p');
+      if (projectLinkText) projectLinkText.textContent = projectId;
+    }
+  }
+}
+
 function handleInputChange(value, fieldName) {
   formData[fieldName] = value;
   const counter = fieldName === 'CredentialName' && document.querySelector(`[data-counter="${fieldName}"]`);
@@ -127,55 +602,83 @@ function handleInputChange(value, fieldName) {
 }
 
 function updateFieldValidation(fieldName, validation) {
+  console.log('[VALIDATION] Updating field validation...');
+  console.log('[VALIDATION] Field:', fieldName);
+  console.log('[VALIDATION] Validation:', validation);
+  
   const input = document.querySelector(fieldName === 'CredentialName' ? 
     '[data-cy="add-credential-name"]' : 
     '[data-cy="add-allowed-origins"]');
   
-  if (!input) return;
+  if (!input) {
+    console.log('[VALIDATION] Input not found for field:', fieldName);
+    return;
+  }
 
   const fieldContainer = input.closest('.form-field');
   const descriptionElement = fieldContainer?.querySelector('.field-description');
   const alertIcon = fieldContainer?.querySelector('.alert-icon');
 
   if (validation.error || validation.errors?.length) {
+    console.log('[VALIDATION] Field has errors');
     // Show error - just change color by adding error class
     input.classList.add('error');
     if (descriptionElement) {
       descriptionElement.classList.add('error');
+      console.log('[VALIDATION] Added error class to description');
     }
     // Show alert icon for credential name field
     if (alertIcon && fieldName === 'CredentialName') {
       alertIcon.style.display = 'block';
+      console.log('[VALIDATION] Showing alert icon');
     }
   } else {
+    console.log('[VALIDATION] Field is valid');
     // Remove error - restore original color
     input.classList.remove('error');
     if (descriptionElement) {
       descriptionElement.classList.remove('error');
+      console.log('[VALIDATION] Removed error class from description');
     }
     // Hide alert icon
     if (alertIcon && fieldName === 'CredentialName') {
       alertIcon.style.display = 'none';
+      console.log('[VALIDATION] Hiding alert icon');
     }
   }
 }
 
 function updateButtonState() {
+  console.log('[BUTTON STATE] Updating button state...');
+  
   const createButton = document.querySelector('.create-button');
-  if (!createButton) return;
+  if (!createButton) {
+    console.log('[BUTTON STATE] Create button not found');
+    return;
+  }
 
   const isCredentialNameValid = validationState.CredentialName.valid;
   const isAllowedOriginsValid = validationState.AllowedOrigins.valid;
   const isCredentialNameFilled = formData.CredentialName.trim() !== '';
   const isAgreementChecked = formData.AdobeDeveloperConsole;
 
+  console.log('[BUTTON STATE] Validation state:', {
+    credentialNameFilled: isCredentialNameFilled,
+    credentialNameValid: isCredentialNameValid,
+    allowedOriginsValid: isAllowedOriginsValid,
+    agreementChecked: isAgreementChecked
+  });
+
   const shouldDisable = !isCredentialNameFilled || !isCredentialNameValid || !isAllowedOriginsValid || !isAgreementChecked;
+  console.log('[BUTTON STATE] Should disable:', shouldDisable);
 
   if (shouldDisable) {
+    console.log('[BUTTON STATE] Disabling button');
     createButton.setAttribute('disabled', 'true');
     createButton.style.opacity = '0.4';
     createButton.style.cursor = 'not-allowed';
   } else {
+    console.log('[BUTTON STATE] Enabling button');
     createButton.removeAttribute('disabled');
     createButton.style.opacity = '1';
     createButton.style.cursor = 'pointer';
@@ -481,7 +984,42 @@ function createReturnContent(config) {
   getCredHeader.appendChild(getCredDesc);
 
   // Organization notice
-  getCredHeader.appendChild(createOrgNotice("You're viewing in your personal developer organization  ", 'org-notice-return'));
+  const handleReturnOrgChange = async (newOrg) => {
+    try {
+      // Use switchOrganization function
+      await switchOrganization(newOrg);
+      
+      console.log('Organization changed on return page to:', selectedOrganization);
+      
+      // Update org notice text
+      const orgNotice = getCredHeader.querySelector('.org-notice-return');
+      if (orgNotice) {
+        const orgText = orgNotice.querySelector('.org-text');
+        if (orgText) {
+          orgText.textContent = `You're viewing in ${selectedOrganization.name}  `;
+        }
+      }
+      
+      // Refresh credentials for new org
+      fetchExistingCredentials(selectedOrganization?.code).then(existingCreds => {
+        if (existingCreds) {
+          console.log('Fetched credentials for new org:', existingCreds);
+          // TODO: Update UI with new credentials list
+        }
+      });
+    } catch (error) {
+      console.error('Error switching organization on return page:', error);
+      alert('Failed to switch organization. Please try again.');
+    }
+  };
+  
+  getCredHeader.appendChild(createOrgNotice(
+    `You're viewing in ${selectedOrganization?.name || 'your personal developer organization'}  `,
+    'org-notice-return',
+    organizationsData,
+    selectedOrganization,
+    handleReturnOrgChange
+  ));
 
   leftContent.appendChild(getCredHeader);
 
@@ -671,9 +1209,7 @@ function createCredentialCard(config) {
   // Credential Details section
   if (config.components?.CredentialDetails) {
     const credSection = createCredentialSection(config.components.CredentialDetails);
-    // Override values for card page
-    const apiKeyField = credSection.querySelector('.credential-detail-value');
-    if (apiKeyField) apiKeyField.textContent = '8c6d7ac6d1484f698a331a47c6e38bfae3';
+    // Values will be populated dynamically after API call via updateCredentialCard()
     projectCard.appendChild(credSection);
   }
 
@@ -733,32 +1269,140 @@ function createCredentialCard(config) {
 }
 
 export default async function decorate(block) {
+  console.log('='.repeat(80));
+  console.log('[DECORATE] Starting GetCredential block initialization...');
+  console.log('='.repeat(80));
+  
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   const navPath = `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
+  console.log('[DECORATE] Config path:', navPath);
 
   let credentialData;
   try {
+    console.log('[DECORATE] Fetching configuration...');
     const response = await fetch(navPath);
+    console.log('[DECORATE] Config response status:', response.status);
+    
     if (!response.ok) throw new Error('Failed to load');
 
     const credentialJSON = await response.json();
+    console.log('[DECORATE] Config loaded:', credentialJSON);
+    
     credentialData = credentialJSON?.data?.[0]?.['GetCredential']?.components;
+    console.log('[DECORATE] Credential data extracted:', credentialData);
 
     if (!credentialData) {
+      console.error('[DECORATE] No credential data available');
       block.innerHTML = '<p>No credential data available.</p>';
       return;
     }
+    
+    console.log('[DECORATE] Configuration loaded successfully');
+
+    // Extract template and organization data for API calls
+    const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
+    
+    // Update templateData only if not hardcoded
+    if (templateData === "664e39607dcc7c0e5a4a035b" || !templateData) {
+      templateData = getCredConfig?.template || {
+        id: templateData || 'default-template-id',
+        orgId: 'default-org-id',
+        apis: credentialData.Form?.components?.Products?.items?.map(item => ({
+          code: item.Product?.code || 'cc-embed',
+          credentialType: 'apikey',
+          flowType: 'public',
+          licenseConfigs: []
+        })) || []
+      };
+    }
+
+    // =========================================================================
+    // ORGANIZATION INITIALIZATION
+    // =========================================================================
+    // This section handles organization loading on initial page load:
+    // 1. If user is signed in:
+    //    - Fetch all organizations from API
+    //    - Call switchOrganization(null) which:
+    //      a) Checks localStorage for saved org
+    //      b) Validates user still has access to saved org
+    //      c) If no saved/valid org, picks first org from list as default
+    //      d) Saves selected org to localStorage
+    // 2. If user is NOT signed in:
+    //    - Use fallback org from config
+    // =========================================================================
+    
+    console.log('[DECORATE] Checking if user is signed in...');
+    if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
+      console.log('[DECORATE] User is signed in, fetching organizations...');
+      
+      try {
+        const orgs = await fetchOrganizations();
+        
+        if (orgs && orgs.length > 0) {
+          organizationsData = orgs;
+          console.log('[DECORATE] Organizations loaded:', organizationsData.length, 'organizations');
+          
+          // Initialize organization (from localStorage or default)
+          console.log('[DECORATE] Initializing organization...');
+          await switchOrganization(null);
+          console.log('[DECORATE] Organization initialized:', selectedOrganization);
+        } else {
+          console.log('[DECORATE] No organizations found, using default');
+          // Fallback to config-based organization
+          selectedOrganization = {
+            code: getCredConfig?.orgId || (typeof templateData === 'string' ? 'default-org-id' : templateData.orgId),
+            name: getCredConfig?.orgName || 'Personal Developer Organization'
+          };
+        }
+      } catch (error) {
+        console.error('[DECORATE] Error fetching/initializing organization:', error);
+        // Fallback to config-based organization
+        selectedOrganization = {
+          code: getCredConfig?.orgId || (typeof templateData === 'string' ? 'default-org-id' : templateData.orgId),
+          name: getCredConfig?.orgName || 'Personal Developer Organization'
+        };
+      }
+    } else {
+      console.log('[DECORATE] User not signed in, using fallback organization');
+      // Get organization data from config as fallback (when not signed in)
+      selectedOrganization = {
+        code: getCredConfig?.orgId || (typeof templateData === 'string' ? 'default-org-id' : templateData.orgId),
+        name: getCredConfig?.orgName || 'Personal Developer Organization'
+      };
+    }
+    
+    console.log('[DECORATE] Selected organization ready:', selectedOrganization);
+    console.log('='.repeat(80));
+    console.log('[DECORATE] INITIALIZATION SUMMARY');
+    console.log('[DECORATE] Total Organizations Available:', organizationsData?.length || 0);
+    console.log('[DECORATE] Selected Organization:', {
+      name: selectedOrganization?.name,
+      code: selectedOrganization?.code,
+      accountId: selectedOrganization?.accountId
+    });
+    console.log('[DECORATE] Template Data:', typeof templateData === 'string' ? templateData : templateData?.id);
+    console.log('[DECORATE] localStorage Key:', LOCAL_STORAGE_ORG_KEY);
+    const savedOrg = localStorage.getItem(LOCAL_STORAGE_ORG_KEY);
+    console.log('[DECORATE] Organization in localStorage:', savedOrg ? JSON.parse(savedOrg).name : 'None');
+    console.log('='.repeat(80));
+
   } catch (error) {
+    console.error('[DECORATE] Fatal error during initialization:', error);
     block.innerHTML = '<p>Error loading credential data.</p>';
     return;
   }
 
   block.innerHTML = '';
+  console.log('[DECORATE] Starting UI construction...');
 
   // Create sign-in container
   let signInContainer;
   if (credentialData.SignIn) {
-    signInContainer = createTag('div', { class: 'sign-in-container' });
+    // Check if user is already signed in to hide sign-in page initially
+    const isAlreadySignedIn = window.adobeIMS && window.adobeIMS.isSignedInUser();
+    const signInClass = isAlreadySignedIn ? 'sign-in-container hidden' : 'sign-in-container';
+    
+    signInContainer = createTag('div', { class: signInClass });
     signInContainer.appendChild(createSignInContent(credentialData.SignIn));
     block.appendChild(signInContainer);
   }
@@ -766,9 +1410,28 @@ export default async function decorate(block) {
   // Create return container (previously created projects)
   let returnContainer;
   if (credentialData.Return) {
-    returnContainer = createTag('div', { class: 'return-container hidden' });
+    // Show return page if user is already signed in
+    const isAlreadySignedIn = window.adobeIMS && window.adobeIMS.isSignedInUser();
+    const returnClass = isAlreadySignedIn ? 'return-container' : 'return-container hidden';
+    
+    returnContainer = createTag('div', { class: returnClass });
     returnContainer.appendChild(createReturnContent(credentialData.Return));
     block.appendChild(returnContainer);
+
+    // Fetch credentials if user is signed in (organizations already loaded above)
+    if (isAlreadySignedIn) {
+      console.log('[RETURN PAGE] User already signed in, fetching existing credentials...');
+      console.log('[RETURN PAGE] Using organization:', selectedOrganization);
+      
+      // Fetch existing credentials (organizations were already fetched above)
+      fetchExistingCredentials(selectedOrganization?.code).then(existingCreds => {
+        if (existingCreds) {
+          console.log('[RETURN PAGE] Existing credentials loaded:', existingCreds);
+          // Update return page with existing credentials if needed
+          // You can add logic here to display the list of existing projects
+        }
+      });
+    }
   }
 
   // Create form container
@@ -791,7 +1454,43 @@ export default async function decorate(block) {
     }
 
     // Organization notice
-    formHeader.appendChild(createOrgNotice("You're creating this credential in your personal developer organization  "));
+    const handleOrgChange = async (newOrg) => {
+      try {
+        // Use switchOrganization function
+        await switchOrganization(newOrg);
+        
+        console.log('Organization changed to:', selectedOrganization);
+        
+        // Update org notice text
+        const orgNotice = formHeader.querySelector('.org-notice');
+        if (orgNotice) {
+          const orgText = orgNotice.querySelector('.org-text');
+          if (orgText) {
+            orgText.textContent = `You're creating this credential in ${selectedOrganization.name}  `;
+          }
+        }
+        
+        // Reset form data if needed (e.g., agreement checkbox)
+        if (formData.Agree) {
+          formData.Agree = false;
+          const agreeCheckbox = formFields.querySelector('input[type="checkbox"]');
+          if (agreeCheckbox) {
+            agreeCheckbox.checked = false;
+          }
+        }
+      } catch (error) {
+        console.error('Error switching organization:', error);
+        alert('Failed to switch organization. Please try again.');
+      }
+    };
+    
+    formHeader.appendChild(createOrgNotice(
+      `You're creating this credential in ${selectedOrganization?.name || 'your personal developer organization'}  `,
+      'org-notice',
+      organizationsData,
+      selectedOrganization,
+      handleOrgChange
+    ));
 
     const formWrapper = createTag('div', { class: 'form-wrapper' });
     const formFields = createTag('form', { class: 'credential-form' });
@@ -847,9 +1546,20 @@ export default async function decorate(block) {
 
   // Navigation helper function
   const navigateTo = (hideEl, showEl, scroll = false) => {
+    console.log('[NAVIGATE] Navigating...');
+    console.log('[NAVIGATE] Hiding:', hideEl?.className);
+    console.log('[NAVIGATE] Showing:', showEl?.className);
+    console.log('[NAVIGATE] Scroll:', scroll);
+    
     hideEl?.classList.add('hidden');
     showEl?.classList.remove('hidden');
-    if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    if (scroll) {
+      console.log('[NAVIGATE] Scrolling to top');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    console.log('[NAVIGATE] Navigation complete');
   };
 
   // Setup navigation handlers
@@ -863,11 +1573,45 @@ export default async function decorate(block) {
 
   });
 
-  returnContainer?.querySelector('.create-new-button')?.addEventListener('click', () => {
+  returnContainer?.querySelector('.create-new-button')?.addEventListener('click', async () => {
+    console.log('[CREATE NEW] Create new credential button clicked');
+    console.log('[CREATE NEW] Organizations data:', organizationsData?.length || 0, 'orgs');
+    console.log('[CREATE NEW] Selected organization:', selectedOrganization);
+    
+    // Ensure organizations are loaded
+    if (!organizationsData || organizationsData.length === 0) {
+      console.log('[CREATE NEW] Organizations not loaded, fetching now...');
+      try {
+        const orgs = await fetchOrganizations();
+        if (orgs && orgs.length > 0) {
+          organizationsData = orgs;
+          await switchOrganization(null);
+          console.log('[CREATE NEW] Organizations loaded:', organizationsData.length);
+        }
+      } catch (error) {
+        console.error('[CREATE NEW] Error loading organizations:', error);
+      }
+    }
+    
+    // Ensure organization is selected
+    if (!selectedOrganization) {
+      console.log('[CREATE NEW] No organization selected, initializing...');
+      try {
+        await switchOrganization(null);
+        console.log('[CREATE NEW] Organization selected:', selectedOrganization);
+      } catch (error) {
+        console.error('[CREATE NEW] Error selecting organization:', error);
+        alert('Unable to load organization. Please refresh the page.');
+        return;
+      }
+    }
+    
+    console.log('[CREATE NEW] Navigating to form page...');
     navigateTo(returnContainer, formContainer, true);
   });
 
-  formContainer?.querySelector('.create-button')?.addEventListener('click', (e) => {
+  formContainer?.querySelector('.create-button')?.addEventListener('click', async (e) => {
+    console.log('[FORM SUBMIT] Create button clicked');
     e.preventDefault();
     
     // Validate all fields before submission
@@ -876,12 +1620,62 @@ export default async function decorate(block) {
     const isCredentialNameFilled = formData.CredentialName.trim() !== '';
     const isAgreementChecked = formData.AdobeDeveloperConsole;
 
+    console.log('[FORM SUBMIT] Validation check:', {
+      credentialNameFilled: isCredentialNameFilled,
+      credentialNameValid: isCredentialNameValid,
+      allowedOriginsValid: isAllowedOriginsValid,
+      agreementChecked: isAgreementChecked
+    });
+
     if (!isCredentialNameFilled || !isCredentialNameValid || !isAllowedOriginsValid || !isAgreementChecked) {
-      // Don't proceed if validation fails
+      console.log('[FORM SUBMIT] Validation failed, aborting submission');
       return;
     }
 
-    navigateTo(formContainer, cardContainer, true);
+    console.log('[FORM SUBMIT] Validation passed, proceeding with creation');
+    console.log('[FORM SUBMIT] Form data:', formData);
+
+    // Show loading state
+    const createButton = e.target.closest('.create-button');
+    const buttonLabel = createButton.querySelector('.spectrum-Button-label');
+    const originalText = buttonLabel.textContent;
+    console.log('[FORM SUBMIT] Setting loading state...');
+    buttonLabel.textContent = 'Creating...';
+    createButton.disabled = true;
+
+    try {
+      // Call API to create credential
+      console.log('[FORM SUBMIT] Calling createCredential API...');
+      const result = await createCredential();
+      console.log('[FORM SUBMIT] API result:', result);
+      
+      if (result?.success) {
+        // Store response data
+        credentialResponse = result.data;
+        console.log('[FORM SUBMIT] Credential created successfully:', credentialResponse);
+        
+        // Update card with dynamic values
+        console.log('[FORM SUBMIT] Updating credential card...');
+        updateCredentialCard(cardContainer, credentialResponse);
+        console.log('[FORM SUBMIT] Card updated');
+        
+        // Navigate to success card
+        console.log('[FORM SUBMIT] Navigating to success card...');
+        navigateTo(formContainer, cardContainer, true);
+      } else {
+        console.log('[FORM SUBMIT] API returned non-success result');
+      }
+    } catch (error) {
+      // Show error message
+      console.error('[FORM SUBMIT] Error during submission:', error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      // Reset button state
+      console.log('[FORM SUBMIT] Resetting button state...');
+      buttonLabel.textContent = originalText;
+      createButton.disabled = false;
+      console.log('[FORM SUBMIT] Button reset complete');
+    }
   });
 
   formContainer?.querySelector('.cancel-link')?.addEventListener('click', (e) => {
@@ -893,6 +1687,83 @@ export default async function decorate(block) {
     e.preventDefault();
     navigateTo(cardContainer, formContainer, true);
   });
+
+  // ============================================================================
+  // IMS AUTHENTICATION HANDLERS
+  // ============================================================================
+  
+  // Handle IMS callback after sign-in redirect
+  const handleIMSCallback = () => {
+    console.log('[IMS CALLBACK] Checking for IMS callback...');
+    const hash = window.location.hash;
+    console.log('[IMS CALLBACK] Current hash:', hash);
+    
+    if (hash && hash.includes('access_token=')) {
+      console.log('[IMS CALLBACK] IMS callback detected - access token in URL');
+      console.log('[IMS CALLBACK] Cleaning URL...');
+      window.history.replaceState(null, '', window.location.pathname);
+      console.log('[IMS CALLBACK] URL cleaned');
+      
+      // Wait for IMS to process the token
+      if (window.adobeIMS) {
+        console.log('[IMS CALLBACK] Waiting for IMS to process token...');
+        const checkSignIn = setInterval(() => {
+          const isSignedIn = window.adobeIMS.isSignedInUser();
+          console.log('[IMS CALLBACK] Checking sign-in status:', isSignedIn);
+          
+          if (isSignedIn) {
+            clearInterval(checkSignIn);
+            console.log('[IMS CALLBACK] User signed in successfully');
+            
+            // Fetch organizations first
+            console.log('[IMS CALLBACK] Fetching organizations...');
+            fetchOrganizations().then(async orgs => {
+              if (orgs && orgs.length > 0) {
+                organizationsData = orgs;
+                console.log('[IMS CALLBACK] Organizations loaded:', organizationsData.length, 'orgs');
+                
+                // Initialize organization (from localStorage or default)
+                try {
+                  console.log('[IMS CALLBACK] Initializing organization...');
+                  await switchOrganization(null);
+                  console.log('[IMS CALLBACK] Organization initialized:', selectedOrganization);
+                } catch (error) {
+                  console.error('[IMS CALLBACK] Error initializing organization:', error);
+                }
+              }
+              
+              // Then fetch existing credentials
+              console.log('[IMS CALLBACK] Fetching existing credentials...');
+              return fetchExistingCredentials(selectedOrganization?.code);
+            }).then(existingCreds => {
+              if (existingCreds) {
+                console.log('[IMS CALLBACK] Fetched credentials:', existingCreds);
+              }
+            });
+            
+            // Navigate to return page
+            console.log('[IMS CALLBACK] Navigating to return page...');
+            navigateTo(signInContainer, returnContainer);
+          }
+        }, 100);
+        
+        setTimeout(() => {
+          clearInterval(checkSignIn);
+          console.log('[IMS CALLBACK] Sign-in check timeout');
+        }, 5000);
+      } else {
+        console.log('[IMS CALLBACK] adobeIMS not available');
+      }
+    } else {
+      console.log('[IMS CALLBACK] No IMS callback in URL');
+    }
+  };
+
+  // Check for IMS callback on page load
+  handleIMSCallback();
+
+  // Check when IMS loads
+  window.addEventListener('adobeIMS:loaded', handleIMSCallback);
 
   // Copy button functionality for API key
   document.addEventListener('click', (e) => {
