@@ -544,16 +544,19 @@ async function loadLazy(doc) {
 
   loadIms();
 
-  // Load Algolia search scripts
+  // load algolia scripts
+  // sources: https://www.jsdelivr.com/package/npm/algoliasearch
+  // sources: https://www.jsdelivr.com/package/npm/instantsearch.js
   addExtraScriptWithLoad(
     document.body,
-    "https://cdn.jsdelivr.net/npm/algoliasearch@5.20.1/dist/lite/builds/browser.umd.js",
+    "https://cdn.jsdelivr.net/npm/algoliasearch@5.47.0/dist/algoliasearch.umd.min.js",
     () => {
       addExtraScriptWithLoad(
         document.body,
-        "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
+        "https://cdn.jsdelivr.net/npm/instantsearch.js@4.86.1/dist/instantsearch.production.min.js",
         () => {
-          const { liteClient: algoliasearch } = window["algoliasearch/lite"];
+          const algoliasearch = window.algoliasearch;
+          const instantsearch = window.instantsearch;
 
           if (!algoliasearch || !instantsearch) {
             console.error("Required search libraries not loaded");
@@ -561,7 +564,7 @@ async function loadLazy(doc) {
           }
 
           // Trigger index validation after Algolia is loaded
-          if (window.adp_search && window.adp_search.triggerIndexValidation) {
+          if (window.adp_search?.triggerIndexValidation) {
             window.adp_search.triggerIndexValidation();
           }
         }
@@ -601,7 +604,7 @@ async function loadLazy(doc) {
   }
 
   window.adp_search.APP_KEY = 'E642SEDTHL';
-  window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
+  window.adp_search.API_KEY = '6d498e750458eb371e764fcc11212df4';
   window.adp_search.map_found = true;
 
   //if no map found then don't initialze search at all
@@ -621,56 +624,50 @@ async function loadLazy(doc) {
         new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
     );
 
-    // Function to validate if an index exists in Algolia
-    async function validateIndex(indexName, searchClient) {
-      try {
-        // Perform a search to validate the index exists
-        const response = await searchClient.search({
-          requests: [{
-            indexName: indexName,
-            query: '',
-            hitsPerPage: 0
-          }]
-        });
-        
-        if (response && response.results && response.results.length > 0) {
-          return { indexName, exists: true };
-        } else {
-          console.warn(`Index "${indexName}" returned empty results`);
-          return { indexName, exists: false };
-        }
-      } catch (error) {
-        console.warn(`Index "${indexName}" is not accessible or does not exist:`, error.message);
-        return { indexName, exists: false };
-      }
-    }
-
-    // Validate all indices in parallel
+    // Validate indices using listIndices() and cross-reference with JSON map
     async function validateAndFilterIndices() {
-      if (!window["algoliasearch/lite"]) {
+      if (!window.algoliasearch) {
         console.error('Algolia not loaded, cannot validate indices');
         return allIndices;
       }
 
-      const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-      const searchClient = algoliasearch(window.adp_search.APP_KEY, window.adp_search.API_KEY);
+      try {
+        // Create Algolia search client
+        const searchClient = window.algoliasearch.algoliasearch(
+          window.adp_search.APP_KEY, 
+          window.adp_search.API_KEY
+        );
 
-      // console.log(`Validating ${allIndices.length} indices...`);
-      const validationResults = await Promise.allSettled(
-        allIndices.map(indexName => validateIndex(indexName, searchClient))
-      );
+        // Fetch all available indices from Algolia
+        const algoliaResponse = await searchClient.listIndices();
 
-      // Filter to only include indices that exist
-      const validIndices = validationResults
-        .filter(result => result.status === 'fulfilled' && result.value.exists)
-        .map(result => result.value.indexName);
+        // Extract index names from Algolia response
+        let algoliaIndexNames = [];
+        if (algoliaResponse.items) {
+          // Algolia v3/v4 format
+          algoliaIndexNames = Object.values(algoliaResponse.items).map(index => index.name);
+        } else if (algoliaResponse.results) {
+          // Algolia v5 format (if exists)
+          algoliaIndexNames = algoliaResponse.results.map(index => index.name);
+        } else if (Array.isArray(algoliaResponse)) {
+          // Direct array response
+          algoliaIndexNames = algoliaResponse.map(index => index.name || index);
+        } else {
+          console.warn('Unexpected listIndices() response format:', algoliaResponse);
+        }
 
-      const removedIndices = allIndices.filter(idx => !validIndices.includes(idx));
-      
-      if (removedIndices.length > 0) {
-        console.log(`Removed ${removedIndices.length} non-existent indices:`, removedIndices);
+        // Cross-validate: Only keep indices that exist in BOTH Algolia AND product index JSON map
+        const validIndices = allIndices.filter(indexName => 
+          algoliaIndexNames.includes(indexName)
+        );
+
+        // console.log(`Validated ${validIndices.length} indices that exist in both Algolia and JSON map`);
+        return validIndices;
+
+      } catch (error) {
+        console.error('Error during index validation with listIndices():', error);
+        return allIndices;
       }
-      return validIndices;
     }
 
     window.adp_search.triggerIndexValidation = function() {
