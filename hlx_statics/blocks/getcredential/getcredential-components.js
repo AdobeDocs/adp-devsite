@@ -321,7 +321,7 @@ export function createCredentialSection(config) {
   if (components?.APIKey) {
     credentialSection.appendChild(createCredentialDetailField(
       components.APIKey.heading,
-      components.APIKey.value || 'Loading...',
+      components.APIKey.value || '',
       true,
       'apiKey'  // Add fieldName for dynamic updates
     ));
@@ -330,7 +330,7 @@ export function createCredentialSection(config) {
   if (components?.AllowedOrigins) {
     credentialSection.appendChild(createCredentialDetailField(
       components.AllowedOrigins.heading,
-      components.AllowedOrigins.value || 'Loading...',
+      components.AllowedOrigins.value || '',
       true,
       'allowedOrigins'  // Add fieldName for dynamic updates
     ));
@@ -339,7 +339,7 @@ export function createCredentialSection(config) {
   if (components?.OrganizationName) {
     credentialSection.appendChild(createCredentialDetailField(
       components.OrganizationName.heading,
-      components.OrganizationName.value || 'Loading...',
+      components.OrganizationName.value || '',
       false,
       'organization'  // Add fieldName for dynamic updates
     ));
