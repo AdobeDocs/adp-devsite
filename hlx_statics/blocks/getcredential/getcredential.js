@@ -1941,6 +1941,19 @@ export default async function decorate(block) {
     block.appendChild(signInContainer);
   }
 
+  // Create loading page FIRST (used in multiple places below)
+  const loadingContainer = createLoadingPage();
+  block.appendChild(loadingContainer);
+
+  // Define navigateTo function FIRST (used in multiple places below)
+  const navigateTo = (hideEl, showEl, scroll = false) => {
+    hideEl?.classList.add('hidden');
+    showEl?.classList.remove('hidden');
+    if (scroll) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Create return container (previously created projects)
   let returnContainer;
   if (credentialData.Return) {
@@ -2109,28 +2122,6 @@ export default async function decorate(block) {
     cardContainer.appendChild(createCredentialCard(credentialData.Card));
     block.appendChild(cardContainer);
   }
-
-  // Create loading page
-  const loadingContainer = createLoadingPage();
-  block.appendChild(loadingContainer);
-
-  // Navigation helper function
-  const navigateTo = (hideEl, showEl, scroll = false) => {
-    console.log('[NAVIGATE] Navigating...');
-    console.log('[NAVIGATE] Hiding:', hideEl?.className);
-    console.log('[NAVIGATE] Showing:', showEl?.className);
-    console.log('[NAVIGATE] Scroll:', scroll);
-    
-    hideEl?.classList.add('hidden');
-    showEl?.classList.remove('hidden');
-    
-    if (scroll) {
-      console.log('[NAVIGATE] Scrolling to top');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    console.log('[NAVIGATE] Navigation complete');
-  };
 
   // Setup navigation handlers
   signInContainer?.querySelector('.sign-in-button')?.addEventListener('click', () => {
