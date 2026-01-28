@@ -111,7 +111,7 @@ const validationState = {
 
 // Store API response data
 let credentialResponse = null;
-let templateData = "";
+let templateData = "664e39607dcc7c0e5a4a035b";
 let selectedOrganization = null;
 let organizationsData = null;
 const token = window.adobeIMS?.getTokenFromStorage()?.token;
@@ -233,6 +233,42 @@ async function fetchExistingCredentials(orgCode) {
   }
 
   return null;
+}
+
+async function fetchProjectDetails(orgCode, projectId) {
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+
+  if (!token) {
+    console.error('No token available');
+    return null;
+  }
+
+  try {
+    const url = `/console/api/organizations/${orgCode}/projects/${projectId}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+      },
+    });
+
+    if (response.ok) {
+      const projectData = await response.json();
+      if (projectData.workspaces?.[0]) {
+      }
+
+      return projectData;
+    } else {
+      const errorText = await response.text();
+      console.error('Failed:', errorText);
+      return null;
+    }
+  } catch (error) {
+    return null;
+  }
 }
 
 function populateProjectsDropdown(returnContainer, projectsData) {
@@ -1348,8 +1384,8 @@ function createCredentialCard(config) {
     cardTitleWrapper.appendChild(paragraph);
   }
 
-  // const downloadOptions = createTag('div', { class: 'restart-download-wrapper' });
-  // downloadOptions.innerHTML = '<p class="spectrum-Body spectrum-Body--sizeS">Download not working?</p><a class="restart-download-link">Restart download</a>';
+  const downloadOptions = createTag('div', { class: 'restart-download-wrapper' });
+  downloadOptions.innerHTML = '<p class="spectrum-Body spectrum-Body--sizeS">Download not working?</p><a class="restart-download-link">Restart download</a>';
   // cardTitleWrapper.appendChild(downloadOptions);
 
   cardContainer.appendChild(cardTitleWrapper);
@@ -1461,10 +1497,10 @@ export default async function decorate(block) {
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
 
-    if (getCredConfig?.templateId) {
-      templateData = getCredConfig?.templateId || {
-        id: getCredConfig?.templateId,
-        orgId: '',
+    if (templateData) {
+      templateData = getCredConfig?.template || {
+        id: templateData || 'default-template-id',
+        orgId: 'default-org-id',
         apis: credentialData.Form?.components?.Products?.items?.map(item => ({
           code: item.Product?.code || 'cc-embed',
           credentialType: 'apikey',
