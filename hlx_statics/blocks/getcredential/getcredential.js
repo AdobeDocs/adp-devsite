@@ -338,17 +338,64 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   // Set default selection to first project (by ID)
   if (projects[0]?.id) {
     dropdown.value = projects[0].id;
-    console.log('[POPULATE DROPDOWN] ===== INITIAL LOAD =====');
-    console.log('[POPULATE DROPDOWN] Set dropdown to first project ID:', projects[0].id);
-    console.log('[POPULATE DROPDOWN] Selected project:', projects[0].title);
-    console.log('[POPULATE DROPDOWN] Project has workspaces:', !!projects[0].workspaces);
-    console.log('[POPULATE DROPDOWN] Project has credentials:', !!projects[0].workspaces?.[0]?.credentials);
+    console.log('[POPULATE DROPDOWN] ========================================');
+    console.log('[POPULATE DROPDOWN] ===== UPDATING CARD WITH FIRST PROJECT =====');
+    console.log('[POPULATE DROPDOWN] ========================================');
+    console.log('[POPULATE DROPDOWN] First project complete data:');
+    console.log('[POPULATE DROPDOWN]   - ID:', projects[0].id);
+    console.log('[POPULATE DROPDOWN]   - Title:', projects[0].title);
+    console.log('[POPULATE DROPDOWN]   - Name:', projects[0].name);
+    console.log('[POPULATE DROPDOWN]   - Has workspaces:', !!projects[0].workspaces);
+    
+    if (projects[0].workspaces?.[0]) {
+      const ws = projects[0].workspaces[0];
+      console.log('[POPULATE DROPDOWN]   - Workspace ID:', ws.id);
+      console.log('[POPULATE DROPDOWN]   - Has credentials:', !!ws.credentials);
+      
+      if (ws.credentials?.[0]) {
+        const cred = ws.credentials[0];
+        console.log('[POPULATE DROPDOWN]   - Credential ID:', cred.id);
+        console.log('[POPULATE DROPDOWN]   - id_integration:', cred.id_integration);
+        console.log('[POPULATE DROPDOWN]   - apiKey:', cred.apiKey);
+        console.log('[POPULATE DROPDOWN]   - Has metadata:', !!cred.metadata);
+        if (cred.metadata) {
+          console.log('[POPULATE DROPDOWN]   - adobeid.domain:', cred.metadata['adobeid.domain']);
+        }
+      } else {
+        console.error('[POPULATE DROPDOWN]   - ❌ NO CREDENTIALS IN WORKSPACE!');
+      }
+    } else {
+      console.error('[POPULATE DROPDOWN]   - ❌ NO WORKSPACES IN PROJECT!');
+    }
+    
+    console.log('[POPULATE DROPDOWN] Return Container class:', returnContainer.className);
+    console.log('[POPULATE DROPDOWN] Calling updateProjectCardDetails()...');
     
     // Update card with first project data (use already-fetched data, no API call)
     updateProjectCardDetails(returnContainer, projects[0]);
-    console.log('[POPULATE DROPDOWN] Initial card updated with first project data');
+    
+    console.log('[POPULATE DROPDOWN] ========================================');
+    console.log('[POPULATE DROPDOWN] ===== VERIFYING CARD WAS UPDATED =====');
+    console.log('[POPULATE DROPDOWN] ========================================');
+    
+    // Verify the card was actually updated by checking the DOM
+    const verifyTitle = returnContainer.querySelector('.project-title');
+    const verifyApiKey = returnContainer.querySelector('[data-field="apiKey"]');
+    const verifyOrigins = returnContainer.querySelector('[data-field="allowedOrigins"]');
+    
+    console.log('[POPULATE DROPDOWN] After update, card shows:');
+    console.log('[POPULATE DROPDOWN]   ► Title in DOM:', verifyTitle?.textContent || '❌ EMPTY');
+    console.log('[POPULATE DROPDOWN]   ► API Key in DOM:', verifyApiKey?.textContent || '❌ EMPTY');
+    console.log('[POPULATE DROPDOWN]   ► Origins in DOM:', verifyOrigins?.textContent || '❌ EMPTY');
+    
+    if (!verifyTitle?.textContent || !verifyApiKey?.textContent || !verifyOrigins?.textContent) {
+      console.error('[POPULATE DROPDOWN] ❌ CARD IS STILL EMPTY AFTER UPDATE!');
+    } else {
+      console.log('[POPULATE DROPDOWN] ✅ Card populated successfully!');
+    }
+    console.log('[POPULATE DROPDOWN] ========================================');
   } else {
-    console.error('[POPULATE DROPDOWN] No valid first project found');
+    console.error('[POPULATE DROPDOWN] ❌ No valid first project found!');
   }
   
   // Remove old event listeners by cloning the dropdown
@@ -378,16 +425,25 @@ function populateProjectsDropdown(returnContainer, projectsData) {
       return;
     }
     
-    console.log('[DROPDOWN CHANGE] Filtered project from previous response:', {
+    console.log('[DROPDOWN CHANGE] Filtered project:', {
       title: selectedProject.title,
       id: selectedProject.id,
       hasWorkspaces: !!selectedProject.workspaces,
       hasCredentials: !!selectedProject.workspaces?.[0]?.credentials
     });
     
+    console.log('[DROPDOWN CHANGE] ===== UPDATING CARD NOW =====');
+    
     // Update card directly with the filtered project data (no API call needed)
     updateProjectCardDetails(returnContainer, selectedProject);
-    console.log('[DROPDOWN CHANGE] Card updated with filtered project data');
+    
+    console.log('[DROPDOWN CHANGE] ===== CARD UPDATE COMPLETE =====');
+    
+    // Verify update worked
+    const verifyTitle = returnContainer.querySelector('.project-title');
+    const verifyApiKey = returnContainer.querySelector('[data-field="apiKey"]');
+    console.log('[DROPDOWN CHANGE] Verification - Title now shows:', verifyTitle?.textContent || '❌ EMPTY');
+    console.log('[DROPDOWN CHANGE] Verification - API Key now shows:', verifyApiKey?.textContent || '❌ EMPTY');
   });
   
   console.log('[POPULATE DROPDOWN] Event listener attached to dropdown');
@@ -397,114 +453,167 @@ function populateProjectsDropdown(returnContainer, projectsData) {
 
 function updateProjectCardDetails(returnContainer, project) {
   console.log('[UPDATE PROJECT CARD] ===== START =====');
-  console.log('[UPDATE PROJECT CARD] Full project data:', project);
-  console.log('[UPDATE PROJECT CARD] Project ID:', project.id);
-  console.log('[UPDATE PROJECT CARD] Project title:', project.title);
-  console.log('[UPDATE PROJECT CARD] Project name:', project.name);
+  console.log('[UPDATE PROJECT CARD] Return container:', returnContainer);
+  console.log('[UPDATE PROJECT CARD] Return container class:', returnContainer?.className);
+  console.log('[UPDATE PROJECT CARD] Return container exists:', !!returnContainer);
+  console.log('[UPDATE PROJECT CARD] Project data exists:', !!project);
   
-  if (!returnContainer || !project) {
-    console.error('[UPDATE PROJECT CARD] Missing container or project data');
+  if (!returnContainer) {
+    console.error('[UPDATE PROJECT CARD] CRITICAL: Return container is null/undefined!');
     return;
   }
   
-  // Update project title
+  if (!project) {
+    console.error('[UPDATE PROJECT CARD] CRITICAL: Project data is null/undefined!');
+    return;
+  }
+  
+  console.log('[UPDATE PROJECT CARD] Project ID:', project.id);
+  console.log('[UPDATE PROJECT CARD] Project title:', project.title);
+  console.log('[UPDATE PROJECT CARD] Project name:', project.name);
+  console.log('[UPDATE PROJECT CARD] Project has workspaces:', !!project.workspaces);
+  console.log('[UPDATE PROJECT CARD] Project has credentials:', !!project.workspaces?.[0]?.credentials);
+  
+  // Find all elements
+  console.log('[UPDATE PROJECT CARD] ===== FINDING ELEMENTS =====');
   const projectTitle = returnContainer.querySelector('.project-title');
+  const projectLink = returnContainer.querySelector('.project-link');
+  const apiKeyElement = returnContainer.querySelector('[data-field="apiKey"]');
+  const originsElement = returnContainer.querySelector('[data-field="allowedOrigins"]');
+  const orgElement = returnContainer.querySelector('[data-field="organization"]');
+  
+  console.log('[UPDATE PROJECT CARD] .project-title found:', !!projectTitle);
+  console.log('[UPDATE PROJECT CARD] .project-link found:', !!projectLink);
+  console.log('[UPDATE PROJECT CARD] [data-field="apiKey"] found:', !!apiKeyElement);
+  console.log('[UPDATE PROJECT CARD] [data-field="allowedOrigins"] found:', !!originsElement);
+  console.log('[UPDATE PROJECT CARD] [data-field="organization"] found:', !!orgElement);
+  
+  // Update project title
   if (projectTitle) {
     const newTitle = project.title || project.name || 'Untitled Project';
     projectTitle.textContent = newTitle;
-    console.log('[UPDATE PROJECT CARD] Title updated to:', newTitle);
+    console.log('[UPDATE PROJECT CARD] ✅ Title set to:', newTitle);
   } else {
-    console.error('[UPDATE PROJECT CARD] Project title element not found');
+    console.error('[UPDATE PROJECT CARD] ❌ .project-title element NOT FOUND!');
   }
   
   // Update Developer Console link
-  const projectLink = returnContainer.querySelector('.project-link');
   if (projectLink && project.id) {
     const orgId = selectedOrganization?.id || project.org_id;
     const workspaceId = project.workspaces?.[0]?.id || '';
     
-    // Construct proper console URL
     const consoleUrl = workspaceId 
-      ? `https://developer.adobe.com/console/projects/${orgId}/${project.id}/${workspaceId}/overview`
-      : `https://developer.adobe.com/console/projects/${orgId}/${project.id}/overview`;
+      ? `/console/projects/${orgId}/${project.id}/${workspaceId}/overview`
+      : `/console/projects/${orgId}/${project.id}/overview`;
     
     projectLink.href = consoleUrl;
     
-    // Update the text inside the <p> tag
     const projectLinkText = projectLink.querySelector('p');
     if (projectLinkText) {
-      projectLinkText.textContent = project.id;
+      projectLinkText.textContent = project.title;
     } else {
       projectLink.textContent = project.id;
     }
     
-    console.log('[UPDATE PROJECT CARD] Link updated - Project ID:', project.id);
-    console.log('[UPDATE PROJECT CARD] Console URL:', consoleUrl);
+    console.log('[UPDATE PROJECT CARD] ✅ Link set to:', project.id, 'URL:', consoleUrl);
+  } else {  
+    console.error('[UPDATE PROJECT CARD] ❌ .project-link element NOT FOUND or no project ID!');
   }
   
   // Get credential data from project (handle multiple possible structures)
-  const credential = project.workspaces?.[0]?.credentials?.[0];
-  console.log('[UPDATE PROJECT CARD] Credential object:', credential);
-  console.log('[UPDATE PROJECT CARD] Full project data:', project);
+  const workspace = project.workspaces?.[0];
+  const credential = workspace?.credentials?.[0];
+  
+  console.log('[UPDATE PROJECT CARD] ===== DATA EXTRACTION =====');
+  console.log('[UPDATE PROJECT CARD] Workspace exists:', !!workspace);
+  console.log('[UPDATE PROJECT CARD] Credential exists:', !!credential);
+  
+  if (credential) {
+    console.log('[UPDATE PROJECT CARD] Credential data:', {
+      id: credential.id,
+      id_integration: credential.id_integration,
+      apiKey: credential.apiKey,
+      metadata: credential.metadata
+    });
+  } else {
+    console.error('[UPDATE PROJECT CARD] ❌ NO CREDENTIAL FOUND - Fields will show "Not available"!');
+  }
   
   // Update API Key
-  const apiKeyElement = returnContainer.querySelector('[data-field="apiKey"]');
-  console.log('[UPDATE PROJECT CARD] API Key element found:', !!apiKeyElement);
-  
   if (apiKeyElement) {
     const apiKey = credential?.id_integration 
       || credential?.apiKey 
       || credential?.id 
-      || project.apiKey  // Also check project level
+      || workspace?.apiKey
+      || project.apiKey
       || 'Not available';
     
-    console.log('[UPDATE PROJECT CARD] Extracted API Key:', apiKey ? apiKey.substring(0, 10) + '...' : 'NONE');
     apiKeyElement.textContent = apiKey;
+    console.log('[UPDATE PROJECT CARD] ✅ API Key set to:', apiKey !== 'Not available' ? apiKey.substring(0, 15) + '...' : 'Not available');
     
-    // Update copy button
-    const copyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && apiKey !== 'Not available') {
-      copyButton.setAttribute('data-copy', apiKey);
+    // Update copy button for API Key
+    const apiKeyCopyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
+    if (apiKeyCopyButton && apiKey !== 'Not available') {
+      apiKeyCopyButton.setAttribute('data-copy', apiKey);
     }
-    console.log('[UPDATE PROJECT CARD] Updated API Key element');
+  } else {
+    console.error('[UPDATE PROJECT CARD] ❌ [data-field="apiKey"] element NOT FOUND!');
   }
   
   // Update Allowed Origins
-  const originsElement = returnContainer.querySelector('[data-field="allowedOrigins"]');
-  console.log('[UPDATE PROJECT CARD] Allowed Origins element found:', !!originsElement);
-  
   if (originsElement) {
     const allowedOrigins = credential?.metadata?.['adobeid.domain'] 
       || credential?.metadata?.domain 
       || credential?.allowedOrigins 
-      || project.allowedOrigins  // Also check project level
+      || workspace?.allowedOrigins
+      || project.allowedOrigins
       || 'Not set';
     
-    console.log('[UPDATE PROJECT CARD] Extracted Allowed Origins:', allowedOrigins);
     originsElement.textContent = allowedOrigins;
+    console.log('[UPDATE PROJECT CARD] ✅ Allowed Origins set to:', allowedOrigins);
     
-    // Update copy button
-    const copyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && allowedOrigins !== 'Not set') {
-      copyButton.setAttribute('data-copy', allowedOrigins);
+    // Update copy button for Allowed Origins
+    const originsCopyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
+    if (originsCopyButton && allowedOrigins !== 'Not set') {
+      originsCopyButton.setAttribute('data-copy', allowedOrigins);
     }
-    console.log('[UPDATE PROJECT CARD] Updated Allowed Origins element');
+  } else {
+    console.error('[UPDATE PROJECT CARD] ❌ [data-field="allowedOrigins"] element NOT FOUND!');
   }
   
   // Update Organization
-  const orgElement = returnContainer.querySelector('[data-field="organization"]');
-  console.log('[UPDATE PROJECT CARD] Organization element found:', !!orgElement);
-  
   if (orgElement) {
     const orgName = selectedOrganization?.name || project.orgName || 'N/A';
-    console.log('[UPDATE PROJECT CARD] Extracted Organization:', orgName);
     orgElement.textContent = orgName;
-    console.log('[UPDATE PROJECT CARD] Updated Organization element');
+    console.log('[UPDATE PROJECT CARD] ✅ Organization set to:', orgName);
   } else {
-    console.error('[UPDATE PROJECT CARD] Organization element not found');
+    console.error('[UPDATE PROJECT CARD] ❌ [data-field="organization"] element NOT FOUND!');
   }
   
-  console.log('[UPDATE PROJECT CARD] ===== COMPLETE =====');
+  console.log('[UPDATE PROJECT CARD] ========================================');
+  console.log('[UPDATE PROJECT CARD] ===== ✅ UPDATE COMPLETE =====');
+  console.log('[UPDATE PROJECT CARD] ========================================');
+  console.log('[UPDATE PROJECT CARD] Card should now display:');
+  console.log('[UPDATE PROJECT CARD]   ► Title:', projectTitle?.textContent || '❌ NOT SET');
+  console.log('[UPDATE PROJECT CARD]   ► Link text:', projectLink?.querySelector('p')?.textContent || projectLink?.textContent || '❌ NOT SET');
+  console.log('[UPDATE PROJECT CARD]   ► API Key:', apiKeyElement?.textContent ? apiKeyElement.textContent.substring(0, 30) + '...' : '❌ NOT SET');
+  console.log('[UPDATE PROJECT CARD]   ► Allowed Origins:', originsElement?.textContent || '❌ NOT SET');
+  console.log('[UPDATE PROJECT CARD]   ► Organization:', orgElement?.textContent || '❌ NOT SET');
+  console.log('[UPDATE PROJECT CARD] ========================================');
+  
+  if (!projectTitle || !projectLink || !apiKeyElement || !originsElement || !orgElement) {
+    console.error('[UPDATE PROJECT CARD] ⚠️ WARNING: Some elements were NOT FOUND in the DOM!');
+    console.error('[UPDATE PROJECT CARD] The card will appear incomplete or empty!');
+    console.error('[UPDATE PROJECT CARD] Missing elements:', {
+      projectTitle: !projectTitle,
+      projectLink: !projectLink,
+      apiKeyElement: !apiKeyElement,
+      originsElement: !originsElement,
+      orgElement: !orgElement
+    });
+  } else {
+    console.log('[UPDATE PROJECT CARD] ✅ SUCCESS: All 5 elements found and updated!');
+  }
 }
 
 async function fetchOrganizations() {
@@ -925,21 +1034,31 @@ function updateCredentialCard(cardContainer, responseData) {
   }
 
   // Update project link if available
-  if (projectId) {
+  if (projectId && projectName) {
     const projectLink = cardContainer.querySelector('.project-link');
-    const consoleUrl = `https://developer.adobe.com/console/projects/${projectId}`;
+    
+    // Build complete console URL with org ID and workspace ID
+    const orgId = selectedOrganization?.id || responseData.orgId;
+    const workspaceId = responseData.workspaceId;
+    
+    const consoleUrl = workspaceId 
+      ? `/console/projects/${orgId}/${projectId}/${workspaceId}/overview`
+      : `/console/projects/${orgId}/${projectId}/overview`;
+    
     if (projectLink) {
       projectLink.href = consoleUrl;
       
-      // Update the text inside the <p> tag
+      // Update the text inside the <p> tag with project NAME (not ID)
       const projectLinkText = projectLink.querySelector('p');
       if (projectLinkText) {
-        projectLinkText.textContent = projectId;
+        projectLinkText.textContent = projectName;  // Show project name from form
       } else {
-        projectLink.textContent = projectId;
+        projectLink.textContent = projectName;  // Show project name from form
       }
       
-      console.log('[UPDATE CARD] Success card - Updated project link:', consoleUrl);
+      console.log('[UPDATE CARD] Success card - Updated project link with name:', projectName);
+      console.log('[UPDATE CARD] Success card - Complete URL:', consoleUrl);
+      console.log('[UPDATE CARD] Success card - Org ID:', orgId, 'Project ID:', projectId, 'Workspace ID:', workspaceId);
     }
   }
   
@@ -1457,17 +1576,16 @@ function createReturnContent(config) {
     rightContent.appendChild(manageConsoleLink);
   }
 
-  // Projects Dropdown
+  // Projects Dropdown (will be populated dynamically)
   if (config.components?.ProjectsDropdown) {
     const dropdownSection = createTag('div', { class: 'projects-dropdown-section' });
     const dropdownLabel = createTag('label', { class: 'spectrum-Body spectrum-Body--sizeS' });
     dropdownLabel.textContent = config.components.ProjectsDropdown.label;
     dropdownSection.appendChild(dropdownLabel);
 
+    // Create empty dropdown - will be populated by populateProjectsDropdown()
     const dropdown = createTag('select', { class: 'spectrum-Picker projects-picker' });
-    const option = createTag('option', {});
-    option.textContent = 'Project 17';
-    dropdown.appendChild(option);
+    dropdown.disabled = true; // Disabled until projects are loaded
     dropdownSection.appendChild(dropdown);
 
     if (config.components.ProjectsDropdown.subHeading) {
@@ -1479,21 +1597,21 @@ function createReturnContent(config) {
     rightContent.appendChild(dropdownSection);
   }
 
-  // Project Card
+  // Project Card (will be populated dynamically)
   const projectCard = createTag('div', { class: 'return-project-card' });
-  projectCard.appendChild(createProjectHeader('Project 17', config.components?.Products));
+  projectCard.appendChild(createProjectHeader('', config.components?.Products));
 
   // Divider
   projectCard.appendChild(createDivider());
 
-  // Developer Console Project
+  // Developer Console Project (will be updated dynamically)
   if (config.components?.DevConsoleLink) {
     const devConsoleSection = createTag('div', { class: 'dev-console-section' });
     const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
     devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
     devConsoleSection.appendChild(devConsoleLabel);
 
-    const projectLink = createExternalLink('Project 17', '/console/projects/248947/4566206088344878645/overview');
+    const projectLink = createExternalLink('', '#');
     devConsoleSection.appendChild(projectLink);
     projectCard.appendChild(devConsoleSection);
   }
@@ -1600,19 +1718,19 @@ function createCredentialCard(config) {
   // Main card content
   const cardContent = createTag('div', { class: 'card-content' });
 
-  // Project Card (single card containing all sections)
+  // Project Card (will be populated dynamically via updateCredentialCard)
   const projectCard = createTag('div', { class: 'project-card' });
-  projectCard.appendChild(createProjectHeader('Project 12', config.components?.Products));
+  projectCard.appendChild(createProjectHeader('', config.components?.Products));
   projectCard.appendChild(createDivider());
 
-  // Developer Console Project section
+  // Developer Console Project section (will be updated dynamically)
   if (config.components?.DevConsoleLink) {
     const devConsoleSection = createTag('div', { class: 'dev-console-section' });
     const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
     devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
     devConsoleSection.appendChild(devConsoleLabel);
 
-    const projectLink = createExternalLink('Project 13', '/console/projects/248947/4566206088344878645/overview');
+    const projectLink = createExternalLink('', '#');
     projectLink.setAttribute('data-cy', 'credentialName-link');
     devConsoleSection.appendChild(projectLink);
 
@@ -1645,7 +1763,7 @@ function createCredentialCard(config) {
   }
 
   // Manage on Developer console link
-  const manageLink = createExternalLink('Manage on Developer console', 'https://developer.adobe.com/console/');
+  const manageLink = createExternalLink('Manage on Developer console', '/console/');
   manageLink.classList.remove('project-link');
   manageLink.classList.add('manage-link');
   buttonsSection.appendChild(manageLink);
@@ -1828,41 +1946,56 @@ export default async function decorate(block) {
   if (credentialData.Return) {
     // Show return page if user is already signed in
     const isAlreadySignedIn = window.adobeIMS && window.adobeIMS.isSignedInUser();
-    const returnClass = isAlreadySignedIn ? 'return-container' : 'return-container hidden';
     
-    returnContainer = createTag('div', { class: returnClass });
+    // Always create return container as hidden initially
+    returnContainer = createTag('div', { class: 'return-container hidden' });
     returnContainer.appendChild(createReturnContent(credentialData.Return));
     block.appendChild(returnContainer);
 
     // Fetch credentials if user is signed in (organizations already loaded above)
     if (isAlreadySignedIn) {
-      console.log('[RETURN PAGE] User already signed in, fetching existing credentials...');
+      console.log('[RETURN PAGE] User already signed in, showing loading and fetching credentials...');
       console.log('[RETURN PAGE] Using organization:', selectedOrganization);
+      
+      // Show loading page while fetching
+      setLoadingText(loadingContainer, 'Loading...');
+      navigateTo(signInContainer, loadingContainer);
       
       // Fetch existing credentials (organizations were already fetched above)
       fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-        console.log('[RETURN PAGE] Existing credentials loaded:', existingCreds);
+        console.log('[RETURN PAGE] ===== API RESPONSE RECEIVED =====');
+        console.log('[RETURN PAGE] Existing credentials data:', existingCreds);
+        console.log('[RETURN PAGE] Projects count:', existingCreds?.projects?.length || 0);
         
-        if (existingCreds) {
+        if (existingCreds && existingCreds.projects && existingCreds.projects.length > 0) {
+          console.log('[RETURN PAGE] Has projects, will populate dropdown and card');
+          
           // Populate dropdown and update card with projects (filter from cached data)
           const hasProjects = populateProjectsDropdown(returnContainer, existingCreds);
           
+          console.log('[RETURN PAGE] populateProjectsDropdown returned:', hasProjects);
+          
           if (!hasProjects) {
             // No projects found - navigate to form to create first credential
-            console.log('[RETURN PAGE] No existing projects, navigating to form...');
-            navigateTo(returnContainer, formContainer);
+            console.log('[RETURN PAGE] No projects after population, navigating to form...');
+            navigateTo(loadingContainer, formContainer);
           } else {
-            console.log('[RETURN PAGE] Projects loaded and displayed successfully');
+            console.log('[RETURN PAGE] ===== HIDING LOADING, SHOWING RETURN PAGE =====');
+            console.log('[RETURN PAGE] Projects loaded and card updated successfully');
+            // Hide loading and show return page with populated data
+            navigateTo(loadingContainer, returnContainer);
+            console.log('[RETURN PAGE] ===== RETURN PAGE NOW VISIBLE =====');
           }
         } else {
-          // Failed to fetch credentials - navigate to form
-          console.log('[RETURN PAGE] Failed to fetch credentials, navigating to form...');
-          navigateTo(returnContainer, formContainer);
+          // Failed to fetch credentials or no projects - navigate to form
+          console.log('[RETURN PAGE] No projects found in API response, navigating to form...');
+          navigateTo(loadingContainer, formContainer);
         }
       }).catch(error => {
         console.error('[RETURN PAGE] Error loading credentials:', error);
+        console.error('[RETURN PAGE] Error stack:', error.stack);
         // On error, navigate to form
-        navigateTo(returnContainer, formContainer);
+        navigateTo(loadingContainer, formContainer);
       });
     }
   }
