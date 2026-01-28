@@ -239,7 +239,12 @@ async function fetchExistingCredentials(orgCode) {
 
     if (response.ok) {
       const data = await response.json();
-      console.log('[FETCH CREDENTIALS] Projects fetched successfully:', data);
+      console.log('[FETCH CREDENTIALS] ===== RAW API RESPONSE =====');
+      console.log('[FETCH CREDENTIALS] Response is Array?:', Array.isArray(data));
+      console.log('[FETCH CREDENTIALS] Response has .projects?:', !!data?.projects);
+      console.log('[FETCH CREDENTIALS] Response length:', data?.length);
+      console.log('[FETCH CREDENTIALS] Full response:', data);
+      console.log('[FETCH CREDENTIALS] ================================');
       return data;
     } else {
       console.error('[FETCH CREDENTIALS] Failed with status:', response.status);
@@ -252,18 +257,26 @@ async function fetchExistingCredentials(orgCode) {
 }
 
 async function fetchProjectDetails(orgCode, projectId) {
-  console.log('[FETCH PROJECT] Fetching project details...');
-  console.log('[FETCH PROJECT] Org Code:', orgCode, 'Project ID:', projectId);
+  console.log('[FETCH PROJECT] ========================================');
+  console.log('[FETCH PROJECT] ===== FETCHING PROJECT DETAILS =====');
+  console.log('[FETCH PROJECT] ========================================');
+  console.log('[FETCH PROJECT] Org Code:', orgCode);
+  console.log('[FETCH PROJECT] Org Code type:', typeof orgCode);
+  console.log('[FETCH PROJECT] Project ID:', projectId);
+  console.log('[FETCH PROJECT] Project ID type:', typeof projectId);
   
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  console.log('[FETCH PROJECT] Token available:', !!token);
+  
   if (!token) {
-    console.error('[FETCH PROJECT] No token available');
+    console.error('[FETCH PROJECT] ❌ No token available');
     return null;
   }
   
   try {
     const url = `/console/api/organizations/${orgCode}/projects/${projectId}`;
-    console.log('[FETCH PROJECT] API URL:', url);
+    console.log('[FETCH PROJECT] Full API URL:', url);
+    console.log('[FETCH PROJECT] Making fetch request...');
     
     const response = await fetch(url, {
       method: 'GET',
@@ -275,13 +288,24 @@ async function fetchProjectDetails(orgCode, projectId) {
     });
     
     console.log('[FETCH PROJECT] Response status:', response.status);
+    console.log('[FETCH PROJECT] Response ok?:', response.ok);
     
     if (response.ok) {
       const projectData = await response.json();
-      console.log('[FETCH PROJECT] Project details fetched successfully:', projectData);
+      console.log('[FETCH PROJECT] ===== PROJECT DETAILS FETCHED =====');
+      console.log('[FETCH PROJECT] Full response data:', projectData);
+      console.log('[FETCH PROJECT] Has workspaces?:', !!projectData.workspaces);
+      console.log('[FETCH PROJECT] Workspaces:', projectData.workspaces);
+      if (projectData.workspaces?.[0]) {
+        console.log('[FETCH PROJECT] First workspace:', projectData.workspaces[0]);
+        console.log('[FETCH PROJECT] First workspace credentials:', projectData.workspaces[0].credentials);
+      }
+      console.log('[FETCH PROJECT] ===================================');
       return projectData;
     } else {
-      console.error('[FETCH PROJECT] Failed with status:', response.status);
+      const errorText = await response.text();
+      console.error('[FETCH PROJECT] ❌ API Failed with status:', response.status);
+      console.error('[FETCH PROJECT] Error response:', errorText);
       return null;
     }
   } catch (error) {
@@ -291,329 +315,289 @@ async function fetchProjectDetails(orgCode, projectId) {
 }
 
 function populateProjectsDropdown(returnContainer, projectsData) {
-  console.log('[POPULATE DROPDOWN] Starting...', projectsData);
-  console.log('[POPULATE DROPDOWN] Filtering from cached projects data (no API calls)');
+  console.log('[POPULATE DROPDOWN] ========================================');
+  console.log('[POPULATE DROPDOWN] ===== FUNCTION CALLED =====');
+  console.log('[POPULATE DROPDOWN] ========================================');
+  console.log('[POPULATE DROPDOWN] returnContainer exists?:', !!returnContainer);
+  console.log('[POPULATE DROPDOWN] returnContainer class:', returnContainer?.className);
+  console.log('[POPULATE DROPDOWN] projectsData received:', projectsData);
+  console.log('[POPULATE DROPDOWN] projectsData is Array?:', Array.isArray(projectsData));
+  console.log('[POPULATE DROPDOWN] projectsData.projects exists?:', !!projectsData?.projects);
+  console.log('[POPULATE DROPDOWN] ===== GLOBAL STATE CHECK =====');
+  console.log('[POPULATE DROPDOWN] selectedOrganization:', selectedOrganization);
+  console.log('[POPULATE DROPDOWN] selectedOrganization.code:', selectedOrganization?.code);
+  console.log('[POPULATE DROPDOWN] selectedOrganization.id:', selectedOrganization?.id);
   
   const dropdown = returnContainer?.querySelector('.projects-picker');
+  console.log('[POPULATE DROPDOWN] Dropdown element found?:', !!dropdown);
+  
+  // Check if credential fields exist in the DOM
+  const apiKeyField = returnContainer?.querySelector('[data-field="apiKey"]');
+  const originsField = returnContainer?.querySelector('[data-field="allowedOrigins"]');
+  const orgField = returnContainer?.querySelector('[data-field="organization"]');
+  
+  console.log('[POPULATE DROPDOWN] ===== DOM ELEMENTS CHECK =====');
+  console.log('[POPULATE DROPDOWN] [data-field="apiKey"] exists?:', !!apiKeyField);
+  console.log('[POPULATE DROPDOWN] [data-field="allowedOrigins"] exists?:', !!originsField);
+  console.log('[POPULATE DROPDOWN] [data-field="organization"] exists?:', !!orgField);
+  
   if (!dropdown) {
-    console.error('[POPULATE DROPDOWN] Dropdown not found');
+    console.error('[POPULATE DROPDOWN] ❌ DROPDOWN NOT FOUND! Returning false.');
     return false;
   }
   
   // Extract projects array (should include full data with workspaces/credentials)
-  let projects = projectsData?.projects || [];
-  console.log('[POPULATE DROPDOWN] Projects array:', projects, 'Length:', projects.length);
+  // Handle both cases: {projects: [...]} and direct array [...]
+  let projects;
+  if (Array.isArray(projectsData)) {
+    console.log('[POPULATE DROPDOWN] projectsData IS the array directly');
+    projects = projectsData;
+  } else if (projectsData?.projects) {
+    console.log('[POPULATE DROPDOWN] projectsData has .projects property');
+    projects = projectsData.projects;
+  } else {
+    console.log('[POPULATE DROPDOWN] projectsData has unexpected structure');
+    projects = [];
+  }
+  
+  console.log('[POPULATE DROPDOWN] Final projects array:', projects);
+  console.log('[POPULATE DROPDOWN] Projects is Array?:', Array.isArray(projects));
+  console.log('[POPULATE DROPDOWN] Projects length:', projects.length);
   
   // Clear existing options
   dropdown.innerHTML = '';
   
-  if (!Array.isArray(projects) || projects.length === 0) {
-    console.log('[POPULATE DROPDOWN] No projects found');
-    const noProjectsOption = createTag('option', {});
-    noProjectsOption.textContent = 'No projects found';
-    noProjectsOption.disabled = true;
-    dropdown.appendChild(noProjectsOption);
-    dropdown.disabled = true;
-    return false; // Return false to indicate no projects
-  }
+  console.log('[POPULATE DROPDOWN] ✅ Found', projects.length, 'projects! Proceeding...');
   
   // Reverse projects array to show newest first
   projects = [...projects].reverse();
   console.log('[POPULATE DROPDOWN] Reversed projects (newest first)');
-  
-  // Enable dropdown (show even with 1 project)
-  dropdown.disabled = false;
   console.log('[POPULATE DROPDOWN] Dropdown enabled for', projects.length, 'project(s)');
+
+  console.log("projects--myconsole",projects)
   
   // Populate dropdown with projects (use project ID as value)
   projects.forEach((project, index) => {
     const option = createTag('option', { value: project.id });
-    option.textContent = project.title || project.name || `Project ${index + 1}`;
+    option.textContent = project.title;
     dropdown.appendChild(option);
     console.log('[POPULATE DROPDOWN] Added option:', option.textContent, 'with value (ID):', project.id);
   });
   
   console.log('[POPULATE DROPDOWN] Added', projects.length, 'projects to dropdown');
   
+  // Add onChange handler to dropdown
+  dropdown.addEventListener('change', (e) => {
+    const selectedProjectId = e.target.value;
+    console.log('[DROPDOWN CHANGE] ========================================');
+    console.log('[DROPDOWN CHANGE] Selected project ID:', selectedProjectId);
+    console.log('[DROPDOWN CHANGE] Selected project name:', e.target.options[e.target.selectedIndex]?.text);
+    
+    if (!selectedProjectId) {
+      console.error('[DROPDOWN CHANGE] ❌ No project ID selected');
+      return;
+    }
+    
+    const orgCode = selectedOrganization?.code;
+    if (!orgCode) {
+      console.error('[DROPDOWN CHANGE] ❌ No organization code available');
+      return;
+    }
+    
+    // Fetch full project details and update card
+    console.log('[DROPDOWN CHANGE] Fetching project details...');
+    fetchProjectDetails(orgCode, selectedProjectId)
+      .then(fullProjectData => {
+        if (fullProjectData) {
+          console.log('[DROPDOWN CHANGE] ✅ Data received, updating card...');
+          updateProjectCardDetails(returnContainer, fullProjectData);
+          console.log('[DROPDOWN CHANGE] ✅ Card updated successfully');
+        } else {
+          console.error('[DROPDOWN CHANGE] ❌ No data received from API');
+        }
+      })
+      .catch(error => {
+        console.error('[DROPDOWN CHANGE] ❌ Error:', error.message);
+      });
+    
+    console.log('[DROPDOWN CHANGE] ========================================');
+  });
+  
   // Set default selection to first project (by ID)
   if (projects[0]?.id) {
     dropdown.value = projects[0].id;
     console.log('[POPULATE DROPDOWN] ========================================');
-    console.log('[POPULATE DROPDOWN] ===== UPDATING CARD WITH FIRST PROJECT =====');
+    console.log('[POPULATE DROPDOWN] ===== FETCHING FULL DETAILS FOR FIRST PROJECT =====');
     console.log('[POPULATE DROPDOWN] ========================================');
-    console.log('[POPULATE DROPDOWN] First project complete data:');
-    console.log('[POPULATE DROPDOWN]   - ID:', projects[0].id);
-    console.log('[POPULATE DROPDOWN]   - Title:', projects[0].title);
-    console.log('[POPULATE DROPDOWN]   - Name:', projects[0].name);
-    console.log('[POPULATE DROPDOWN]   - Has workspaces:', !!projects[0].workspaces);
+    console.log('[POPULATE DROPDOWN] First project ID:', projects[0].id);
+    console.log('[POPULATE DROPDOWN] First project title:', projects[0].title);
+    console.log('[POPULATE DROPDOWN] Selected organization code:', selectedOrganization?.code);
+    console.log('[POPULATE DROPDOWN] Need to fetch full project details with workspaces/credentials...');
     
-    if (projects[0].workspaces?.[0]) {
-      const ws = projects[0].workspaces[0];
-      console.log('[POPULATE DROPDOWN]   - Workspace ID:', ws.id);
-      console.log('[POPULATE DROPDOWN]   - Has credentials:', !!ws.credentials);
+    // Fetch full project details (includes workspaces and credentials)
+    const orgCode = selectedOrganization?.code;
+    
+    if (!orgCode) {
+      console.error('[POPULATE DROPDOWN] ❌ No organization code available!');
+      console.error('[POPULATE DROPDOWN] selectedOrganization:', selectedOrganization);
+      console.error('[POPULATE DROPDOWN] Cannot fetch project details without org code!');
+      // Update card with basic data only (no API key/origins)
+      updateProjectCardDetails(returnContainer, projects[0]);
+      return true; // Still return true since dropdown is populated
+    }
+    
+    console.log('[POPULATE DROPDOWN] Calling fetchProjectDetails with:');
+    console.log('[POPULATE DROPDOWN]   - Org Code:', orgCode);
+    console.log('[POPULATE DROPDOWN]   - Project ID:', projects[0].id);
+    
+    fetchProjectDetails(orgCode, projects[0].id).then(fullProjectData => {
+      console.log('[POPULATE DROPDOWN] ========================================');
+      console.log('[POPULATE DROPDOWN] ===== FETCH PROJECT DETAILS RESPONSE =====');
+      console.log('[POPULATE DROPDOWN] ========================================');
+      console.log('[POPULATE DROPDOWN] Full response:', fullProjectData);
+      console.log('[POPULATE DROPDOWN] Is null/undefined?:', !fullProjectData);
       
-      if (ws.credentials?.[0]) {
-        const cred = ws.credentials[0];
-        console.log('[POPULATE DROPDOWN]   - Credential ID:', cred.id);
-        console.log('[POPULATE DROPDOWN]   - id_integration:', cred.id_integration);
-        console.log('[POPULATE DROPDOWN]   - apiKey:', cred.apiKey);
-        console.log('[POPULATE DROPDOWN]   - Has metadata:', !!cred.metadata);
-        if (cred.metadata) {
-          console.log('[POPULATE DROPDOWN]   - adobeid.domain:', cred.metadata['adobeid.domain']);
+      if (fullProjectData) {
+        console.log('[POPULATE DROPDOWN] Response keys:', Object.keys(fullProjectData));
+        console.log('[POPULATE DROPDOWN] Has workspaces:', !!fullProjectData.workspaces);
+        console.log('[POPULATE DROPDOWN] Workspaces:', fullProjectData.workspaces);
+        
+        if (fullProjectData.workspaces?.[0]) {
+          console.log('[POPULATE DROPDOWN] First workspace:', fullProjectData.workspaces[0]);
+          console.log('[POPULATE DROPDOWN] Has credentials:', !!fullProjectData.workspaces[0].credentials);
+          console.log('[POPULATE DROPDOWN] Credentials:', fullProjectData.workspaces[0].credentials);
+        }
+        
+        // Update card with FULL project data
+        console.log('[POPULATE DROPDOWN] ===== CALLING updateProjectCardDetails =====');
+        updateProjectCardDetails(returnContainer, fullProjectData);
+        
+        console.log('[POPULATE DROPDOWN] ===== VERIFYING CARD WAS UPDATED =====');
+        const verifyTitle = returnContainer.querySelector('.project-title');
+        const verifyApiKey = returnContainer.querySelector('[data-field="apiKey"]');
+        const verifyOrigins = returnContainer.querySelector('[data-field="allowedOrigins"]');
+        
+        console.log('[POPULATE DROPDOWN] After update, card shows:');
+        console.log('[POPULATE DROPDOWN]   ► Title in DOM:', verifyTitle?.textContent || '❌ EMPTY');
+        console.log('[POPULATE DROPDOWN]   ► API Key in DOM:', verifyApiKey?.textContent || '❌ EMPTY');
+        console.log('[POPULATE DROPDOWN]   ► Origins in DOM:', verifyOrigins?.textContent || '❌ EMPTY');
+        
+        if (!verifyTitle?.textContent || !verifyApiKey?.textContent) {
+          console.error('[POPULATE DROPDOWN] ❌ CARD IS STILL EMPTY AFTER UPDATE!');
+          console.error('[POPULATE DROPDOWN] This means either:');
+          console.error('[POPULATE DROPDOWN]   1. API returned no credential data');
+          console.error('[POPULATE DROPDOWN]   2. Data structure is unexpected');
+          console.error('[POPULATE DROPDOWN]   3. DOM selectors not finding elements');
+        } else {
+          console.log('[POPULATE DROPDOWN] ✅ Card populated successfully!');
         }
       } else {
-        console.error('[POPULATE DROPDOWN]   - ❌ NO CREDENTIALS IN WORKSPACE!');
+        console.error('[POPULATE DROPDOWN] ❌ fetchProjectDetails returned null/undefined!');
+        console.error('[POPULATE DROPDOWN] Updating card with basic project data only...');
+        updateProjectCardDetails(returnContainer, projects[0]);
       }
-    } else {
-      console.error('[POPULATE DROPDOWN]   - ❌ NO WORKSPACES IN PROJECT!');
-    }
-    
-    console.log('[POPULATE DROPDOWN] Return Container class:', returnContainer.className);
-    console.log('[POPULATE DROPDOWN] Calling updateProjectCardDetails()...');
-    
-    // Update card with first project data (use already-fetched data, no API call)
-    updateProjectCardDetails(returnContainer, projects[0]);
-    
-    console.log('[POPULATE DROPDOWN] ========================================');
-    console.log('[POPULATE DROPDOWN] ===== VERIFYING CARD WAS UPDATED =====');
-    console.log('[POPULATE DROPDOWN] ========================================');
-    
-    // Verify the card was actually updated by checking the DOM
-    const verifyTitle = returnContainer.querySelector('.project-title');
-    const verifyApiKey = returnContainer.querySelector('[data-field="apiKey"]');
-    const verifyOrigins = returnContainer.querySelector('[data-field="allowedOrigins"]');
-    
-    console.log('[POPULATE DROPDOWN] After update, card shows:');
-    console.log('[POPULATE DROPDOWN]   ► Title in DOM:', verifyTitle?.textContent || '❌ EMPTY');
-    console.log('[POPULATE DROPDOWN]   ► API Key in DOM:', verifyApiKey?.textContent || '❌ EMPTY');
-    console.log('[POPULATE DROPDOWN]   ► Origins in DOM:', verifyOrigins?.textContent || '❌ EMPTY');
-    
-    if (!verifyTitle?.textContent || !verifyApiKey?.textContent || !verifyOrigins?.textContent) {
-      console.error('[POPULATE DROPDOWN] ❌ CARD IS STILL EMPTY AFTER UPDATE!');
-    } else {
-      console.log('[POPULATE DROPDOWN] ✅ Card populated successfully!');
-    }
-    console.log('[POPULATE DROPDOWN] ========================================');
+    }).catch(error => {
+      console.error('[POPULATE DROPDOWN] ❌ ERROR in fetchProjectDetails:');
+      console.error('[POPULATE DROPDOWN] Error:', error);
+      console.error('[POPULATE DROPDOWN] Error stack:', error.stack);
+      // Update card with basic data
+      updateProjectCardDetails(returnContainer, projects[0]);
+    });
   } else {
     console.error('[POPULATE DROPDOWN] ❌ No valid first project found!');
   }
   
-  // Remove old event listeners by cloning the dropdown
-  const currentValue = dropdown.value;  // Save current selection (project ID)
-  const newDropdown = dropdown.cloneNode(true);
-  dropdown.parentNode.replaceChild(newDropdown, dropdown);
-  newDropdown.value = currentValue;  // Restore selection by ID
-  console.log('[POPULATE DROPDOWN] Dropdown cloned, selection preserved (ID):', currentValue);
-  
-  // Add change event listener to the new dropdown
-  newDropdown.addEventListener('change', (e) => {
-    console.log('[DROPDOWN CHANGE] ===== DROPDOWN CHANGED =====');
-    const selectedProjectId = e.target.value;
-    console.log('[DROPDOWN CHANGE] Selected project ID:', selectedProjectId);
-    console.log('[DROPDOWN CHANGE] Selected option text:', e.target.options[e.target.selectedIndex]?.text);
-    
-    if (!selectedProjectId) {
-      console.error('[DROPDOWN CHANGE] No project ID in dropdown value');
-      return;
-    }
-    
-    // Filter the project from the already-fetched projects array by ID
-    const selectedProject = projects.find(p => p.id === selectedProjectId);
-    
-    if (!selectedProject) {
-      console.error('[DROPDOWN CHANGE] Project with ID', selectedProjectId, 'not found in projects array');
-      return;
-    }
-    
-    console.log('[DROPDOWN CHANGE] Filtered project:', {
-      title: selectedProject.title,
-      id: selectedProject.id,
-      hasWorkspaces: !!selectedProject.workspaces,
-      hasCredentials: !!selectedProject.workspaces?.[0]?.credentials
-    });
-    
-    console.log('[DROPDOWN CHANGE] ===== UPDATING CARD NOW =====');
-    
-    // Update card directly with the filtered project data (no API call needed)
-    updateProjectCardDetails(returnContainer, selectedProject);
-    
-    console.log('[DROPDOWN CHANGE] ===== CARD UPDATE COMPLETE =====');
-    
-    // Verify update worked
-    const verifyTitle = returnContainer.querySelector('.project-title');
-    const verifyApiKey = returnContainer.querySelector('[data-field="apiKey"]');
-    console.log('[DROPDOWN CHANGE] Verification - Title now shows:', verifyTitle?.textContent || '❌ EMPTY');
-    console.log('[DROPDOWN CHANGE] Verification - API Key now shows:', verifyApiKey?.textContent || '❌ EMPTY');
-  });
-  
-  console.log('[POPULATE DROPDOWN] Event listener attached to dropdown');
+  console.log('[POPULATE DROPDOWN] onChange event listener attached to dropdown');
   
   return true; // Return true to indicate projects exist
 }
 
 function updateProjectCardDetails(returnContainer, project) {
+  console.log('[UPDATE PROJECT CARD] ========================================');
   console.log('[UPDATE PROJECT CARD] ===== START =====');
-  console.log('[UPDATE PROJECT CARD] Return container:', returnContainer);
-  console.log('[UPDATE PROJECT CARD] Return container class:', returnContainer?.className);
-  console.log('[UPDATE PROJECT CARD] Return container exists:', !!returnContainer);
-  console.log('[UPDATE PROJECT CARD] Project data exists:', !!project);
+  console.log('[UPDATE PROJECT CARD] ========================================');
+  console.log('[UPDATE PROJECT CARD] Full project data:', project);
   
-  if (!returnContainer) {
-    console.error('[UPDATE PROJECT CARD] CRITICAL: Return container is null/undefined!');
+  if (!returnContainer || !project) {
+    console.error('[UPDATE PROJECT CARD] ❌ Missing returnContainer or project!');
     return;
   }
   
-  if (!project) {
-    console.error('[UPDATE PROJECT CARD] CRITICAL: Project data is null/undefined!');
-    return;
-  }
-  
-  console.log('[UPDATE PROJECT CARD] Project ID:', project.id);
-  console.log('[UPDATE PROJECT CARD] Project title:', project.title);
-  console.log('[UPDATE PROJECT CARD] Project name:', project.name);
-  console.log('[UPDATE PROJECT CARD] Project has workspaces:', !!project.workspaces);
-  console.log('[UPDATE PROJECT CARD] Project has credentials:', !!project.workspaces?.[0]?.credentials);
-  
-  // Find all elements
-  console.log('[UPDATE PROJECT CARD] ===== FINDING ELEMENTS =====');
-  const projectTitle = returnContainer.querySelector('.project-title');
-  const projectLink = returnContainer.querySelector('.project-link');
-  const apiKeyElement = returnContainer.querySelector('[data-field="apiKey"]');
-  const originsElement = returnContainer.querySelector('[data-field="allowedOrigins"]');
-  const orgElement = returnContainer.querySelector('[data-field="organization"]');
-  
-  console.log('[UPDATE PROJECT CARD] .project-title found:', !!projectTitle);
-  console.log('[UPDATE PROJECT CARD] .project-link found:', !!projectLink);
-  console.log('[UPDATE PROJECT CARD] [data-field="apiKey"] found:', !!apiKeyElement);
-  console.log('[UPDATE PROJECT CARD] [data-field="allowedOrigins"] found:', !!originsElement);
-  console.log('[UPDATE PROJECT CARD] [data-field="organization"] found:', !!orgElement);
-  
-  // Update project title
-  if (projectTitle) {
-    const newTitle = project.title || project.name || 'Untitled Project';
-    projectTitle.textContent = newTitle;
-    console.log('[UPDATE PROJECT CARD] ✅ Title set to:', newTitle);
-  } else {
-    console.error('[UPDATE PROJECT CARD] ❌ .project-title element NOT FOUND!');
-  }
-  
-  // Update Developer Console link
-  if (projectLink && project.id) {
-    const orgId = selectedOrganization?.id || project.org_id;
-    const workspaceId = project.workspaces?.[0]?.id || '';
-    
-    const consoleUrl = workspaceId 
-      ? `/console/projects/${orgId}/${project.id}/${workspaceId}/overview`
-      : `/console/projects/${orgId}/${project.id}/overview`;
-    
-    projectLink.href = consoleUrl;
-    
-    const projectLinkText = projectLink.querySelector('p');
-    if (projectLinkText) {
-      projectLinkText.textContent = project.title;
-    } else {
-      projectLink.textContent = project.id;
-    }
-    
-    console.log('[UPDATE PROJECT CARD] ✅ Link set to:', project.id, 'URL:', consoleUrl);
-  } else {  
-    console.error('[UPDATE PROJECT CARD] ❌ .project-link element NOT FOUND or no project ID!');
-  }
-  
-  // Get credential data from project (handle multiple possible structures)
+  // Extract data (similar to credential card)
+  const projectName = project.title || project.name || 'Untitled Project';
+  const projectId = project.id;
   const workspace = project.workspaces?.[0];
   const credential = workspace?.credentials?.[0];
   
-  console.log('[UPDATE PROJECT CARD] ===== DATA EXTRACTION =====');
-  console.log('[UPDATE PROJECT CARD] Workspace exists:', !!workspace);
-  console.log('[UPDATE PROJECT CARD] Credential exists:', !!credential);
+  const apiKey = credential?.id_integration || credential?.apiKey || credential?.id || 'Not available';
+  const allowedOrigins = credential?.metadata?.['adobeid.domain'] || credential?.metadata?.domain || 'Not set';
+  const orgName = selectedOrganization?.name || 'Unknown';
   
-  if (credential) {
-    console.log('[UPDATE PROJECT CARD] Credential data:', {
-      id: credential.id,
-      id_integration: credential.id_integration,
-      apiKey: credential.apiKey,
-      metadata: credential.metadata
-    });
-  } else {
-    console.error('[UPDATE PROJECT CARD] ❌ NO CREDENTIAL FOUND - Fields will show "Not available"!');
+  console.log('[UPDATE PROJECT CARD] ===== EXTRACTED VALUES =====');
+  console.log('[UPDATE PROJECT CARD] Project Name:', projectName);
+  console.log('[UPDATE PROJECT CARD] API Key:', apiKey !== 'Not available' ? apiKey.substring(0, 15) + '...' : apiKey);
+  console.log('[UPDATE PROJECT CARD] Allowed Origins:', allowedOrigins);
+  console.log('[UPDATE PROJECT CARD] Organization:', orgName);
+  console.log('[UPDATE PROJECT CARD] Has workspace:', !!workspace);
+  console.log('[UPDATE PROJECT CARD] Has credential:', !!credential);
+  
+  // Update project title
+  console.log('[UPDATE PROJECT CARD] ===== UPDATING DOM =====');
+  const projectTitle = returnContainer.querySelector('.project-title');
+  if (projectTitle) {
+    projectTitle.textContent = projectName;
+    console.log('[UPDATE PROJECT CARD] ✅ Title updated:', projectName);
+  }
+  
+  // Update project link
+  const projectLink = returnContainer.querySelector('.project-link');
+  if (projectLink && projectId) {
+    const orgId = selectedOrganization?.id || project.org_id;
+    const workspaceId = workspace?.id || '';
+    const consoleUrl = workspaceId 
+      ? `/console/projects/${orgId}/${projectId}/${workspaceId}/overview`
+      : `/console/projects/${orgId}/${projectId}/overview`;
+    
+    projectLink.href = consoleUrl;
+    const projectLinkText = projectLink.querySelector('p');
+    if (projectLinkText) {
+      projectLinkText.textContent = projectName;
+    }
+    console.log('[UPDATE PROJECT CARD] ✅ Link updated:', projectName);
   }
   
   // Update API Key
+  const apiKeyElement = returnContainer.querySelector('.return-project-card [data-field="apiKey"]');
   if (apiKeyElement) {
-    const apiKey = credential?.id_integration 
-      || credential?.apiKey 
-      || credential?.id 
-      || workspace?.apiKey
-      || project.apiKey
-      || 'Not available';
-    
     apiKeyElement.textContent = apiKey;
-    console.log('[UPDATE PROJECT CARD] ✅ API Key set to:', apiKey !== 'Not available' ? apiKey.substring(0, 15) + '...' : 'Not available');
-    
-    // Update copy button for API Key
-    const apiKeyCopyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (apiKeyCopyButton && apiKey !== 'Not available') {
-      apiKeyCopyButton.setAttribute('data-copy', apiKey);
+    const copyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
+    if (copyButton && apiKey !== 'Not available') {
+      copyButton.setAttribute('data-copy', apiKey);
     }
-  } else {
-    console.error('[UPDATE PROJECT CARD] ❌ [data-field="apiKey"] element NOT FOUND!');
+    console.log('[UPDATE PROJECT CARD] ✅ API Key updated:', apiKey !== 'Not available' ? apiKey.substring(0, 15) + '...' : apiKey);
   }
   
   // Update Allowed Origins
+  const originsElement = returnContainer.querySelector('[data-field="allowedOrigins"]');
   if (originsElement) {
-    const allowedOrigins = credential?.metadata?.['adobeid.domain'] 
-      || credential?.metadata?.domain 
-      || credential?.allowedOrigins 
-      || workspace?.allowedOrigins
-      || project.allowedOrigins
-      || 'Not set';
-    
     originsElement.textContent = allowedOrigins;
-    console.log('[UPDATE PROJECT CARD] ✅ Allowed Origins set to:', allowedOrigins);
-    
-    // Update copy button for Allowed Origins
-    const originsCopyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (originsCopyButton && allowedOrigins !== 'Not set') {
-      originsCopyButton.setAttribute('data-copy', allowedOrigins);
+    const copyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
+    if (copyButton && allowedOrigins !== 'Not set') {
+      copyButton.setAttribute('data-copy', allowedOrigins);
     }
-  } else {
-    console.error('[UPDATE PROJECT CARD] ❌ [data-field="allowedOrigins"] element NOT FOUND!');
+    console.log('[UPDATE PROJECT CARD] ✅ Allowed Origins updated:', allowedOrigins);
   }
   
   // Update Organization
+  const orgElement = returnContainer.querySelector('[data-field="organization"]');
   if (orgElement) {
-    const orgName = selectedOrganization?.name || project.orgName || 'N/A';
     orgElement.textContent = orgName;
-    console.log('[UPDATE PROJECT CARD] ✅ Organization set to:', orgName);
-  } else {
-    console.error('[UPDATE PROJECT CARD] ❌ [data-field="organization"] element NOT FOUND!');
+    console.log('[UPDATE PROJECT CARD] ✅ Organization updated:', orgName);
   }
   
   console.log('[UPDATE PROJECT CARD] ========================================');
   console.log('[UPDATE PROJECT CARD] ===== ✅ UPDATE COMPLETE =====');
   console.log('[UPDATE PROJECT CARD] ========================================');
-  console.log('[UPDATE PROJECT CARD] Card should now display:');
-  console.log('[UPDATE PROJECT CARD]   ► Title:', projectTitle?.textContent || '❌ NOT SET');
-  console.log('[UPDATE PROJECT CARD]   ► Link text:', projectLink?.querySelector('p')?.textContent || projectLink?.textContent || '❌ NOT SET');
-  console.log('[UPDATE PROJECT CARD]   ► API Key:', apiKeyElement?.textContent ? apiKeyElement.textContent.substring(0, 30) + '...' : '❌ NOT SET');
-  console.log('[UPDATE PROJECT CARD]   ► Allowed Origins:', originsElement?.textContent || '❌ NOT SET');
-  console.log('[UPDATE PROJECT CARD]   ► Organization:', orgElement?.textContent || '❌ NOT SET');
-  console.log('[UPDATE PROJECT CARD] ========================================');
-  
-  if (!projectTitle || !projectLink || !apiKeyElement || !originsElement || !orgElement) {
-    console.error('[UPDATE PROJECT CARD] ⚠️ WARNING: Some elements were NOT FOUND in the DOM!');
-    console.error('[UPDATE PROJECT CARD] The card will appear incomplete or empty!');
-    console.error('[UPDATE PROJECT CARD] Missing elements:', {
-      projectTitle: !projectTitle,
-      projectLink: !projectLink,
-      apiKeyElement: !apiKeyElement,
-      originsElement: !originsElement,
-      orgElement: !orgElement
-    });
-  } else {
-    console.log('[UPDATE PROJECT CARD] ✅ SUCCESS: All 5 elements found and updated!');
-  }
 }
 
 async function fetchOrganizations() {
@@ -1486,10 +1470,18 @@ function createReturnContent(config) {
       // Refresh credentials for new org
       fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
         console.log('[ORG CHANGE] Fetched credentials for new org:', existingCreds);
+        console.log('[ORG CHANGE] Is Array?:', Array.isArray(existingCreds));
         
         if (existingCreds) {
+          // Pass the data in consistent format (handle both array and object responses)
+          const dataToPass = Array.isArray(existingCreds) 
+            ? { projects: existingCreds } 
+            : existingCreds;
+          
+          console.log('[ORG CHANGE] Data structure being passed:', dataToPass);
+          
           // Populate dropdown with new org's projects (filter from cached data)
-          const hasProjects = populateProjectsDropdown(returnWrapper, existingCreds);
+          const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass);
           
           if (!hasProjects) {
             console.log('[ORG CHANGE] No projects in new org, staying on return page');
@@ -1977,16 +1969,32 @@ export default async function decorate(block) {
       // Fetch existing credentials (organizations were already fetched above)
       fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
         console.log('[RETURN PAGE] ===== API RESPONSE RECEIVED =====');
-        console.log('[RETURN PAGE] Existing credentials data:', existingCreds);
-        console.log('[RETURN PAGE] Projects count:', existingCreds?.projects?.length || 0);
+        console.log('[RETURN PAGE] Existing credentials FULL data:', existingCreds);
+        console.log('[RETURN PAGE] Is Array?:', Array.isArray(existingCreds));
+        console.log('[RETURN PAGE] Has .projects property?:', !!existingCreds?.projects);
         
-        if (existingCreds && existingCreds.projects && existingCreds.projects.length > 0) {
-          console.log('[RETURN PAGE] Has projects, will populate dropdown and card');
+        // Handle both response formats: direct array or object with .projects
+        const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+        console.log('[RETURN PAGE] Projects array:', projectsArray);
+        console.log('[RETURN PAGE] Projects count:', projectsArray?.length || 0);
+        console.log('[RETURN PAGE] First project:', projectsArray?.[0]);
+        
+        if (projectsArray && projectsArray.length > 0) {
+          console.log('[RETURN PAGE] ✅ CONDITION PASSED: Has', projectsArray.length, 'projects');
+          console.log('[RETURN PAGE] returnContainer exists?:', !!returnContainer);
+          console.log('[RETURN PAGE] Calling populateProjectsDropdown...');
+          
+          // Pass the data in consistent format (handle both array and object responses)
+          const dataToPass = Array.isArray(existingCreds) 
+            ? { projects: existingCreds } 
+            : existingCreds;
+          
+          console.log('[RETURN PAGE] Data structure being passed:', dataToPass);
           
           // Populate dropdown and update card with projects (filter from cached data)
-          const hasProjects = populateProjectsDropdown(returnContainer, existingCreds);
+          const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
           
-          console.log('[RETURN PAGE] populateProjectsDropdown returned:', hasProjects);
+          console.log('[RETURN PAGE] ===== populateProjectsDropdown RETURNED:', hasProjects, '=====');
           
           if (!hasProjects) {
             // No projects found - navigate to form to create first credential
@@ -2312,10 +2320,18 @@ export default async function decorate(block) {
               return fetchExistingCredentials(selectedOrganization?.code);
             }).then(async (existingCreds) => {
               console.log('[IMS CALLBACK] Existing credentials loaded:', existingCreds);
+              console.log('[IMS CALLBACK] Is Array?:', Array.isArray(existingCreds));
               
               if (existingCreds) {
+                // Pass the data in consistent format (handle both array and object responses)
+                const dataToPass = Array.isArray(existingCreds) 
+                  ? { projects: existingCreds } 
+                  : existingCreds;
+                
+                console.log('[IMS CALLBACK] Data structure being passed:', dataToPass);
+                
                 // Populate dropdown and update card (filter from cached data)
-                const hasProjects = populateProjectsDropdown(returnContainer, existingCreds);
+                const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
                 
                 if (!hasProjects) {
                   // No projects - navigate to form instead of return page
