@@ -18,6 +18,76 @@ export const PROJECT_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" height=
   <path d="M17.761,4.3875,14.53,1.156a.75.75,0,0,0-1.06066-.00034L13.469,1.156,6.5885,8.0365A4.45,4.45,0,0,0,4.5,7.5,4.5,4.5,0,1,0,9,12a4.45,4.45,0,0,0-.5245-2.0665l3.363-3.363,1.87,1.87a.375.375,0,0,0,.53033.00017L14.239,8.4405l1.672-1.672L13.776,4.633l.6155-.6155,2.135,2.1355L17.761,4.918A.37543.37543,0,0,0,17.761,4.3875ZM3.75,14.25a1.5,1.5,0,1,1,1.5-1.5A1.5,1.5,0,0,1,3.75,14.25Z"></path>
 </svg>`;
 
+const TOAST_ICONS = {
+  error: '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18"><path fill="#fff" d="M8.5635,1.2895.2,16.256A.5.5,0,0,0,.636,17H17.364a.5.5,0,0,0,.436-.744L9.4365,1.2895a.5.5,0,0,0-.873,0ZM10,14.75a.25.25,0,0,1-.25.25H8.25A.25.25,0,0,1,8,14.75v-1.5A.25.25,0,0,1,8.25,13h1.5a.25.25,0,0,1,.25.25Zm0-3a.25.25,0,0,1-.25.25H8.25A.25.25,0,0,1,8,11.75v-6a.25.25,0,0,1,.25-.25h1.5a.25.25,0,0,1,.25.25Z"></path></svg>',
+  success: '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18"><path fill="#fff" d="M9,1A8,8,0,1,0,17,9,8,8,0,0,0,9,1ZM14.3335,7.0165l-6.359,6.359a.5.5,0,0,1-.707,0L3.6665,9.7735a.5.5,0,0,1,.707-.707L7.621,12.314l6.0055-6.0055a.5.5,0,1,1,.707.707Z"></path></svg>',
+  info: '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18"><path fill="#fff" d="M9,1A8,8,0,1,0,17,9,8,8,0,0,0,9,1Zm.5,12.5a.5.5,0,0,1-.5.5H8.5a.5.5,0,0,1-.5-.5v-5a.5.5,0,0,1,.5-.5H9a.5.5,0,0,1,.5.5ZM9,6.5A.75.75,0,1,1,9.75,5.75.75.75,0,0,1,9,6.5Z"></path></svg>',
+};
+
+const CLOSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 0 16 16" width="16"><path fill="#fff" d="M14.6464,13.3536a.5.5,0,0,0,.7072-.7072L8.707,6l6.6464-6.6464a.5.5,0,0,0-.7072-.7072L8,5.293,1.3536-1.3536a.5.5,0,0,0-.7072.7072L7.293,6,.6464,12.6464a.5.5,0,0,0,.7072.7072L8,6.707Z"></path></svg>';
+
+// ============================================================================
+// TOAST NOTIFICATION SYSTEM
+// ============================================================================
+
+/**
+ * Hide a toast notification with animation
+ * @param {Element} toast - The toast element to hide
+ */
+function hideToast(toast) {
+  if (!toast || !toast.parentElement) return;
+  
+  toast.classList.add('toast-hiding');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 300); // Match animation duration
+}
+
+/**
+ * Show a toast notification
+ * @param {string} message - The message to display
+ * @param {string} variant - The toast variant: 'error', 'success', 'info', or 'neutral'
+ * @param {number} duration - Auto-hide duration in milliseconds (default: 3000)
+ */
+export function showToast(message, variant = 'neutral', duration = 3000) {
+  // Create toast container
+  const toast = createTag('div', { class: `toast-notification toast-${variant}` });
+  
+  // Add icon if available
+  if (TOAST_ICONS[variant]) {
+    const iconDiv = createTag('div', { class: 'toast-icon' });
+    iconDiv.innerHTML = TOAST_ICONS[variant];
+    toast.appendChild(iconDiv);
+  }
+  
+  // Add message content
+  const content = createTag('div', { class: 'toast-content' });
+  content.textContent = message;
+  toast.appendChild(content);
+  
+  // Add divider
+  const divider = createTag('div', { class: 'toast-divider' });
+  toast.appendChild(divider);
+  
+  // Add close button
+  const closeButton = createTag('button', { class: 'toast-close-button' });
+  closeButton.innerHTML = CLOSE_ICON;
+  closeButton.addEventListener('click', () => hideToast(toast));
+  toast.appendChild(closeButton);
+  
+  // Add to body
+  document.body.appendChild(toast);
+  
+  // Auto-hide after duration
+  if (duration > 0) {
+    setTimeout(() => hideToast(toast), duration);
+  }
+  
+  return toast;
+}
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
@@ -312,6 +382,7 @@ export function createProjectHeader(projectTitle, products) {
 }
 
 export function createCredentialSection(config) {
+  showToast('Your credentials were created successfully.', 'success', 4000);
   const credentialSection = createTag('div', { class: 'credential-section' });
   const credentialTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
   credentialTitle.textContent = config.heading;
