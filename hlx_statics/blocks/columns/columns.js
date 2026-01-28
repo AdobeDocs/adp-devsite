@@ -72,16 +72,43 @@ export default async function decorate(block) {
   });
 
   if (isDocs) {
-    Array.from(block.children).forEach((data) => {
-      const imageSlot = data.querySelector('img');
-      if (imageSlot) {
-        const wrapperImage = imageSlot.parentElement.closest('div');
-        const newWrapper = createTag('div');
+    const slotNames = block
+      ?.getAttribute('data-slots')
+      ?.split(',')
+      .map((slot) => slot.trim());
 
-        Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
-        data.appendChild(newWrapper);
-      }
-    });
+    const repeatRows = block.children;
+
+    if(slotNames.includes('video')) {
+      Array.from(repeatRows).forEach((repeatRow) => {
+        const slotElements = Object.fromEntries(
+          Array.from(repeatRow.children).map((child, index) => [slotNames[index], child])
+        );
+        
+        const videoAnchor = slotElements.video?.querySelector('a');
+        if (videoAnchor) {
+          const wrapperVideo = createTag('div');
+          wrapperVideo.innerHTML = `<video src="${videoAnchor.href}" alt="${videoAnchor.textContent}" autoplay playsinline muted loop></video>`;
+          slotElements.video?.replaceWith(wrapperVideo);
+  
+          const newWrapper = createTag('div');
+          Array.from(repeatRow.children).forEach((child) => child !== wrapperVideo && newWrapper.appendChild(child) );
+          repeatRow.appendChild(newWrapper);
+        }
+      });
+    }
+    else {
+      Array.from(block.children).forEach((data) => {
+        const imageSlot = data.querySelector('img');
+        if (imageSlot) {
+          const wrapperImage = imageSlot.parentElement.closest('div');
+
+          const newWrapper = createTag('div');
+          Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
+          data.appendChild(newWrapper);
+        }
+      });
+    }
   }
 
   const columnList = block.querySelectorAll('.columns > div');
