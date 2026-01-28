@@ -197,8 +197,8 @@ async function fetchExistingCredentials(orgCode) {
   }
 
   // Use selected organization if available
-  const selectedOrgCode = orgCode || selectedOrganization?.code;
-  const templateId = templateData;
+  const selectedOrgCode = orgCode || selectedOrganization?.id;
+  const templateId = templateData?.id;
   
   try {
     // Get user profile for userId
