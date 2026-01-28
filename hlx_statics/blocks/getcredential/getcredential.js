@@ -111,7 +111,7 @@ const validationState = {
 
 // Store API response data
 let credentialResponse = null;
-let templateData = "664e39607dcc7c0e5a4a035b";
+let templateData = "";
 let selectedOrganization = null;
 let organizationsData = null;
 const token = window.adobeIMS?.getTokenFromStorage()?.token;
@@ -233,42 +233,6 @@ async function fetchExistingCredentials(orgCode) {
   }
 
   return null;
-}
-
-async function fetchProjectDetails(orgCode, projectId) {
-  const token = window.adobeIMS?.getTokenFromStorage()?.token;
-
-  if (!token) {
-    console.error('No token available');
-    return null;
-  }
-
-  try {
-    const url = `/console/api/organizations/${orgCode}/projects/${projectId}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
-      },
-    });
-
-    if (response.ok) {
-      const projectData = await response.json();
-      if (projectData.workspaces?.[0]) {
-      }
-
-      return projectData;
-    } else {
-      const errorText = await response.text();
-      console.error('Failed:', errorText);
-      return null;
-    }
-  } catch (error) {
-    return null;
-  }
 }
 
 function populateProjectsDropdown(returnContainer, projectsData) {
@@ -1497,10 +1461,10 @@ export default async function decorate(block) {
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
 
-    if (templateData) {
-      templateData = getCredConfig?.template || {
-        id: templateData || 'default-template-id',
-        orgId: 'default-org-id',
+    if (getCredConfig?.templateId) {
+      templateData = getCredConfig?.templateId || {
+        id: getCredConfig?.templateId,
+        orgId: '',
         apis: credentialData.Form?.components?.Products?.items?.map(item => ({
           code: item.Product?.code || 'cc-embed',
           credentialType: 'apikey',
@@ -1588,7 +1552,7 @@ export default async function decorate(block) {
 
       // Show loading page while fetching
       setLoadingText(loadingContainer, 'Loading...');
-      navigateTo(signInContainer, loadingContainer);
+      navigateTo(signInContainer, loadingContainer, true);
 
       // Fetch existing credentials (organizations were already fetched above)
       fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
@@ -1608,7 +1572,6 @@ export default async function decorate(block) {
 
           if (!hasProjects) {
             // No projects found - navigate to form to create first credential
-
             navigateTo(loadingContainer, formContainer);
           } else {
 
@@ -1617,7 +1580,6 @@ export default async function decorate(block) {
           }
         } else {
           // Failed to fetch credentials or no projects - navigate to form
-
           navigateTo(loadingContainer, formContainer);
         }
       }).catch(error => {
@@ -1790,7 +1752,7 @@ export default async function decorate(block) {
     // Show loading page with "Creating credentials..." text
 
     setLoadingText(loadingContainer, 'Creating credentials...');
-    navigateTo(formContainer, loadingContainer);
+    navigateTo(formContainer, loadingContainer, true);
 
     try {
       // Call API to create credential
@@ -1847,29 +1809,40 @@ export default async function decorate(block) {
     
     // Show loading page
     setLoadingText(loadingContainer, 'Loading...');
-    navigateTo(formContainer, loadingContainer);
+    navigateTo(formContainer, loadingContainer, true);
     
-    // Fetch existing credentials
-    const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
-    
-    if (existingCreds) {
-      // Pass the data in consistent format (handle both array and object responses)
-      const dataToPass = Array.isArray(existingCreds)
-        ? { projects: existingCreds }
-        : existingCreds;
+    try {
+      // Fetch organizations first
+      await fetchOrganizations();
       
-      // Populate dropdown with fresh data
-      const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+      // Then fetch existing credentials
+      const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
       
-      if (hasProjects) {
-        navigateTo(loadingContainer, returnContainer);
+      if (existingCreds) {
+        // Pass the data in consistent format (handle both array and object responses)
+        const dataToPass = Array.isArray(existingCreds)
+          ? { projects: existingCreds }
+          : existingCreds;
+        
+        // Populate dropdown with fresh data
+        const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+        
+        if (hasProjects) {
+          navigateTo(loadingContainer, returnContainer);
+        } else {
+          // No projects found, stay on form
+          navigateTo(loadingContainer, formContainer);
+          showToast('No existing projects found', 'info', 3000);
+        }
       } else {
-        // No projects found, stay on form
+        // Error fetching, stay on form
         navigateTo(loadingContainer, formContainer);
+        showToast('Failed to load projects', 'error', 3000);
       }
-    } else {
-      // Error fetching, navigate back to return page
-      navigateTo(loadingContainer, returnContainer);
+    } catch (error) {
+      // On error, stay on form
+      navigateTo(loadingContainer, formContainer);
+      showToast(`Error: ${error.message}`, 'error', 3000);
     }
   });
 
@@ -1881,21 +1854,21 @@ export default async function decorate(block) {
   });
 
   // Add event listener for restart download link
-  cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', (e) => {
-    e.preventDefault();
+  // cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', (e) => {
+  //   e.preventDefault();
     
-    if (credentialResponse) {
-      const orgId = selectedOrganization?.id || credentialResponse.orgId;
-      const projectId = credentialResponse.projectId;
-      const workspaceId = credentialResponse.workspaceId;
-      const fileName = formData.CredentialName || 'credential';
+  //   if (credentialResponse) {
+  //     const orgId = selectedOrganization?.id || credentialResponse.orgId;
+  //     const projectId = credentialResponse.projectId;
+  //     const workspaceId = credentialResponse.workspaceId;
+  //     const fileName = formData.CredentialName || 'credential';
       
-      if (orgId && projectId && workspaceId) {
-        const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
-        downloadZIP(downloadAPI, fileName);
-      }
-    }
-  });
+  //     if (orgId && projectId && workspaceId) {
+  //       const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
+  //       downloadZIP(downloadAPI, fileName);
+  //     }
+  //   }
+  // });
 
   // ============================================================================
   // IMS AUTHENTICATION HANDLERS
@@ -1909,7 +1882,7 @@ export default async function decorate(block) {
 
       // Show loading page during sign-in process
       setLoadingText(loadingContainer, 'Loading...');
-      navigateTo(signInContainer, loadingContainer);
+      navigateTo(signInContainer, loadingContainer, true);
 
       // Wait for IMS to process the token
       if (window.adobeIMS) {
@@ -1944,7 +1917,6 @@ export default async function decorate(block) {
 
                 if (!hasProjects) {
                   // No projects - navigate to form instead of return page
-
                   navigateTo(loadingContainer, formContainer);
                   return;
                 }
