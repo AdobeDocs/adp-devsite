@@ -17,7 +17,8 @@ import {
   createCredentialSection,
   createOrgNotice,
   separator,
-  showToast
+  showToast,
+  downloadZIP
 } from "./getcredential-components.js";
 
 // ============================================================================
@@ -197,11 +198,23 @@ async function fetchExistingCredentials(orgCode) {
 
   // Use selected organization if available
   const selectedOrgCode = orgCode || selectedOrganization?.code;
+  const templateId = templateData;
+  
   try {
-    // Fetch user's projects/credentials for the organization
-    const url = selectedOrgCode
-      ? `/console/api/organizations/${selectedOrgCode}/projects`
-      : '/console/api/projects';
+    // Get user profile for userId
+    const profile = await window.adobeIMS?.getProfile();
+    const userId = profile?.userId;
+    
+    if (!selectedOrgCode || !templateId || !userId) {
+      console.error('[FETCH EXISTING CREDENTIALS] Missing required parameters:', { selectedOrgId, templateId, userId });
+      return null;
+    }
+
+    // Fetch user's projects/credentials using search endpoint
+    const url = `/console/api/organizations/${selectedOrgCode}/search/projects?templateId=${templateId}&createdBy=${userId}&excludeUserProfiles=true&skipReadOnlyCheck=true`;
+
+    console.log('url', url);
+    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -211,8 +224,11 @@ async function fetchExistingCredentials(orgCode) {
       },
     });
 
+    console.log('response', response);
+
     if (response.ok) {
       const data = await response.json();
+      console.log('data', data);
       return data;
     } else {
       console.error('[FETCH CREDENTIALS] Failed with status:', response.status);
@@ -1520,8 +1536,7 @@ export default async function decorate(block) {
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
 
-    // Update templateData only if not hardcoded
-    if (templateData === "664e39607dcc7c0e5a4a035b" || !templateData) {
+    if (templateData) {
       templateData = getCredConfig?.template || {
         id: templateData || 'default-template-id',
         orgId: 'default-org-id',
@@ -1534,21 +1549,6 @@ export default async function decorate(block) {
       };
     }
 
-    // =========================================================================
-    // ORGANIZATION INITIALIZATION
-    // =========================================================================
-    // This section handles organization loading on initial page load:
-    // 1. If user is signed in:
-    //    - Fetch all organizations from API
-    //    - Call switchOrganization(null) which:
-    //      a) Checks localStorage for saved org
-    //      b) Validates user still has access to saved org
-    //      c) If no saved/valid org, picks first org from list as default
-    //      d) Saves selected org to localStorage
-    // 2. If user is NOT signed in:
-    //    - Use fallback org from config
-    // =========================================================================
-
     if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
 
       try {
@@ -1560,21 +1560,21 @@ export default async function decorate(block) {
         } else {
           // Fallback to config-based organization
           selectedOrganization = {
-            code: getCredConfig?.orgId || (typeof templateData === 'string' ? 'default-org-id' : templateData.orgId),
+            code: getCredConfig?.orgId || templateData.orgId,
             name: getCredConfig?.orgName || 'Personal Developer Organization'
           };
         }
       } catch (error) {
         // Fallback to config-based organization
         selectedOrganization = {
-          code: getCredConfig?.orgId || (typeof templateData === 'string' ? 'default-org-id' : templateData.orgId),
+          code: getCredConfig?.orgId || templateData.orgId,
           name: getCredConfig?.orgName || 'Personal Developer Organization'
         };
       }
     } else {
       // Get organization data from config as fallback (when not signed in)
       selectedOrganization = {
-        code: getCredConfig?.orgId || (typeof templateData === 'string' ? 'default-org-id' : templateData.orgId),
+        code: getCredConfig?.orgId || templateData.orgId,
         name: getCredConfig?.orgName || 'Personal Developer Organization'
       };
     }
@@ -1849,6 +1849,30 @@ export default async function decorate(block) {
 
         // API response received - Hide loading page and show success card
         navigateTo(loadingContainer, cardContainer, true);
+        
+        // Show success toast immediately when card opens
+        setTimeout(() => {
+          showToast('Credential created successfully!', 'success', 4000, cardContainer);
+        }, 100);
+        
+        // Trigger download if downloads checkbox is checked
+        const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
+        if (downloadsCheckbox?.checked && credentialResponse) {
+          const orgId = selectedOrganization?.id || credentialResponse.orgId;
+          const projectId = credentialResponse.projectId;
+          const workspaceId = credentialResponse.workspaceId;
+          const fileName = formData.CredentialName || 'credential';
+          
+          if (orgId && projectId && workspaceId) {
+            const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
+            
+            // Trigger download after a short delay to ensure card is visible
+            setTimeout(() => {
+              downloadZIP(downloadAPI, fileName);
+            }, 500);
+          }
+        }
+        
       } else {
         // API response received (failed) - Hide loading and show form again
         navigateTo(loadingContainer, formContainer);
@@ -1871,6 +1895,23 @@ export default async function decorate(block) {
     // Clear the form before navigating
     clearForm(formContainer);
     navigateTo(cardContainer, formContainer, true);
+  });
+
+  // Add event listener for restart download link
+  cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    if (credentialResponse) {
+      const orgId = selectedOrganization?.id || credentialResponse.orgId;
+      const projectId = credentialResponse.projectId;
+      const workspaceId = credentialResponse.workspaceId;
+      const fileName = formData.CredentialName || 'credential';
+      
+      if (orgId && projectId && workspaceId) {
+        const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
+        downloadZIP(downloadAPI, fileName);
+      }
+    }
   });
 
   // ============================================================================
