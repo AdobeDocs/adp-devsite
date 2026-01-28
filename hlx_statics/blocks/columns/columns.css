@@ -52,7 +52,8 @@ main div.columns-wrapper  div.columns  div.second-column div.button-group-contai
 }
 
 @media screen and (max-width: 620px) {
-    main div.columns-wrapper  div.columns div.first-column img {
+    main div.columns-wrapper div.columns div.first-column img,
+    main div.columns-wrapper div.columns div.first-column video {
         width: 100vw;
         height: auto;
     }
@@ -69,7 +70,8 @@ main div.columns-wrapper div.columns div.first-column {
     margin-top: 0;
 }
 
-main div.columns-wrapper div.columns div.first-column img {
+main div.columns-wrapper div.columns div.first-column img,
+main div.columns-wrapper div.columns div.first-column video {
     max-width: 100%;
     max-height: 350px;
     height: auto;
@@ -143,7 +145,8 @@ main div.columns-wrapper div.second-column div.product-link-container {
     main div.columns div.first-column {
         width: 100% !important;
     }
-    main div.columns-wrapper div.columns div.first-column img {
+    main div.columns-wrapper div.columns div.first-column img,
+    main div.columns-wrapper div.columns div.first-column video {
         max-width: 100%;
         max-height: 350px;
         height: auto;
@@ -270,7 +273,8 @@ main div.columns-wrapper div.vertical .first-column {
     justify-content: left;
 }
 
-main div.columns-wrapper div.columns.vertical div.first-column img {
+main div.columns-wrapper div.columns.vertical div.first-column img,
+main div.columns-wrapper div.columns.vertical div.first-column video {
     max-height: 150px;
 }
 
