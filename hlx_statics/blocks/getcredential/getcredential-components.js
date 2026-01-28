@@ -144,7 +144,7 @@ export function createExternalLink(text, href) {
 // ORGANIZATION MODAL - Done
 // ============================================================================
 
-export function createOrganizationModal() {
+export function createOrganizationModal(organizations, currentOrg, onOrgChange) {
   const modalOverlay = createTag('div', { class: 'org-modal-overlay' });
   const modal = createTag('div', { class: 'org-modal' });
 
@@ -158,7 +158,7 @@ export function createOrganizationModal() {
   // Modal body
   const modalBody = createTag('div', { class: 'org-modal-body' });
   const currentOrgText = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS' });
-  currentOrgText.innerHTML = 'You are currently in <strong class="current-org-text">[deepesh-testuser2-adobetest.com]</strong>.';
+  currentOrgText.innerHTML = `You are currently in <strong class="current-org-text">[${currentOrg?.name || 'Personal Developer Organization'}]</strong>.`;
   modalBody.appendChild(currentOrgText);
 
   const orgList = createTag('div', { class: 'org-list' });
@@ -171,11 +171,25 @@ export function createOrganizationModal() {
   orgList.appendChild(label);
 
   const dropdown = createTag('select', { class: 'spectrum-Picker org-modal-dropdown' });
-  const option = createTag('option', {});
-  option.textContent = 'deepesh-testuser2-adobetest.com';
-  dropdown.appendChild(option);
+  
+  // Populate dropdown with organizations
+  if (organizations && organizations.length > 0) {
+    organizations.forEach((org, index) => {
+      const option = createTag('option', { value: org.code || org.id });
+      option.textContent = org.name || org.code || `Organization ${index + 1}`;
+      if (currentOrg && (org.code === currentOrg.code || org.id === currentOrg.code)) {
+        option.selected = true;
+      }
+      dropdown.appendChild(option);
+    });
+  } else {
+    // Fallback if no organizations provided
+    const option = createTag('option', { value: currentOrg?.code || 'default' });
+    option.textContent = currentOrg?.name || 'Personal Developer Organization';
+    dropdown.appendChild(option);
+  }
+  
   orgList.appendChild(dropdown);
-
   modalBody.appendChild(orgList);
   modal.appendChild(modalBody);
 
@@ -214,6 +228,13 @@ export function createOrganizationModal() {
   });
 
   changeButton.addEventListener('click', () => {
+    const selectedOrgCode = dropdown.value;
+    const selectedOrg = organizations?.find(org => (org.code || org.id) === selectedOrgCode);
+    
+    if (selectedOrg && onOrgChange) {
+      onOrgChange(selectedOrg);
+    }
+    
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
     modalOverlay.remove();
@@ -311,7 +332,7 @@ export function createCredentialSection(config) {
   return credentialSection;
 }
 
-export function createOrgNotice(text, className = 'org-notice') {
+export function createOrgNotice(text, className = 'org-notice', organizationsData = null, currentOrg = null, onOrgChange = null) {
   const orgNotice = createTag('div', { class: className });
   const orgText = createTag('span', { class: 'org-text' });
   orgText.textContent = text;
@@ -320,7 +341,7 @@ export function createOrgNotice(text, className = 'org-notice') {
   changeOrgLink.textContent = 'Change organization';
   changeOrgLink.addEventListener('click', (e) => {
     e.preventDefault();
-    document.body.appendChild(createOrganizationModal());
+    document.body.appendChild(createOrganizationModal(organizationsData, currentOrg, onOrgChange));
   });
   
   orgNotice.appendChild(orgText);
