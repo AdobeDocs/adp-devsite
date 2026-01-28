@@ -224,13 +224,8 @@ async function fetchExistingCredentials(orgCode) {
       },
     });
 
-    console.log('response', response);
-
     if (response.ok) {
       const data = await response.json();
-      console.log('[FETCH EXISTING CREDENTIALS] API Response:', data);
-      console.log('[FETCH EXISTING CREDENTIALS] Response Type:', Array.isArray(data) ? 'Array' : 'Object');
-      console.log('[FETCH EXISTING CREDENTIALS] Projects Count:', Array.isArray(data) ? data.length : data?.projects?.length || 0);
       return data;
     } else {
       console.error('[FETCH CREDENTIALS] Failed with status:', response.status);
@@ -246,13 +241,12 @@ async function fetchProjectDetails(orgCode, projectId) {
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
 
   if (!token) {
-    console.error('[FETCH PROJECT] ❌ No token available');
+    console.error('No token available');
     return null;
   }
 
   try {
     const url = `/console/api/organizations/${orgCode}/projects/${projectId}`;
-    console.log('[FETCH PROJECT DETAILS] URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -263,22 +257,15 @@ async function fetchProjectDetails(orgCode, projectId) {
       },
     });
 
-    console.log('[FETCH PROJECT DETAILS] Response status:', response.status);
-
     if (response.ok) {
       const projectData = await response.json();
-      console.log('[FETCH PROJECT DETAILS] Full Project Data:', projectData);
-      console.log('[FETCH PROJECT DETAILS] Has workspaces?', !!projectData.workspaces);
-      console.log('[FETCH PROJECT DETAILS] Workspaces count:', projectData.workspaces?.length || 0);
       if (projectData.workspaces?.[0]) {
-        console.log('[FETCH PROJECT DETAILS] First workspace:', projectData.workspaces[0]);
-        console.log('[FETCH PROJECT DETAILS] Credentials in workspace:', projectData.workspaces[0].credentials);
       }
 
       return projectData;
     } else {
       const errorText = await response.text();
-      console.error('[FETCH PROJECT DETAILS] Failed:', errorText);
+      console.error('Failed:', errorText);
       return null;
     }
   } catch (error) {
@@ -288,14 +275,10 @@ async function fetchProjectDetails(orgCode, projectId) {
 
 function populateProjectsDropdown(returnContainer, projectsData) {
 
-  console.log('[POPULATE DROPDOWN] Incoming projectsData:', projectsData);
-  console.log('[POPULATE DROPDOWN] Is Array?', Array.isArray(projectsData));
-
   const dropdown = returnContainer?.querySelector('.projects-picker');
 
   // Check if credential fields exist in the DOM
   if (!dropdown) {
-    console.error('[POPULATE DROPDOWN] Dropdown element not found');
     return false;
   }
   // Extract projects array (should include full data with workspaces/credentials)
@@ -309,36 +292,16 @@ function populateProjectsDropdown(returnContainer, projectsData) {
     projects = [];
   }
   
-  console.log('[POPULATE DROPDOWN] Extracted projects array:', projects);
-  console.log('[POPULATE DROPDOWN] Projects count:', projects.length);
-  
   // Log summary of all projects with their key data
-  console.log('[POPULATE DROPDOWN] Projects Summary:');
   projects.forEach((proj, idx) => {
     const workspace = proj.workspaces?.[0];
     const credential = workspace?.credentials?.[0];
-    console.log(`  Project ${idx + 1}:`, {
-      id: proj.id,
-      name: proj.title || proj.name,
-      hasWorkspaces: !!proj.workspaces?.length,
-      hasCredentials: !!credential,
-      clientId: credential?.clientId || 'NOT FOUND',
-      allowedDomain: credential?.metadata?.['adobeid.domain'] || 'NOT FOUND'
-    });
   });
   
   // Log first project structure for debugging
   if (projects.length > 0) {
-    console.log('[POPULATE DROPDOWN] ==== FIRST PROJECT FULL STRUCTURE ====');
-    console.log('[POPULATE DROPDOWN] First project structure:', projects[0]);
-    console.log('[POPULATE DROPDOWN] First project workspaces:', projects[0].workspaces);
     if (projects[0].workspaces?.[0]) {
-      console.log('[POPULATE DROPDOWN] First workspace:', projects[0].workspaces[0]);
-      console.log('[POPULATE DROPDOWN] First workspace credentials:', projects[0].workspaces[0].credentials);
       if (projects[0].workspaces[0].credentials?.[0]) {
-        console.log('[POPULATE DROPDOWN] First credential:', projects[0].workspaces[0].credentials[0]);
-        console.log('[POPULATE DROPDOWN] First credential clientId:', projects[0].workspaces[0].credentials[0].clientId);
-        console.log('[POPULATE DROPDOWN] First credential metadata:', projects[0].workspaces[0].credentials[0].metadata);
       }
     }
   }
@@ -347,7 +310,6 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   dropdown.innerHTML = '';
   // Reverse projects array to show newest first
   projects = [...projects].reverse();
-
 
   // Populate dropdown with projects (use project ID as value)
   projects.forEach((project, index) => {
@@ -359,11 +321,8 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   // Add onChange handler to dropdown
   dropdown.addEventListener('change', (e) => {
     const selectedProjectId = e.target.value;
-    
-    console.log('[DROPDOWN CHANGE] Selected Project ID:', selectedProjectId);
 
     if (!selectedProjectId) {
-      console.warn('[DROPDOWN CHANGE] No project ID selected');
       return;
     }
 
@@ -371,11 +330,9 @@ function populateProjectsDropdown(returnContainer, projectsData) {
     const selectedProject = projects.find(p => p.id === selectedProjectId);
     
     if (selectedProject) {
-      console.log('[DROPDOWN CHANGE] Found project in array:', selectedProject);
-      console.log('[DROPDOWN CHANGE] Updating card with project data (no API call needed)');
       updateProjectCardDetails(returnContainer, selectedProject);
     } else {
-      console.error('[DROPDOWN CHANGE] Project not found in array:', selectedProjectId);
+      console.error('Project not found in array:', selectedProjectId);
     }
 
   });
@@ -383,13 +340,10 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   // Set default selection to first project (by ID)
   if (projects[0]?.id) {
     dropdown.value = projects[0].id;
-    console.log('[POPULATE DROPDOWN] Initial project selected:', projects[0].id);
-    console.log('[POPULATE DROPDOWN] Updating card with initial project data (already has full data from search API)');
     
     // Update card with project data (search API already includes workspaces/credentials)
     updateProjectCardDetails(returnContainer, projects[0]);
   } else {
-    console.warn('[POPULATE DROPDOWN] No projects to display');
   }
   
   return true; // Return true to indicate projects exist
@@ -424,17 +378,6 @@ function updateProjectCardDetails(returnContainer, project) {
   
   const orgName = selectedOrganization?.name || 'Unknown';
 
-  console.log('[UPDATE PROJECT CARD] Full Project Object:', project);
-  console.log('[UPDATE PROJECT CARD] Workspace:', workspace);
-  console.log('[UPDATE PROJECT CARD] Credential:', credential);
-  console.log('[UPDATE PROJECT CARD] Extracted Values:', {
-    projectName,
-    projectId,
-    apiKey,
-    allowedOrigins,
-    orgName
-  });
-
   // Update project title
 
   const projectTitle = returnContainer.querySelector('.project-title');
@@ -446,10 +389,7 @@ function updateProjectCardDetails(returnContainer, project) {
   const projectLink = returnContainer.querySelector('.project-link');
   if (projectLink && projectId) {
     const orgId = selectedOrganization?.id || project.org_id;
-    const workspaceId = workspace?.id || '';
-    const consoleUrl = workspaceId
-      ? `/console/projects/${orgId}/${projectId}/${workspaceId}/overview`
-      : `/console/projects/${orgId}/${projectId}/overview`;
+    const consoleUrl = `/console/projects/${orgId}/${projectId}/overview`;
 
     projectLink.href = consoleUrl;
     const projectLinkText = projectLink.querySelector('p');
@@ -493,7 +433,6 @@ async function fetchOrganizations() {
 
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
 
-
   if (!token) {
     return null;
   }
@@ -501,7 +440,6 @@ async function fetchOrganizations() {
   try {
     // Fetch accounts with organizations (matching React component)
     const url = '/console/api/accounts?includeOrganizations=true';
-
 
     const response = await fetch(url, {
       method: 'GET',
@@ -512,7 +450,6 @@ async function fetchOrganizations() {
       },
     });
 
-
     if (!response.ok) {
       if (response.status === 401) {
         window.adobeIMS?.signIn();
@@ -521,7 +458,6 @@ async function fetchOrganizations() {
     }
 
     const accountsResult = await response.json();
-
 
     // Extract organizations from accounts
     const organizations = [];
@@ -540,7 +476,6 @@ async function fetchOrganizations() {
     // Sort organizations by name
     organizations.sort((a, b) => a.name.localeCompare(b.name));
 
-
     return organizations;
   } catch (error) {
 
@@ -549,7 +484,6 @@ async function fetchOrganizations() {
     try {
       const profile = await window.adobeIMS?.getProfile();
       const accountId = profile?.userId;
-
 
       if (profile?.projectedProductContext) {
         const orgs = profile.projectedProductContext.map((ctx, index) => ({
@@ -566,14 +500,12 @@ async function fetchOrganizations() {
     }
   }
 
-
   return null;
 }
 
 async function getCredentialSecrets(response, orgCode) {
 
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
-
 
   if (!token) {
     return null;
@@ -587,13 +519,11 @@ async function getCredentialSecrets(response, orgCode) {
 
     const selectedOrgCode = orgCode || selectedOrganization?.code;
 
-
     if (!selectedOrgCode || !projectId) {
       return null;
     }
 
     const secretsUrl = `/console/api/organizations/${selectedOrgCode}/integrations/${projectId}/secrets`;
-
 
     const secretsResponse = await fetch(secretsUrl, {
       method: 'GET',
@@ -655,7 +585,6 @@ async function switchOrganization(org) {
 
   const profile = await window.adobeIMS?.getProfile();
   const accountId = profile?.userId;
-
 
   if (!org) {
     // This means it's initial load. Try reading from local storage
@@ -825,9 +754,7 @@ function updateCredentialCard(cardContainer, responseData) {
     const orgId = selectedOrganization?.id || responseData.orgId;
     const workspaceId = responseData.workspaceId;
 
-    const consoleUrl = workspaceId
-      ? `/console/projects/${orgId}/${projectId}/${workspaceId}/overview`
-      : `/console/projects/${orgId}/${projectId}/overview`;
+    const consoleUrl = `/console/projects/${orgId}/${projectId}/overview`;
 
     if (projectLink) {
       projectLink.href = consoleUrl;
@@ -1031,7 +958,6 @@ function createDownloadsField(config) {
   checkboxWrapper.appendChild(createFieldLabel(config, 'downloads-checkbox', true));
   fieldContainer.appendChild(checkboxWrapper);
 
-
   if (config.items?.length > 1) {
     const downloadOptions = createTag('div', { class: 'download-options', style: 'display: none;' });
     const downloadOptionsLabel = createTag('label', { class: 'spectrum-Body spectrum-Body--sizeS field-label' });
@@ -1229,7 +1155,6 @@ function createReturnContent(config) {
       // Use switchOrganization function
       await switchOrganization(newOrg);
 
-
       // Update org notice text
       const orgNotice = getCredHeader.querySelector('.org-notice-return');
       if (orgNotice) {
@@ -1248,7 +1173,6 @@ function createReturnContent(config) {
             ? { projects: existingCreds }
             : existingCreds;
 
-
           // Populate dropdown with new org's projects (filter from cached data)
           const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass);
 
@@ -1258,7 +1182,6 @@ function createReturnContent(config) {
       }).catch(error => {
       });
     } catch (error) {
-      console.error('Error switching organization on return page:', error);
       showToast('Failed to switch organization. Please try again.', 'error', 4000);
     }
   };
@@ -1564,7 +1487,6 @@ export default async function decorate(block) {
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   const navPath = `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
 
-
   let credentialData;
   try {
     const response = await fetch(navPath);
@@ -1678,7 +1600,6 @@ export default async function decorate(block) {
         // Handle both response formats: direct array or object with .projects
         const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
 
-
         if (projectsArray && projectsArray.length > 0) {
 
           // Pass the data in consistent format (handle both array and object responses)
@@ -1688,7 +1609,6 @@ export default async function decorate(block) {
 
           // Populate dropdown and update card with projects (filter from cached data)
           const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
 
           if (!hasProjects) {
             // No projects found - navigate to form to create first credential
@@ -1736,7 +1656,6 @@ export default async function decorate(block) {
       try {
         // Use switchOrganization function
         await switchOrganization(newOrg);
-
 
         // Update org notice text
         const orgNotice = formHeader.querySelector('.org-notice');
@@ -1882,7 +1801,6 @@ export default async function decorate(block) {
 
       const result = await createCredential();
 
-
       if (result?.success) {
         // Store response data
         credentialResponse = result.data;
@@ -1895,7 +1813,7 @@ export default async function decorate(block) {
         
         // Show success toast immediately when card opens
         setTimeout(() => {
-          showToast('Credential created successfully!', 'success', 4000, cardContainer);
+          showToast('Your credential created successfully', 'success', 4000, cardContainer);
         }, 100);
         
         // Trigger download if downloads checkbox is checked
@@ -1928,9 +1846,35 @@ export default async function decorate(block) {
     }
   });
 
-  formContainer?.querySelector('.cancel-link')?.addEventListener('click', (e) => {
+  formContainer?.querySelector('.cancel-link')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    navigateTo(formContainer, returnContainer);
+    
+    // Show loading page
+    setLoadingText(loadingContainer, 'Loading...');
+    navigateTo(formContainer, loadingContainer);
+    
+    // Fetch existing credentials
+    const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
+    
+    if (existingCreds) {
+      // Pass the data in consistent format (handle both array and object responses)
+      const dataToPass = Array.isArray(existingCreds)
+        ? { projects: existingCreds }
+        : existingCreds;
+      
+      // Populate dropdown with fresh data
+      const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+      
+      if (hasProjects) {
+        navigateTo(loadingContainer, returnContainer);
+      } else {
+        // No projects found, stay on form
+        navigateTo(loadingContainer, formContainer);
+      }
+    } else {
+      // Error fetching, navigate back to return page
+      navigateTo(loadingContainer, returnContainer);
+    }
   });
 
   cardContainer?.querySelector('.restart-link')?.addEventListener('click', (e) => {
