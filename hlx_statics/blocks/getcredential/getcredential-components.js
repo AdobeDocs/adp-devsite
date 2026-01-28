@@ -446,7 +446,6 @@ export function createProjectHeader(projectTitle, products) {
 }
 
 export function createCredentialSection(config) {
-  showToast('Your credentials were created successfully.', 'success', 4000);
   const credentialSection = createTag('div', { class: 'credential-section' });
   const credentialTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
   credentialTitle.textContent = config.heading;

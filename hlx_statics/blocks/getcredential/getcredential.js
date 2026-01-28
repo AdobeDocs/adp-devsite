@@ -212,8 +212,6 @@ async function fetchExistingCredentials(orgCode) {
 
     // Fetch user's projects/credentials using search endpoint
     const url = `/console/api/organizations/${selectedOrgCode}/search/projects?templateId=${templateId}&createdBy=${userId}&excludeUserProfiles=true&skipReadOnlyCheck=true`;
-
-    console.log('url', url);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -1174,7 +1172,7 @@ function createReturnContent(config) {
             : existingCreds;
 
           // Populate dropdown with new org's projects (filter from cached data)
-          const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass);
+          const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass.reverse());
 
           if (!hasProjects) {
           }
@@ -1813,7 +1811,7 @@ export default async function decorate(block) {
         
         // Show success toast immediately when card opens
         setTimeout(() => {
-          showToast('Your credential created successfully', 'success', 4000, cardContainer);
+          showToast('Your credential created successfully', 'success', 4000);
         }, 100);
         
         // Trigger download if downloads checkbox is checked
