@@ -251,6 +251,135 @@ async function fetchExistingCredentials(orgCode) {
   return null;
 }
 
+function populateProjectsDropdown(returnContainer, projectsData) {
+  console.log('[POPULATE DROPDOWN] Starting...', projectsData);
+  
+  const dropdown = returnContainer?.querySelector('.projects-picker');
+  if (!dropdown) {
+    console.error('[POPULATE DROPDOWN] Dropdown not found');
+    return;
+  }
+  
+  // Extract projects array
+  const projects = projectsData?.projects || projectsData || [];
+  console.log('[POPULATE DROPDOWN] Projects array:', projects, 'Length:', projects.length);
+  
+  // Clear existing options
+  dropdown.innerHTML = '';
+  
+  if (!Array.isArray(projects) || projects.length === 0) {
+    console.log('[POPULATE DROPDOWN] No projects found');
+    const noProjectsOption = createTag('option', {});
+    noProjectsOption.textContent = 'No projects found';
+    noProjectsOption.disabled = true;
+    dropdown.appendChild(noProjectsOption);
+    dropdown.disabled = true;
+    return false; // Return false to indicate no projects
+  }
+  
+  // Enable dropdown (show even with 1 project)
+  dropdown.disabled = false;
+  console.log('[POPULATE DROPDOWN] Dropdown enabled for', projects.length, 'project(s)');
+  
+  // Populate dropdown with projects
+  projects.forEach((project, index) => {
+    const option = createTag('option', { value: index });
+    option.textContent = project.title;
+    option.dataset.projectId = project.id;
+    dropdown.appendChild(option);
+  });
+  
+  console.log('[POPULATE DROPDOWN] Added', projects.length, 'projects to dropdown');
+  
+  // Update card with first project
+  updateProjectCardDetails(returnContainer, projects[0]);
+  
+  // Add change event listener
+  dropdown.addEventListener('change', (e) => {
+    const selectedIndex = parseInt(e.target.value);
+    const selectedProject = projects[selectedIndex];
+    console.log('[DROPDOWN CHANGE] Selected project:', selectedProject);
+    updateProjectCardDetails(returnContainer, selectedProject);
+  });
+  
+  return true; // Return true to indicate projects exist
+}
+
+function updateProjectCardDetails(returnContainer, project) {
+  console.log('[UPDATE PROJECT CARD] Updating with:', project);
+  
+  if (!returnContainer || !project) {
+    console.error('[UPDATE PROJECT CARD] Missing container or project data');
+    return;
+  }
+  
+  // Update project title
+  const projectTitle = returnContainer.querySelector('.project-title');
+  if (projectTitle) {
+    projectTitle.textContent = project.title || project.name || 'Untitled Project';
+    console.log('[UPDATE PROJECT CARD] Updated title');
+  }
+  
+  // Update Developer Console link
+  const projectLink = returnContainer.querySelector('.return-project-link');
+  if (projectLink && project.id) {
+    const orgId = selectedOrganization?.id || project.orgId || '248947';
+    const workspaceId = project.workspaces?.[0]?.id || '';
+    const consoleUrl = workspaceId 
+      ? `/console/projects/${orgId}/${project.id}/${workspaceId}/overview`
+      : `/projects/${orgId}/${project.id}/overview`;
+    
+    projectLink.href = consoleUrl;
+    projectLink.textContent = project.title || project.name || project.id;
+    console.log('[UPDATE PROJECT CARD] Updated Developer Console link');
+  }
+  
+  // Get credential data from project
+  const credential = project.workspaces?.[0]?.credentials?.[0];
+  console.log('[UPDATE PROJECT CARD] Credential:', credential);
+  
+  // Update API Key
+  const apiKeyElement = returnContainer.querySelector('[data-field="apiKey"]');
+  if (apiKeyElement) {
+    const apiKey = credential?.id_integration || credential?.apiKey || credential?.id || 'Not available';
+    apiKeyElement.textContent = apiKey;
+    
+    // Update copy button
+    const copyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
+    if (copyButton && apiKey !== 'Not available') {
+      copyButton.setAttribute('data-copy', apiKey);
+    }
+    console.log('[UPDATE PROJECT CARD] Updated API Key');
+  }
+  
+  // Update Allowed Origins
+  const originsElement = returnContainer.querySelector('[data-field="allowedOrigins"]');
+  if (originsElement) {
+    const allowedOrigins = credential?.metadata?.['adobeid.domain'] 
+      || credential?.metadata?.domain 
+      || credential?.allowedOrigins 
+      || 'Not set';
+    originsElement.textContent = allowedOrigins;
+    
+    // Update copy button
+    const copyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
+    if (copyButton && allowedOrigins !== 'Not set') {
+      copyButton.setAttribute('data-copy', allowedOrigins);
+    }
+    console.log('[UPDATE PROJECT CARD] Updated Allowed Origins');
+  }
+  
+  // Update Organization
+  const orgElement = returnContainer.querySelector('[data-field="organization"]');
+  if (orgElement) {
+    const orgName = selectedOrganization?.name || project.orgName || 'N/A';
+    orgElement.textContent = orgName;
+    console.log('[UPDATE PROJECT CARD] Updated Organization');
+  }
+  
+  console.log('[UPDATE PROJECT CARD] Card update complete');
+}
+
 async function fetchOrganizations() {
   console.log('[FETCH ORGANIZATIONS] Starting fetch...');
   
@@ -532,6 +661,61 @@ async function switchOrganization(org) {
   console.log('[SWITCH ORG] Selected organization:', selectedOrganization);
   
   return org;
+}
+
+function clearForm(formContainer) {
+  console.log('[CLEAR FORM] Clearing all form fields...');
+  
+  // Clear form data object
+  formData.CredentialName = '';
+  formData.AllowedOrigins = '';
+  formData.AdobeDeveloperConsole = false;
+  formData.Downloads = false;
+  formData.Download = '';
+  
+  // Clear form inputs
+  const credentialNameInput = formContainer?.querySelector('[data-cy="add-credential-name"]');
+  if (credentialNameInput) {
+    credentialNameInput.value = '';
+    credentialNameInput.classList.remove('error');
+  }
+  
+  const allowedOriginsInput = formContainer?.querySelector('[data-cy="add-allowed-origins"]');
+  if (allowedOriginsInput) {
+    allowedOriginsInput.value = '';
+    allowedOriginsInput.classList.remove('error');
+  }
+  
+  // Uncheck checkboxes
+  const agreementCheckbox = formContainer?.querySelector('.agreement-checkbox');
+  if (agreementCheckbox) agreementCheckbox.checked = false;
+  
+  const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
+  if (downloadsCheckbox) downloadsCheckbox.checked = false;
+  
+  // Reset validation state
+  validationState.CredentialName = { valid: false, errors: [] };
+  validationState.AllowedOrigins = { valid: true, errors: [] };
+  
+  // Clear error messages
+  const errorDescriptions = formContainer?.querySelectorAll('.field-description.error');
+  errorDescriptions?.forEach(desc => desc.classList.remove('error'));
+  
+  // Hide alert icons
+  const alertIcons = formContainer?.querySelectorAll('.alert-icon');
+  alertIcons?.forEach(icon => icon.style.display = 'none');
+  
+  // Reset character counter
+  const counter = formContainer?.querySelector('[data-counter="CredentialName"]');
+  if (counter) {
+    const maxChars = counter.getAttribute('data-max');
+    counter.textContent = maxChars;
+  }
+  
+  // Update button state (should be disabled since form is empty)
+  updateButtonState();
+  
+  console.log('[CLEAR FORM] Form cleared successfully');
 }
 
 function updateCredentialCard(cardContainer, responseData) {
@@ -1002,10 +1186,18 @@ function createReturnContent(config) {
       
       // Refresh credentials for new org
       fetchExistingCredentials(selectedOrganization?.code).then(existingCreds => {
+        console.log('[ORG CHANGE] Fetched credentials for new org:', existingCreds);
+        
         if (existingCreds) {
-          console.log('Fetched credentials for new org:', existingCreds);
-          // TODO: Update UI with new credentials list
+          // Populate dropdown with new org's projects
+          const hasProjects = populateProjectsDropdown(returnWrapper, existingCreds);
+          
+          if (!hasProjects) {
+            console.log('[ORG CHANGE] No projects in new org, staying on return page');
+          }
         }
+      }).catch(error => {
+        console.error('[ORG CHANGE] Error fetching credentials:', error);
       });
     } catch (error) {
       console.error('Error switching organization on return page:', error);
@@ -1148,6 +1340,50 @@ function createReturnContent(config) {
 
   returnWrapper.appendChild(contentWrapper);
   return returnWrapper;
+}
+
+// ============================================================================
+// LOADING PAGE
+// ============================================================================
+
+function createLoadingPage() {
+  const loadingContainer = createTag('div', { class: 'loading-container hidden' });
+  
+  const loadingContent = createTag('div', { class: 'loading-content' });
+  
+  // Pure CSS/SVG Progress Circle
+  const progressWrapper = createTag('div', { class: 'loading-progress' });
+  progressWrapper.innerHTML = `
+    <svg class="progress-circle-svg" viewBox="0 0 64 64" role="progressbar" aria-label="Loading">
+      <circle class="progress-circle-track" cx="32" cy="32" r="28"></circle>
+      <circle class="progress-circle-fill" cx="32" cy="32" r="28"></circle>
+    </svg>
+  `;
+  loadingContent.appendChild(progressWrapper);
+  
+  // Loading text (will be updated dynamically)
+  const loadingText = createTag('div', { class: 'loading-text' });
+  loadingText.textContent = 'Loading...';
+  loadingContent.appendChild(loadingText);
+  
+  // Additional message
+  // const loadingMessage = createTag('div', { class: 'loading-message' });
+  // loadingMessage.textContent = 'This process may take a few moments.';
+  // loadingContent.appendChild(loadingMessage);
+  
+  loadingContainer.appendChild(loadingContent);
+  
+  // Store reference to text element for updates
+  loadingContainer._textElement = loadingText;
+  
+  return loadingContainer;
+}
+
+// Helper function to update loading text
+function setLoadingText(loadingContainer, text) {
+  if (loadingContainer && loadingContainer._textElement) {
+    loadingContainer._textElement.textContent = text;
+  }
 }
 
 // ============================================================================
@@ -1425,11 +1661,28 @@ export default async function decorate(block) {
       
       // Fetch existing credentials (organizations were already fetched above)
       fetchExistingCredentials(selectedOrganization?.code).then(existingCreds => {
+        console.log('[RETURN PAGE] Existing credentials loaded:', existingCreds);
+        
         if (existingCreds) {
-          console.log('[RETURN PAGE] Existing credentials loaded:', existingCreds);
-          // Update return page with existing credentials if needed
-          // You can add logic here to display the list of existing projects
+          // Populate dropdown and update card with projects
+          const hasProjects = populateProjectsDropdown(returnContainer, existingCreds);
+          
+          if (!hasProjects) {
+            // No projects found - navigate to form to create first credential
+            console.log('[RETURN PAGE] No existing projects, navigating to form...');
+            navigateTo(returnContainer, formContainer);
+          } else {
+            console.log('[RETURN PAGE] Projects loaded and displayed successfully');
+          }
+        } else {
+          // Failed to fetch credentials - navigate to form
+          console.log('[RETURN PAGE] Failed to fetch credentials, navigating to form...');
+          navigateTo(returnContainer, formContainer);
         }
+      }).catch(error => {
+        console.error('[RETURN PAGE] Error loading credentials:', error);
+        // On error, navigate to form
+        navigateTo(returnContainer, formContainer);
       });
     }
   }
@@ -1544,6 +1797,10 @@ export default async function decorate(block) {
     block.appendChild(cardContainer);
   }
 
+  // Create loading page
+  const loadingContainer = createLoadingPage();
+  block.appendChild(loadingContainer);
+
   // Navigation helper function
   const navigateTo = (hideEl, showEl, scroll = false) => {
     console.log('[NAVIGATE] Navigating...');
@@ -1606,6 +1863,9 @@ export default async function decorate(block) {
       }
     }
     
+    // Clear the form before navigating
+    clearForm(formContainer);
+    
     console.log('[CREATE NEW] Navigating to form page...');
     navigateTo(returnContainer, formContainer, true);
   });
@@ -1635,13 +1895,10 @@ export default async function decorate(block) {
     console.log('[FORM SUBMIT] Validation passed, proceeding with creation');
     console.log('[FORM SUBMIT] Form data:', formData);
 
-    // Show loading state
-    const createButton = e.target.closest('.create-button');
-    const buttonLabel = createButton.querySelector('.spectrum-Button-label');
-    const originalText = buttonLabel.textContent;
-    console.log('[FORM SUBMIT] Setting loading state...');
-    buttonLabel.textContent = 'Creating...';
-    createButton.disabled = true;
+    // Show loading page with "Creating credentials..." text
+    console.log('[FORM SUBMIT] Showing loading page...');
+    setLoadingText(loadingContainer, 'Creating credentials...');
+    navigateTo(formContainer, loadingContainer);
 
     try {
       // Call API to create credential
@@ -1652,29 +1909,32 @@ export default async function decorate(block) {
       if (result?.success) {
         // Store response data
         credentialResponse = result.data;
-        console.log('[FORM SUBMIT] Credential created successfully:', credentialResponse);
+        console.log('[FORM SUBMIT] API Response received - Credential created successfully');
+        console.log('[FORM SUBMIT] Response data:', credentialResponse);
         
         // Update card with dynamic values
         console.log('[FORM SUBMIT] Updating credential card...');
         updateCredentialCard(cardContainer, credentialResponse);
         console.log('[FORM SUBMIT] Card updated');
         
-        // Navigate to success card
-        console.log('[FORM SUBMIT] Navigating to success card...');
-        navigateTo(formContainer, cardContainer, true);
+        // API response received - Hide loading page and show success card
+        console.log('[FORM SUBMIT] Hiding loading page and showing success card...');
+        navigateTo(loadingContainer, cardContainer, true);
       } else {
         console.log('[FORM SUBMIT] API returned non-success result');
+        // API response received (failed) - Hide loading and show form again
+        console.log('[FORM SUBMIT] Hiding loading page and returning to form...');
+        navigateTo(loadingContainer, formContainer);
       }
     } catch (error) {
-      // Show error message
-      console.error('[FORM SUBMIT] Error during submission:', error);
+      // API error - Show error message
+      console.error('[FORM SUBMIT] API Error:', error);
+      
+      // API error received - Hide loading and show form again
+      console.log('[FORM SUBMIT] Hiding loading page due to error...');
+      navigateTo(loadingContainer, formContainer);
+      
       alert(`Error: ${error.message}`);
-    } finally {
-      // Reset button state
-      console.log('[FORM SUBMIT] Resetting button state...');
-      buttonLabel.textContent = originalText;
-      createButton.disabled = false;
-      console.log('[FORM SUBMIT] Button reset complete');
     }
   });
 
@@ -1685,6 +1945,12 @@ export default async function decorate(block) {
 
   cardContainer?.querySelector('.restart-link')?.addEventListener('click', (e) => {
     e.preventDefault();
+    console.log('[RESTART LINK] Restart and create new credential clicked');
+    
+    // Clear the form before navigating
+    clearForm(formContainer);
+    
+    console.log('[RESTART LINK] Navigating to form page...');
     navigateTo(cardContainer, formContainer, true);
   });
 
@@ -1703,6 +1969,11 @@ export default async function decorate(block) {
       console.log('[IMS CALLBACK] Cleaning URL...');
       window.history.replaceState(null, '', window.location.pathname);
       console.log('[IMS CALLBACK] URL cleaned');
+      
+      // Show loading page during sign-in process
+      console.log('[IMS CALLBACK] Showing loading page...');
+      setLoadingText(loadingContainer, 'Loading...');
+      navigateTo(signInContainer, loadingContainer);
       
       // Wait for IMS to process the token
       if (window.adobeIMS) {
@@ -1732,18 +2003,34 @@ export default async function decorate(block) {
                 }
               }
               
-              // Then fetch existing credentials
+              // Fetch existing credentials
               console.log('[IMS CALLBACK] Fetching existing credentials...');
               return fetchExistingCredentials(selectedOrganization?.code);
             }).then(existingCreds => {
+              console.log('[IMS CALLBACK] Existing credentials loaded:', existingCreds);
+              
               if (existingCreds) {
-                console.log('[IMS CALLBACK] Fetched credentials:', existingCreds);
+                // Populate dropdown and update card
+                const hasProjects = populateProjectsDropdown(returnContainer, existingCreds);
+                
+                if (!hasProjects) {
+                  // No projects - navigate to form instead of return page
+                  console.log('[IMS CALLBACK] No projects found, navigating to form...');
+                  navigateTo(loadingContainer, formContainer);
+                  return;
+                }
               }
+              
+              // API response received - hide loading and show return page
+              console.log('[IMS CALLBACK] API calls complete, hiding loading page...');
+              console.log('[IMS CALLBACK] Navigating to return page...');
+              navigateTo(loadingContainer, returnContainer);
+            }).catch(error => {
+              console.error('[IMS CALLBACK] Error during setup:', error);
+              // On error, hide loading and still navigate to return page
+              console.log('[IMS CALLBACK] Hiding loading page due to error...');
+              navigateTo(loadingContainer, returnContainer);
             });
-            
-            // Navigate to return page
-            console.log('[IMS CALLBACK] Navigating to return page...');
-            navigateTo(signInContainer, returnContainer);
           }
         }, 100);
         
