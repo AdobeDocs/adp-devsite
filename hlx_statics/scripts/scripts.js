@@ -588,9 +588,9 @@ async function loadLazy(doc) {
           console.log("Algolia InstantSearch loaded successfully!");
 
           // Trigger index validation after Algolia is loaded
-          if (window.adp_search?.triggerIndexValidation) {
-            window.adp_search.triggerIndexValidation();
-          }
+          // if (window.adp_search?.triggerIndexValidation) {
+          //   window.adp_search.triggerIndexValidation();
+          // }
         }
       );
     }
@@ -742,7 +742,6 @@ async function loadLazy(doc) {
       }
 
       // OLD APPROACH: Validate each index individually with empty searches
-      // This has been replaced with the listIndices() cross-validation approach above
       // 
       // const validationResults = await Promise.allSettled(
       //   allIndices.map(indexName => validateIndex(indexName, searchClient))
