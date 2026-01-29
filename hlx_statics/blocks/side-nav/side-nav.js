@@ -237,20 +237,24 @@ export default async function decorate(block) {
           ? getAnchorTag.textContent.replace('header', '').trim()
           : li.textContent.replace('header', '').trim();
 
-        const label = document.createElement('span');
+        const label = document.createElement('h2');
         label.className = 'spectrum-SideNav-itemLink';
         label.textContent = textContent;
         label.style.paddingLeft = `calc(${layer} * 12px)`;
 
-        // Replace content with label
-        if (getAnchorTag) {
-          li.replaceChild(label, getAnchorTag);
-        } else {
-          li.textContent = '';
-          li.appendChild(label);
+        const childUl = li.querySelector('ul');
+        li.textContent = '';
+        li.appendChild(label);
+        li.classList.add('nav-header-label');
+        if (childUl){
+          if (!li.contains(childUl)){
+            li.appendChild(childUl);
+          }
+          childUl.setAttribute("role", "group");
+          childUl.classList.add("spectrum-SideNav");
+          assignLayerNumbers(childUl, layer + 1);
         }
 
-        li.classList.add('nav-header-label');
 
       } else if (getAnchorTag) {
         // Normal anchor behavior (existing code unchanged)
