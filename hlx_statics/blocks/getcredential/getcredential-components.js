@@ -3,6 +3,9 @@
  */
 
 import { createTag } from "../../scripts/lib-adobeio.js";
+import JSZip from 'jszip';
+import JSZipUtils from 'jszip-utils';
+import { saveAs } from 'file-saver';
 
 // ============================================================================
 // CONSTANTS
@@ -99,56 +102,104 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
 }
 
 /**
+ * Converts Google Drive sharing URL to direct download URL
+ * @param {string} url - Google Drive sharing URL
+ * @returns {string} - Direct download URL
+ */
+function convertGoogleDriveUrl(url) {
+  // Check if it's a Google Drive URL
+  if (!url || !url.includes('drive.google.com')) {
+    return url;
+  }
+  
+  // Extract file ID from various Google Drive URL formats
+  let fileId = null;
+  
+  // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  const viewMatch = url.match(/\/file\/d\/([^\/]+)/);
+  if (viewMatch) {
+    fileId = viewMatch[1];
+  }
+  
+  // Format: https://drive.google.com/open?id=FILE_ID
+  const openMatch = url.match(/[?&]id=([^&]+)/);
+  if (openMatch) {
+    fileId = openMatch[1];
+  }
+  
+  // If we found a file ID, convert to direct download URL
+  if (fileId) {
+    const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    console.log('[convertGoogleDriveUrl] Converted:', url, '->', directUrl);
+    return directUrl;
+  }
+  
+  // Return original URL if we couldn't convert it
+  console.warn('[convertGoogleDriveUrl] Could not convert URL:', url);
+  return url;
+}
+
+/**
  * Download a ZIP file
  * @param {string} downloadAPI - The API endpoint to download the ZIP file
  * @param {string} fileName - The name of the file to download
+ * @param {string} zipFileURL - The URL to download the base zip file (can be Google Drive URL)
  * @returns {boolean} - True if the download was successful, false otherwise
  */
-export async function downloadZIP(downloadAPI, fileName = 'download') {
+export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
+  console.log('[downloadZIP] Starting with params:', { downloadAPI, fileName, zipFileURL });
+  
+  // Convert Google Drive URL to direct download URL if needed
+  const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
+  console.log('[downloadZIP] Using URL:', directDownloadURL);
+  
   try {
-    const token = window.adobeIMS?.getTokenFromStorage()?.token;
-    if (!token) {
-      showToast('Please sign in to download', 'error', 3000);
-      return false;
-    }
+    console.log('[downloadZIP] Fetching zip file from:', directDownloadURL);
+    const zipData = await JSZipUtils.getBinaryContent(directDownloadURL);
+    console.log('[downloadZIP] Zip data loaded, size:', zipData.length);
+    
+    const zipArrayBuffer = new Uint8Array(zipData).buffer;
+    const zip = new JSZip();
 
+    await zip.loadAsync(zipArrayBuffer);
+    console.log('[downloadZIP] Zip file loaded successfully');
+
+    const token = window.adobeIMS?.getTokenFromStorage()?.token;
+    console.log('[downloadZIP] Token available:', !!token);
+    
     const options = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: 'Bearer ' + token,
         'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
       },
     };
 
+    console.log('[downloadZIP] Fetching credential from API:', downloadAPI);
     const response = await fetch(downloadAPI, options);
-    console.log('response--downloadZIP', response);
+    console.log('[downloadZIP] API Response status:', response.status);
 
     if (response.status === 200) {
-      const blob = await response.blob();
+      const credential = await response.json();
+      console.log('[downloadZIP] Credential data received:', credential);
+
+      zip.file('credential.json', JSON.stringify(credential));
+      console.log('[downloadZIP] Added credential.json to zip');
+
+      const modifiedZipBlob = await zip.generateAsync({ type: 'blob' });
+      console.log('[downloadZIP] Generated zip blob, size:', modifiedZipBlob.size);
       
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${fileName}.zip`;
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      return true;
+      saveAs(modifiedZipBlob, `${fileName}.zip`);
+      console.log('[downloadZIP] Save initiated for:', `${fileName}.zip`);
     } else {
-      console.error('Failed to download. Response status:', response.status);
-      showToast('Download failed. Please try again.', 'error', 3000);
-      return false;
+      const errorText = await response.text();
+      console.error('[downloadZIP] Failed to fetch credential. Status:', response.status, 'Response:', errorText);
+      throw new Error(`Failed to download: ${response.status}`);
     }
   } catch (error) {
-    console.error('Download error:', error);
-    showToast(`Download error: ${error.message}`, 'error', 3000);
-    return false;
+    console.error('[downloadZIP] Error occurred:', error);
+    throw error;
   }
 }
 
