@@ -1208,7 +1208,7 @@ function createReturnContent(config) {
   };
 
   getCredHeader.appendChild(createOrgNotice(
-    getReturnOrgText(),
+    `You're viewing in ${selectedOrganization?.type === "developer" ? 'your personal developer organization' : selectedOrganization?.name}  `,
     'org-notice-return',
     organizationsData,
     selectedOrganization,
