@@ -634,7 +634,8 @@ function clearForm(formContainer) {
   formData.AllowedOrigins = '';
   formData.AdobeDeveloperConsole = false;
   formData.Downloads = false;
-  formData.Download = '';
+  // Don't clear Download object, it should persist
+  console.log('[CLEAR FORM] formData.Download preserved:', formData.Download);
 
   // Clear form inputs
   const credentialNameInput = formContainer?.querySelector('[data-cy="add-credential-name"]');
@@ -932,6 +933,13 @@ function createAllowedOriginsField(config) {
 }
 
 function createDownloadsField(config) {
+  console.log('[CREATE DOWNLOADS FIELD] Config:', {
+    config,
+    hasItems: !!config?.items,
+    itemsLength: config?.items?.length,
+    firstItem: config?.items?.[0],
+    firstDownload: config?.items?.[0]?.Download
+  });
   const fieldContainer = createTag('div', { class: 'form-field downloads-field' });
   const checkboxWrapper = createTag('div', { class: 'checkbox-wrapper' });
 
@@ -944,8 +952,15 @@ function createDownloadsField(config) {
 
   checkbox.addEventListener('change', (e) => {
     console.log('[DOWNLOADS CHECKBOX] Changed to:', e.target.checked);
+    console.log('[DOWNLOADS CHECKBOX] BEFORE handleInputChange - formData:', {
+      Downloads: formData.Downloads,
+      Download: formData.Download
+    });
     handleInputChange(e.target.checked, 'Downloads');
-    console.log('[DOWNLOADS CHECKBOX] formData.Download:', formData.Download);
+    console.log('[DOWNLOADS CHECKBOX] AFTER handleInputChange - formData:', {
+      Downloads: formData.Downloads,
+      Download: formData.Download
+    });
     const downloadOptions = fieldContainer.querySelector('.download-options');
     const languageSection = fieldContainer.querySelector('.language-section');
     if (downloadOptions) downloadOptions.style.display = e.target.checked ? 'flex' : 'none';
@@ -955,6 +970,21 @@ function createDownloadsField(config) {
   checkboxWrapper.appendChild(checkbox);
   checkboxWrapper.appendChild(createFieldLabel(config, 'downloads-checkbox', true));
   fieldContainer.appendChild(checkboxWrapper);
+
+  // Set default download based on number of options
+  if (config.items && config.items.length > 0) {
+    // Always set the first item as default
+    const firstDownload = config.items[0].Download;
+    formData.Download = firstDownload;
+    console.log('[DOWNLOAD FIELD] Default download set:', {
+      download: formData.Download,
+      href: formData.Download?.href,
+      title: formData.Download?.title,
+      fullConfig: config
+    });
+  } else {
+    console.warn('[DOWNLOAD FIELD] No download items in config');
+  }
 
   if (config.items?.length > 1) {
     const downloadOptions = createTag('div', { class: 'download-options', style: 'display: none;' });
@@ -976,7 +1006,6 @@ function createDownloadsField(config) {
       option.textContent = download.title;
       if (index === 0) {
         option.selected = true;
-        formData.Download = download;
       }
       downloadOptionsList.appendChild(option);
     });
@@ -1729,6 +1758,7 @@ export default async function decorate(block) {
   // Create form container
   if (credentialData.Form) {
     const { title, paragraph, components } = credentialData.Form;
+    console.log('[FORM CREATION] components.Downloads:', components?.Downloads);
     formContainer = createTag('div', { class: 'getcredential-form hidden' });
     const formHeader = createTag('div', { class: 'form-header' });
 
@@ -1928,6 +1958,8 @@ export default async function decorate(block) {
         });
         
         if (downloadsCheckbox?.checked && credentialResponse) {
+          console.log('[DOWNLOAD TRIGGER] Full formData:', JSON.stringify(formData, null, 2));
+          
           const orgId = selectedOrganization?.id || credentialResponse.orgId;
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
@@ -1940,7 +1972,8 @@ export default async function decorate(block) {
             workspaceId,
             fileName,
             zipFileURL,
-            downloadObject: formData.Download
+            downloadObject: formData.Download,
+            formDataKeys: Object.keys(formData)
           });
           
           if (orgId && projectId && workspaceId && zipFileURL) {
