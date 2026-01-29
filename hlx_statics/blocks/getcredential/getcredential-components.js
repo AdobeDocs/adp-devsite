@@ -127,22 +127,17 @@ function convertGoogleDriveUrl(url) {
   // If we found a file ID, convert to direct download URL
   if (fileId) {
     const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    console.log('[convertGoogleDriveUrl] Converted:', url, '->', directUrl);
     return directUrl;
   }
-
+  
   // Return original URL if we couldn't convert it
-  console.warn('[convertGoogleDriveUrl] Could not convert URL:', url);
   return url;
 }
 
 export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
-  console.log('[downloadZIP] Starting with params:', { downloadAPI, fileName, zipFileURL });
-
   try {
     // Convert Google Drive URL to direct download URL if needed
     const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
-    console.log('[downloadZIP] Direct download URL:', directDownloadURL);
 
     // Show starting notification
     showToast('Starting download...', 'info', 2000);
@@ -154,7 +149,7 @@ export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL
 
     // Add load event to know when download starts
     iframe.onload = () => {
-      console.log('[downloadZIP] Download initiated successfully');
+      showToast('Download started!', 'success', 5000);
     };
 
     // Add error event
@@ -169,11 +164,8 @@ export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL
     setTimeout(() => {
       if (document.body.contains(iframe)) {
         document.body.removeChild(iframe);
-        console.log('[downloadZIP] Iframe removed');
       }
     }, 10000);
-
-    console.log('[downloadZIP] Download triggered for:', directDownloadURL);
 
   } catch (error) {
     console.error('[downloadZIP] Error:', error);
