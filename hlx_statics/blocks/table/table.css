@@ -125,6 +125,12 @@ main div.table-wrapper .spectrum-Table-cell {
   padding-top: 11px;
 }
 
+main div.table-wrapper .spectrum-Table-cell img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 main div.table-wrapper .spectrum-Table-cell,
 main div.table-wrapper .spectrum-Table-headCell {
   position: relative
