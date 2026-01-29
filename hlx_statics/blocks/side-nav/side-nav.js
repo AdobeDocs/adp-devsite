@@ -218,8 +218,12 @@ export default async function decorate(block) {
       const getAnchorTag = li.querySelector("a");
       const childUl = li.querySelector("ul");
 
-      // Check if this item contains "- header"
-      const isHeaderLabel = li.textContent.includes('header');
+      // Check if this item contains "header"
+      const directText = Array.from(li.childNodes)
+        .filter(node => node.nodeType === Node.TEXT_NODE)
+        .map(node => node.textContent)
+        .join('');
+      const isHeaderLabel = directText.includes('header');
 
       if (layer === 1 && childUl) {
         li.classList.add("header");
@@ -230,7 +234,7 @@ export default async function decorate(block) {
 
       const currentUrl = window.location.href.split('#')[0];
 
-      // Handle header labels (items with "- header")
+      // Handle header labels (items with "header")
       if (isHeaderLabel) {
         // Convert to non-clickable span
         const textContent = getAnchorTag
