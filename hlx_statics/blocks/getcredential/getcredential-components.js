@@ -139,19 +139,47 @@ function convertGoogleDriveUrl(url) {
 export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
   console.log('[downloadZIP] Starting with params:', { downloadAPI, fileName, zipFileURL });
 
-  // Convert Google Drive URL to direct download URL if needed
-  const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
-  console.log('[downloadZIP] Direct download URL:', directDownloadURL);
+  try {
+    // Convert Google Drive URL to direct download URL if needed
+    const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
+    console.log('[downloadZIP] Direct download URL:', directDownloadURL);
 
-  // Create link and trigger download
-  const a = document.createElement('a');
-  a.href = directDownloadURL;
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+    // Show starting notification
+    showToast('Starting download...', 'info', 2000);
 
-  console.log('[downloadZIP] Download triggered for:', directDownloadURL);
+    // Create hidden iframe to trigger download without leaving page
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = directDownloadURL;
+
+    // Add load event to know when download starts
+    iframe.onload = () => {
+      console.log('[downloadZIP] Download initiated successfully');
+    };
+
+    // Add error event
+    iframe.onerror = () => {
+      console.error('[downloadZIP] Download failed');
+      showToast('Download failed. Please try again.', 'error', 5000);
+    };
+
+    document.body.appendChild(iframe);
+
+    // Remove iframe after download starts (10 seconds)
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+        console.log('[downloadZIP] Iframe removed');
+      }
+    }, 10000);
+
+    console.log('[downloadZIP] Download triggered for:', directDownloadURL);
+
+  } catch (error) {
+    console.error('[downloadZIP] Error:', error);
+    showToast('Download failed: ' + error.message, 'error', 5000);
+    throw error;
+  }
 }
 
 // ============================================================================
