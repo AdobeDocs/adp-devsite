@@ -1151,15 +1151,6 @@ function createReturnContent(config) {
       // Use switchOrganization function
       await switchOrganization(newOrg);
 
-      // Update org notice text
-      const orgNotice = getCredHeader.querySelector('.org-notice-return');
-      if (orgNotice) {
-        const orgText = orgNotice.querySelector('.org-text');
-        if (orgText) {
-          orgText.textContent = `You're viewing in ${selectedOrganization.name}  `;
-        }
-      }
-
       // Show loading page while fetching
       setLoadingText(loadingContainer, 'Loading...');
       navigateTo(returnContainer, loadingContainer);
@@ -1179,6 +1170,8 @@ function createReturnContent(config) {
           if (!projectsArray || projectsArray.length === 0) {
             // No projects found - immediately move to credential form
             navigateTo(loadingContainer, formContainer);
+            updateFormOrgNotice(formContainer);
+            await updateCancelButtonVisibility(formContainer);
             return;
           }
 
@@ -1188,25 +1181,34 @@ function createReturnContent(config) {
           if (!hasProjects) {
             // No projects found - immediately move to credential form
             navigateTo(loadingContainer, formContainer);
+            
+            updateFormOrgNotice(formContainer);
+            await updateCancelButtonVisibility(formContainer);
           } else {
             // Has projects - show return page
             navigateTo(loadingContainer, returnContainer);
+            updateReturnOrgNotice(returnContainer);
           }
         } else {
           // No credentials found - immediately move to credential form
           navigateTo(loadingContainer, formContainer);
+          updateFormOrgNotice(formContainer);
+          await updateCancelButtonVisibility(formContainer);
         }
       }).catch(error => {
         // On error, move to credential form
         navigateTo(loadingContainer, formContainer);
+        updateFormOrgNotice(formContainer);
+        updateCancelButtonVisibility(formContainer);
       });
     } catch (error) {
-      showToast('Failed to switch organization. Please try again.', 'error', 4000);
+      // Silently handle error and stay on current page
+      console.error('[ORG SWITCH ERROR]', error);
     }
   };
 
   getCredHeader.appendChild(createOrgNotice(
-    `You're viewing in ${selectedOrganization?.type === "developer" ? 'your personal developer organization' : selectedOrganization?.name}  `,
+    getReturnOrgText(),
     'org-notice-return',
     organizationsData,
     selectedOrganization,
@@ -1619,6 +1621,45 @@ export default async function decorate(block) {
     }
   };
 
+  // Helper function to get organization display name
+  const getOrgDisplayName = () => {
+    return selectedOrganization?.type === "developer" 
+      ? 'your personal developer organization' 
+      : selectedOrganization?.name;
+  };
+
+  // Helper function to get form organization text
+  const getFormOrgText = () => {
+    return `You're creating this credential in ${getOrgDisplayName()}  `;
+  };
+
+  // Helper function to get return page organization text
+  const getReturnOrgText = () => {
+    return `You're viewing in ${getOrgDisplayName()}  `;
+  };
+
+  // Function to update organization text in form
+  const updateFormOrgNotice = (formContainer) => {
+    const formOrgNotice = formContainer?.querySelector('.org-notice');
+    if (formOrgNotice) {
+      const formOrgText = formOrgNotice.querySelector('.org-text');
+      if (formOrgText) {
+        formOrgText.textContent = getFormOrgText();
+      }
+    }
+  };
+
+  // Function to update organization text in return page
+  const updateReturnOrgNotice = (returnContainer) => {
+    const orgNotice = returnContainer?.querySelector('.org-notice-return');
+    if (orgNotice) {
+      const orgText = orgNotice.querySelector('.org-text');
+      if (orgText) {
+        orgText.textContent = getReturnOrgText();
+      }
+    }
+  };
+
   // Create return container (previously created projects)
   let returnContainer;
   if (credentialData.Return) {
@@ -1701,13 +1742,7 @@ export default async function decorate(block) {
         await switchOrganization(newOrg);
 
         // Update org notice text
-        const orgNotice = formHeader.querySelector('.org-notice');
-        if (orgNotice) {
-          const orgText = orgNotice.querySelector('.org-text');
-          if (orgText) {
-            orgText.textContent = `You're creating this credential in ${selectedOrganization?.type === "developer" ? 'your personal developer organization' : selectedOrganization?.name}  `;
-          }
-        }
+        updateFormOrgNotice(formContainer);
 
         // Check and update cancel button visibility
         await updateCancelButtonVisibility(formContainer);
@@ -1721,12 +1756,13 @@ export default async function decorate(block) {
           }
         }
       } catch (error) {
-        showToast('Failed to switch organization. Please try again.', 'error', 4000);
+        // Silently handle error
+        console.error('[ORG SWITCH ERROR]', error);
       }
     };
 
     formHeader.appendChild(createOrgNotice(
-      `You're creating this credential in ${selectedOrganization?.type === "developer" ? 'your personal developer organization' : selectedOrganization?.name}  `,
+      getFormOrgText(),
       'org-notice',
       organizationsData,
       selectedOrganization,
@@ -1863,7 +1899,7 @@ export default async function decorate(block) {
         if (restartDownloadWrapper) {
           const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
           if (downloadsCheckbox?.checked && formData.Downloads) {
-            restartDownloadWrapper.style.display = 'block';
+            restartDownloadWrapper.style.display = 'flex';
           } else {
             restartDownloadWrapper.style.display = 'none';
           }
