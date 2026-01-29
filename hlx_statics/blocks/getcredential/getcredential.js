@@ -1160,6 +1160,10 @@ function createReturnContent(config) {
         }
       }
 
+      // Show loading page while fetching
+      setLoadingText(loadingContainer, 'Loading...');
+      navigateTo(returnContainer, loadingContainer);
+
       // Refresh credentials for new org
       fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
 
@@ -1169,13 +1173,32 @@ function createReturnContent(config) {
             ? { projects: existingCreds }
             : existingCreds;
 
+          // Check if there are actually projects
+          const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+
+          if (!projectsArray || projectsArray.length === 0) {
+            // No projects found - immediately move to credential form
+            navigateTo(loadingContainer, formContainer);
+            return;
+          }
+
           // Populate dropdown with new org's projects (filter from cached data)
           const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass);
 
           if (!hasProjects) {
+            // No projects found - immediately move to credential form
+            navigateTo(loadingContainer, formContainer);
+          } else {
+            // Has projects - show return page
+            navigateTo(loadingContainer, returnContainer);
           }
+        } else {
+          // No credentials found - immediately move to credential form
+          navigateTo(loadingContainer, formContainer);
         }
       }).catch(error => {
+        // On error, move to credential form
+        navigateTo(loadingContainer, formContainer);
       });
     } catch (error) {
       showToast('Failed to switch organization. Please try again.', 'error', 4000);
@@ -1386,7 +1409,9 @@ function createCredentialCard(config) {
 
   const downloadOptions = createTag('div', { class: 'restart-download-wrapper' });
   downloadOptions.innerHTML = '<p class="spectrum-Body spectrum-Body--sizeS">Download not working?</p><a class="restart-download-link">Restart download</a>';
-  // cardTitleWrapper.appendChild(downloadOptions);
+  // Initially hidden - will be shown only if download was checked
+  downloadOptions.style.display = 'none';
+  cardTitleWrapper.appendChild(downloadOptions);
 
   cardContainer.appendChild(cardTitleWrapper);
 
@@ -1572,6 +1597,28 @@ export default async function decorate(block) {
     }
   };
 
+  // Function to update cancel button visibility based on projects
+  const updateCancelButtonVisibility = async (formContainer) => {
+    const cancelButton = formContainer?.querySelector('.cancel-link');
+    if (!cancelButton) return;
+
+    try {
+      const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
+      const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+      
+      if (!projectsArray || projectsArray.length === 0) {
+        // No projects - hide cancel button
+        cancelButton.style.display = 'none';
+      } else {
+        // Has projects - show cancel button
+        cancelButton.style.display = '';
+      }
+    } catch (error) {
+      // On error, hide cancel button
+      cancelButton.style.display = 'none';
+    }
+  };
+
   // Create return container (previously created projects)
   let returnContainer;
   if (credentialData.Return) {
@@ -1617,11 +1664,13 @@ export default async function decorate(block) {
         } else {
           // Failed to fetch credentials or no projects - navigate to form
           navigateTo(loadingContainer, formContainer);
+          updateCancelButtonVisibility(formContainer);
         }
       }).catch(error => {
 
         // On error, navigate to form
         navigateTo(loadingContainer, formContainer);
+        updateCancelButtonVisibility(formContainer);
       });
     }
   }
@@ -1659,6 +1708,9 @@ export default async function decorate(block) {
             orgText.textContent = `You're creating this credential in ${selectedOrganization?.type === "developer" ? 'your personal developer organization' : selectedOrganization?.name}  `;
           }
         }
+
+        // Check and update cancel button visibility
+        await updateCancelButtonVisibility(formContainer);
 
         // Reset form data if needed (e.g., agreement checkbox)
         if (formData.Agree) {
@@ -1770,6 +1822,7 @@ export default async function decorate(block) {
     // Clear the form before navigating
     clearForm(formContainer);
     navigateTo(returnContainer, formContainer, true);
+    updateCancelButtonVisibility(formContainer);
   });
 
   formContainer?.querySelector('.create-button')?.addEventListener('click', async (e) => {
@@ -1804,6 +1857,17 @@ export default async function decorate(block) {
 
         // API response received - Hide loading page and show success card
         navigateTo(loadingContainer, cardContainer, true);
+        
+        // Show/hide restart download section based on whether download was checked
+        const restartDownloadWrapper = cardContainer?.querySelector('.restart-download-wrapper');
+        if (restartDownloadWrapper) {
+          const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
+          if (downloadsCheckbox?.checked && formData.Downloads) {
+            restartDownloadWrapper.style.display = 'block';
+          } else {
+            restartDownloadWrapper.style.display = 'none';
+          }
+        }
         
         // Show success toast immediately when card opens
         setTimeout(() => {
@@ -1868,17 +1932,14 @@ export default async function decorate(block) {
         } else {
           // No projects found, stay on form
           navigateTo(loadingContainer, formContainer);
-          showToast('No existing projects found', 'info', 3000);
         }
       } else {
         // Error fetching, stay on form
         navigateTo(loadingContainer, formContainer);
-        showToast('Failed to load projects', 'error', 3000);
       }
     } catch (error) {
       // On error, stay on form
       navigateTo(loadingContainer, formContainer);
-      showToast(`Error: ${error.message}`, 'error', 3000);
     }
   });
 
@@ -1887,24 +1948,25 @@ export default async function decorate(block) {
     // Clear the form before navigating
     clearForm(formContainer);
     navigateTo(cardContainer, formContainer, true);
+    updateCancelButtonVisibility(formContainer);
   });
 
   // Add event listener for restart download link
-  // cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', (e) => {
-  //   e.preventDefault();
+  cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
     
-  //   if (credentialResponse) {
-  //     const orgId = selectedOrganization?.id || credentialResponse.orgId;
-  //     const projectId = credentialResponse.projectId;
-  //     const workspaceId = credentialResponse.workspaceId;
-  //     const fileName = formData.CredentialName || 'credential';
+    if (credentialResponse) {
+      const orgId = selectedOrganization?.id || credentialResponse.orgId;
+      const projectId = credentialResponse.projectId;
+      const workspaceId = credentialResponse.workspaceId;
+      const fileName = formData.CredentialName || 'credential';
       
-  //     if (orgId && projectId && workspaceId) {
-  //       const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
-  //       downloadZIP(downloadAPI, fileName);
-  //     }
-  //   }
-  // });
+      if (orgId && projectId && workspaceId) {
+        const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
+        downloadZIP(downloadAPI, fileName);
+      }
+    }
+  });
 
   // ============================================================================
   // IMS AUTHENTICATION HANDLERS
@@ -1954,6 +2016,7 @@ export default async function decorate(block) {
                 if (!hasProjects) {
                   // No projects - navigate to form instead of return page
                   navigateTo(loadingContainer, formContainer);
+                  updateCancelButtonVisibility(formContainer);
                   return;
                 }
               }
