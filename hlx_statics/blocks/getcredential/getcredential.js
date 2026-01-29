@@ -199,12 +199,12 @@ async function fetchExistingCredentials(orgCode) {
   // Use selected organization if available
   const selectedOrgCode = orgCode || selectedOrganization?.id;
   const templateId = templateData?.id;
-  
+
   try {
     // Get user profile for userId
     const profile = await window.adobeIMS?.getProfile();
     const userId = profile?.userId;
-    
+
     if (!selectedOrgCode || !templateId || !userId) {
       console.error('[FETCH EXISTING CREDENTIALS] Missing required parameters:', { selectedOrgId, templateId, userId });
       return null;
@@ -212,7 +212,7 @@ async function fetchExistingCredentials(orgCode) {
 
     // Fetch user's projects/credentials using search endpoint
     const url = `/console/api/organizations/${selectedOrgCode}/search/projects?templateId=${templateId}&createdBy=${userId}&excludeUserProfiles=true&skipReadOnlyCheck=true`;
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -289,13 +289,13 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   } else {
     projects = [];
   }
-  
+
   // Log summary of all projects with their key data
   projects.forEach((proj, idx) => {
     const workspace = proj.workspaces?.[0];
     const credential = workspace?.credentials?.[0];
   });
-  
+
   // Log first project structure for debugging
   if (projects.length > 0) {
     if (projects[0].workspaces?.[0]) {
@@ -303,7 +303,7 @@ function populateProjectsDropdown(returnContainer, projectsData) {
       }
     }
   }
-  
+
   // Clear existing options
   dropdown.innerHTML = '';
 
@@ -324,7 +324,7 @@ function populateProjectsDropdown(returnContainer, projectsData) {
 
     // Find the selected project from the existing projects array (already has full data)
     const selectedProject = projects.find(p => p.id === selectedProjectId);
-    
+
     if (selectedProject) {
       updateProjectCardDetails(returnContainer, selectedProject);
     } else {
@@ -336,12 +336,12 @@ function populateProjectsDropdown(returnContainer, projectsData) {
   // Set default selection to first project (by ID)
   if (projects[0]?.id) {
     dropdown.value = projects[0].id;
-    
+
     // Update card with project data (search API already includes workspaces/credentials)
     updateProjectCardDetails(returnContainer, projects[0]);
   } else {
   }
-  
+
   return true; // Return true to indicate projects exist
 }
 
@@ -358,20 +358,20 @@ function updateProjectCardDetails(returnContainer, project) {
   const credential = workspace?.credentials?.[0];
 
   // Extract API Key - try nested structure first, then fallback to flat structure or other properties
-  const apiKey = credential?.clientId 
+  const apiKey = credential?.clientId
     || project.clientId  // Fallback: if clientId is directly on project
-    || credential?.id_integration 
-    || credential?.apiKey 
-    || credential?.id 
+    || credential?.id_integration
+    || credential?.apiKey
+    || credential?.id
     || 'Not available';
-  
+
   // Extract Allowed Origins - try nested structure first, then fallback to flat structure
-  const allowedOrigins = credential?.metadata?.['adobeid.domain'] 
+  const allowedOrigins = credential?.metadata?.['adobeid.domain']
     || project.metadata?.['adobeid.domain']  // Fallback: if metadata is directly on project
-    || credential?.metadata?.adobeid?.domain 
-    || credential?.metadata?.domain 
+    || credential?.metadata?.adobeid?.domain
+    || credential?.metadata?.domain
     || 'Not set';
-  
+
   const orgName = selectedOrganization?.name || 'Unknown';
 
   // Update project title
@@ -406,7 +406,7 @@ function updateProjectCardDetails(returnContainer, project) {
   }
 
   // Update Allowed Origins
-  const originsElement = returnContainer.querySelector('.return-project-card [data-field="allowedOrigins"]') 
+  const originsElement = returnContainer.querySelector('.return-project-card [data-field="allowedOrigins"]')
     || returnContainer.querySelector('[data-field="allowedOrigins"]');
   if (originsElement) {
     originsElement.textContent = allowedOrigins;
@@ -943,7 +943,9 @@ function createDownloadsField(config) {
   });
 
   checkbox.addEventListener('change', (e) => {
+    console.log('[DOWNLOADS CHECKBOX] Changed to:', e.target.checked);
     handleInputChange(e.target.checked, 'Downloads');
+    console.log('[DOWNLOADS CHECKBOX] formData.Download:', formData.Download);
     const downloadOptions = fieldContainer.querySelector('.download-options');
     const languageSection = fieldContainer.querySelector('.language-section');
     if (downloadOptions) downloadOptions.style.display = e.target.checked ? 'flex' : 'none';
@@ -983,6 +985,10 @@ function createDownloadsField(config) {
     downloadOptionsList.addEventListener('change', (e) => {
       const selectedIndex = e.target.options[e.target.selectedIndex].getAttribute('data-index');
       formData.Download = config.items[selectedIndex].Download;
+      console.log('[DOWNLOAD DROPDOWN] Changed to:', {
+        selectedIndex,
+        download: formData.Download
+      });
     });
 
     downloadOptions.appendChild(downloadOptionsList);
@@ -1546,7 +1552,7 @@ export default async function decorate(block) {
     try {
       const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
       const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-      
+
       if (!projectsArray || projectsArray.length === 0) {
         // No projects - hide cancel button
         cancelButton.style.display = 'none';
@@ -1562,8 +1568,8 @@ export default async function decorate(block) {
 
   // Helper function to get organization display name
   const getOrgDisplayName = () => {
-    return selectedOrganization?.type === "developer" 
-      ? 'your personal developer organization' 
+    return selectedOrganization?.type === "developer"
+      ? 'your personal developer organization'
       : selectedOrganization?.name;
   };
 
@@ -1578,12 +1584,12 @@ export default async function decorate(block) {
   };
 
   // Function to update organization text in form
-  const updateFormOrgNotice = (formContainer) => {  
+  const updateFormOrgNotice = (formContainer) => {
     const formOrgNotice = formContainer?.querySelector('.org-notice');
     if (formOrgNotice) {
       const formOrgText = formOrgNotice.querySelector('.org-text');
       if (formOrgText) {
-        formOrgText.textContent = getFormOrgText();
+        formOrgText.innerHTML = getFormOrgText();
       }
     }
   };
@@ -1594,7 +1600,7 @@ export default async function decorate(block) {
     if (orgNotice) {
       const orgText = orgNotice.querySelector('.org-text');
       if (orgText) {
-        orgText.textContent = getReturnOrgText();
+        orgText.innerHTML = getReturnOrgText();
       }
     }
   };
@@ -1644,7 +1650,7 @@ export default async function decorate(block) {
             if (!hasProjects) {
               // No projects found - immediately move to credential form
               navigateTo(loadingContainer, formContainer);
-              
+
               updateFormOrgNotice(formContainer);
               await updateCancelButtonVisibility(formContainer);
             } else {
@@ -1896,7 +1902,7 @@ export default async function decorate(block) {
 
         // API response received - Hide loading page and show success card
         navigateTo(loadingContainer, cardContainer, true);
-        
+
         // Show/hide restart download section based on whether download was checked
         const restartDownloadWrapper = cardContainer?.querySelector('.restart-download-wrapper');
         if (restartDownloadWrapper) {
@@ -1907,30 +1913,60 @@ export default async function decorate(block) {
             restartDownloadWrapper.style.display = 'none';
           }
         }
-        
+
         // Show success toast immediately when card opens
         setTimeout(() => {
           showToast('Your credential created successfully', 'success', 4000);
         }, 100);
-        
+
         // Trigger download if downloads checkbox is checked
         const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
+        console.log('[DOWNLOAD CHECK]', {
+          isChecked: downloadsCheckbox?.checked,
+          hasCredentialResponse: !!credentialResponse,
+          formData: formData
+        });
+        
         if (downloadsCheckbox?.checked && credentialResponse) {
           const orgId = selectedOrganization?.id || credentialResponse.orgId;
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';
+          const zipFileURL = formData.Download?.href;
           
-          if (orgId && projectId && workspaceId) {
+          console.log('[DOWNLOAD PARAMS]', {
+            orgId,
+            projectId,
+            workspaceId,
+            fileName,
+            zipFileURL,
+            downloadObject: formData.Download
+          });
+          
+          if (orgId && projectId && workspaceId && zipFileURL) {
             const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
+            console.log('[STARTING DOWNLOAD]', { downloadAPI, fileName, zipFileURL });
             
             // Trigger download after a short delay to ensure card is visible
-            setTimeout(() => {
-              downloadZIP(downloadAPI, fileName);
+            setTimeout(async () => {
+              try {
+                await downloadZIP(downloadAPI, fileName, zipFileURL);
+                console.log('[DOWNLOAD SUCCESS]');
+              } catch (error) {
+                console.error('[DOWNLOAD ERROR]', error);
+                showToast('Failed to download credential files', 'error', 3000);
+              }
             }, 500);
+          } else {
+            console.warn('[DOWNLOAD SKIPPED] Missing required parameters:', {
+              hasOrgId: !!orgId,
+              hasProjectId: !!projectId,
+              hasWorkspaceId: !!workspaceId,
+              hasZipFileURL: !!zipFileURL
+            });
           }
         }
-        
+
       } else {
         // API response received (failed) - Hide loading and show form again
         navigateTo(loadingContainer, formContainer);
@@ -1945,27 +1981,27 @@ export default async function decorate(block) {
 
   formContainer?.querySelector('.cancel-link')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    
+
     // Show loading page
     setLoadingText(loadingContainer, 'Loading...');
     navigateTo(formContainer, loadingContainer, true);
-    
+
     try {
       // Fetch organizations first
       await fetchOrganizations();
-      
+
       // Then fetch existing credentials
       const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
-      
+
       if (existingCreds) {
         // Pass the data in consistent format (handle both array and object responses)
         const dataToPass = Array.isArray(existingCreds)
           ? { projects: existingCreds }
           : existingCreds;
-        
+
         // Populate dropdown with fresh data
         const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-        
+
         if (hasProjects) {
           navigateTo(loadingContainer, returnContainer);
         } else {
@@ -1991,19 +2027,47 @@ export default async function decorate(block) {
   });
 
   // Add event listener for restart download link
-  cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', (e) => {
+  cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    
+    console.log('[RESTART DOWNLOAD CLICKED]');
+
     if (credentialResponse) {
       const orgId = selectedOrganization?.id || credentialResponse.orgId;
       const projectId = credentialResponse.projectId;
       const workspaceId = credentialResponse.workspaceId;
       const fileName = formData.CredentialName || 'credential';
-      
-      if (orgId && projectId && workspaceId) {
+      const zipFileURL = formData.Download?.href;
+
+      console.log('[RESTART DOWNLOAD PARAMS]', {
+        orgId,
+        projectId,
+        workspaceId,
+        fileName,
+        zipFileURL,
+        downloadObject: formData.Download
+      });
+
+      if (orgId && projectId && workspaceId && zipFileURL) {
         const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
-        downloadZIP(downloadAPI, fileName);
+        console.log('[RESTARTING DOWNLOAD]', { downloadAPI, fileName, zipFileURL });
+        try {
+          await downloadZIP(downloadAPI, fileName, zipFileURL);
+          console.log('[RESTART DOWNLOAD SUCCESS]');
+          showToast('Download started successfully', 'success', 2000);
+        } catch (error) {
+          console.error('[RESTART DOWNLOAD ERROR]', error);
+          showToast('Failed to download credential files', 'error', 3000);
+        }
+      } else {
+        console.warn('[RESTART DOWNLOAD SKIPPED] Missing required parameters:', {
+          hasOrgId: !!orgId,
+          hasProjectId: !!projectId,
+          hasWorkspaceId: !!workspaceId,
+          hasZipFileURL: !!zipFileURL
+        });
       }
+    } else {
+      console.warn('[RESTART DOWNLOAD SKIPPED] No credential response available');
     }
   });
 
