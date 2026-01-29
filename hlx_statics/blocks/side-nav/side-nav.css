@@ -355,12 +355,18 @@ main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container a {
 }
 
 /* Non-clickable header labels in TOC */
-main div.side-nav-wrapper .spectrum-SideNav-item.nav-header-label > span {
+main div.side-nav-wrapper .spectrum-SideNav-item.nav-header-label > h2 {
   color: rgb(70, 70, 70);
+  font-size: 11px;
+  font-style: normal;
   font-weight: 500;
   border-radius: 4px;
   line-height: 32px;
   letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  margin-top: 16px;
+  padding-bottom: 0px;
+  padding-left: 12px;
   cursor: default;
   pointer-events: none;
   display: block;
