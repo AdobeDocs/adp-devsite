@@ -1521,14 +1521,10 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
 
-  // Create sign-in container
+  // Create sign-in container (always start as visible, will hide if user is signed in)
   let signInContainer;
   if (credentialData.SignIn) {
-    // Check if user is already signed in to hide sign-in page initially
-    const isAlreadySignedIn = window.adobeIMS && window.adobeIMS.isSignedInUser();
-    const signInClass = isAlreadySignedIn ? 'sign-in-container hidden' : 'sign-in-container';
-
-    signInContainer = createTag('div', { class: signInClass });
+    signInContainer = createTag('div', { class: 'sign-in-container' });
     signInContainer.appendChild(createSignInContent(credentialData.SignIn));
     block.appendChild(signInContainer);
   }
@@ -1613,8 +1609,6 @@ export default async function decorate(block) {
 
   // Create return container (previously created projects)
   if (credentialData.Return) {
-    // Show return page if user is already signed in
-    const isAlreadySignedIn = window.adobeIMS && window.adobeIMS.isSignedInUser();
 
     // Define handleReturnOrgChange handler with access to all containers
     const handleReturnOrgChange = async (newOrg) => {
@@ -1683,54 +1677,8 @@ export default async function decorate(block) {
     returnContainer.appendChild(createReturnContent(credentialData.Return, handleReturnOrgChange));
     block.appendChild(returnContainer);
 
-    // Fetch credentials if user is signed in (organizations already loaded above)
-    if (isAlreadySignedIn) {
-
-      // Show loading page while fetching
-      setLoadingText(loadingContainer, 'Loading...');
-      navigateTo(signInContainer, loadingContainer, true);
-
-      // Fetch existing credentials (organizations were already fetched above)
-      fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-
-        // Handle both response formats: direct array or object with .projects
-        const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-
-        if (projectsArray && projectsArray.length > 0) {
-
-          // Pass the data in consistent format (handle both array and object responses)
-          const dataToPass = Array.isArray(existingCreds)
-            ? { projects: existingCreds }
-            : existingCreds;
-
-          // Populate dropdown and update card with projects (filter from cached data)
-          const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
-          if (!hasProjects) {
-            // No projects found - navigate to form to create first credential
-            navigateTo(loadingContainer, formContainer);
-            updateFormOrgNotice(formContainer);
-            updateCancelButtonVisibility(formContainer);
-          } else {
-
-            // Hide loading and show return page with populated data
-            navigateTo(loadingContainer, returnContainer);
-            updateReturnOrgNotice(returnContainer);
-          }
-        } else {
-          // Failed to fetch credentials or no projects - navigate to form
-          navigateTo(loadingContainer, formContainer);
-          updateFormOrgNotice(formContainer);
-          updateCancelButtonVisibility(formContainer);
-        }
-      }).catch(error => {
-
-        // On error, navigate to form
-        navigateTo(loadingContainer, formContainer);
-        updateFormOrgNotice(formContainer);
-        updateCancelButtonVisibility(formContainer);
-      });
-    }
+    // Note: Navigation for already signed-in users is now handled by checkAlreadySignedIn()
+    // which waits for IMS to be fully loaded before checking sign-in status
   }
 
   // Create form container
@@ -2128,11 +2076,72 @@ export default async function decorate(block) {
     }
   };
 
+  // Check if user is already signed in when page loads
+  const checkAlreadySignedIn = () => {
+    // Don't check if we're handling an OAuth callback
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token=')) {
+      return; // Let handleIMSCallback handle this
+    }
+
+    // Check if user is already signed in
+    if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
+      // User is already signed in - hide sign-in page and show appropriate content
+      if (signInContainer && !signInContainer.classList.contains('hidden')) {
+        // Navigate from sign-in to loading
+        setLoadingText(loadingContainer, 'Loading...');
+        navigateTo(signInContainer, loadingContainer, true);
+
+        // Then fetch credentials and navigate to appropriate page
+        // This is handled by the existing logic in the Return container creation (lines 1687-1730)
+        // We just need to trigger it
+        if (returnContainer) {
+          fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
+            const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+
+            if (projectsArray && projectsArray.length > 0) {
+              const dataToPass = Array.isArray(existingCreds)
+                ? { projects: existingCreds }
+                : existingCreds;
+
+              const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+
+              if (!hasProjects) {
+                navigateTo(loadingContainer, formContainer);
+                updateFormOrgNotice(formContainer);
+                updateCancelButtonVisibility(formContainer);
+              } else {
+                navigateTo(loadingContainer, returnContainer);
+                updateReturnOrgNotice(returnContainer);
+              }
+            } else {
+              navigateTo(loadingContainer, formContainer);
+              updateFormOrgNotice(formContainer);
+              updateCancelButtonVisibility(formContainer);
+            }
+          }).catch(error => {
+            navigateTo(loadingContainer, formContainer);
+            updateFormOrgNotice(formContainer);
+            updateCancelButtonVisibility(formContainer);
+          });
+        }
+      }
+    }
+  };
+
   // Check for IMS callback on page load
   handleIMSCallback();
 
-  // Check when IMS loads
-  window.addEventListener('adobeIMS:loaded', handleIMSCallback);
+  // Check when IMS loads if user is already signed in
+  window.addEventListener('adobeIMS:loaded', () => {
+    handleIMSCallback();
+    checkAlreadySignedIn();
+  });
+
+  // Also check immediately in case IMS is already loaded
+  if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
+    checkAlreadySignedIn();
+  }
 
   // Copy button functionality for API key
   document.addEventListener('click', (e) => {
