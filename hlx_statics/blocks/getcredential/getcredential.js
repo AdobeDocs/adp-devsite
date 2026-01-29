@@ -635,7 +635,6 @@ function clearForm(formContainer) {
   formData.AdobeDeveloperConsole = false;
   formData.Downloads = false;
   // Don't clear Download object, it should persist
-  console.log('[CLEAR FORM] formData.Download preserved:', formData.Download);
 
   // Clear form inputs
   const credentialNameInput = formContainer?.querySelector('[data-cy="add-credential-name"]');
@@ -933,13 +932,6 @@ function createAllowedOriginsField(config) {
 }
 
 function createDownloadsField(config) {
-  console.log('[CREATE DOWNLOADS FIELD] Config:', {
-    config,
-    hasItems: !!config?.items,
-    itemsLength: config?.items?.length,
-    firstItem: config?.items?.[0],
-    firstDownload: config?.items?.[0]?.Download
-  });
   const fieldContainer = createTag('div', { class: 'form-field downloads-field' });
   const checkboxWrapper = createTag('div', { class: 'checkbox-wrapper' });
 
@@ -951,16 +943,7 @@ function createDownloadsField(config) {
   });
 
   checkbox.addEventListener('change', (e) => {
-    console.log('[DOWNLOADS CHECKBOX] Changed to:', e.target.checked);
-    console.log('[DOWNLOADS CHECKBOX] BEFORE handleInputChange - formData:', {
-      Downloads: formData.Downloads,
-      Download: formData.Download
-    });
     handleInputChange(e.target.checked, 'Downloads');
-    console.log('[DOWNLOADS CHECKBOX] AFTER handleInputChange - formData:', {
-      Downloads: formData.Downloads,
-      Download: formData.Download
-    });
     const downloadOptions = fieldContainer.querySelector('.download-options');
     const languageSection = fieldContainer.querySelector('.language-section');
     if (downloadOptions) downloadOptions.style.display = e.target.checked ? 'flex' : 'none';
@@ -976,12 +959,6 @@ function createDownloadsField(config) {
     // Always set the first item as default
     const firstDownload = config.items[0].Download;
     formData.Download = firstDownload;
-    console.log('[DOWNLOAD FIELD] Default download set:', {
-      download: formData.Download,
-      href: formData.Download?.href,
-      title: formData.Download?.title,
-      fullConfig: config
-    });
   } else {
     console.warn('[DOWNLOAD FIELD] No download items in config');
   }
@@ -1014,10 +991,6 @@ function createDownloadsField(config) {
     downloadOptionsList.addEventListener('change', (e) => {
       const selectedIndex = e.target.options[e.target.selectedIndex].getAttribute('data-index');
       formData.Download = config.items[selectedIndex].Download;
-      console.log('[DOWNLOAD DROPDOWN] Changed to:', {
-        selectedIndex,
-        download: formData.Download
-      });
     });
 
     downloadOptions.appendChild(downloadOptionsList);
@@ -1736,20 +1709,25 @@ export default async function decorate(block) {
           if (!hasProjects) {
             // No projects found - navigate to form to create first credential
             navigateTo(loadingContainer, formContainer);
+            updateFormOrgNotice(formContainer);
+            updateCancelButtonVisibility(formContainer);
           } else {
 
             // Hide loading and show return page with populated data
             navigateTo(loadingContainer, returnContainer);
+            updateReturnOrgNotice(returnContainer);
           }
         } else {
           // Failed to fetch credentials or no projects - navigate to form
           navigateTo(loadingContainer, formContainer);
+          updateFormOrgNotice(formContainer);
           updateCancelButtonVisibility(formContainer);
         }
       }).catch(error => {
 
         // On error, navigate to form
         navigateTo(loadingContainer, formContainer);
+        updateFormOrgNotice(formContainer);
         updateCancelButtonVisibility(formContainer);
       });
     }
@@ -1758,7 +1736,6 @@ export default async function decorate(block) {
   // Create form container
   if (credentialData.Form) {
     const { title, paragraph, components } = credentialData.Form;
-    console.log('[FORM CREATION] components.Downloads:', components?.Downloads);
     formContainer = createTag('div', { class: 'getcredential-form hidden' });
     const formHeader = createTag('div', { class: 'form-header' });
 
@@ -1850,6 +1827,11 @@ export default async function decorate(block) {
     formContainer.appendChild(formHeader);
     formContainer.appendChild(formWrapper);
     block.appendChild(formContainer);
+    
+    // Update organization text after form is created (in case orgs were loaded before form creation)
+    if (selectedOrganization) {
+      updateFormOrgNotice(formContainer);
+    }
   }
 
   // Create success card container
@@ -1879,6 +1861,8 @@ export default async function decorate(block) {
         if (orgs && orgs.length > 0) {
           organizationsData = orgs;
           await switchOrganization(null);
+          // Update form organization text after switching
+          updateFormOrgNotice(formContainer);
         }
       } catch (error) {
       }
@@ -1897,6 +1881,7 @@ export default async function decorate(block) {
     // Clear the form before navigating
     clearForm(formContainer);
     navigateTo(returnContainer, formContainer, true);
+    updateFormOrgNotice(formContainer);
     updateCancelButtonVisibility(formContainer);
   });
 
@@ -1951,44 +1936,21 @@ export default async function decorate(block) {
 
         // Trigger download if downloads checkbox is checked
         const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
-        console.log('[DOWNLOAD CHECK]', {
-          isChecked: downloadsCheckbox?.checked,
-          hasCredentialResponse: !!credentialResponse,
-          formDataDownloads: formData.Downloads,
-          hasDownloadHref: !!formData.Download?.href,
-          downloadObject: formData.Download,
-          formData: formData
-        });
         
         if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
-          console.log('[DOWNLOAD TRIGGER] Full formData:', JSON.stringify(formData, null, 2));
-          
           const orgId = selectedOrganization?.id || credentialResponse.orgId;
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';
           const zipFileURL = formData.Download?.href;
           
-          console.log('[DOWNLOAD PARAMS]', {
-            orgId,
-            projectId,
-            workspaceId,
-            fileName,
-            zipFileURL,
-            downloadObject: formData.Download,
-            formDataKeys: Object.keys(formData)
-          });
-          
           if (orgId && zipFileURL) {
             const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
-            console.log('[STARTING DOWNLOAD]', { downloadAPI, fileName, zipFileURL });
             
             // Trigger download after card is fully visible
             setTimeout(async () => {
-              console.log('[DOWNLOAD] Initiating download...');
               try {
                 await downloadZIP(downloadAPI, fileName, zipFileURL);
-                console.log('[DOWNLOAD SUCCESS] Download completed');
               } catch (error) {
                 console.error('[DOWNLOAD ERROR]', error);
                 showToast('Download failed. Please use the restart download link below.', 'error', 5000);
@@ -2034,17 +1996,21 @@ export default async function decorate(block) {
 
         if (hasProjects) {
           navigateTo(loadingContainer, returnContainer);
+          updateReturnOrgNotice(returnContainer);
         } else {
           // No projects found, stay on form
           navigateTo(loadingContainer, formContainer);
+          updateFormOrgNotice(formContainer);
         }
       } else {
         // Error fetching, stay on form
         navigateTo(loadingContainer, formContainer);
+        updateFormOrgNotice(formContainer);
       }
     } catch (error) {
       // On error, stay on form
       navigateTo(loadingContainer, formContainer);
+      updateFormOrgNotice(formContainer);
     }
   });
 
@@ -2053,13 +2019,13 @@ export default async function decorate(block) {
     // Clear the form before navigating
     clearForm(formContainer);
     navigateTo(cardContainer, formContainer, true);
+    updateFormOrgNotice(formContainer);
     updateCancelButtonVisibility(formContainer);
   });
 
   // Add event listener for restart download link
   cardContainer?.querySelector('.restart-download-link')?.addEventListener('click', async (e) => {
     e.preventDefault();
-    console.log('[RESTART DOWNLOAD CLICKED]');
 
     if (credentialResponse) {
       const orgId = selectedOrganization?.id || credentialResponse.orgId;
@@ -2068,21 +2034,10 @@ export default async function decorate(block) {
       const fileName = formData.CredentialName || 'credential';
       const zipFileURL = formData.Download?.href;
 
-      console.log('[RESTART DOWNLOAD PARAMS]', {
-        orgId,
-        projectId,
-        workspaceId,
-        fileName,
-        zipFileURL,
-        downloadObject: formData.Download
-      });
-
       if (orgId && projectId && workspaceId && zipFileURL) {
         const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
-        console.log('[RESTARTING DOWNLOAD]', { downloadAPI, fileName, zipFileURL });
         try {
           await downloadZIP(downloadAPI, fileName, zipFileURL);
-          console.log('[RESTART DOWNLOAD SUCCESS]');
           showToast('Download started successfully', 'success', 2000);
         } catch (error) {
           console.error('[RESTART DOWNLOAD ERROR]', error);
