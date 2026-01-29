@@ -1954,10 +1954,13 @@ export default async function decorate(block) {
         console.log('[DOWNLOAD CHECK]', {
           isChecked: downloadsCheckbox?.checked,
           hasCredentialResponse: !!credentialResponse,
+          formDataDownloads: formData.Downloads,
+          hasDownloadHref: !!formData.Download?.href,
+          downloadObject: formData.Download,
           formData: formData
         });
         
-        if (downloadsCheckbox?.checked && credentialResponse) {
+        if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
           console.log('[DOWNLOAD TRIGGER] Full formData:', JSON.stringify(formData, null, 2));
           
           const orgId = selectedOrganization?.id || credentialResponse.orgId;
@@ -1976,28 +1979,22 @@ export default async function decorate(block) {
             formDataKeys: Object.keys(formData)
           });
           
-          if (orgId && projectId && workspaceId && zipFileURL) {
+          if (orgId && zipFileURL) {
             const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
             console.log('[STARTING DOWNLOAD]', { downloadAPI, fileName, zipFileURL });
             
-            // Trigger download after a short delay to ensure card is visible
+            // Trigger download after card is fully visible
             setTimeout(async () => {
+              console.log('[DOWNLOAD] Initiating download...');
               try {
                 await downloadZIP(downloadAPI, fileName, zipFileURL);
-                console.log('[DOWNLOAD SUCCESS]');
+                console.log('[DOWNLOAD SUCCESS] Download completed');
               } catch (error) {
                 console.error('[DOWNLOAD ERROR]', error);
-                showToast('Failed to download credential files', 'error', 3000);
+                showToast('Download failed. Please use the restart download link below.', 'error', 5000);
               }
-            }, 500);
-          } else {
-            console.warn('[DOWNLOAD SKIPPED] Missing required parameters:', {
-              hasOrgId: !!orgId,
-              hasProjectId: !!projectId,
-              hasWorkspaceId: !!workspaceId,
-              hasZipFileURL: !!zipFileURL
-            });
-          }
+            }, 1500);
+          } 
         }
 
       } else {
