@@ -28,9 +28,6 @@
     },
     "dependencies": {
         "@octokit/rest": "^22.0.1",
-        "file-saver": "^2.0.5",
-        "jszip": "^3.10.1",
-        "jszip-utils": "^0.1.0",
         "minimist": "^1.2.6"
     }
 }
