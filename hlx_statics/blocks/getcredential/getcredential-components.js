@@ -3,9 +3,40 @@
  */
 
 import { createTag } from "../../scripts/lib-adobeio.js";
-import JSZip from 'jszip';
-import JSZipUtils from 'jszip-utils';
-import { saveAs } from 'file-saver';
+
+// Load JSZip, JSZipUtils, and FileSaver dynamically
+const loadScript = (src) => {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
+
+// Load required libraries
+let librariesLoaded = false;
+const loadLibraries = async () => {
+  if (librariesLoaded) return;
+  
+  try {
+    await Promise.all([
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'),
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js'),
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js')
+    ]);
+    librariesLoaded = true;
+    console.log('[loadLibraries] All libraries loaded successfully');
+  } catch (error) {
+    console.error('[loadLibraries] Failed to load libraries:', error);
+    throw error;
+  }
+};
 
 // ============================================================================
 // CONSTANTS
@@ -149,17 +180,20 @@ function convertGoogleDriveUrl(url) {
 export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
   console.log('[downloadZIP] Starting with params:', { downloadAPI, fileName, zipFileURL });
   
+  // Load libraries if not already loaded
+  await loadLibraries();
+  
   // Convert Google Drive URL to direct download URL if needed
   const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
   console.log('[downloadZIP] Using URL:', directDownloadURL);
   
   try {
     console.log('[downloadZIP] Fetching zip file from:', directDownloadURL);
-    const zipData = await JSZipUtils.getBinaryContent(directDownloadURL);
+    const zipData = await window.JSZipUtils.getBinaryContent(directDownloadURL);
     console.log('[downloadZIP] Zip data loaded, size:', zipData.length);
     
     const zipArrayBuffer = new Uint8Array(zipData).buffer;
-    const zip = new JSZip();
+    const zip = new window.JSZip();
 
     await zip.loadAsync(zipArrayBuffer);
     console.log('[downloadZIP] Zip file loaded successfully');
@@ -190,7 +224,7 @@ export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL
       const modifiedZipBlob = await zip.generateAsync({ type: 'blob' });
       console.log('[downloadZIP] Generated zip blob, size:', modifiedZipBlob.size);
       
-      saveAs(modifiedZipBlob, `${fileName}.zip`);
+      window.saveAs(modifiedZipBlob, `${fileName}.zip`);
       console.log('[downloadZIP] Save initiated for:', `${fileName}.zip`);
     } else {
       const errorText = await response.text();
