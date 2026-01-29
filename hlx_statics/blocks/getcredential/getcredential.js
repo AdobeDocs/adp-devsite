@@ -1127,7 +1127,7 @@ function createSignInContent(config) {
 // ============================================================================
 // RETURN PAGE (Previously Created Projects)
 // ============================================================================
-function createReturnContent(config) {
+function createReturnContent(config, handleReturnOrgChange) {
   const returnWrapper = createTag('div', { class: 'return-wrapper' });
 
   const contentWrapper = createTag('div', { class: 'return-content-wrapper' });
@@ -1146,67 +1146,6 @@ function createReturnContent(config) {
   getCredHeader.appendChild(getCredDesc);
 
   // Organization notice
-  const handleReturnOrgChange = async (newOrg) => {
-    try {
-      // Use switchOrganization function
-      await switchOrganization(newOrg);
-
-      // Show loading page while fetching
-      setLoadingText(loadingContainer, 'Loading...');
-      navigateTo(returnContainer, loadingContainer);
-
-      // Refresh credentials for new org
-      fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-
-        if (existingCreds) {
-          // Pass the data in consistent format (handle both array and object responses)
-          const dataToPass = Array.isArray(existingCreds)
-            ? { projects: existingCreds }
-            : existingCreds;
-
-          // Check if there are actually projects
-          const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-
-          if (!projectsArray || projectsArray.length === 0) {
-            // No projects found - immediately move to credential form
-            navigateTo(loadingContainer, formContainer);
-            updateFormOrgNotice(formContainer);
-            await updateCancelButtonVisibility(formContainer);
-            return;
-          }
-
-          // Populate dropdown with new org's projects (filter from cached data)
-          const hasProjects = populateProjectsDropdown(returnWrapper, dataToPass);
-
-          if (!hasProjects) {
-            // No projects found - immediately move to credential form
-            navigateTo(loadingContainer, formContainer);
-            
-            updateFormOrgNotice(formContainer);
-            await updateCancelButtonVisibility(formContainer);
-          } else {
-            // Has projects - show return page
-            navigateTo(loadingContainer, returnContainer);
-            updateReturnOrgNotice(returnContainer);
-          }
-        } else {
-          // No credentials found - immediately move to credential form
-          navigateTo(loadingContainer, formContainer);
-          updateFormOrgNotice(formContainer);
-          await updateCancelButtonVisibility(formContainer);
-        }
-      }).catch(error => {
-        // On error, move to credential form
-        navigateTo(loadingContainer, formContainer);
-        updateFormOrgNotice(formContainer);
-        updateCancelButtonVisibility(formContainer);
-      });
-    } catch (error) {
-      // Silently handle error and stay on current page
-      console.error('[ORG SWITCH ERROR]', error);
-    }
-  };
-
   getCredHeader.appendChild(createOrgNotice(
     `You're viewing in ${selectedOrganization?.type === "developer" ? 'your personal developer organization' : selectedOrganization?.name}  `,
     'org-notice-return',
@@ -1630,16 +1569,16 @@ export default async function decorate(block) {
 
   // Helper function to get form organization text
   const getFormOrgText = () => {
-    return `You're creating this credential in ${getOrgDisplayName()}  `;
+    return `You're creating this credential in <b>${getOrgDisplayName()}</b>  `;
   };
 
   // Helper function to get return page organization text
   const getReturnOrgText = () => {
-    return `You're viewing in ${getOrgDisplayName()}  `;
+    return `You're viewing in <b>${getOrgDisplayName()}</b>  `;
   };
 
   // Function to update organization text in form
-  const updateFormOrgNotice = (formContainer) => {
+  const updateFormOrgNotice = (formContainer) => {  
     const formOrgNotice = formContainer?.querySelector('.org-notice');
     if (formOrgNotice) {
       const formOrgText = formOrgNotice.querySelector('.org-text');
@@ -1660,15 +1599,80 @@ export default async function decorate(block) {
     }
   };
 
-  // Create return container (previously created projects)
+  // Declare containers at top level for handler access
   let returnContainer;
+  let formContainer;
+
+  // Create return container (previously created projects)
   if (credentialData.Return) {
     // Show return page if user is already signed in
     const isAlreadySignedIn = window.adobeIMS && window.adobeIMS.isSignedInUser();
 
+    // Define handleReturnOrgChange handler with access to all containers
+    const handleReturnOrgChange = async (newOrg) => {
+      try {
+        // Use switchOrganization function
+        await switchOrganization(newOrg);
+
+        // Show loading page while fetching
+        setLoadingText(loadingContainer, 'Loading...');
+        navigateTo(returnContainer, loadingContainer);
+
+        // Refresh credentials for new org
+        fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
+
+          if (existingCreds) {
+            // Pass the data in consistent format (handle both array and object responses)
+            const dataToPass = Array.isArray(existingCreds)
+              ? { projects: existingCreds }
+              : existingCreds;
+
+            // Check if there are actually projects
+            const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+
+            if (!projectsArray || projectsArray.length === 0) {
+              // No projects found - immediately move to credential form
+              navigateTo(loadingContainer, formContainer);
+              updateFormOrgNotice(formContainer);
+              await updateCancelButtonVisibility(formContainer);
+              return;
+            }
+
+            // Populate dropdown with new org's projects (filter from cached data)
+            const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+
+            if (!hasProjects) {
+              // No projects found - immediately move to credential form
+              navigateTo(loadingContainer, formContainer);
+              
+              updateFormOrgNotice(formContainer);
+              await updateCancelButtonVisibility(formContainer);
+            } else {
+              // Has projects - show return page
+              navigateTo(loadingContainer, returnContainer);
+              updateReturnOrgNotice(returnContainer);
+            }
+          } else {
+            // No credentials found - immediately move to credential form
+            navigateTo(loadingContainer, formContainer);
+            updateFormOrgNotice(formContainer);
+            await updateCancelButtonVisibility(formContainer);
+          }
+        }).catch(error => {
+          // On error, move to credential form
+          navigateTo(loadingContainer, formContainer);
+          updateFormOrgNotice(formContainer);
+          updateCancelButtonVisibility(formContainer);
+        });
+      } catch (error) {
+        // Silently handle error and stay on current page
+        console.error('[ORG SWITCH ERROR]', error);
+      }
+    };
+
     // Always create return container as hidden initially
     returnContainer = createTag('div', { class: 'return-container hidden' });
-    returnContainer.appendChild(createReturnContent(credentialData.Return));
+    returnContainer.appendChild(createReturnContent(credentialData.Return, handleReturnOrgChange));
     block.appendChild(returnContainer);
 
     // Fetch credentials if user is signed in (organizations already loaded above)
@@ -1717,7 +1721,6 @@ export default async function decorate(block) {
   }
 
   // Create form container
-  let formContainer;
   if (credentialData.Form) {
     const { title, paragraph, components } = credentialData.Form;
     formContainer = createTag('div', { class: 'getcredential-form hidden' });
