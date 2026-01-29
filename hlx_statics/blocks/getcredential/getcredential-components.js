@@ -4,40 +4,6 @@
 
 import { createTag } from "../../scripts/lib-adobeio.js";
 
-// Load JSZip, JSZipUtils, and FileSaver dynamically
-const loadScript = (src) => {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-};
-
-// Load required libraries
-let librariesLoaded = false;
-const loadLibraries = async () => {
-  if (librariesLoaded) return;
-  
-  try {
-    await Promise.all([
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'),
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js'),
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js')
-    ]);
-    librariesLoaded = true;
-    console.log('[loadLibraries] All libraries loaded successfully');
-  } catch (error) {
-    console.error('[loadLibraries] Failed to load libraries:', error);
-    throw error;
-  }
-};
-
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -70,7 +36,7 @@ const CLOSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox=
  */
 function hideToast(toast) {
   if (!toast || !toast.parentElement) return;
-  
+
   toast.classList.add('toast-hiding');
   setTimeout(() => {
     if (toast.parentElement) {
@@ -88,29 +54,29 @@ function hideToast(toast) {
 export function showToast(message, variant = 'neutral', duration = 3000, container = null) {
   // Create toast container
   const toast = createTag('div', { class: `toast-notification toast-${variant}` });
-  
+
   // Add icon if available
   if (TOAST_ICONS[variant]) {
     const iconDiv = createTag('div', { class: 'toast-icon' });
     iconDiv.innerHTML = TOAST_ICONS[variant];
     toast.appendChild(iconDiv);
   }
-  
+
   // Add message content
   const content = createTag('div', { class: 'toast-content' });
   content.textContent = message;
   toast.appendChild(content);
-  
+
   // Add divider
   const divider = createTag('div', { class: 'toast-divider' });
   toast.appendChild(divider);
-  
+
   // Add close button
   const closeButton = createTag('button', { class: 'toast-close-button' });
   closeButton.innerHTML = CLOSE_ICON;
   closeButton.addEventListener('click', () => hideToast(toast));
   toast.appendChild(closeButton);
-  
+
   // Add to container or body
   if (container) {
     // Make container position relative if not already
@@ -123,12 +89,12 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
   } else {
     document.body.appendChild(toast);
   }
-  
+
   // Auto-hide after duration
   if (duration > 0) {
     setTimeout(() => hideToast(toast), duration);
   }
-  
+
   return toast;
 }
 
@@ -142,99 +108,50 @@ function convertGoogleDriveUrl(url) {
   if (!url || !url.includes('drive.google.com')) {
     return url;
   }
-  
+
   // Extract file ID from various Google Drive URL formats
   let fileId = null;
-  
+
   // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
   const viewMatch = url.match(/\/file\/d\/([^\/]+)/);
   if (viewMatch) {
     fileId = viewMatch[1];
   }
-  
+
   // Format: https://drive.google.com/open?id=FILE_ID
   const openMatch = url.match(/[?&]id=([^&]+)/);
   if (openMatch) {
     fileId = openMatch[1];
   }
-  
+
   // If we found a file ID, convert to direct download URL
   if (fileId) {
     const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
     console.log('[convertGoogleDriveUrl] Converted:', url, '->', directUrl);
     return directUrl;
   }
-  
+
   // Return original URL if we couldn't convert it
   console.warn('[convertGoogleDriveUrl] Could not convert URL:', url);
   return url;
 }
 
-/**
- * Download a ZIP file
- * @param {string} downloadAPI - The API endpoint to download the ZIP file
- * @param {string} fileName - The name of the file to download
- * @param {string} zipFileURL - The URL to download the base zip file (can be Google Drive URL)
- * @returns {boolean} - True if the download was successful, false otherwise
- */
 export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
   console.log('[downloadZIP] Starting with params:', { downloadAPI, fileName, zipFileURL });
-  
-  // Load libraries if not already loaded
-  await loadLibraries();
-  
+
   // Convert Google Drive URL to direct download URL if needed
   const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
-  console.log('[downloadZIP] Using URL:', directDownloadURL);
-  
-  try {
-    console.log('[downloadZIP] Fetching zip file from:', directDownloadURL);
-    const zipData = await window.JSZipUtils.getBinaryContent(directDownloadURL);
-    console.log('[downloadZIP] Zip data loaded, size:', zipData.length);
-    
-    const zipArrayBuffer = new Uint8Array(zipData).buffer;
-    const zip = new window.JSZip();
+  console.log('[downloadZIP] Direct download URL:', directDownloadURL);
 
-    await zip.loadAsync(zipArrayBuffer);
-    console.log('[downloadZIP] Zip file loaded successfully');
+  // Create link and trigger download
+  const a = document.createElement('a');
+  a.href = directDownloadURL;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-    const token = window.adobeIMS?.getTokenFromStorage()?.token;
-    console.log('[downloadZIP] Token available:', !!token);
-    
-    const options = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + token,
-        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
-      },
-    };
-
-    console.log('[downloadZIP] Fetching credential from API:', downloadAPI);
-    const response = await fetch(downloadAPI, options);
-    console.log('[downloadZIP] API Response status:', response.status);
-
-    if (response.status === 200) {
-      const credential = await response.json();
-      console.log('[downloadZIP] Credential data received:', credential);
-
-      zip.file('credential.json', JSON.stringify(credential));
-      console.log('[downloadZIP] Added credential.json to zip');
-
-      const modifiedZipBlob = await zip.generateAsync({ type: 'blob' });
-      console.log('[downloadZIP] Generated zip blob, size:', modifiedZipBlob.size);
-      
-      window.saveAs(modifiedZipBlob, `${fileName}.zip`);
-      console.log('[downloadZIP] Save initiated for:', `${fileName}.zip`);
-    } else {
-      const errorText = await response.text();
-      console.error('[downloadZIP] Failed to fetch credential. Status:', response.status, 'Response:', errorText);
-      throw new Error(`Failed to download: ${response.status}`);
-    }
-  } catch (error) {
-    console.error('[downloadZIP] Error occurred:', error);
-    throw error;
-  }
+  console.log('[downloadZIP] Download triggered for:', directDownloadURL);
 }
 
 // ============================================================================
@@ -247,27 +164,27 @@ export function separator() {
 
 function createHelpIcon(config) {
   if (!config.contextHelp) return null;
-  
+
   const wrapper = createTag('div', { class: 'context-help-wrapper' });
   const button = createTag('button', { class: 'help-icon', type: 'button' });
   button.innerHTML = HELP_ICON_SVG;
-  
+
   const popover = createTag('div', { class: 'context-help-popover', style: 'display: none;' });
-  
+
   if (config.contextHelpHeading) {
     const heading = createTag('h4', { class: 'context-help-heading spectrum-Heading spectrum-Heading--sizeXXS' });
     heading.textContent = config.contextHelpHeading;
     popover.appendChild(heading);
   }
-  
+
   if (config.contextHelpText) {
     const text = createTag('p', { class: 'context-help-text spectrum-Body spectrum-Body--sizeXS' });
     text.textContent = config.contextHelpText;
     popover.appendChild(text);
   }
-  
+
   if (config.contextHelpLink) {
-    const link = createTag('a', { 
+    const link = createTag('a', {
       class: 'context-help-link',
       href: config.contextHelpLink,
       target: '_blank',
@@ -276,21 +193,21 @@ function createHelpIcon(config) {
     link.textContent = config.contextHelpLinkLabel || 'Learn more';
     popover.appendChild(link);
   }
-  
+
   button.addEventListener('click', (e) => {
     e.stopPropagation();
     document.querySelectorAll('.context-help-popover').forEach(p => {
       p.style.display = p === popover && popover.style.display !== 'flex' ? 'flex' : 'none';
     });
   });
-  
+
   document.addEventListener('click', (e) => {
     if (!wrapper.contains(e.target)) popover.style.display = 'none';
   });
-  
+
   wrapper.appendChild(button);
   wrapper.appendChild(popover);
-  
+
   return wrapper;
 }
 
@@ -390,7 +307,7 @@ export function createOrganizationModal(organizations, currentOrg, onOrgChange) 
   orgList.appendChild(label);
 
   const dropdown = createTag('select', { class: 'spectrum-Picker org-modal-dropdown' });
-  
+
   // Populate dropdown with organizations
   if (organizations && organizations.length > 0) {
     organizations.forEach((org, index) => {
@@ -407,7 +324,7 @@ export function createOrganizationModal(organizations, currentOrg, onOrgChange) 
     option.textContent = currentOrg?.name || 'Personal Developer Organization';
     dropdown.appendChild(option);
   }
-  
+
   orgList.appendChild(dropdown);
   modalBody.appendChild(orgList);
   modal.appendChild(modalBody);
@@ -449,11 +366,11 @@ export function createOrganizationModal(organizations, currentOrg, onOrgChange) 
   changeButton.addEventListener('click', () => {
     const selectedOrgCode = dropdown.value;
     const selectedOrg = organizations?.find(org => (org.code || org.id) === selectedOrgCode);
-    
+
     if (selectedOrg && onOrgChange) {
       onOrgChange(selectedOrg);
     }
-    
+
     document.body.style.overflow = '';
     document.documentElement.style.overflow = '';
     modalOverlay.remove();
@@ -476,24 +393,24 @@ export function createCredentialDetailField(label, value, showCopy = false, fiel
     const valueWrapper = createTag('div', { class: 'credential-detail-value-wrapper' });
     const valueDiv = createTag('div', { class: 'credential-detail-value' });
     valueDiv.textContent = value;
-    
+
     // Add data-field attribute for dynamic updates
     if (fieldName) {
       valueDiv.setAttribute('data-field', fieldName);
     }
-    
+
     valueWrapper.appendChild(valueDiv);
     valueWrapper.appendChild(createCopyButton(value));
     field.appendChild(valueWrapper);
   } else {
     const valueText = createTag('div', { class: 'credential-detail-text' });
     valueText.textContent = value;
-    
+
     // Add data-field attribute for dynamic updates
     if (fieldName) {
       valueText.setAttribute('data-field', fieldName);
     }
-    
+
     field.appendChild(valueText);
   }
 
@@ -571,14 +488,14 @@ export function createOrgNotice(text, className = 'org-notice', organizationsDat
   const orgNotice = createTag('div', { class: className });
   const orgText = createTag('span', { class: 'org-text' });
   orgText.textContent = text;
-  
+
   const changeOrgLink = createTag('a', { class: 'change-org-link', href: '#' });
   changeOrgLink.textContent = 'Change organization';
   changeOrgLink.addEventListener('click', (e) => {
     e.preventDefault();
     document.body.appendChild(createOrganizationModal(organizationsData, currentOrg, onOrgChange));
   });
-  
+
   orgNotice.appendChild(orgText);
   orgNotice.appendChild(changeOrgLink);
   return orgNotice;
