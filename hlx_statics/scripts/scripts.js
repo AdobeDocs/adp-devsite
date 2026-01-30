@@ -54,6 +54,7 @@ import {
   imsGetProfileSuccess,
   imsGetProfileError,
   scrollWithLayoutAdjustment,
+  whenFirstVisible,
 } from './lib-adobeio.js';
 
 export {
@@ -357,6 +358,7 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
 }
 
 export async function loadAep() {
+  await whenFirstVisible;
   addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
 
   const intervalId = setInterval(watchVariable, 1000);
@@ -512,11 +514,12 @@ async function loadLazy(doc) {
 
     const activeGroups = window.adobePrivacy.activeCookieGroups();
     
-    // Check if user gave permission for performance/analytics tracking (C0002)
-    if (activeGroups.indexOf('C0002') !== -1) {
+    // Check if user gave permission for performance/analytics tracking (C0002) also only load AEP if the page is visible
+    // also don't load AEP if on local host
+    if (activeGroups.indexOf('C0002') !== -1 && !isLocalHostEnvironment(window.location.host)) {
       loadAep();
     } else {
-      console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
+      console.log('Adobe Experience Platform not loaded because of consent or local host');
     }
   }
   

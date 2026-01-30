@@ -18,26 +18,32 @@ import {
  * @param {Document} document
  */
 
-const preloaded = new Set();
-
-async function preloadPage(href) {
-  const hrefURL = new URL(href);
-  if (hrefURL.origin === window.location.origin) {
-    // use speculation rules to preload the page
-    const script = document.createElement('script');
-    script.type = 'speculationrules';
-    script.textContent = JSON.stringify({
-      prerender: [
-        {
-          urls: [`${hrefURL.pathname}${hrefURL.search}`],
+/**
+ * Adds speculation rules to the page
+ */
+function preloadPage() {
+  const script = document.createElement('script');
+  script.type = 'speculationrules';
+  script.textContent = JSON.stringify({
+    prerender: [
+      {
+        where: {
+          selector_matches: "[data-prefetch=prerender]"
         },
-      ],
-    });
-    document.head.appendChild(script);
-  }
+        eagerness: "immediate"
+      },
+    ],
+    prefetch: [
+      {
+        where: {
+          selector_matches: "[data-prefetch='']"
+        },
+        eagerness: "immediate"
+      },
+    ],
+  });
+  document.head.appendChild(script);
 }
-
-
 
 // Core Web Vitals RUM collection
 sampleRUM('cwv');
@@ -85,25 +91,30 @@ function getIsMouseOverForElement(el) {
 }
 
 const linksIsMouseOver = [];
+const linkElements = [];
 
 document.querySelectorAll('.side-nav a[href]').forEach((a) => {
   const isMouseOver = getIsMouseOverForElement(a);
   linksIsMouseOver.push(isMouseOver);
+  linkElements.push(a);
 });
 
 document.addEventListener('mousemove', (e) => {
   const x = e.clientX;
   const y = e.clientY;
 
-  linksIsMouseOver.forEach((isMouseOver) => {
+  linksIsMouseOver.forEach((isMouseOver, index) => {
     const href = isMouseOver(x, y);
-    if (href && !preloaded.has(href)) {
-      preloadPage(href);
-      preloaded.add(href);
+    if (href) {
+      const link = linkElements[index];
+      // Add data-prefetch attribute on mouse over if it doesn't already exist
+      if (!link.hasAttribute('data-prefetch')) {
+        link.setAttribute('data-prefetch', 'prerender');
+      }
     }
   });
 });
 
-
 focusRing();
 applyAnalytic();
+preloadPage();
