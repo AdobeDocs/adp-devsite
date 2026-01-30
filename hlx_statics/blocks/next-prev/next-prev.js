@@ -40,7 +40,7 @@ export default async function decorate(block) {
       a.innerHTML = createIconSvg(direction);
       a.appendChild(innerText);
       decorateLink({ link: a });
-
+      a.setAttribute('data-prefetch', 'prefetch');
       div.appendChild(a);
       return div;
     };
