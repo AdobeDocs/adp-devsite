@@ -136,6 +136,9 @@ function convertGoogleDriveUrl(url) {
 
 export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
 
+  console.log("downloadAPI--->", downloadAPI);
+  console.log("x-api-key--->", window?.adobeIMS?.adobeIdData?.client_id);
+
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
   const options = {
     method: 'GET',
@@ -145,6 +148,7 @@ export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL
       'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
     },
   };
+  console.log("options--->", options);
 
   const response = await fetch(downloadAPI, options);
   console.log("response--->", response);
