@@ -1886,11 +1886,16 @@ export default async function decorate(block) {
         const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
         
         if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
-          const orgId = selectedOrganization?.id || credentialResponse.orgId;
+          console.log("credentialResponse--->", credentialResponse);
+          const orgId = selectedOrganization?.id;
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';
           const zipFileURL = formData.Download?.href;
+
+          console.log("orgId--->", orgId);
+          console.log("projectId--->", projectId);
+          console.log("workspaceId--->", workspaceId);
           
           if (orgId && zipFileURL) {
             const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
