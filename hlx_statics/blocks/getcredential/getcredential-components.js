@@ -135,6 +135,25 @@ function convertGoogleDriveUrl(url) {
 }
 
 export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
+
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  const options = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + token,
+      'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+    },
+  };
+
+  const response = await fetch(downloadAPI, options);
+  console.log("response--->", response);
+
+  if (response.status === 200) {
+    const credential = await response.json();
+    console.log("credentials--->", credential);
+  }
+
   try {
     // Convert Google Drive URL to direct download URL if needed
     const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
