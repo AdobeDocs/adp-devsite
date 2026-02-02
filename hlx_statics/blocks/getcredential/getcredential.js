@@ -577,6 +577,53 @@ async function generateToken(apiKey, secret, scopesDetails) {
   return null;
 }
 
+// Helper function to build credential JSON for download
+function buildCredentialJSON(orgId, projectId, workspaceId, credentialName, organization, response) {
+  return {
+    project: {
+      id: projectId,
+      name: credentialName,
+      title: credentialName,
+      description: "created for get credential",
+      org: {
+        id: orgId,
+        name: organization?.name,
+        ims_org_id: organization?.ims_org_id
+      },
+      workspace: {
+        id: workspaceId,
+        name: "Production",
+        title: credentialName,
+        description: "created for get credential",
+        action_url: `https://development-${orgId}-${credentialName}.adobeioruntime.net`,
+        app_url: `https://development-${orgId}-${credentialName}.adobeio-static.net`,
+        details: {
+          credentials: [
+            {
+              id: response.id,
+              name: credentialName,
+              integration_type: "apikey",
+              api_key: {
+                client_id: response.clientId
+              }
+            }
+          ],
+          services: [
+            {
+              code: response.api?.code,
+              name: response.api?.name
+            }
+          ],
+          runtime: { namespaces: [] },
+          events: { registrations: [] },
+          mesh: {}
+        },
+        endpoints: {}
+      }
+    }
+  };
+}
+
 async function switchOrganization(org) {
 
   const profile = await window.adobeIMS?.getProfile();
@@ -1892,11 +1939,12 @@ export default async function decorate(block) {
 
           if (orgId && zipFileURL) {
             const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
+            const credentialJSON = buildCredentialJSON(orgId, projectId, workspaceId, formData.CredentialName, selectedOrganization, credentialResponse);
 
             // Trigger download after card is fully visible
             setTimeout(async () => {
               try {
-                await downloadZipViaApi(downloadAPI, zipFileURL, fileName);
+                await downloadZipViaApi(downloadAPI, zipFileURL, fileName, credentialJSON);
               } catch (error) {
                 console.error('[DOWNLOAD ERROR]', error);
                 showToast('Download failed. Please use the restart download link below.', 'error', 5000);
@@ -1982,15 +2030,17 @@ export default async function decorate(block) {
 
       if (orgId && projectId && workspaceId && zipFileURL) {
         const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
+        const credentialJSON = buildCredentialJSON(orgId, projectId, workspaceId, formData.CredentialName, selectedOrganization, credentialResponse);
+        
         try {
-          await downloadZipViaApi(downloadAPI, zipFileURL, fileName);
+          await downloadZipViaApi(downloadAPI, zipFileURL, fileName, credentialJSON);
           showToast('Download started successfully', 'success', 2000);
         } catch (error) {
           console.error('[RESTART DOWNLOAD ERROR]', error);
           showToast('Failed to download credential files', 'error', 3000);
         }
       } else {
-        console.warn('[RESTART DOWNLOAD SKIPPED] Missing zipFileURL');
+        console.warn('[RESTART DOWNLOAD SKIPPED] Missing required parameters');
       }
     } else {
       console.warn('[RESTART DOWNLOAD SKIPPED] No credential response available');

@@ -98,7 +98,7 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
   return toast;
 }
 
-export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip') {
+export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip', credentialJSON = null) {
   try {
     // Use getAccessToken() for a fresh valid token instead of getTokenFromStorage()
     const tokenData = await window.adobeIMS?.getAccessToken();
@@ -107,29 +107,29 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
 
     console.log('[DOWNLOAD API] Token exists:', token);
     console.log('[DOWNLOAD API] URL:', downloadAPI);
-    console.log('[DOWNLOAD API] API Key:', apiKey); 
+    console.log('[DOWNLOAD API] API Key:', apiKey);
 
 
-    const options = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'x-api-key': apiKey,
-      },
-    };
+    // const options = {
+    //   method: 'GET',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': `Bearer ${token}`,
+    //     'x-api-key': apiKey,
+    //   },
+    // };
 
-    const jsonResponse = await fetch(downloadAPI, options);
-    console.log('[DOWNLOAD API] Response status:', jsonResponse.status);
-    
-    let credential = null;
-    if (jsonResponse.status === 200) {
-      credential = await jsonResponse.json();
-    } else {
-      const errorText = await jsonResponse.text();
-      console.error('[DOWNLOAD API] Error response:', errorText);
-      throw new Error(`Download API failed with status ${jsonResponse.status}: ${errorText}`);
-    }
+    // const jsonResponse = await fetch(downloadAPI, options);
+    // console.log('[DOWNLOAD API] Response status:', jsonResponse.status);
+
+    // let credential = null;
+    // if (jsonResponse.status === 200) {
+    //   credential = await jsonResponse.json();
+    // } else {
+    //   const errorText = await jsonResponse.text();
+    //   console.error('[DOWNLOAD API] Error response:', errorText);
+    //   throw new Error(`Download API failed with status ${jsonResponse.status}: ${errorText}`);
+    // }
 
     showToast('Preparing download...', 'info', 2000);
 
@@ -140,8 +140,8 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
       },
       body: JSON.stringify({
         zipPath,
-        credential,
-        jsonFileName,
+        jsonContent: credentialJSON,
+        jsonFileName: 'credential.json',
         downloadFileName
       })
     });
