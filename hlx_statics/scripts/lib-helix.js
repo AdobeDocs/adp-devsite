@@ -196,6 +196,12 @@ export async function fetchRedirectJson() {
   return redirectJSON;
 }
 
+export async function hasContributorsJson() {
+  return fetch(`${window.location.origin}/${getMetadata('pathprefix').replace(/^\/|\/$/g, '')}/contributors.json`)
+    .then(r => r.ok)
+    .catch(() => false);
+}
+
 /**
  * Retrieves the nav with the specified name from the config.
  * @param {string} name The nav name

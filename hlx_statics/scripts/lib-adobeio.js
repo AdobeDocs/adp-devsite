@@ -414,6 +414,16 @@ export function buildNextPrev(main) {
   gridAreaMain.appendChild(nextPrevWrapper)
 }
 
+ /**
+ * Builds the contributors wrapper
+ * @param {*} main The grid container
+ */
+ export function buildContributors(main) {
+  let contributorsWrapper = createTag('div', { class: 'contributors-wrapper block', 'data-block-name': 'contributors' });
+  const gridAreaMain = main.querySelector('.grid-main-area');
+  gridAreaMain.appendChild(contributorsWrapper);
+}
+
 /**
  * Builds the breadcrumbs
  * @param {*} main The grid container
