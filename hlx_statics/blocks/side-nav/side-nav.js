@@ -27,6 +27,12 @@ function createNavSection(className, labelText) {
  * @param {Element} block The site-nav block element
  */
 export default async function decorate(block) {
+  // Hide side nav during processing to avoid visible updates
+  const sideNavContainer = document.querySelector(".side-nav-container");
+  if (sideNavContainer) {
+    sideNavContainer.style.visibility = "hidden";
+  }
+
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
 
@@ -403,11 +409,14 @@ export default async function decorate(block) {
 
   const sideNav = document.querySelector(".side-nav>nav>div");
   sideNav.addEventListener('scroll', () => {
-    localStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
+    sessionStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
   });
 
-  const savedPos = localStorage.getItem('sidenavScrollPos');
+  const savedPos = sessionStorage.getItem('sidenavScrollPos');
   if (savedPos !== null) {
-    sideNav.scrollTop = parseInt(savedPos, 10);
+    // Delay scroll restoration to ensure DOM is fully rendered
+    setTimeout(() => {
+      sideNav.scrollTop = parseInt(savedPos, 10);
+    }, 100);
   }
 }

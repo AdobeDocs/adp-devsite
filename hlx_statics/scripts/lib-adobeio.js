@@ -251,7 +251,7 @@ export function buildCodes(container) {
       // Check if the closest div ancestor has the class 'inlinealert'
       return !pre.closest('div.inlinealert');
     });
-    validPreElements[0].replaceWith(block);
+    validPreElements[0]?.replaceWith(block);
   });
 }
 
@@ -555,12 +555,13 @@ function shouldHideNavItem(linkPath, topNavPath) {
 
 function activeSubNav(actTab) {
   let showSidenav = false;
+
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
     const sidenavItems = navLinksUl?.querySelectorAll(':scope > ul li') || [];
     const topNavPath = actTab.pathname;
     const pagePath = window.location.pathname;
-
+    
     sidenavItems.forEach(li => {
       // Handle header labels - check the next sibling's link
       if (li.classList.contains('nav-header-label')) {
@@ -610,8 +611,12 @@ function activeSubNav(actTab) {
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }
+
   const sidecontainer = document.querySelector(".side-nav-container");
-  sidecontainer.style.visibility = "visible";
+  // Make side nav visible after all updates are complete
+  if (sidecontainer) {
+    sidecontainer.style.visibility = "visible";
+  }
 }
 
 
