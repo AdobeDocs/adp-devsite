@@ -8,8 +8,6 @@ import { createTag } from "../../scripts/lib-adobeio.js";
 import { getMetadata } from "../../scripts/scripts.js";
 import {
   createFieldLabel,
-  createOrganizationModal,
-  createCredentialDetailField,
   createSpectrumButton,
   createExternalLink,
   createDivider,
@@ -18,7 +16,7 @@ import {
   createOrgNotice,
   separator,
   showToast,
-  downloadZIP
+  downloadZipViaApi
 } from "./getcredential-components.js";
 
 // ============================================================================
@@ -1470,14 +1468,11 @@ export default async function decorate(block) {
 
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
-    console.log("getCredConfig",getCredConfig);
 
     // Get template configuration from JSON - use templateId from config
     templateData = {
-      id: getCredConfig?.templateId 
+      id: getCredConfig?.templateId
     };
-
-    console.log("templateData",templateData);
 
     if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
 
@@ -1898,7 +1893,7 @@ export default async function decorate(block) {
             // Trigger download after card is fully visible
             setTimeout(async () => {
               try {
-                await downloadZIP(downloadAPI, fileName, zipFileURL);
+                await downloadZipViaApi(downloadAPI, zipFileURL, fileName);
               } catch (error) {
                 console.error('[DOWNLOAD ERROR]', error);
                 showToast('Download failed. Please use the restart download link below.', 'error', 5000);
@@ -1985,7 +1980,7 @@ export default async function decorate(block) {
       if (orgId && projectId && workspaceId && zipFileURL) {
         const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
         try {
-          await downloadZIP(downloadAPI, fileName, zipFileURL);
+          await downloadZipViaApi(downloadAPI, zipFileURL, fileName);
           showToast('Download started successfully', 'success', 2000);
         } catch (error) {
           console.error('[RESTART DOWNLOAD ERROR]', error);

@@ -1,8 +1,10 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import JSZip from 'jszip';
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -44,6 +46,66 @@ async function fetchDevsitePaths() {
 
 // Initialize devsite paths when server starts
 let isInitialized = false;
+
+// ============================================================================
+// API ENDPOINT: Download modified ZIP with JSON file added
+// ============================================================================
+// This must be BEFORE any catch-all middleware
+app.post('/api/download-zip', express.json(), async (req, res) => {
+  try {
+    const { 
+      zipPath,           // URL to zip file (e.g., GitHub raw URL)
+      jsonContent,       // JSON content to add to the zip
+      jsonFileName = 'credential.json',  // Name for the JSON file inside zip
+      downloadFileName = 'download.zip'  // Name for the downloaded file
+    } = req.body;
+
+    const zipResponse = await fetch(zipPath);
+    
+    if (!zipResponse.ok) {
+      console.error('[ZIP API] Failed to fetch zip:', zipResponse.status);
+      return res.status(zipResponse.status).json({ error: `Failed to fetch zip: ${zipResponse.status}` });
+    }
+    
+    const arrayBuffer = await zipResponse.arrayBuffer();
+    const zipBuffer = Buffer.from(arrayBuffer);
+    console.log('[ZIP API] Zip fetched from URL, size:', zipBuffer.length, 'bytes');
+
+    // Load zip with JSZip
+    const zip = await JSZip.loadAsync(zipBuffer);
+    console.log('[ZIP API] Zip loaded, files:', Object.keys(zip.files));
+
+    // Add JSON content to the zip
+    const jsonString = typeof jsonContent === 'string' 
+      ? jsonContent 
+      : JSON.stringify(jsonContent, null, 2);
+    
+    zip.file(jsonFileName, jsonString);
+    console.log('[ZIP API] Added JSON file:', jsonFileName);
+
+    // Generate modified zip
+    const modifiedZipBuffer = await zip.generateAsync({ 
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
+    });
+    console.log('[ZIP API] Modified zip generated, size:', modifiedZipBuffer.length, 'bytes');
+
+    // Send the modified zip as download
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${downloadFileName}"`,
+      'Content-Length': modifiedZipBuffer.length
+    });
+
+    res.send(modifiedZipBuffer);
+    console.log('[ZIP API] Download sent successfully');
+
+  } catch (error) {
+    console.error('[ZIP API] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Middleware to ensure devsite paths are loaded
 app.use(async (req, res, next) => {

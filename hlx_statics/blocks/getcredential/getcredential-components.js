@@ -98,100 +98,56 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
   return toast;
 }
 
-/**
- * Converts Google Drive sharing URL to direct download URL
- * @param {string} url - Google Drive sharing URL
- * @returns {string} - Direct download URL
- */
-function convertGoogleDriveUrl(url) {
-  // Check if it's a Google Drive URL
-  if (!url || !url.includes('drive.google.com')) {
-    return url;
-  }
-
-  // Extract file ID from various Google Drive URL formats
-  let fileId = null;
-
-  // Format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
-  const viewMatch = url.match(/\/file\/d\/([^\/]+)/);
-  if (viewMatch) {
-    fileId = viewMatch[1];
-  }
-
-  // Format: https://drive.google.com/open?id=FILE_ID
-  const openMatch = url.match(/[?&]id=([^&]+)/);
-  if (openMatch) {
-    fileId = openMatch[1];
-  }
-
-  // If we found a file ID, convert to direct download URL
-  if (fileId) {
-    const directUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    return directUrl;
-  }
-  
-  // Return original URL if we couldn't convert it
-  return url;
-}
-
-export async function downloadZIP(downloadAPI, fileName = 'download', zipFileURL) {
-
-  console.log("downloadAPI--->", downloadAPI);
-  console.log("x-api-key--->", window?.adobeIMS?.adobeIdData?.client_id);
-
-  const token = window.adobeIMS?.getTokenFromStorage()?.token;
-  const options = {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + token,
-      'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
-    },
-  };
-  console.log("options--->", options);
-
-  const response = await fetch(downloadAPI, options);
-  console.log("response--->", response);
-
-  if (response.status === 200) {
-    const credential = await response.json();
-    console.log("credentials--->", credential);
-  }
-
+export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip') {
   try {
-    // Convert Google Drive URL to direct download URL if needed
-    const directDownloadURL = convertGoogleDriveUrl(zipFileURL);
 
-    // Show starting notification
-    showToast('Starting download...', 'info', 2000);
-
-    // Create hidden iframe to trigger download without leaving page
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = directDownloadURL;
-
-    // Add load event to know when download starts
-    iframe.onload = () => {
-      showToast('Download started!', 'success', 5000);
+    const token = window.adobeIMS?.getTokenFromStorage()?.token;
+    const options = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+      },
     };
 
-    // Add error event
-    iframe.onerror = () => {
-      console.error('[downloadZIP] Download failed');
-      showToast('Download failed. Please try again.', 'error', 5000);
-    };
+    const jsonResponse = await fetch(downloadAPI, options);
+    let credential = null;
+    if (jsonResponse.status === 200) {
+      credential = await jsonResponse.json();
+    }
 
-    document.body.appendChild(iframe);
+    showToast('Preparing download...', 'info', 2000);
 
-    // Remove iframe after download starts (10 seconds)
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
-    }, 10000);
+    const response = await fetch('/api/download-zip', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        zipPath,
+        credential,
+        jsonFileName,
+        downloadFileName
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Server error: ${response.status}`);
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+    console.log('[ZIP API] Received blob, size:', blob.size);
+
+    // Trigger download
+    saveAs(blob, downloadFileName);
+    showToast('Download started!', 'success', 3000);
+    console.log('[ZIP API] Download triggered for:', downloadFileName);
 
   } catch (error) {
-    console.error('[downloadZIP] Error:', error);
+    console.error('[ZIP API] Error:', error);
     showToast('Download failed: ' + error.message, 'error', 5000);
     throw error;
   }
