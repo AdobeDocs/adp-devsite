@@ -18,11 +18,13 @@ import {
   toCamelCase,
   toClassName,
   githubActionsBlock,
+  hasContributorsJson
 } from './lib-helix.js';
 
 import {
   buildBreadcrumbs,
   buildCodes,
+  buildContributors,
   buildEmbeds,
   buildGrid,
   buildHero,
@@ -145,6 +147,13 @@ function loadNextPrev(nextPrev) {
   nextPrev.append(nextPrevBlock);
   decorateBlock(nextPrevBlock);
   loadBlock(nextPrevBlock);
+}
+
+function loadContributors(contributors) {
+  const contributorsBlock = buildBlock('contributors', '');
+  contributors.append(contributorsBlock);
+  decorateBlock(contributorsBlock);
+  loadBlock(contributorsBlock);
 }
 
 /**
@@ -745,6 +754,12 @@ async function loadLazy(doc) {
     if (hasOnThisPage) {
       buildOnThisPage(main);
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
+    }
+
+    const hasContributors = await hasContributorsJson();
+    if (hasContributors) {
+      buildContributors(main);
+      loadContributors(doc.querySelector('.contributors-wrapper'));
     }
 
     if(document.querySelector('.side-nav-subpages-section')) {
