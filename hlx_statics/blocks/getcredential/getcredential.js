@@ -111,7 +111,7 @@ const validationState = {
 
 // Store API response data
 let credentialResponse = null;
-let templateData = "";
+let templateData = null;
 let selectedOrganization = null;
 let organizationsData = null;
 const token = window.adobeIMS?.getTokenFromStorage()?.token;
@@ -1470,20 +1470,11 @@ export default async function decorate(block) {
 
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
-    console.log("getCredConfig",getCredConfig);
 
-    if (getCredConfig?.templateId) {
-      templateData = getCredConfig?.templateId || {
-        id: templateData ,
-        orgId: 'default-org-id',
-        apis: credentialData.Form?.components?.Products?.items?.map(item => ({
-          code: item.Product?.code || 'cc-embed',
-          credentialType: 'apikey',
-          flowType: 'public',
-          licenseConfigs: []
-        })) || []
-      };
-    }
+    // Get template configuration from JSON - use templateId from config
+    templateData = getCredConfig?.templateId || {
+      id: getCredConfig?.templateId || 'default-template-id'
+    };
 
     if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
 
@@ -1493,12 +1484,26 @@ export default async function decorate(block) {
           organizationsData = orgs;
           // Initialize organization (from localStorage or default)
           await switchOrganization(null);
-        } 
+        } else {
+          // Fallback to config-based organization
+          selectedOrganization = {
+            code: getCredConfig?.orgId || templateData.orgId,
+            name: getCredConfig?.orgName || 'Personal Developer Organization'
+          };
+        }
       } catch (error) {
-        console.log("error",error);
+        // Fallback to config-based organization
+        selectedOrganization = {
+          code: getCredConfig?.orgId || templateData.orgId,
+          name: getCredConfig?.orgName || 'Personal Developer Organization'
+        };
       }
     } else {
-      console.error("templateData not found");
+      // Get organization data from config as fallback (when not signed in)
+      selectedOrganization = {
+        code: getCredConfig?.orgId || templateData.orgId,
+        name: getCredConfig?.orgName || 'Personal Developer Organization'
+      };
     }
 
   } catch (error) {
@@ -1762,7 +1767,7 @@ export default async function decorate(block) {
     formContainer.appendChild(formHeader);
     formContainer.appendChild(formWrapper);
     block.appendChild(formContainer);
-    
+
     // Update organization text after form is created (in case orgs were loaded before form creation)
     if (selectedOrganization) {
       updateFormOrgNotice(formContainer);
@@ -1871,7 +1876,7 @@ export default async function decorate(block) {
 
         // Trigger download if downloads checkbox is checked
         const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
-        
+
         if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
           console.log("credentialResponse--->", credentialResponse);
           const orgId = selectedOrganization?.id;
@@ -1883,10 +1888,10 @@ export default async function decorate(block) {
           console.log("orgId--->", orgId);
           console.log("projectId--->", projectId);
           console.log("workspaceId--->", workspaceId);
-          
+
           if (orgId && zipFileURL) {
             const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
-            
+
             // Trigger download after card is fully visible
             setTimeout(async () => {
               try {
@@ -1896,7 +1901,7 @@ export default async function decorate(block) {
                 showToast('Download failed. Please use the restart download link below.', 'error', 5000);
               }
             }, 1500);
-          } 
+          }
         }
 
       } else {
