@@ -155,8 +155,16 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     const blob = await response.blob();
     console.log('[ZIP API] Received blob, size:', blob.size);
 
-    // Trigger download
-    saveAs(blob, downloadFileName);
+    // Trigger download using native browser approach (no external library needed)
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = downloadFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
     showToast('Download started!', 'success', 3000);
     console.log('[ZIP API] Download triggered for:', downloadFileName);
 
