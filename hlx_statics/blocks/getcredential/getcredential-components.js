@@ -100,21 +100,40 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
 
 export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip') {
   try {
+    // Use getAccessToken() for a fresh valid token instead of getTokenFromStorage()
+    const tokenData = await window.adobeIMS?.getAccessToken();
+    const token = tokenData?.token || tokenData;
+    const apiKey = window?.adobeIMS?.adobeIdData?.client_id;
 
-    const token = window.adobeIMS?.getTokenFromStorage()?.token;
+    console.log('[DOWNLOAD API] Token exists:', !!token);
+    console.log('[DOWNLOAD API] URL:', downloadAPI);
+
+    if (!token) {
+      throw new Error('User not authenticated - token missing');
+    }
+    if (!apiKey) {
+      throw new Error('API key not available');
+    }
+
     const options = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+        'x-api-key': apiKey,
       },
     };
 
     const jsonResponse = await fetch(downloadAPI, options);
+    console.log('[DOWNLOAD API] Response status:', jsonResponse.status);
+    
     let credential = null;
     if (jsonResponse.status === 200) {
       credential = await jsonResponse.json();
+    } else {
+      const errorText = await jsonResponse.text();
+      console.error('[DOWNLOAD API] Error response:', errorText);
+      throw new Error(`Download API failed with status ${jsonResponse.status}: ${errorText}`);
     }
 
     showToast('Preparing download...', 'info', 2000);
