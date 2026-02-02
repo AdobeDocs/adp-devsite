@@ -1879,7 +1879,8 @@ export default async function decorate(block) {
 
         if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
           console.log("credentialResponse--->", credentialResponse);
-          const orgId = selectedOrganization?.code;
+          console.log("selectedOrganization--->", selectedOrganization);
+          const orgId = selectedOrganization?.id;
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';
