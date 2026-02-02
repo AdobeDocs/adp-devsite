@@ -111,7 +111,7 @@ const validationState = {
 
 // Store API response data
 let credentialResponse = null;
-let templateData = "664e39607dcc7c0e5a4a035b";
+let templateData = "";
 let selectedOrganization = null;
 let organizationsData = null;
 const token = window.adobeIMS?.getTokenFromStorage()?.token;
@@ -1471,7 +1471,7 @@ export default async function decorate(block) {
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
 
-    if (templateData) {
+    if (getCredConfig?.template) {
       templateData = getCredConfig?.template || {
         id: templateData || 'default-template-id',
         orgId: 'default-org-id',
