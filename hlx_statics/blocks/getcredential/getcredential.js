@@ -114,6 +114,7 @@ let selectedOrganization = null;
 let organizationsData = null;
 const token = window.adobeIMS?.getTokenFromStorage()?.token;
 
+console.log("token--->", token);
 // Local storage key for organization
 const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
 
@@ -188,6 +189,7 @@ async function createCredential() {
 
 async function fetchExistingCredentials(orgCode) {
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  console.log("token--->", token);
 
   if (!token) {
     console.error('[FETCH EXISTING CREDENTIALS] No token available');
@@ -1877,7 +1879,7 @@ export default async function decorate(block) {
 
         if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
           console.log("credentialResponse--->", credentialResponse);
-          const orgId = selectedOrganization?.id;
+          const orgId = selectedOrganization?.code;
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';
@@ -1987,12 +1989,7 @@ export default async function decorate(block) {
           showToast('Failed to download credential files', 'error', 3000);
         }
       } else {
-        console.warn('[RESTART DOWNLOAD SKIPPED] Missing required parameters:', {
-          hasOrgId: !!orgId,
-          hasProjectId: !!projectId,
-          hasWorkspaceId: !!workspaceId,
-          hasZipFileURL: !!zipFileURL
-        });
+        console.warn('[RESTART DOWNLOAD SKIPPED] Missing zipFileURL');
       }
     } else {
       console.warn('[RESTART DOWNLOAD SKIPPED] No credential response available');
