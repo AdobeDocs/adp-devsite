@@ -1470,11 +1470,14 @@ export default async function decorate(block) {
 
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
+    console.log("getCredConfig",getCredConfig);
 
     // Get template configuration from JSON - use templateId from config
     templateData = getCredConfig?.templateId || {
       id: getCredConfig?.templateId || 'default-template-id'
     };
+
+    console.log("templateData",templateData);
 
     if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
 
