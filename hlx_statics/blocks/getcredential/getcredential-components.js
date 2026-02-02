@@ -137,6 +137,8 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': apiKey,
       },
       body: JSON.stringify({
         zipPath,
