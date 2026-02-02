@@ -8,12 +8,6 @@ export default async function decorate(block) {
 
   insertWrapperContainer(block);
 
-  const isBorder = block?.parentElement?.parentElement?.getAttribute("data-isborder");
-
-  if (isBorder) {
-    block?.parentElement?.parentElement?.classList.add("wrapper-border")
-  }
-
   const modalHTML = `
     <div class="contributor-modal">
       <div class="spectrum-Underlay spectrum-overlay is-open" aria-hidden="true"></div>
@@ -53,7 +47,7 @@ export default async function decorate(block) {
   const contribution_date = "2/21/2024";
 
   const firstDiv = block.querySelector('div');
-  firstDiv.classList.add("contibutors-wrapper-comp");
+  firstDiv.classList.add("contributors-content");
   block.querySelectorAll('p').forEach(p => p.remove());
 
   block.querySelectorAll('div').forEach((d) => {

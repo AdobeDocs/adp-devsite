@@ -278,6 +278,13 @@ main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .foot
   max-width: 1280px;
 }
 
+@media screen and (max-width: 767px) {
+  /* Ensures contributors is sticky */
+  main:has(.contributors-container) {
+    overflow: visible;
+  }
+}
+
 main.dev-docs .aside-wrapper .aside {
   position: sticky;
   top: 128px;
@@ -301,7 +308,6 @@ main div.carousel-wrapper,
 main div.code-wrapper,
 main div.codeblock-wrapper,
 main div.columns-wrapper,
-main div.contributors-wrapper,
 main div.default-content-wrapper img,
 main div.details-wrapper,
 main div.discoverblock-wrapper,
