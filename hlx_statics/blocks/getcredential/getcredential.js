@@ -1470,10 +1470,11 @@ export default async function decorate(block) {
 
     // Extract template and organization data for API calls
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
+    console.log("getCredConfig",getCredConfig);
 
-    if (getCredConfig?.template) {
-      templateData = getCredConfig?.template || {
-        id: templateData || 'default-template-id',
+    if (getCredConfig?.templateId) {
+      templateData = getCredConfig?.templateId || {
+        id: templateData ,
         orgId: 'default-org-id',
         apis: credentialData.Form?.components?.Products?.items?.map(item => ({
           code: item.Product?.code || 'cc-embed',
@@ -1492,26 +1493,12 @@ export default async function decorate(block) {
           organizationsData = orgs;
           // Initialize organization (from localStorage or default)
           await switchOrganization(null);
-        } else {
-          // Fallback to config-based organization
-          selectedOrganization = {
-            code: getCredConfig?.orgId || templateData.orgId,
-            name: getCredConfig?.orgName || 'Personal Developer Organization'
-          };
-        }
+        } 
       } catch (error) {
-        // Fallback to config-based organization
-        selectedOrganization = {
-          code: getCredConfig?.orgId || templateData.orgId,
-          name: getCredConfig?.orgName || 'Personal Developer Organization'
-        };
+        console.log("error",error);
       }
     } else {
-      // Get organization data from config as fallback (when not signed in)
-      selectedOrganization = {
-        code: getCredConfig?.orgId || templateData.orgId,
-        name: getCredConfig?.orgName || 'Personal Developer Organization'
-      };
+      console.error("templateData not found");
     }
 
   } catch (error) {
