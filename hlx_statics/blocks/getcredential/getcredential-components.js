@@ -105,15 +105,10 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     const token = tokenData?.token || tokenData;
     const apiKey = window?.adobeIMS?.adobeIdData?.client_id;
 
-    console.log('[DOWNLOAD API] Token exists:', !!token);
+    console.log('[DOWNLOAD API] Token exists:', token);
     console.log('[DOWNLOAD API] URL:', downloadAPI);
+    console.log('[DOWNLOAD API] API Key:', apiKey); 
 
-    if (!token) {
-      throw new Error('User not authenticated - token missing');
-    }
-    if (!apiKey) {
-      throw new Error('API key not available');
-    }
 
     const options = {
       method: 'GET',
