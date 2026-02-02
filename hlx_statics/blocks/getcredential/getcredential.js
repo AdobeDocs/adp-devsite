@@ -206,7 +206,7 @@ async function fetchExistingCredentials(orgCode) {
     const userId = profile?.userId;
 
     if (!selectedOrgCode || !templateId || !userId) {
-      console.error('[FETCH EXISTING CREDENTIALS] Missing required parameters:', { selectedOrgId, templateId, userId });
+      console.error('[FETCH EXISTING CREDENTIALS] Missing required parameters:', { selectedOrgCode, templateId, userId });
       return null;
     }
 
@@ -1473,8 +1473,8 @@ export default async function decorate(block) {
     console.log("getCredConfig",getCredConfig);
 
     // Get template configuration from JSON - use templateId from config
-    templateData = getCredConfig?.templateId || {
-      id: getCredConfig?.templateId || 'default-template-id'
+    templateData = {
+      id: getCredConfig?.templateId 
     };
 
     console.log("templateData",templateData);
