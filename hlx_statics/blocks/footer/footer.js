@@ -42,6 +42,7 @@ export default async function decorate(block) {
   const footerPath = cfg.footer || '/franklin_assets/footer';
   const resp = await fetch(`${footerPath}.plain.html`);
   const html = await resp.text();
+  console.log(html);
   block.append(buildFooter(html));
 
   block.querySelectorAll('.footer-links-container-inner ul').forEach((ul) => {
@@ -60,4 +61,19 @@ export default async function decorate(block) {
   block.querySelectorAll('div.footer-legal > div > p').forEach((p) => {
     p.className = 'spectrum-Body spectrum-Body--sizeXS footer-date';
   });
+
+  // Find and update the cookie preference link
+  const cookiePreferenceLink = Array.from(block.querySelectorAll('a')).find(
+    (link) => link.textContent.toLowerCase().includes('cookie') || 
+              link.textContent.toLowerCase().includes('preference') ||
+              link.href.includes('cookie') ||
+              link.href.includes('preference')
+  );
+  
+  if (cookiePreferenceLink) {
+    // Set href to current page URL + #
+    cookiePreferenceLink.href = `${window.location.href}#`;
+    // Add id for privacy library
+    cookiePreferenceLink.id = 'openPrivacy';
+  }
 }
