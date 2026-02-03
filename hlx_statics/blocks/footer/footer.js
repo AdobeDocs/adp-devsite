@@ -37,6 +37,7 @@ function buildFooter(html) {
 
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'footer');
+  console.log('Decorating footer...');
   const cfg = readBlockConfig(block);
   block.textContent = '';
   const footerPath = cfg.footer || '/franklin_assets/footer';
@@ -65,9 +66,9 @@ export default async function decorate(block) {
   // Find and update the cookie preference link
   const cookiePreferenceLink = Array.from(block.querySelectorAll('a')).find(
     (link) => link.textContent.toLowerCase().includes('cookie') || 
-              link.textContent.toLowerCase().includes('preference') ||
+              link.textContent.toLowerCase().includes('preferences') ||
               link.href.includes('cookie') ||
-              link.href.includes('preference')
+              link.href.includes('preferences')
   );
   
   if (cookiePreferenceLink) {
