@@ -42,8 +42,6 @@ async function preloadPage(href) {
 // Core Web Vitals RUM collection
 sampleRUM('cwv');
 
-addExtraScript(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js');
-
 document.querySelectorAll('.embed').forEach((embed) => {
   const iframe = embed.querySelector('iframe');
   if (iframe == null) return;
