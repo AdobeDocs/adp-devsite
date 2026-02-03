@@ -98,6 +98,38 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
   return toast;
 }
 
+export const downloadGetCallTest = async () => {
+  try {
+    
+      console.log('[DOWNLOAD TEST] Starting...');
+      const repoName = 'cc-everywhere';
+      const response = await fetch(`/api/download?repoName=${repoName}`, {
+        method: 'GET'
+      });
+
+    if (!response.ok) {
+      throw new Error(`Failed: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    console.log('[DOWNLOAD TEST] Blob received, size:', blob.size);
+
+    // Trigger download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DemoCode.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log('[DOWNLOAD TEST] Download triggered');
+  } catch (error) {
+    console.error('[DOWNLOAD TEST] Error:', error);
+  }
+}
+
 export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip', credentialJSON = null) {
   try {
     // Use getAccessToken() for a fresh valid token instead of getTokenFromStorage()
