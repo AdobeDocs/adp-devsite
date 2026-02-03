@@ -107,6 +107,35 @@ app.post('/api/download-zip', express.json(), async (req, res) => {
   }
 });
 
+app.get('/api/download', async (req, res) => {
+  try {
+    const { repoName } = req.query;
+    console.log('[GET CALL TEST] Repo name:', repoName);
+    const zipUrl = `https://raw.githubusercontent.com/AdobeDocs/${repoName}/main/src/pages/DemoCode.zip`;
+    console.log('[GET CALL TEST] Fetching ZIP from:', zipUrl);
+    
+    const response = await fetch(zipUrl);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: `Failed to fetch ZIP: ${response.status}` });
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': 'attachment; filename="DemoCode.zip"',
+      'Content-Length': buffer.length
+    });
+    
+    res.send(buffer);
+    console.log('[GET CALL TEST] ZIP sent, size:', buffer.length);
+  } catch (error) {
+    console.error('[GET CALL TEST API] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Middleware to ensure devsite paths are loaded
 app.use(async (req, res, next) => {
   if (!isInitialized) {
