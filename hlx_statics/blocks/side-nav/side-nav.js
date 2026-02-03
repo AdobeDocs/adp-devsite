@@ -392,16 +392,18 @@ export default async function decorate(block) {
     const openedPaths = getOpenedPaths();
 
     openedPaths.forEach(pathname => {
-      const anchor = Array.from(navigationLinksUl.querySelectorAll("a"))
-        .find(a => a.href && a.getAttribute("href") === pathname);
+      // Find ALL anchors with this href (multiple items can have the same href)
+      const anchors = Array.from(navigationLinksUl.querySelectorAll("a"))
+        .filter(a => a.href && a.getAttribute("href") === pathname);
 
-      if (anchor) {
+      // Expand all matching items
+      anchors.forEach(anchor => {
         const li = anchor.closest("li");
         const childUl = li?.querySelector("ul");
         if (li && childUl) {
           toggleNavItem(li, true, childUl, anchor);
         }
-      }
+      });
     });
   }
 
@@ -412,11 +414,11 @@ export default async function decorate(block) {
     sessionStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
   });
 
+  // Store scroll restoration function for later use
   const savedPos = sessionStorage.getItem('sidenavScrollPos');
   if (savedPos !== null) {
-    // Delay scroll restoration to ensure DOM is fully rendered
-    setTimeout(() => {
+    window.restoreSideNavScroll = () => {
       sideNav.scrollTop = parseInt(savedPos, 10);
-    }, 100);
+    };
   }
 }
