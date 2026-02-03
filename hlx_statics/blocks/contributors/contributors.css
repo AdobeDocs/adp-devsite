@@ -125,6 +125,7 @@ main .contributors-wrapper-container {
     position: sticky;
     bottom: 0;
     width: 100%;
+    z-index: 1000;
 }
 
 @media screen and (max-width: 767px) {
