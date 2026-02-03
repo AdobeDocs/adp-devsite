@@ -43,7 +43,6 @@ export default async function decorate(block) {
   const resp = await fetch(`${footerPath}.plain.html`);
   const html = await resp.text();
   block.append(buildFooter(html));
-  console.log("Decorating footer");
 
   block.querySelectorAll('.footer-links-container-inner ul').forEach((ul) => {
     ul.className = 'spectrum-Body spectrum-Body--sizeS';
