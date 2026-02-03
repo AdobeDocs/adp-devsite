@@ -511,6 +511,8 @@ function loadConfig() {
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
+  addExtraScript(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js');
+
   // Check for C0002 (Performance/Analytics) consent before loading AEP - part of new privacy library implementation
   function checkConsent() {
     // Check if adobePrivacy is available
