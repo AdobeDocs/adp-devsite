@@ -67,7 +67,7 @@ export default async function decorate(block) {
   );
 
   if (cookiePreferenceLink) {
-    cookiePreferenceLink.href = `${window.location.href}/#/`;
+    cookiePreferenceLink.href = `${window.location.href}#/`;
     cookiePreferenceLink.id = 'openPrivacy';
   }
 }
