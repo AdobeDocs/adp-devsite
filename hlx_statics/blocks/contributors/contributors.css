@@ -3,6 +3,7 @@ main div.contributors-wrapper div.contributors-content {
     align-items: center;
     justify-content: space-between;
     padding: 16px !important;
+    background: white;
     border: 1px solid lightgray;
     border-radius: 4px;
 }
@@ -122,9 +123,9 @@ main div.contributors-wrapper .span-Image-contributor {
 
 main .contributors-wrapper-container {
     position: sticky;
-    bottom: 3px;
-    background: white;
+    bottom: 0;
     width: 100%;
+    z-index: 1000;
 }
 
 @media screen and (max-width: 767px) {
