@@ -37,7 +37,6 @@ function buildFooter(html) {
 
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'footer');
-  console.log('Decorating footer...');
   const cfg = readBlockConfig(block);
   block.textContent = '';
   const footerPath = cfg.footer || '/franklin_assets/footer';
@@ -73,7 +72,7 @@ export default async function decorate(block) {
   
   if (cookiePreferenceLink) {
     // Set href to current page URL + #
-    cookiePreferenceLink.href = `${window.location.href}#`;
+    // cookiePreferenceLink.href = `${window.location.href}#`;
     // Add id for privacy library
     cookiePreferenceLink.id = 'openPrivacy';
   }
