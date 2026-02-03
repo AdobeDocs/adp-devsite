@@ -756,15 +756,15 @@ async function loadLazy(doc) {
       loadOnThisPage(doc.querySelector('.onthispage-wrapper'));
     }
 
+    if(document.querySelector('.side-nav-subpages-section')) {
+      buildNextPrev(main);
+      loadNextPrev(doc.querySelector('.next-prev-wrapper'));
+    }
+
     const hasContributors = await hasContributorsJson();
     if (hasContributors) {
       buildContributors(main);
       loadContributors(doc.querySelector('.contributors-wrapper'));
-    }
-
-    if(document.querySelector('.side-nav-subpages-section')) {
-      buildNextPrev(main);
-      loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
 
     if (hasResources) {
