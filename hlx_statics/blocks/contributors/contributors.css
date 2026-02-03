@@ -3,9 +3,17 @@ main div.contributors-wrapper div.contributors-content {
     align-items: center;
     justify-content: space-between;
     padding: 16px !important;
+    row-gap: 16px;
+    column-gap: 40px;
+    flex-wrap: wrap;
     background: white;
     border: 1px solid lightgray;
     border-radius: 4px;
+}
+
+main div.contributors-wrapper div.contributors-content > div.lastUpdateDetails,
+main div.contributors-wrapper div.contributors-content > div.feedbackWrapper {
+    flex: 0 1 auto;
 }
 
 main div.contributors-wrapper div.feedbackWrapper {
@@ -25,7 +33,7 @@ main div.contributors-wrapper button {
 
 main div.contributors-wrapper a {
     display: flex;
-    gap: 25px;
+    gap: 20px;
     align-items: center;
     text-decoration: none;
     color: rgb(44, 44, 44);
@@ -129,12 +137,6 @@ main .contributors-wrapper-container {
 }
 
 @media screen and (max-width: 767px) {
-    main div.contributors-wrapper div.contributors-content {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-    }
-
     .contributor-modal .button-wrapper-contributor {
         flex-direction: column;
     }
