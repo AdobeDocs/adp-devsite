@@ -61,18 +61,14 @@ export default async function decorate(block) {
     p.className = 'spectrum-Body spectrum-Body--sizeXS footer-date';
   });
 
-  // Find and update the cookie preference link
+  // Find cookie preference link and add privacy library
   const cookiePreferenceLink = Array.from(block.querySelectorAll('a')).find(
     (link) => link.textContent.toLowerCase().includes('cookie') || 
-              link.textContent.toLowerCase().includes('preferences') ||
-              link.href.includes('cookie') ||
-              link.href.includes('preferences')
+              link.textContent.toLowerCase().includes('preferences')
   );
   
   if (cookiePreferenceLink) {
-    // Set href to current page URL + #
-    // cookiePreferenceLink.href = `${window.location.href}#`;
-    // Add id for privacy library
+    cookiePreferenceLink.href = `${window.location.href}#`;
     cookiePreferenceLink.id = 'openPrivacy';
   }
 }
