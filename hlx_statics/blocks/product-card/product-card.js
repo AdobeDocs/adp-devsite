@@ -1,4 +1,5 @@
 import { createTag } from '../../scripts/lib-adobeio.js';
+import { IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 import { getMetadata } from '../../scripts/scripts.js';
 
 /**
@@ -8,7 +9,6 @@ import { getMetadata } from '../../scripts/scripts.js';
 export default async function decorate(block) {
     block.setAttribute('daa-lh', 'product-card');
 
-    const template = getMetadata('template');
     const width = block?.parentElement?.parentElement?.getAttribute('data-width');
 
     block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
@@ -30,7 +30,7 @@ export default async function decorate(block) {
         const footer = createTag('div', { class: 'spectrum-Card-footer' });
         const btnWrap = createTag('div', { class: 'all-button-container' });
 
-        if (template === 'documentation') {
+        if (IS_DEV_DOCS) {
             const buttons = [];
 
             Array.from(card.children).forEach((child) => {
@@ -60,7 +60,7 @@ export default async function decorate(block) {
     Array.from(block.children).forEach(card => {
         card.querySelectorAll('a').forEach((a, index) => {
             const isStrong = a.parentElement.tagName === 'STRONG';
-            a.className = `spectrum-Button spectrum-Button--outline spectrum-Button--${isStrong || (template === 'documentation' && index === 1) ? 'accent' : 'secondary'} spectrum-Button--sizeM`;
+            a.className = `spectrum-Button spectrum-Button--outline spectrum-Button--${isStrong || (IS_DEV_DOCS && index === 1) ? 'accent' : 'secondary'} spectrum-Button--sizeM`;
         });
     });
 

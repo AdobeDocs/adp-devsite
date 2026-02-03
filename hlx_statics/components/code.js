@@ -1,4 +1,4 @@
-import { getMetadata } from "../scripts/scripts.js";
+import { IS_DEV_DOCS } from "../scripts/lib-helix.js";
 
 export function extractLanguageDirectives(container) {
   if (!container) return '';
@@ -60,7 +60,7 @@ export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre');
   const code = block.querySelector('code');
 
-  if(pre && getMetadata('template') === "documentation"){
+  if(pre && IS_DEV_DOCS){
     const processClasses = (element) => {
       element.className = Array.from(element.classList).map(className => {
         let cleanClassName = className;

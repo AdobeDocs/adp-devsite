@@ -9,7 +9,6 @@ import {
 import {
   createOptimizedPicture,
   decorateLightOrDark,
-  getMetadata,
   IS_DEV_DOCS,
 } from '../../scripts/lib-helix.js';
 
