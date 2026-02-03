@@ -71,5 +71,13 @@ export default async function decorate(block) {
   if (cookiePreferenceLink) {
     cookiePreferenceLink.href = `${window.location.href}#`;
     cookiePreferenceLink.id = 'openPrivacy';
+    
+    cookiePreferenceLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Cookie preference clicked');
+      console.log('window.adobePrivacy:', window.adobePrivacy);
+      console.log('window.OneTrust:', window.OneTrust);
+      console.log('window.fedsConfig:', window.fedsConfig);
+    });
   }
 }
