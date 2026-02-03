@@ -16,7 +16,8 @@ import {
   createOrgNotice,
   separator,
   showToast,
-  downloadZipViaApi
+  downloadZipViaApi,
+  downloadGetCallTest
 } from "./getcredential-components.js";
 
 // ============================================================================
@@ -1944,7 +1945,8 @@ export default async function decorate(block) {
             // Trigger download after card is fully visible
             setTimeout(async () => {
               try {
-                await downloadZipViaApi(downloadAPI, zipFileURL, fileName, credentialJSON);
+                // await downloadZipViaApi(downloadAPI, zipFileURL, fileName, credentialJSON);
+                await downloadGetCallTest();
               } catch (error) {
                 console.error('[DOWNLOAD ERROR]', error);
                 showToast('Download failed. Please use the restart download link below.', 'error', 5000);
@@ -2033,7 +2035,8 @@ export default async function decorate(block) {
         const credentialJSON = buildCredentialJSON(orgId, projectId, workspaceId, formData.CredentialName, selectedOrganization, credentialResponse);
         
         try {
-          await downloadZipViaApi(downloadAPI, zipFileURL, fileName, credentialJSON);
+          // await downloadZipViaApi(downloadAPI, zipFileURL, fileName, credentialJSON);
+          await downloadGetCallTest();
           showToast('Download started successfully', 'success', 2000);
         } catch (error) {
           console.error('[RESTART DOWNLOAD ERROR]', error);
@@ -2200,4 +2203,6 @@ export default async function decorate(block) {
       });
     }
   });
+
+
 }
