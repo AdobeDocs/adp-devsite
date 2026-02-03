@@ -561,7 +561,7 @@ function activeSubNav(actTab) {
     const sidenavItems = navLinksUl?.querySelectorAll(':scope > ul li') || [];
     const topNavPath = actTab.pathname;
     const pagePath = window.location.pathname;
-    
+
     sidenavItems.forEach(li => {
       // Handle header labels - check the next sibling's link
       if (li.classList.contains('nav-header-label')) {
@@ -616,6 +616,11 @@ function activeSubNav(actTab) {
   // Make side nav visible after all updates are complete
   if (sidecontainer) {
     sidecontainer.style.visibility = "visible";
+    
+    // Restore scroll position after side nav is visible and filtering is complete
+    if (window.restoreSideNavScroll) {
+      window.restoreSideNavScroll();
+    }
   }
 }
 
