@@ -123,6 +123,7 @@ const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
 // ============================================================================
 
 async function createCredential() {
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
   if (!token) {
     console.error('[CREATE CREDENTIAL] User not logged in');
     throw new Error('Please sign in to create credentials');
