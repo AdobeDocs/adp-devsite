@@ -1,5 +1,5 @@
 import { createTag, decorateAnchorLink } from '../../scripts/lib-adobeio.js';
-import { getMetadata } from '../../scripts/scripts.js';
+import { IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 
 /**
  * decorates the list
@@ -22,7 +22,7 @@ export default async function decorate(block) {
     unorder.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
   });
 
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     const icon = block.getAttribute('data-icon') || 'checkmark';
     const iconColor = block.getAttribute('data-iconColor') || 'black';
     const firstDivs = block.querySelectorAll('.list > div');

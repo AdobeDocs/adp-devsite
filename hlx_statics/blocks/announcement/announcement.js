@@ -1,6 +1,6 @@
 
 import { decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
-import { getMetadata } from '../../scripts/scripts.js';
+import { IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 
 /**
  * @param {Element} block
@@ -9,7 +9,7 @@ function rearrangeLinks(block) {
   let variant = block.getAttribute('data-variant');
 
   let leftDiv = block.firstElementChild.firstElementChild;
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     leftDiv = block.lastElementChild.lastElementChild;
   }
   const announcementButtonContainer = document.createElement('div');
@@ -83,7 +83,7 @@ export default async function decorate(block) {
   }
 
   if (!imageExists) {
-    if (getMetadata("template") === "documentation" && allowedBackgroundColors.includes(backgroundColor)) {
+    if (IS_DEV_DOCS && allowedBackgroundColors.includes(backgroundColor)) {
       block.className = block.className.split(/\s+/).filter(c => !c.startsWith('background-color-')).join(' ').trim();
       block.classList.add(backgroundColor);
     }
