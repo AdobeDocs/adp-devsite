@@ -20,6 +20,28 @@ import {
 } from "./getcredential-components.js";
 
 // ============================================================================
+// IMS READY HELPER
+// ============================================================================
+
+/**
+ * Waits for IMS to be ready, then calls signIn
+ * If IMS is already ready, calls signIn immediately
+ */
+function waitForIMSAndSignIn() {
+  if (window.adp?.imsStatus === 'success' && window.adobeIMS) {
+    window.adobeIMS.signIn();
+  } else {
+    const onIMSReady = () => {
+      window.removeEventListener('imsReady', onIMSReady);
+      if (window.adobeIMS) {
+        window.adobeIMS.signIn();
+      }
+    };
+    window.addEventListener('imsReady', onIMSReady);
+  }
+}
+
+// ============================================================================
 // VALIDATION LOGIC
 // ============================================================================
 
@@ -449,7 +471,7 @@ async function fetchOrganizations() {
 
     if (!response.ok) {
       if (response.status === 401) {
-        window.adobeIMS?.signIn();
+        waitForIMSAndSignIn();
       }
       throw new Error('Could not fetch accounts');
     }
@@ -1834,11 +1856,11 @@ export default async function decorate(block) {
 
   // Setup navigation handlers
   signInContainer?.querySelector('.sign-in-button')?.addEventListener('click', () => {
-    if (window.adobeIMS.isSignedInUser()) {
+    if (window.adobeIMS?.isSignedInUser()) {
       navigateTo(signInContainer, returnContainer);
     }
     else {
-      window.adobeIMS.signIn();
+      waitForIMSAndSignIn();
     }
   });
 
