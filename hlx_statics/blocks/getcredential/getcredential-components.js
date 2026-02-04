@@ -134,7 +134,7 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     showToast('Preparing download...', 'info', 2000);
 
     const response = await fetch(downloadAPI, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
