@@ -98,7 +98,7 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
   return toast;
 }
 
-export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip', credentialJSON = null) {
+export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip') {
   try {
     // Use getAccessToken() for a fresh valid token instead of getTokenFromStorage()
     const tokenData = await window.adobeIMS?.getAccessToken();
@@ -133,21 +133,6 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
 
     showToast('Preparing download...', 'info', 2000);
 
-    // const response = await fetch(downloadAPI, {
-    //   method: 'GET',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${token}`,
-    //     'x-api-key': apiKey,
-    //   },
-    //   body: JSON.stringify({
-    //     zipPath,
-    //     jsonContent: credentialJSON,
-    //     jsonFileName: 'credential.json',
-    //     downloadFileName
-    //   })
-    // });
-
     // cannot use body with GET request
     const response = await fetch(downloadAPI, {
       method: 'GET',
@@ -163,8 +148,23 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
       throw new Error(errorData.error || `Server error: ${response.status}`);
     }
 
+    const response1 = await fetch(`/api/download-zip`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        zipPath,
+        jsonContent: await response.json(),
+        jsonFileName: 'credential.json',
+        downloadFileName
+      })
+    });
+
     // Get the blob from response
-    const blob = await response.blob();
+    const blob = await response1.blob();
     console.log('[ZIP API] Received blob, size:', blob.size);
 
     // Trigger download using native browser approach (no external library needed)
@@ -176,7 +176,7 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     showToast('Download started!', 'success', 3000);
     console.log('[ZIP API] Download triggered for:', downloadFileName);
 
