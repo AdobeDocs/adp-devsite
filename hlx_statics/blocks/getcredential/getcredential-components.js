@@ -133,7 +133,7 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
 
     showToast('Preparing download...', 'info', 2000);
 
-    const response = await fetch('/api/download-zip', {
+    const response = await fetch(downloadAPI, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
