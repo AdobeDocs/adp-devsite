@@ -133,19 +133,29 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
 
     showToast('Preparing download...', 'info', 2000);
 
+    // const response = await fetch(downloadAPI, {
+    //   method: 'GET',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': `Bearer ${token}`,
+    //     'x-api-key': apiKey,
+    //   },
+    //   body: JSON.stringify({
+    //     zipPath,
+    //     jsonContent: credentialJSON,
+    //     jsonFileName: 'credential.json',
+    //     downloadFileName
+    //   })
+    // });
+
+    // cannot use body with GET request
     const response = await fetch(downloadAPI, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
         'x-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        zipPath,
-        jsonContent: credentialJSON,
-        jsonFileName: 'credential.json',
-        downloadFileName
-      })
+      }
     });
 
     if (!response.ok) {
