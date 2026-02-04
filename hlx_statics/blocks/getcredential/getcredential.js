@@ -1842,12 +1842,12 @@ export default async function decorate(block) {
 
   // Setup navigation handlers
   signInContainer?.querySelector('.sign-in-button')?.addEventListener('click', () => {
-    // if (window.adobeIMS?.isSignedInUser()) {
+    if (window.adobeIMS?.isSignedInUser()) {
       navigateTo(signInContainer, returnContainer);
-    // }
-    // else {
-      // waitForIMSAndSignIn();
-    // }
+    }
+    else {
+      waitForIMSAndSignIn();
+    }
   });
 
   returnContainer?.querySelector('.create-new-button')?.addEventListener('click', async () => {
