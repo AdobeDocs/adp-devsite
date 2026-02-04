@@ -1272,11 +1272,16 @@ function createReturnContent(config, handleReturnOrgChange) {
   }
 
   // Project Card (will be populated dynamically)
-  const projectCard = createTag('div', { class: 'return-project-card' });
-  projectCard.appendChild(createProjectHeader('', config.components?.Products));
+  const isCollapsable = config.isCollapsable === 'true' || config.isCollapsable === true;
+  const projectCard = createTag('div', { class: `return-project-card${isCollapsable ? ' collapsed' : ''}` });
+  const projectHeader = createProjectHeader('', config.components?.Products, isCollapsable);
+  projectCard.appendChild(projectHeader);
+
+  // Collapsible content wrapper
+  const cardContent = createTag('div', { class: 'card-collapsible-content' });
 
   // Divider
-  projectCard.appendChild(createDivider());
+  cardContent.appendChild(createDivider());
 
   // Developer Console Project (will be updated dynamically)
   if (config.components?.DevConsoleLink) {
@@ -1287,12 +1292,12 @@ function createReturnContent(config, handleReturnOrgChange) {
 
     const projectLink = createExternalLink('', '#');
     devConsoleSection.appendChild(projectLink);
-    projectCard.appendChild(devConsoleSection);
+    cardContent.appendChild(devConsoleSection);
   }
 
   // Credential Details
   if (config.components?.CredentialDetails) {
-    projectCard.appendChild(createCredentialSection(config.components.CredentialDetails));
+    cardContent.appendChild(createCredentialSection(config.components.CredentialDetails));
   }
 
   // Next steps button
@@ -1304,7 +1309,19 @@ function createReturnContent(config, handleReturnOrgChange) {
     });
     nextStepsButton.innerHTML = `<span class="spectrum-Button-label">${config.nextStepsLabel}</span>`;
     buttonsSection.appendChild(nextStepsButton);
-    projectCard.appendChild(buttonsSection);
+    cardContent.appendChild(buttonsSection);
+  }
+
+  projectCard.appendChild(cardContent);
+
+  // Toggle collapse on arrow click (only if collapsable)
+  if (isCollapsable) {
+    const arrowIcon = projectHeader.querySelector('.project-arrow');
+    if (arrowIcon) {
+      arrowIcon.addEventListener('click', () => {
+        projectCard.classList.toggle('collapsed');
+      });
+    }
   }
 
   rightContent.appendChild(projectCard);
@@ -1395,9 +1412,15 @@ function createCredentialCard(config) {
   const cardContent = createTag('div', { class: 'card-content' });
 
   // Project Card (will be populated dynamically via updateCredentialCard)
-  const projectCard = createTag('div', { class: 'project-card' });
-  projectCard.appendChild(createProjectHeader('', config.components?.Products));
-  projectCard.appendChild(createDivider());
+  const isCollapsable = config.isCollapsable === 'true' || config.isCollapsable === true;
+  const projectCard = createTag('div', { class: `project-card${isCollapsable ? ' collapsed' : ''}` });
+  const projectHeader = createProjectHeader('', config.components?.Products, isCollapsable);
+  projectCard.appendChild(projectHeader);
+
+  // Collapsible content wrapper
+  const cardCollapsibleContent = createTag('div', { class: 'card-collapsible-content' });
+
+  cardCollapsibleContent.appendChild(createDivider());
 
   // Developer Console Project section (will be updated dynamically)
   if (config.components?.DevConsoleLink) {
@@ -1410,16 +1433,14 @@ function createCredentialCard(config) {
     projectLink.setAttribute('data-cy', 'credentialName-link');
     devConsoleSection.appendChild(projectLink);
 
-    projectCard.appendChild(devConsoleSection);
+    cardCollapsibleContent.appendChild(devConsoleSection);
   }
-
-  cardContent.appendChild(projectCard);
 
   // Credential Details section
   if (config.components?.CredentialDetails) {
     const credSection = createCredentialSection(config.components.CredentialDetails);
     // Values will be populated dynamically after API call via updateCredentialCard()
-    projectCard.appendChild(credSection);
+    cardCollapsibleContent.appendChild(credSection);
   }
 
   // Buttons section (inside project card)
@@ -1443,7 +1464,19 @@ function createCredentialCard(config) {
   manageLink.classList.add('manage-link');
   buttonsSection.appendChild(manageLink);
 
-  projectCard.appendChild(buttonsSection);
+  cardCollapsibleContent.appendChild(buttonsSection);
+
+  projectCard.appendChild(cardCollapsibleContent);
+
+  // Toggle collapse on arrow click (only if collapsable)
+  if (isCollapsable) {
+    const arrowIcon = projectHeader.querySelector('.project-arrow');
+    if (arrowIcon) {
+      arrowIcon.addEventListener('click', () => {
+        projectCard.classList.toggle('collapsed');
+      });
+    }
+  }
 
   // Add the complete project card to content
   cardContent.appendChild(projectCard);
@@ -1809,12 +1842,12 @@ export default async function decorate(block) {
 
   // Setup navigation handlers
   signInContainer?.querySelector('.sign-in-button')?.addEventListener('click', () => {
-    if (window.adobeIMS?.isSignedInUser()) {
+    // if (window.adobeIMS?.isSignedInUser()) {
       navigateTo(signInContainer, returnContainer);
-    }
-    else {
-      waitForIMSAndSignIn();
-    }
+    // }
+    // else {
+      // waitForIMSAndSignIn();
+    // }
   });
 
   returnContainer?.querySelector('.create-new-button')?.addEventListener('click', async () => {
@@ -2175,6 +2208,5 @@ export default async function decorate(block) {
       });
     }
   });
-
 
 }
