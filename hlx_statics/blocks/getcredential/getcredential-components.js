@@ -106,7 +106,7 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
  * @param {string} zipPath - The zip file path
  * @param {string} downloadFileName - The download file name
  */
-export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip') {
+export async function downloadZipViaApi(downloadAPI, zipPath) {
   try {
     const tokenData = await window.adobeIMS?.getAccessToken();
     const token = tokenData?.token || tokenData;
@@ -138,6 +138,9 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
 
     const zipArrayBuffer = await zipResponse.arrayBuffer();
 
+    // Extract original filename from zipPath URL
+    const originalFileName = zipPath.split('/').pop().split('?')[0] || 'download.zip';
+
     // Load JSZip and process the zip
     const JSZip = await loadJSZip();
     const zip = await JSZip.loadAsync(zipArrayBuffer);
@@ -145,21 +148,23 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     // Find the root folder in the zip (e.g., "DemoCode/")
     const rootFolder = Object.keys(zip.files).find(name => name.endsWith('/') && !name.slice(0, -1).includes('/'));
 
+    // Add credential.json inside the root folder
     const jsonString = JSON.stringify(jsonContent, null, 2);
     const credentialPath = rootFolder ? `${rootFolder}credential.json` : 'credential.json';
     zip.file(credentialPath, jsonString);
 
-    // Generate modified zip
+    // Generate modified zip (keeps original structure, just adds credential.json)
     const modifiedZipBlob = await zip.generateAsync({
       type: 'blob',
       compression: 'DEFLATE',
       compressionOptions: { level: 6 }
     });
 
+    // Download with original filename
     const url = URL.createObjectURL(modifiedZipBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = downloadFileName;
+    a.download = originalFileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
