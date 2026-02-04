@@ -2,7 +2,7 @@
  * Reusable component functions for Get Credential block
  */
 
-import { createTag } from "../../scripts/lib-adobeio.js";
+import { createTag, loadJSZip } from "../../scripts/lib-adobeio.js";
 
 // ============================================================================
 // CONSTANTS
@@ -25,6 +25,8 @@ const TOAST_ICONS = {
 };
 
 const CLOSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 0 16 16" width="16"><path fill="#fff" d="M14.6464,13.3536a.5.5,0,0,0,.7072-.7072L8.707,6l6.6464-6.6464a.5.5,0,0,0-.7072-.7072L8,5.293,1.3536-1.3536a.5.5,0,0,0-.7072.7072L7.293,6,.6464,12.6464a.5.5,0,0,0,.7072.7072L8,6.707Z"></path></svg>';
+
+export const RIGHT_ARROW_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="25" viewBox="0 0 18 18" width="25"><rect id="Canvas" fill="#ff13dc" opacity="0" width="25" height="25"></rect><path d="M12,9a.994.994,0,0,1-.2925.7045l-3.9915,3.99a1,1,0,1,1-1.4355-1.386l.0245-.0245L9.5905,9,6.3045,5.715A1,1,0,0,1,7.691,4.28l.0245.0245,3.9915,3.99A.994.994,0,0,1,12,9Z" class="fill"></path></svg>`;
 
 // ============================================================================
 // TOAST NOTIFICATION SYSTEM
@@ -98,41 +100,20 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
   return toast;
 }
 
-// Dynamically load JSZip if not already loaded
-async function loadJSZip() {
-  if (window.JSZip) return window.JSZip;
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    // Load from local node_modules served via dev server, fallback to CDN
-    script.src = '/libs/jszip/jszip.min.js';
-    script.onload = () => resolve(window.JSZip);
-    script.onerror = () => {
-      // Fallback to CDN if local fails
-      const cdnScript = document.createElement('script');
-      cdnScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-      cdnScript.onload = () => resolve(window.JSZip);
-      cdnScript.onerror = () => reject(new Error('Failed to load JSZip'));
-      document.head.appendChild(cdnScript);
-    };
-    document.head.appendChild(script);
-  });
-}
-
+/**
+ * Download zip via API
+ * @param {string} downloadAPI - The download API URL
+ * @param {string} zipPath - The zip file path
+ * @param {string} downloadFileName - The download file name
+ */
 export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip') {
   try {
-    // Use getAccessToken() for a fresh valid token instead of getTokenFromStorage()
     const tokenData = await window.adobeIMS?.getAccessToken();
     const token = tokenData?.token || tokenData;
     const apiKey = window?.adobeIMS?.adobeIdData?.client_id;
 
-    console.log('[DOWNLOAD API] Token exists:', !!token);
-    console.log('[DOWNLOAD API] URL:', downloadAPI);
-    console.log('[DOWNLOAD API] API Key:', apiKey);
-
     showToast('Preparing download...', 'info', 2000);
 
-    // cannot use body with GET request
     const credentialResponse = await fetch(downloadAPI, {
       method: 'GET',
       headers: {
@@ -148,7 +129,6 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     }
 
     const jsonContent = await credentialResponse.json();
-    console.log('[ZIP API] Credential JSON fetched');
 
     // Fetch the zip file
     const zipResponse = await fetch(zipPath);
@@ -157,17 +137,17 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     }
 
     const zipArrayBuffer = await zipResponse.arrayBuffer();
-    console.log('[ZIP API] Zip fetched, size:', zipArrayBuffer.byteLength, 'bytes');
 
     // Load JSZip and process the zip
     const JSZip = await loadJSZip();
     const zip = await JSZip.loadAsync(zipArrayBuffer);
-    console.log('[ZIP API] Zip loaded, files:', Object.keys(zip.files));
 
-    // Add credential.json to the democode folder in the zip
+    // Find the root folder in the zip (e.g., "DemoCode/")
+    const rootFolder = Object.keys(zip.files).find(name => name.endsWith('/') && !name.slice(0, -1).includes('/'));
+
     const jsonString = JSON.stringify(jsonContent, null, 2);
-    zip.file('democode/credential.json', jsonString);
-    console.log('[ZIP API] Added credential.json to democode folder');
+    const credentialPath = rootFolder ? `${rootFolder}credential.json` : 'credential.json';
+    zip.file(credentialPath, jsonString);
 
     // Generate modified zip
     const modifiedZipBlob = await zip.generateAsync({
@@ -175,9 +155,7 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
       compression: 'DEFLATE',
       compressionOptions: { level: 6 }
     });
-    console.log('[ZIP API] Modified zip generated, size:', modifiedZipBlob.size, 'bytes');
 
-    // Trigger download using native browser approach
     const url = URL.createObjectURL(modifiedZipBlob);
     const a = document.createElement('a');
     a.href = url;
@@ -188,7 +166,6 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     URL.revokeObjectURL(url);
 
     showToast('Download started!', 'success', 3000);
-    console.log('[ZIP API] Download triggered for:', downloadFileName);
 
   } catch (error) {
     console.error('[ZIP API] Error:', error);
@@ -460,12 +437,15 @@ export function createCredentialDetailField(label, value, showCopy = false, fiel
   return field;
 }
 
-export function createProjectHeader(projectTitle, products) {
+export function createProjectHeader(projectTitle, products, isCollapsable = false) {
   const projectHeader = createTag('div', { class: 'return-project-header' });
+
+  // Inner content wrapper
+  const headerContent = createTag('div', { class: 'project-header-content' });
 
   const projectIconWrapper = createTag('div', { class: 'project-icon' });
   projectIconWrapper.innerHTML = PROJECT_ICON_SVG;
-  projectHeader.appendChild(projectIconWrapper);
+  headerContent.appendChild(projectIconWrapper);
 
   const projectTitleGroup = createTag('div', { class: 'project-title-group' });
   const title = createTag('h3', { class: 'project-title spectrum-Heading spectrum-Heading--sizeM' });
@@ -486,7 +466,16 @@ export function createProjectHeader(projectTitle, products) {
     projectTitleGroup.appendChild(productsRow);
   }
 
-  projectHeader.appendChild(projectTitleGroup);
+  headerContent.appendChild(projectTitleGroup);
+  projectHeader.appendChild(headerContent);
+
+  // Arrow icon (only if collapsable)
+  if (isCollapsable) {
+    const arrowWrapper = createTag('div', { class: 'project-arrow' });
+    arrowWrapper.innerHTML = RIGHT_ARROW_ICON;
+    projectHeader.appendChild(arrowWrapper);
+  }
+
   return projectHeader;
 }
 

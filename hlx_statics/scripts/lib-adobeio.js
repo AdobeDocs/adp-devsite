@@ -27,6 +27,14 @@ export const LoadingState = {
 };
 
 /**
+ * Dynamically load JSZip if not already loaded
+ */
+export async function loadJSZip() {
+  await import('./jszip.js');
+  return window.JSZip;
+}
+
+/**
  * Checks if an a tag href points to an external link.
  * Updates the tag target and rel attributes accordingly.
  * @param {*} a The a tag to check
