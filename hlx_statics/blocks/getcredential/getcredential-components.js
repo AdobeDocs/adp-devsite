@@ -98,6 +98,27 @@ export function showToast(message, variant = 'neutral', duration = 3000, contain
   return toast;
 }
 
+// Dynamically load JSZip if not already loaded
+async function loadJSZip() {
+  if (window.JSZip) return window.JSZip;
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    // Load from local node_modules served via dev server, fallback to CDN
+    script.src = '/libs/jszip/jszip.min.js';
+    script.onload = () => resolve(window.JSZip);
+    script.onerror = () => {
+      // Fallback to CDN if local fails
+      const cdnScript = document.createElement('script');
+      cdnScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      cdnScript.onload = () => resolve(window.JSZip);
+      cdnScript.onerror = () => reject(new Error('Failed to load JSZip'));
+      document.head.appendChild(cdnScript);
+    };
+    document.head.appendChild(script);
+  });
+}
+
 export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName = 'download.zip') {
   try {
     // Use getAccessToken() for a fresh valid token instead of getTokenFromStorage()
@@ -105,36 +126,14 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
     const token = tokenData?.token || tokenData;
     const apiKey = window?.adobeIMS?.adobeIdData?.client_id;
 
-    console.log('[DOWNLOAD API] Token exists:', token);
+    console.log('[DOWNLOAD API] Token exists:', !!token);
     console.log('[DOWNLOAD API] URL:', downloadAPI);
     console.log('[DOWNLOAD API] API Key:', apiKey);
-
-
-    // const options = {
-    //   method: 'GET',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${token}`,
-    //     'x-api-key': apiKey,
-    //   },
-    // };
-
-    // const jsonResponse = await fetch(downloadAPI, options);
-    // console.log('[DOWNLOAD API] Response status:', jsonResponse.status);
-
-    // let credential = null;
-    // if (jsonResponse.status === 200) {
-    //   credential = await jsonResponse.json();
-    // } else {
-    //   const errorText = await jsonResponse.text();
-    //   console.error('[DOWNLOAD API] Error response:', errorText);
-    //   throw new Error(`Download API failed with status ${jsonResponse.status}: ${errorText}`);
-    // }
 
     showToast('Preparing download...', 'info', 2000);
 
     // cannot use body with GET request
-    const response = await fetch(downloadAPI, {
+    const credentialResponse = await fetch(downloadAPI, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -143,32 +142,43 @@ export async function downloadZipViaApi(downloadAPI, zipPath, downloadFileName =
       }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Server error: ${response.status}`);
+    if (!credentialResponse.ok) {
+      const errorData = await credentialResponse.json();
+      throw new Error(errorData.error || `Server error: ${credentialResponse.status}`);
     }
 
-    const response1 = await fetch(`/api/download-zip`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'x-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        zipPath,
-        jsonContent: await response.json(),
-        jsonFileName: 'credential.json',
-        downloadFileName
-      })
+    const jsonContent = await credentialResponse.json();
+    console.log('[ZIP API] Credential JSON fetched');
+
+    // Fetch the zip file
+    const zipResponse = await fetch(zipPath);
+    if (!zipResponse.ok) {
+      throw new Error(`Failed to fetch zip: ${zipResponse.status}`);
+    }
+
+    const zipArrayBuffer = await zipResponse.arrayBuffer();
+    console.log('[ZIP API] Zip fetched, size:', zipArrayBuffer.byteLength, 'bytes');
+
+    // Load JSZip and process the zip
+    const JSZip = await loadJSZip();
+    const zip = await JSZip.loadAsync(zipArrayBuffer);
+    console.log('[ZIP API] Zip loaded, files:', Object.keys(zip.files));
+
+    // Add credential.json to the democode folder in the zip
+    const jsonString = JSON.stringify(jsonContent, null, 2);
+    zip.file('democode/credential.json', jsonString);
+    console.log('[ZIP API] Added credential.json to democode folder');
+
+    // Generate modified zip
+    const modifiedZipBlob = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
     });
+    console.log('[ZIP API] Modified zip generated, size:', modifiedZipBlob.size, 'bytes');
 
-    // Get the blob from response
-    const blob = await response1.blob();
-    console.log('[ZIP API] Received blob, size:', blob.size);
-
-    // Trigger download using native browser approach (no external library needed)
-    const url = URL.createObjectURL(blob);
+    // Trigger download using native browser approach
+    const url = URL.createObjectURL(modifiedZipBlob);
     const a = document.createElement('a');
     a.href = url;
     a.download = downloadFileName;
