@@ -134,9 +134,7 @@ let credentialResponse = null;
 let templateData = null;
 let selectedOrganization = null;
 let organizationsData = null;
-const token = window.adobeIMS?.getTokenFromStorage()?.token;
 
-console.log("token--->", token);
 // Local storage key for organization
 const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
 
@@ -212,7 +210,6 @@ async function createCredential() {
 
 async function fetchExistingCredentials(orgCode) {
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
-  console.log("token--->", token);
 
   if (!token) {
     console.error('[FETCH EXISTING CREDENTIALS] No token available');
@@ -256,42 +253,6 @@ async function fetchExistingCredentials(orgCode) {
   }
 
   return null;
-}
-
-async function fetchProjectDetails(orgCode, projectId) {
-  const token = window.adobeIMS?.getTokenFromStorage()?.token;
-
-  if (!token) {
-    console.error('No token available');
-    return null;
-  }
-
-  try {
-    const url = `/console/api/organizations/${orgCode}/projects/${projectId}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
-      },
-    });
-
-    if (response.ok) {
-      const projectData = await response.json();
-      if (projectData.workspaces?.[0]) {
-      }
-
-      return projectData;
-    } else {
-      const errorText = await response.text();
-      console.error('Failed:', errorText);
-      return null;
-    }
-  } catch (error) {
-    return null;
-  }
 }
 
 function populateProjectsDropdown(returnContainer, projectsData) {
@@ -524,83 +485,83 @@ async function fetchOrganizations() {
   return null;
 }
 
-async function getCredentialSecrets(response, orgCode) {
+// async function getCredentialSecrets(response, orgCode) {
 
-  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+//   const token = window.adobeIMS?.getTokenFromStorage()?.token;
 
-  if (!token) {
-    return null;
-  }
+//   if (!token) {
+//     return null;
+//   }
 
-  try {
-    // Get project/credential ID from response
-    const projectId = response?.workspaces
-      ? response.workspaces[0]?.credentials[0]?.id
-      : response?.id;
+//   try {
+//     // Get project/credential ID from response
+//     const projectId = response?.workspaces
+//       ? response.workspaces[0]?.credentials[0]?.id
+//       : response?.id;
 
-    const selectedOrgCode = orgCode || selectedOrganization?.code;
+//     const selectedOrgCode = orgCode || selectedOrganization?.code;
 
-    if (!selectedOrgCode || !projectId) {
-      return null;
-    }
+//     if (!selectedOrgCode || !projectId) {
+//       return null;
+//     }
 
-    const secretsUrl = `/console/api/organizations/${selectedOrgCode}/integrations/${projectId}/secrets`;
+//     const secretsUrl = `/console/api/organizations/${selectedOrgCode}/integrations/${projectId}/secrets`;
 
-    const secretsResponse = await fetch(secretsUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
-      },
-    });
+//     const secretsResponse = await fetch(secretsUrl, {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${token}`,
+//         'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+//       },
+//     });
 
-    if (secretsResponse.ok) {
-      const secrets = await secretsResponse.json();
+//     if (secretsResponse.ok) {
+//       const secrets = await secretsResponse.json();
 
-      const secret = secrets.client_secrets?.[0]?.client_secret;
-      const result = {
-        clientId: secrets?.client_id,
-        clientSecret: secret
-      };
-      return result;
-    }
-  } catch (error) {
-    // Error handled
-  }
+//       const secret = secrets.client_secrets?.[0]?.client_secret;
+//       const result = {
+//         clientId: secrets?.client_id,
+//         clientSecret: secret
+//       };
+//       return result;
+//     }
+//   } catch (error) {
+//     // Error handled
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
-async function generateToken(apiKey, secret, scopesDetails) {
+// async function generateToken(apiKey, secret, scopesDetails) {
 
-  try {
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        client_id: apiKey,
-        client_secret: secret,
-        grant_type: 'client_credentials',
-        scope: scopesDetails?.scope || '',
-      }),
-    };
+//   try {
+//     const options = {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/x-www-form-urlencoded',
+//       },
+//       body: new URLSearchParams({
+//         client_id: apiKey,
+//         client_secret: secret,
+//         grant_type: 'client_credentials',
+//         scope: scopesDetails?.scope || '',
+//       }),
+//     };
 
-    const url = '/ims/token/v3';
-    const tokenResponse = await fetch(url, options);
+//     const url = '/ims/token/v3';
+//     const tokenResponse = await fetch(url, options);
 
-    if (tokenResponse.ok) {
-      const tokenJson = await tokenResponse.json();
-      return tokenJson.access_token;
-    }
-  } catch (error) {
-    // Error handled
-  }
+//     if (tokenResponse.ok) {
+//       const tokenJson = await tokenResponse.json();
+//       return tokenJson.access_token;
+//     }
+//   } catch (error) {
+//     // Error handled
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
 async function switchOrganization(org) {
 
@@ -625,8 +586,7 @@ async function switchOrganization(org) {
     if (!org) {
       if (orgInLocalStorage) {
         localStorage.removeItem(LOCAL_STORAGE_ORG_KEY);
-      } else {
-      }
+      } 
 
       if (organizationsData && organizationsData.length > 0) {
         const currentAccountOrgs = organizationsData.filter(o => o.accountId === accountId);
@@ -644,7 +604,6 @@ async function switchOrganization(org) {
   if (accountId !== org.accountId) {
 
     await window.adobeIMS?.switchProfile(org.accountId);
-  } else {
   }
 
   // Set the org in local storage
@@ -659,8 +618,7 @@ function clearForm(formContainer) {
   formData.AllowedOrigins = '';
   formData.AdobeDeveloperConsole = false;
   formData.Downloads = false;
-  // Don't clear Download object, it should persist
-
+  
   // Clear form inputs
   const credentialNameInput = formContainer?.querySelector('[data-cy="add-credential-name"]');
   if (credentialNameInput) {
@@ -773,7 +731,6 @@ function updateCredentialCard(cardContainer, responseData) {
 
     // Build complete console URL with org ID and workspace ID
     const orgId = selectedOrganization?.id || responseData.orgId;
-    const workspaceId = responseData.workspaceId;
 
     const consoleUrl = `/console/projects/${orgId}/${projectId}/overview`;
 
@@ -1354,11 +1311,6 @@ function createLoadingPage() {
   const loadingText = createTag('div', { class: 'loading-text' });
   loadingText.textContent = 'Loading...';
   loadingContent.appendChild(loadingText);
-
-  // Additional message
-  // const loadingMessage = createTag('div', { class: 'loading-message' });
-  // loadingMessage.textContent = 'This process may take a few moments.';
-  // loadingContent.appendChild(loadingMessage);
 
   loadingContainer.appendChild(loadingContent);
 
@@ -1943,10 +1895,6 @@ export default async function decorate(block) {
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';
           const zipFileURL = formData.Download?.href;
-
-          console.log("orgId--->", orgId);
-          console.log("projectId--->", projectId);
-          console.log("workspaceId--->", workspaceId);
 
           if (orgId && zipFileURL) {
             const downloadAPI = `/console/api/organizations/${orgId}/projects/${projectId}/workspaces/${workspaceId}/download`;
