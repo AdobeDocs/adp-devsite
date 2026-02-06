@@ -536,7 +536,8 @@ export async function loadAep() {
   }
 
   addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
-    console.log('Adobe Experience Platform loaded');    // eslint-disable-next-line no-undef
+    console.log('Adobe Experience Platform loaded');    
+    // eslint-disable-next-line no-undef
     if (typeof window._satellite !== 'undefined') {
       console.log(`Route tracking page name as: ${location.href}`);
       // eslint-disable-next-line no-undef
@@ -554,8 +555,6 @@ export async function loadAep() {
           }
         }
       );
-
-      clearInterval(intervalId);
     }
   });
 }
