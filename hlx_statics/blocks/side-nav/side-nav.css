@@ -236,7 +236,7 @@ main div.side-nav-wrapper .side-nav-menu-section .nav-playground-button a{
 /* Mobile behavior */
 @media screen and (max-width: 768px) {
   main div.section.side-nav-container {
-      visibility: visible;
+      visibility: visible !important;
   }
 
   main div.side-nav-wrapper div.side-nav {
@@ -276,6 +276,10 @@ main div.side-nav-wrapper .side-nav-menu-section .nav-playground-button a{
 
   main div.side-nav-wrapper  .side-nav-menu-section {
     display: block;
+  }
+
+  main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item .nav-dropdown-description {
+    display: none;
   }
 }
 

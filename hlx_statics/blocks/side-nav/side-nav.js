@@ -104,9 +104,20 @@ export default async function decorate(block) {
           const nestedLink = nestedLi.querySelector('a');
           if (nestedLink) {
             nestedLink.style.fontWeight = '400';
+            const linkText = nestedLink.textContent.trim();
+            const description = nestedLi.textContent.replace(linkText, '').trim();
+            Array.from(nestedLi.childNodes).forEach((node) => {
+              if (node.nodeType === Node.TEXT_NODE) {
+                node.remove();
+              }
+            });
             if (!nestedLi.querySelector('ul')) {
-              nestedLink.innerHTML = nestedLink.textContent.trim();
               nestedLi.classList.add('no-chevron');
+              if (description) {
+                const descSpan = createTag('span', { class: 'nav-dropdown-description' });
+                descSpan.textContent = description;
+                nestedLi.appendChild(descSpan);
+              }
             }
           }
         });
