@@ -706,7 +706,7 @@ function globalDistributeButton() {
 
 function codePlaygroundButton(topButtonsNavHtml) {
   const container = createTag('div', { class: 'nav-buttons-container' });
-  
+
   // Parse the HTML and loop through each li
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = topButtonsNavHtml;
@@ -714,20 +714,20 @@ function codePlaygroundButton(topButtonsNavHtml) {
   [...items].forEach((item, index) => {
     const link = item.querySelector('a');
     if (!link) return;
-    
+
     const href = link.getAttribute('href');
     const title = link.getAttribute('title') || link.textContent;
     const buttonClass = index === 0
       ? 'spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM'
       : 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM';
-    
+
     const buttonDiv = createTag('div');
     buttonDiv.innerHTML = `<a href="${href}" class="${buttonClass}" rel="noopener noreferrer">
       <span class="spectrum-Button-label">${title}</span>
     </a>`;
     container.appendChild(buttonDiv);
   });
-  
+
   return container;
 }
 
@@ -777,7 +777,7 @@ function globalNavLinkItemDropdown(id, name, links) {
          </svg>
       </button>
       <div id="nav-dropdown-popover_${id}" class="spectrum-Popover spectrum-Popover--bottom spectrum-Picker-popover spectrum-Picker-popover--quiet filter-by-popover nav-dropdown-popover">
-        <ul class="spectrum-Menu" role="menu">
+        <ul class="nav-sub-menu spectrum-Menu" role="menu">
           ${links}
         </ul>
       </div>
@@ -789,10 +789,10 @@ function globalNavLinkItemDropdown(id, name, links) {
     `;
 }
 
-function globalNavLinkItemDropdownItem(url, name) {
+function globalNavLinkItemDropdownItem(url, name, description) {
   return `
       <li class="spectrum-Menu-item menu-item">
-        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
+        <span class="spectrum-Menu-itemLabel nav-dropdown-item"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a>${description ? '<span class="nav-dropdown-description">' + description + '</span>' : ''}</span>
       </li>
     `;
 }
@@ -1029,8 +1029,10 @@ export default async function decorate(block) {
 
         dropDownList.querySelectorAll('ul > li').forEach((dropdownLinks) => {
           const link = dropdownLinks.querySelector('a');
+          const linkText = link.textContent.trim();
+          const description = dropdownLinks.textContent.replace(linkText, '').trim();
           dropdownLinksHTML
-            += globalNavLinkItemDropdownItem(link, dropdownLinks.innerText);
+            += globalNavLinkItemDropdownItem(link, linkText, description);
         });
 
         dropdownLinkDropdownHTML = globalNavLinkItemDropdown(

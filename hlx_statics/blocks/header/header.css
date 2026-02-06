@@ -347,9 +347,26 @@ header.global-nav-header > ul#navigation-links > li {
   align-items: center;
 }
 
+header.global-nav-header ul.nav-sub-menu {
+  max-width: 230px;
+}
+
+header.global-nav-header li .nav-dropdown-item{
+  display: flex;
+  flex-direction: column;
+}
+
+header.global-nav-header li .nav-dropdown-item .nav-dropdown-description {
+  font-size: 12px;
+  text-wrap: initial;
+}
+
 header.global-nav-header a.nav-dropdown-links {
   text-decoration: none;
   color: rgb(70, 70, 70);
+  font-size: 14px;
+  font-style: initial;
+  font-weight: 0;
 }
 
 header.global-nav-header a.nav-dropdown-links:visited {
@@ -480,10 +497,10 @@ header div.nav-console-search-frame {
     background-color: transparent;
     height: calc(100% - 64px);
     margin: auto;
-    display: flex; 
+    display: flex;
     flex-direction: column;
     align-items: center;
-    visibility: hidden; 
+    visibility: hidden;
 }
 
 header svg.search-icon {
@@ -602,7 +619,7 @@ header div.search-results {
   justify-content: center;
   width: 100%;
   height: calc(100% - 96px);
-  visibility: hidden;  
+  visibility: hidden;
 }
 
 header div.search-results.has-results {
@@ -796,6 +813,10 @@ header.global-nav-header div.nav-buttons-container {
     display: flex;
     align-items: center;
     height: 100%;
+  }
+
+  header.global-nav-header li .nav-dropdown-item .nav-dropdown-description {
+    display: none;
   }
 
   header .nav-console-right-container {
