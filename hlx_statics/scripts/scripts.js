@@ -365,197 +365,8 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
   };
 }
 
-export async function loadAep() {
-  addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
-
-  const intervalId = setInterval(watchVariable, 1000);
-  function watchVariable() {
-    // wait for _satellite to become available and track page
-    // eslint-disable-next-line no-undef
-    if (typeof window._satellite !== 'undefined') {
-      console.log(`Route tracking page name as: ${location.href}`);
-
-      // eslint-disable-next-line no-undef
-      _satellite.track('state',
-        {
-          xdm: {},
-          data: {
-            _adobe_corpnew: {
-              web: {
-                webPageDetails: {
-                  customPageName: location.href
-                }
-              }
-            }
-          }
-        }
-      );
-
-      clearInterval(intervalId);
-    }
-  }
-}
-
-export async function loadIms() {
-  window.imsLoaded =
-    window.imsLoaded ||
-    new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('IMS timeout')), 5000);
-
-      // different IMS clients
-      if (isHlxPath(window.location.host)) {
-        const client_id = 'helix_adobeio';
-        const scope = 'AdobeID,openid,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
-        const environment = 'stg1';
-        const logsEnabled = true;
-
-        setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
-      } else if (!isHlxPath(window.location.host) && isStageEnvironment(window.location.host)) {
-        if (window.location.pathname.includes('/photoshop/api')) {
-          const client_id = 'cis_easybake';
-          const scope = 'AdobeID,openid,creative_sdk,creative_cloud,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye';
-          const environment = 'stg1';
-          const logsEnabled = true;
-
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
-        } else {
-          const client_id = 'stage_adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
-          const environment = 'stg1';
-          const logsEnabled = true;
-
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
-        }
-      } else if (!isHlxPath(window.location.host) && !isStageEnvironment(window.location.host)) {
-        if (window.location.pathname.includes('/photoshop/api')) {
-          const client_id = 'cis_easybake';
-          const scope = 'AdobeID,openid,creative_sdk,creative_cloud,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye';
-          const environment = 'prod';
-          const logsEnabled = false;
-
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
-        } else {
-          const client_id = 'adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
-          const environment = 'prod';
-          const logsEnabled = false;
-
-          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
-        }
-      }
-
-      if (isHlxPath(window.location.host) || isStageEnvironment(window.location.host)) {
-        addExtraScript(document.body, 'https://auth-stg1.services.adobe.com/imslib/imslib.js');
-      } else {
-        addExtraScript(document.body, 'https://auth.services.adobe.com/imslib/imslib.min.js');
-      }
-    });
-  return window.imsLoaded;
-}
-
-/**
- * Load config items into the window for use
- */
-function loadConfig() {
-
-  window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTc1OTI2MDMzNiwiZSI6MTc5MDgwMTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iLCJkZXZob21lLmNvcnAuYWRvYmUuY29tIiwiZGV2LmRldmhvbWUuY29ycC5hZG9iZS5jb20iLCJzdGFnZS0tYWRwLWRldnNpdGUtc3RhZ2UtLWFkb2JlZG9jcy5hZW0ucGFnZSJdLCJzIjoicG9ydGFsIn0=.bz4A/pSTnw14pUI64iQ3i/xiPkh2TosUpUJg4C0W/K7ZeyIPB7K9TTX1zo+cr7GZN6eqaAKv6gBGoG4xWL1rxw==`;
-
-  // cookie preference
-  window.fedsConfig = {
-    privacy: {
-      otDomainId: '7a5eb705-95ed-4cc4-a11d-0cc5760e93db',
-      footerLinkSelector: '#openPrivacy',
-    },
-  };
-
-  window.alloy_all = window.alloy_all || {};
-  window.alloy_all.data = window.alloy_all.data || {};
-  window.alloy_all.data._adobe_corpnew = window.alloy_all.data._adobe_corpnew || {};
-  window.alloy_all.data._adobe_corpnew.digitalData = window.alloy_all.data._adobe_corpnew.digitalData || {};
-  window.alloy_all.data._adobe_corpnew.digitalData.page = window.alloy_all.data._adobe_corpnew.digitalData.page || {};
-  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo = window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo || {};
-  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo.language = 'en-US';
-
-  let launchURL;
-  let edgeConfigId;
-
-  // if on stage, dev or on .page - set analytics to dev
-  isProdEnvironment
-  if (isProdEnvironment(window.location.host)) {
-    edgeConfigId = '57c20bab-94c3-425e-95cb-0b9948b1fdd4';
-    launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js';
-
-  } else {
-    edgeConfigId = 'a44f0037-2ada-441f-a012-243832ce5ff9';
-    launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js';
-  }
-
-  window.marketingtech = {
-    adobe: {
-      launch: {
-        url: launchURL,
-        controlPageLoad: true,
-      },
-      alloy: {
-        edgeConfigId: edgeConfigId,
-      },
-      target: false,
-      audienceManager: false,
-    }
-  };
-}
-
-/**
- * loads everything that doesn't need to be delayed.
- */
-async function loadLazy(doc) {
-  const main = doc.querySelector('main');
-
-  addExtraScript(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js');
-
-  // Check for C0002 (Performance/Analytics) consent before loading AEP - part of new privacy library implementation
-  function checkConsent() {
-    // Check if adobePrivacy is available
-    if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
-      console.error('Privacy library not loaded yet, waiting for consent events');
-      return;
-    }
-
-    const activeGroups = window.adobePrivacy.activeCookieGroups();
-    
-    // Check if user gave permission for performance/analytics tracking (C0002)
-    if (activeGroups.indexOf('C0002') !== -1) {
-      loadAep();
-    } else {
-      console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
-    }
-  }
-  
-  // Listen for consent events from the privacy library
-  window.addEventListener('adobePrivacy:PrivacyConsent', () => {
-    // Event: User accepted all consent
-    checkConsent();
-  });
-
-  window.addEventListener('adobePrivacy:PrivacyCustom', () => {
-    // Event: User customized consent preferences
-    checkConsent();
-  });
-
-  window.addEventListener('adobePrivacy:PrivacyReject', () => {
-    // Event: User rejected optional consent
-    checkConsent();
-  });
-
-  // Check immediately if privacy library already loaded (return visitor)
-  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
-    // Privacy library already available, checking consent immediately
-    checkConsent();
-  }
-
-  loadIms();
-
-  // load algolia scripts
+export function loadSearch() {
+// load algolia scripts
   // sources: https://www.jsdelivr.com/package/npm/algoliasearch
   // sources: https://www.jsdelivr.com/package/npm/instantsearch.js
   addExtraScriptWithLoad(
@@ -715,7 +526,203 @@ async function loadLazy(doc) {
     // Initialize promise as unresolved
     window.adp_search.indicesValidationPromise = null;
   }
+}
 
+export async function loadAep() {
+  // Don't load AEP on localhost
+  if (isLocalHostEnvironment(window.location.host)) {
+    console.log('Adobe Experience Platform not loaded on localhost');
+    return;
+  }
+
+  addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
+    console.log('Adobe Experience Platform loaded');    // eslint-disable-next-line no-undef
+    if (typeof window._satellite !== 'undefined') {
+      console.log(`Route tracking page name as: ${location.href}`);
+      // eslint-disable-next-line no-undef
+      _satellite.track('state',
+        {
+          xdm: {},
+          data: {
+            _adobe_corpnew: {
+              web: {
+                webPageDetails: {
+                  customPageName: location.href
+                }
+              }
+            }
+          }
+        }
+      );
+
+      clearInterval(intervalId);
+    }
+  });
+}
+
+export function loadPrivacyStandalone() {
+  addExtraScript(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js');
+
+  // Check for C0002 (Performance/Analytics) consent before loading AEP - part of new privacy library implementation
+  function checkConsent() {
+    // Check if adobePrivacy is available
+    if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
+      console.error('Privacy library not loaded yet, waiting for consent events');
+      return;
+    }
+
+    const activeGroups = window.adobePrivacy.activeCookieGroups();
+    
+    // Check if user gave permission for performance/analytics tracking (C0002)
+    if (activeGroups.indexOf('C0002') !== -1) {
+      loadAep();
+    } else {
+      console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
+    }
+  }
+  
+  // Listen for consent events from the privacy library
+  window.addEventListener('adobePrivacy:PrivacyConsent', () => {
+    // Event: User accepted all consent
+    checkConsent();
+  });
+
+  window.addEventListener('adobePrivacy:PrivacyCustom', () => {
+    // Event: User customized consent preferences
+    checkConsent();
+  });
+
+  window.addEventListener('adobePrivacy:PrivacyReject', () => {
+    // Event: User rejected optional consent
+    checkConsent();
+  });
+
+  // Check immediately if privacy library already loaded (return visitor)
+  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
+    // Privacy library already available, checking consent immediately
+    checkConsent();
+  }
+}
+
+export async function loadIms() {
+  window.imsLoaded =
+    window.imsLoaded ||
+    new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('IMS timeout')), 5000);
+
+      // different IMS clients
+      if (isHlxPath(window.location.host)) {
+        const client_id = 'helix_adobeio';
+        const scope = 'AdobeID,openid,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
+        const environment = 'stg1';
+        const logsEnabled = true;
+
+        setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
+      } else if (!isHlxPath(window.location.host) && isStageEnvironment(window.location.host)) {
+        if (window.location.pathname.includes('/photoshop/api')) {
+          const client_id = 'cis_easybake';
+          const scope = 'AdobeID,openid,creative_sdk,creative_cloud,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye';
+          const environment = 'stg1';
+          const logsEnabled = true;
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
+        } else {
+          const client_id = 'stage_adobe_io';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
+          const environment = 'stg1';
+          const logsEnabled = true;
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
+        }
+      } else if (!isHlxPath(window.location.host) && !isStageEnvironment(window.location.host)) {
+        if (window.location.pathname.includes('/photoshop/api')) {
+          const client_id = 'cis_easybake';
+          const scope = 'AdobeID,openid,creative_sdk,creative_cloud,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye';
+          const environment = 'prod';
+          const logsEnabled = false;
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
+        } else {
+          const client_id = 'adobe_io';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
+          const environment = 'prod';
+          const logsEnabled = false;
+
+          setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
+        }
+      }
+
+      if (isHlxPath(window.location.host) || isStageEnvironment(window.location.host)) {
+        addExtraScript(document.body, 'https://auth-stg1.services.adobe.com/imslib/imslib.js');
+      } else {
+        addExtraScript(document.body, 'https://auth.services.adobe.com/imslib/imslib.min.js');
+      }
+    });
+  return window.imsLoaded;
+}
+
+/**
+ * Load config items into the window for use
+ */
+function loadConfig() {
+
+  window.REDOCLY = `eyJ0IjpmYWxzZSwiaSI6MTc1OTI2MDMzNiwiZSI6MTc5MDgwMTQxNywiaCI6WyJyZWRvYy5seSIsImRldmVsb3Blci5hZG9iZS5jb20iLCJkZXZlbG9wZXItc3RhZ2UuYWRvYmUuY29tIiwiZGV2ZWxvcGVyLmZyYW1lLmlvIiwiZGV2ZWxvcGVyLmRldi5mcmFtZS5pbyIsImxvY2FsaG9zdC5jb3JwLmFkb2JlLmNvbSIsInJlZG9jbHktYXBpLWJsb2NrLS1hZHAtZGV2c2l0ZS0tYWRvYmVkb2NzLmFlbS5wYWdlIiwiZGV2ZWxvcGVyLWRldi5hZG9iZS5jb20iLCJkZXZob21lLmNvcnAuYWRvYmUuY29tIiwiZGV2LmRldmhvbWUuY29ycC5hZG9iZS5jb20iLCJzdGFnZS0tYWRwLWRldnNpdGUtc3RhZ2UtLWFkb2JlZG9jcy5hZW0ucGFnZSJdLCJzIjoicG9ydGFsIn0=.bz4A/pSTnw14pUI64iQ3i/xiPkh2TosUpUJg4C0W/K7ZeyIPB7K9TTX1zo+cr7GZN6eqaAKv6gBGoG4xWL1rxw==`;
+
+  // cookie preference
+  window.fedsConfig = {
+    privacy: {
+      otDomainId: '7a5eb705-95ed-4cc4-a11d-0cc5760e93db',
+      footerLinkSelector: '#openPrivacy',
+    },
+  };
+
+  window.alloy_all = window.alloy_all || {};
+  window.alloy_all.data = window.alloy_all.data || {};
+  window.alloy_all.data._adobe_corpnew = window.alloy_all.data._adobe_corpnew || {};
+  window.alloy_all.data._adobe_corpnew.digitalData = window.alloy_all.data._adobe_corpnew.digitalData || {};
+  window.alloy_all.data._adobe_corpnew.digitalData.page = window.alloy_all.data._adobe_corpnew.digitalData.page || {};
+  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo = window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo || {};
+  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo.language = 'en-US';
+
+  let launchURL;
+  let edgeConfigId;
+
+  // if on stage, dev or on .page - set analytics to dev
+  isProdEnvironment
+  if (isProdEnvironment(window.location.host)) {
+    edgeConfigId = '57c20bab-94c3-425e-95cb-0b9948b1fdd4';
+    launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js';
+
+  } else {
+    edgeConfigId = 'a44f0037-2ada-441f-a012-243832ce5ff9';
+    launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js';
+  }
+
+  window.marketingtech = {
+    adobe: {
+      launch: {
+        url: launchURL,
+        controlPageLoad: true,
+      },
+      alloy: {
+        edgeConfigId: edgeConfigId,
+      },
+      target: false,
+      audienceManager: false,
+    }
+  };
+}
+
+/**
+ * loads everything that doesn't need to be delayed.
+ */
+async function loadLazy(doc) {
+  const main = doc.querySelector('main');
+
+  loadPrivacyStandalone();
+  loadIms();
+  loadSearch();
+  
   if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
     window.adobeImsFactory.createIMSLib(window.adobeid);
   }
@@ -782,7 +789,7 @@ async function loadLazy(doc) {
 
   scrollToHash(doc);
 
-  if (window.location.hostname.endsWith('hlx.page') || window.location.hostname === ('localhost')) {
+  if (window.location.hostname.endsWith('aem.page') || window.location.hostname === ('localhost')) {
     // eslint-disable-next-line import/no-cycle
     import('../../tools/preview/experimentation-preview.js');
   }
