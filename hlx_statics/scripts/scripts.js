@@ -365,7 +365,7 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
   };
 }
 
-export function loadSearch() {
+export async function loadSearch() {
 // load algolia scripts
   // sources: https://www.jsdelivr.com/package/npm/algoliasearch
   // sources: https://www.jsdelivr.com/package/npm/instantsearch.js
