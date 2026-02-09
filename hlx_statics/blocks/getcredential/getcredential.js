@@ -4,7 +4,7 @@
  * @param {Element} block The getcredential block element
  */
 
-import { createTag } from "../../scripts/lib-adobeio.js";
+import { createTag, isLocalHostEnvironment, isStageEnvironment } from "../../scripts/lib-adobeio.js";
 import { getMetadata } from "../../scripts/scripts.js";
 import {
   createFieldLabel,
@@ -1544,8 +1544,12 @@ export default async function decorate(block) {
     const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
 
     // Get template configuration from JSON - use templateId from config
+    const isStageOrLocalHost = isStageEnvironment(window.location.host)
+      || isLocalHostEnvironment(window.location.host);
     templateData = {
-      id: getCredConfig?.templateId
+      id: isStageOrLocalHost
+        ? (getCredConfig?.stageTemplateId ?? getCredConfig?.templateId)
+        : getCredConfig?.templateId
     };
 
     if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
