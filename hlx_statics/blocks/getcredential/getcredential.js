@@ -142,6 +142,39 @@ const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
 // API FUNCTIONS
 // ============================================================================
 
+
+async function getOrgIdWithFallback(initialOrgId = null) {
+  let orgId = initialOrgId || selectedOrganization?.code || selectedOrganization?.id || templateData?.orgId;
+  
+  if (!orgId) {
+    try {
+      if (organizationsData && organizationsData.length > 0) {
+        const profile = await window.adobeIMS?.getProfile();
+        const accountId = profile?.userId;
+        const currentAccountOrgs = organizationsData.filter(o => o.accountId === accountId);
+        const defaultOrg = currentAccountOrgs.filter(o => o.default)[0] ?? currentAccountOrgs[0];
+        orgId = defaultOrg?.code || defaultOrg?.id;
+      }
+      
+      // If still no orgId, try to get from IMS profile projectedProductContext
+      if (!orgId) {
+        const profile = await window.adobeIMS?.getProfile();
+        if (profile?.projectedProductContext && profile.projectedProductContext.length > 0) {
+          orgId = profile.projectedProductContext[0].prodCtx.owningEntity;
+        }
+      }
+      
+      if (orgId) {
+        console.log('[GET ORG ID] orgId fallback resolved:', orgId);
+      }
+    } catch (error) {
+      console.error('[GET ORG ID] Failed to get default orgId:', error);
+    }
+  }
+  
+  return orgId || null;
+}
+
 async function createCredential() {
   const token = window.adobeIMS?.getTokenFromStorage()?.token;
   if (!token) {
@@ -164,13 +197,20 @@ async function createCredential() {
       : [],
   })) || [];
 
+  const orgId = await getOrgIdWithFallback();
+
+  if (!orgId) {
+    console.error('[CREATE CREDENTIAL] orgId is still undefined after all fallback attempts');
+    throw new Error('Please select an organization to create credentials. If you don\'t see any organizations, please contact your administrator to ensure you have access to an organization.');
+  }
+  
   const data = {
     projectName: formData.CredentialName,
     description: 'created for get credential',
     metadata: {
       domain: formData.AllowedOrigins,
     },
-    orgId: selectedOrganization?.code || templateData.orgId,
+    orgId: orgId,
     apis,
   };
 
@@ -198,9 +238,31 @@ async function createCredential() {
       const jsonMatch = errorText.match(/\((\{.*\})\)/);
       if (jsonMatch) {
         const errorDetails = JSON.parse(jsonMatch[1]);
-        errorMessage = errorDetails.messages[0]?.message || errorMessage;
+        const rawMessage = errorDetails.messages[0]?.message || errorText;
+        const lowerMessage = rawMessage.toLowerCase();
+        if (lowerMessage.includes('orgid') && (lowerMessage.includes('undefined') || lowerMessage.includes('required') || lowerMessage.includes('invalid'))) {
+          errorMessage = 'Please select an organization to create credentials. Use the "Change organization" link above to select an organization.';
+        } else if (lowerMessage.includes('permission') || lowerMessage.includes('not allowed') || lowerMessage.includes('forbidden')) {
+          errorMessage = 'You don\'t have permission to create credentials in this organization. Please select a different organization or contact your administrator for access.';
+        } else if (lowerMessage.includes('organization') && (lowerMessage.includes('not found') || lowerMessage.includes('invalid'))) {
+          errorMessage = 'The selected organization is not available. Please select a different organization using the "Change organization" link above.';
+        } else if (lowerMessage.includes('unauthorized') || lowerMessage.includes('401')) {
+          errorMessage = 'Your session has expired. Please sign in again and try creating the credential.';
+        } else {
+          errorMessage = rawMessage.replace(/Expected a string\. Received: undefined/gi, 'Please select an organization')
+                                   .replace(/at: orgId/gi, '')
+                                   .replace(/Invalid value/gi, 'Invalid organization')
+                                   .trim();
+        }
       } else {
-        errorMessage = errorText;
+        const lowerText = errorText.toLowerCase();
+        if (lowerText.includes('orgid') && (lowerText.includes('undefined') || lowerText.includes('required'))) {
+          errorMessage = 'Please select an organization to create credentials. Use the "Change organization" link above to select an organization.';
+        } else if (lowerText.includes('permission') || lowerText.includes('not allowed')) {
+          errorMessage = 'You don\'t have permission to create credentials in this organization. Please select a different organization or contact your administrator for access.';
+        } else {
+          errorMessage = errorText;
+        }
       }
     }
     console.error('[CREATE CREDENTIAL] Error:', errorMessage);
@@ -1888,9 +1950,8 @@ export default async function decorate(block) {
         const downloadsCheckbox = formContainer?.querySelector('.downloads-checkbox');
 
         if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
-          console.log("credentialResponse--->", credentialResponse);
-          console.log("selectedOrganization--->", selectedOrganization);
-          const orgId = selectedOrganization?.id;
+          const orgId = await getOrgIdWithFallback(selectedOrganization?.id);
+          
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';
@@ -1980,7 +2041,7 @@ export default async function decorate(block) {
     e.preventDefault();
 
     if (credentialResponse) {
-      const orgId = selectedOrganization?.id || credentialResponse.orgId;
+      const orgId = await getOrgIdWithFallback(selectedOrganization?.id || credentialResponse.orgId);
       const projectId = credentialResponse.projectId;
       const workspaceId = credentialResponse.workspaceId;
       const fileName = formData.CredentialName || 'credential';
