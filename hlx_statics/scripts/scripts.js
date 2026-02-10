@@ -529,34 +529,56 @@ export async function loadSearch() {
 }
 
 export async function loadAep() {
-  // Don't load AEP on localhost
-  if (isLocalHostEnvironment(window.location.host)) {
-    console.log('Adobe Experience Platform not loaded on localhost');
-    return;
-  }
+  window.aepLoaded =
+    window.aepLoaded ||
+    new Promise((resolve, reject) => {
+      // Don't load AEP on localhost
+      if (isLocalHostEnvironment(window.location.host)) {
+        console.log('Adobe Experience Platform not loaded on localhost');
+        resolve();
+        return;
+      }
 
-  addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
-    console.log('Adobe Experience Platform loaded');    
-    // eslint-disable-next-line no-undef
-    if (typeof window._satellite !== 'undefined') {
-      console.log(`Route tracking page name as: ${location.href}`);
-      // eslint-disable-next-line no-undef
-      _satellite.track('state',
-        {
-          xdm: {},
-          data: {
-            _adobe_corpnew: {
-              web: {
-                webPageDetails: {
-                  customPageName: location.href
+      addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
+        console.log('Adobe Experience Platform loaded');
+
+        // Track page view when _satellite is available
+        const timeout = setTimeout(() => {
+          // Resolve even if _satellite never becomes available
+          resolve();
+        }, 5000);
+
+        const trackPageView = () => {
+          // eslint-disable-next-line no-undef
+          if (typeof window._satellite !== 'undefined') {
+            clearTimeout(timeout);
+            console.log(`Route tracking page name as: ${location.href}`);
+            // eslint-disable-next-line no-undef
+            _satellite.track('state',
+              {
+                xdm: {},
+                data: {
+                  _adobe_corpnew: {
+                    web: {
+                      webPageDetails: {
+                        customPageName: location.href
+                      }
+                    }
+                  }
                 }
               }
-            }
+            );
+            resolve();
+          } else {
+            // If _satellite not ready yet, check again after a short delay
+            setTimeout(trackPageView, 100);
           }
-        }
-      );
-    }
-  });
+        };
+
+        trackPageView();
+      });
+    });
+  return window.aepLoaded;
 }
 
 export function loadPrivacyStandalone() {
@@ -719,16 +741,16 @@ async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
   loadPrivacyStandalone();
-  loadIms();
-  loadSearch();
-  
-  if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
-    window.adobeImsFactory.createIMSLib(window.adobeid);
-  }
+  loadIms().then(() => {
+    if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
+      window.adobeImsFactory.createIMSLib(window.adobeid);
+    }
 
-  if (window.adobeIMS && window.adobeIMS.initialize) {
-    window.adobeIMS.initialize();
-  }
+    if (window.adobeIMS && window.adobeIMS.initialize) {
+      window.adobeIMS.initialize();
+    }
+  });
+  loadSearch();
 
   await loadBlocks(main);
 
