@@ -1184,6 +1184,30 @@ export default async function decorate(block) {
 
   showSpinner();
 
+  // Helper function to ensure header is ready before decorating profile
+  const decorateProfileWhenReady = (profile, attempts = 0) => {
+    const signInElement = document.querySelector('div.nav-sign-in');
+    if (signInElement) {
+      // Header is ready, decorate immediately
+      decorateProfile(profile);
+      fetchProfileAvatar(profile.userId);
+    } else if (attempts < 10) {
+      // Header not ready yet, wait for next frame and try again (max 10 attempts)
+      requestAnimationFrame(() => {
+        decorateProfileWhenReady(profile, attempts + 1);
+      });
+    } else {
+      // Fallback: try one more time after a short delay
+      setTimeout(() => {
+        const signInElement = document.querySelector('div.nav-sign-in');
+        if (signInElement && window.adobeid && window.adobeid.profile) {
+          decorateProfile(window.adobeid.profile);
+          fetchProfileAvatar(window.adobeid.profile.userId);
+        }
+      }, 100);
+    }
+  };
+
   // Handle IMS ready state - check current state and listen for future events
   if (window.adp && window.adp.imsStatus === LoadingState.SUCCESS) {
     hideSpinner();
@@ -1203,8 +1227,8 @@ export default async function decorate(block) {
   if (window.adp && window.adp.imsProfile === LoadingState.SUCCESS) {
     hideSpinner();
     if(window.adobeid && window.adobeid.profile) {
-      decorateProfile(window.adobeid.profile);
-      fetchProfileAvatar(window.adobeid.profile.userId);
+      // Use helper to ensure header is ready
+      decorateProfileWhenReady(window.adobeid.profile);
     }
   }
 
@@ -1231,8 +1255,8 @@ export default async function decorate(block) {
   window.addEventListener('imsGetProfileSuccess', () => {
     hideSpinner();
     if(window.adobeid && window.adobeid.profile) {
-      decorateProfile(window.adobeid.profile);
-      fetchProfileAvatar(window.adobeid.profile.userId);
+      // Use helper to ensure header is ready
+      decorateProfileWhenReady(window.adobeid.profile);
     }
   });
 
