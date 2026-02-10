@@ -56,6 +56,7 @@ import {
   imsGetProfileSuccess,
   imsGetProfileError,
   scrollWithLayoutAdjustment,
+  whenFirstVisible
 } from './lib-adobeio.js';
 
 export {
@@ -539,7 +540,8 @@ export async function loadAep() {
         return;
       }
 
-      addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
+      whenFirstVisible.then(() => {
+        addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
         console.log('Adobe Experience Platform loaded');
 
         // Track page view when _satellite is available
@@ -576,6 +578,7 @@ export async function loadAep() {
         };
 
         trackPageView();
+      });
       });
     });
   return window.aepLoaded;

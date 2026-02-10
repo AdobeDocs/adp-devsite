@@ -879,10 +879,10 @@ function globalNavProfileTemplate(profile) {
             <div class="nav-profile-popover-divider">
               <hr />
             </div>
-            <a href="https://account.adobe.com/" class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit">
+            <a href="https://account.adobe.com/" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit">
               Edit Profile
             </a>
-            <a href="#" id="signOut" class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out">
+            <a href="#" id="signOut" data-prefetch=false class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out">
               Sign out
             </a>
           </div>
@@ -1173,3 +1173,15 @@ export async function redirect() {
     }
   }
 }
+
+/**
+ * Waits for the page to be visible before resolving the promise
+ * @returns {Promise} A promise that resolves when the page is visible
+ */
+export const whenFirstVisible = new Promise((resolve) => {
+  if (document.hidden) {
+    document.addEventListener('visibilitychange', resolve, {once: true});
+  } else {
+    resolve();
+  }
+});
