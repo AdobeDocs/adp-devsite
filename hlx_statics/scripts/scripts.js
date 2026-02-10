@@ -743,6 +743,7 @@ function loadConfig() {
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
+  loadAep();
   loadPrivacyStandalone();
   loadIms().then(() => {
     if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
