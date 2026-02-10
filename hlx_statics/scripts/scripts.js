@@ -619,13 +619,13 @@ export function loadPrivacyStandalone() {
       // Event: User rejected optional consent
       checkConsent();
     });
-
-    // Check immediately if privacy library already loaded (return visitor)
-    if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
-      // Privacy library already available, checking consent immediately
-      checkConsent();
-    }
   });
+
+  // Check immediately if privacy library already loaded (return visitor)
+  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
+    // Privacy library already available, checking consent immediately
+    checkConsent();
+  }
 }
 
 export async function loadIms() {
