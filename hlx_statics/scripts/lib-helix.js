@@ -849,6 +849,8 @@ export function initHlx() {
 export function githubActionsBlock(doc) {
   let baseUrl = getMetadata('githubblobpath');
   let hideEditInGitHub = getMetadata('hideeditingithub') === 'true';
+  let hideCopyMarkdownButton = getMetadata('hidecopymarkdown') === 'true';
+  let hideLogAnIssueButton = getMetadata('hidelogissue') === 'true';
   if (!baseUrl) return;
   const githubEditUrl = baseUrl.replace('blob', 'edit');
   const githubIssueUrl = baseUrl.replace('blob', 'issues/new?title=Issue%20in%20');
@@ -864,13 +866,13 @@ export function githubActionsBlock(doc) {
                           </div>
                           <div>Edit in GitHub</div> 
                       </a>` : ''}
-                      <a class="action-buttons" target="_blank" rel="noopener noreferrer nofollow" href=${githubIssueUrl} role="button">
+                      ${!hideLogAnIssueButton ? `<a class="action-buttons" target="_blank" rel="noopener noreferrer nofollow" href=${githubIssueUrl} role="button">
                           <div>
                              <svg aria-hidden="true" role="img" viewBox="0 0 36 36" aria-label="Bug" class="spectrum-Icon spectrum-Icon--sizeS"><path d="M26.194 7.242A9.8 9.8 0 0 0 18 3a9.8 9.8 0 0 0-8.194 4.242A11.943 11.943 0 0 0 18 10.5a11.943 11.943 0 0 0 8.194-3.258zm-20.978-.85L2.548 7.726a18.1 18.1 0 0 0 4.581 5.114A27.459 27.459 0 0 0 6.118 18H0v3h6.045a13.6 13.6 0 0 0 2.5 6.363 15.078 15.078 0 0 0-4.5 6.16l2.7 1.35a12.052 12.052 0 0 1 3.774-5.2 11.571 11.571 0 0 0 5.981 3.185V13.5A14.982 14.982 0 0 1 5.216 6.392zM36 21v-3h-6.118a27.459 27.459 0 0 0-1.011-5.16 18.1 18.1 0 0 0 4.581-5.114l-2.668-1.334A14.982 14.982 0 0 1 19.5 13.5v19.358a11.571 11.571 0 0 0 5.979-3.185 12.052 12.052 0 0 1 3.774 5.2l2.7-1.35a15.078 15.078 0 0 0-4.5-6.16A13.6 13.6 0 0 0 29.955 21z"></path></svg>
                           </div>
                           <div>Log an issue</div>
-                      </a>
-                      <a role="button" class="copy-markdown-button action-buttons" data-github-url="${baseUrl}" onclick="copyMarkdownContent(this, event)" role="button">
+                      </a>` : ''}
+                      ${!hideCopyMarkdownButton ? `<a role="button" class="copy-markdown-button action-buttons" data-github-url="${baseUrl}" onclick="copyMarkdownContent(this, event)" role="button">
                         <div>
                           <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
                             <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="9" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="7" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="5" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="3" /><rect class="fill" height="1" rx="0.25" width="1" x="16" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="14" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="12" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="10" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="8" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="1" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="3" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="5" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="7" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="9" /><rect class="fill" height="1" rx="0.25" width="1" x="6" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="8" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="10" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="12" y="11" /><rect class="fill" height="1" rx="0.25" width="1" x="14" y="11" /><path class="fill" d="M5,6H1.5a.5.5,0,0,0-.5.5v10a.5.5,0,0,0,.5.5h10a.5.5,0,0,0,.5-.5V13H5.5a.5.5,0,0,1-.5-.5Z" />
@@ -878,6 +880,7 @@ export function githubActionsBlock(doc) {
                         </div>
                         <div class="copy-markdown-button-label">Copy as Markdown</div>
                       </a>
+                      ` : ''}
               </div>
       `;
     const contentHeader = doc.querySelector('.content-header');
