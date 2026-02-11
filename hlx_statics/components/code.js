@@ -80,7 +80,7 @@ export default function decoratePreformattedCode(block) {
         return cleanClassName;
       }).filter(className => className.trim()).join(' ');
     };
-
+    
     processClasses(pre);
     code && processClasses(code);
   }
