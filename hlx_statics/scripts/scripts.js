@@ -22,6 +22,7 @@ import {
 } from './lib-helix.js';
 
 import {
+  buildAIAssistant,
   buildBreadcrumbs,
   buildCodes,
   buildContributors,
@@ -157,6 +158,12 @@ function loadContributors(contributors) {
   loadBlock(contributorsBlock);
 }
 
+function loadAIAssistant() {
+  const aiAssistantBlock = buildBlock('ai-assistant', '');
+  aiAssistantBlock.append(ai-assistantBlock);
+  decorateBlock(aiAssistantBlock);
+  loadBlock(aiAssistantBlock);
+}
 /**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
@@ -805,6 +812,9 @@ async function loadLazy(doc) {
       buildResources(main);
     }
   }
+
+  buildAIAssistant(main);
+  loadAIAssistant(doc.querySelector('.ai-assistant-wrapper'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   addFavIcon('/hlx_statics/icons/adobe.svg');
