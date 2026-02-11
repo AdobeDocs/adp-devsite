@@ -8,7 +8,7 @@ import {
   fetchProfileAvatar,
   LoadingState
 } from '../../scripts/lib-adobeio.js';
-import { readBlockConfig, getMetadata, fetchTopNavHtml } from '../../scripts/lib-helix.js';
+import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 const ALGOLIA_CONFIG = {
@@ -63,16 +63,14 @@ async function initSearch() {
   if (window.adp_search.indicesValidationPromise) {
     try {
       await window.adp_search.indicesValidationPromise;
-      console.log('Index validation complete, initializing search');
     } catch (error) {
       console.warn('Index validation failed, proceeding with available indices:', error);
     }
   }
 
-  const { liteClient: algoliasearch } = window["algoliasearch/lite"];
   const { connectAutocomplete } = instantsearch.connectors;
 
-  const searchClient = algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
+  const searchClient = window.algoliasearch.algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
   const SUGGESTION_MAX_RESULTS = 50;
   const SEARCH_MAX_RESULTS = 100;
 
@@ -553,6 +551,16 @@ async function initSearch() {
   updateSearch();
 }
 
+function globalConsoleButton() {
+  const div = createTag('div', { class: 'nav-console-button' });
+  div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary  spectrum-Button--sizeM">
+    <span class="spectrum-Button-label">
+      Console
+    </span>
+  </a>`;
+  return div;
+}
+
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
   div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
@@ -696,14 +704,31 @@ function globalDistributeButton() {
   return div;
 }
 
-function globalConsoleButton() {
-  const div = createTag('div', { class: 'nav-console-button' });
-  div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary  spectrum-Button--sizeM">
-    <span class="spectrum-Button-label">
-      Console
-    </span>
-  </a>`;
-  return div;
+function codePlaygroundButton(topButtonsNavHtml) {
+  const container = createTag('div', { class: 'nav-buttons-container' });
+
+  // Parse the HTML and loop through each li
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = topButtonsNavHtml;
+  const items = tempDiv.querySelectorAll('li');
+  [...items].forEach((item, index) => {
+    const link = item.querySelector('a');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    const title = link.getAttribute('title') || link.textContent;
+    const buttonClass = index === 0
+      ? 'spectrum-Button spectrum-Button--outline spectrum-Button--accent spectrum-Button--sizeM'
+      : 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM';
+
+    const buttonDiv = createTag('div');
+    buttonDiv.innerHTML = `<a href="${href}" class="${buttonClass}" rel="noopener noreferrer">
+      <span class="spectrum-Button-label">${title}</span>
+    </a>`;
+    container.appendChild(buttonDiv);
+  });
+
+  return container;
 }
 
 function globalMobileDistributeButton() {
@@ -803,7 +828,7 @@ function globalNavLinkItemDropdown(id, name, links) {
          </svg>
       </button>
       <div id="nav-dropdown-popover_${id}" class="spectrum-Popover spectrum-Popover--bottom spectrum-Picker-popover spectrum-Picker-popover--quiet filter-by-popover nav-dropdown-popover">
-        <ul class="spectrum-Menu" role="menu">
+        <ul class="nav-sub-menu spectrum-Menu" role="menu">
           ${links}
         </ul>
       </div>
@@ -815,10 +840,10 @@ function globalNavLinkItemDropdown(id, name, links) {
     `;
 }
 
-function globalNavLinkItemDropdownItem(url, name) {
+function globalNavLinkItemDropdownItem(url, name, description) {
   return `
       <li class="spectrum-Menu-item menu-item">
-        <span class="spectrum-Menu-itemLabel"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a></span>
+        <span class="spectrum-Menu-itemLabel nav-dropdown-item"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a>${description ? '<span class="nav-dropdown-description">' + description + '</span>' : ''}</span>
       </li>
     `;
 }
@@ -1041,14 +1066,24 @@ export default async function decorate(block) {
     if (topNavHtml) {
       navigationLinks.innerHTML += topNavHtml;
 
+      // external links (aio_external query param)
+      navigationLinks.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
+        link.href = link.href.replace(/[?&]aio_external/, '');
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+
       // Process dropdowns for documentation template navigation
       navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
         let dropdownLinkDropdownHTML = '';
         let dropdownLinksHTML = '';
 
-        dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
+        dropDownList.querySelectorAll('ul > li').forEach((dropdownLinks) => {
+          const link = dropdownLinks.querySelector('a');
+          const linkText = link.textContent.trim();
+          const description = dropdownLinks.textContent.replace(linkText, '').trim();
           dropdownLinksHTML
-            += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+            += globalNavLinkItemDropdownItem(link, linkText, description);
         });
 
         dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
@@ -1085,9 +1120,9 @@ export default async function decorate(block) {
       navigationLinks.append(productLi);
     }
 
-    // check if there's a path prefix then retrieve it otherwise default back to google drive path
+    // check if documentation template then retrieve from config otherwise default back to google drive path
     let navPath;
-    if(getMetadata('pathprefix')) {
+    if (IS_DEV_DOCS) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
@@ -1173,6 +1208,16 @@ export default async function decorate(block) {
     header.append(navigationLinks);
   }
 
+  // Fetch dynamic buttons for documentation template
+  let topButtonsNavHtml = null;
+  if (IS_DEV_DOCS) {
+    try {
+      topButtonsNavHtml = await fetchTopButtonsNavHtml();
+    } catch (e) {
+      // No buttons config found, will fallback to console button
+    }
+  }
+
   // Add right container for all templates
   const rightContainer = createTag('div', { class: 'nav-console-right-container' });
 
@@ -1191,8 +1236,10 @@ export default async function decorate(block) {
 
   if (window.location.pathname.includes('/developer-distribution')) {
     rightContainer.appendChild(globalDistributeButton());
-  } else if (!hasDynamicButtons) {
-    // Only add static console button if no dynamic buttons were added
+  }
+  if (topButtonsNavHtml) {
+    rightContainer.appendChild(codePlaygroundButton(topButtonsNavHtml));
+  } else {
     rightContainer.appendChild(globalConsoleButton());
   }
   rightContainer.appendChild(globalSpinner());
@@ -1210,6 +1257,30 @@ export default async function decorate(block) {
   handleButtons(header);
 
   showSpinner();
+
+  // Helper function to ensure header is ready before decorating profile
+  const decorateProfileWhenReady = (profile, attempts = 0) => {
+    const signInElement = document.querySelector('div.nav-sign-in');
+    if (signInElement) {
+      // Header is ready, decorate immediately
+      decorateProfile(profile);
+      fetchProfileAvatar(profile.userId);
+    } else if (attempts < 10) {
+      // Header not ready yet, wait for next frame and try again (max 10 attempts)
+      requestAnimationFrame(() => {
+        decorateProfileWhenReady(profile, attempts + 1);
+      });
+    } else {
+      // Fallback: try one more time after a short delay
+      setTimeout(() => {
+        const signInElement = document.querySelector('div.nav-sign-in');
+        if (signInElement && window.adobeid && window.adobeid.profile) {
+          decorateProfile(window.adobeid.profile);
+          fetchProfileAvatar(window.adobeid.profile.userId);
+        }
+      }, 100);
+    }
+  };
 
   // Handle IMS ready state - check current state and listen for future events
   if (window.adp && window.adp.imsStatus === LoadingState.SUCCESS) {
@@ -1229,9 +1300,9 @@ export default async function decorate(block) {
 
   if (window.adp && window.adp.imsProfile === LoadingState.SUCCESS) {
     hideSpinner();
-    if (window.adobeid && window.adobeid.profile) {
-      decorateProfile(window.adobeid.profile);
-      fetchProfileAvatar(window.adobeid.profile.userId);
+    if(window.adobeid && window.adobeid.profile) {
+      // Use helper to ensure header is ready
+      decorateProfileWhenReady(window.adobeid.profile);
     }
   }
 

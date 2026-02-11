@@ -1,0 +1,34 @@
+name: Commit Test
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install
+      - name: Run tests with coverage
+        id: test
+        run: |
+          npm test 2>&1 | tee test-output.txt
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
+      - name: Post coverage comment
+        if: always() && github.event_name == 'pull_request'
+        run: node test/coverage-comment.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_ID: ${{ github.event.pull_request.number }}
+          TEST_OUTCOME: ${{ steps.test.outcome }}
+      # Reveal and report the test failures
+      - name: Fail if tests failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1

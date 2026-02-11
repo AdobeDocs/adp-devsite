@@ -212,6 +212,18 @@ main div.section.side-nav-container {
     visibility: hidden;
 }
 
+main div.side-nav-wrapper .side-nav-menu-section .nav-playground-button a{
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background-color 130ms ease-out, border-color 130ms ease-out, color 130ms ease-out;
+}
 
 /* Desktop behavior */
 @media screen and (min-width: 769px) {
@@ -224,7 +236,7 @@ main div.section.side-nav-container {
 /* Mobile behavior */
 @media screen and (max-width: 768px) {
   main div.section.side-nav-container {
-      visibility: visible;
+      visibility: visible !important;
   }
 
   main div.side-nav-wrapper div.side-nav {
@@ -264,6 +276,10 @@ main div.section.side-nav-container {
 
   main div.side-nav-wrapper  .side-nav-menu-section {
     display: block;
+  }
+
+  main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item .nav-dropdown-description {
+    display: none;
   }
 }
 
@@ -332,3 +348,31 @@ main div.side-nav-wrapper .side-nav .side-nav-subpages-section .hidden {
     display:none;
 }
 
+main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container {
+  display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+main div.side-nav-wrapper .side-nav-menu-section .nav-buttons-container a {
+  width: calc(100% - 32px);
+}
+
+/* Non-clickable header labels in TOC */
+main div.side-nav-wrapper .spectrum-SideNav-item.nav-header-label > h2 {
+  color: rgb(70, 70, 70);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+  border-radius: 4px;
+  line-height: 32px;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  margin-top: 16px;
+  padding-bottom: 0px;
+  padding-left: 12px;
+  cursor: default;
+  pointer-events: none;
+  display: block;
+  text-transform: uppercase;
+}

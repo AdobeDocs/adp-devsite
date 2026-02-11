@@ -1,17 +1,19 @@
-main div.contributors-wrapper div.contributors-wrapper-comp {
+main div.contributors-wrapper div.contributors-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-
-main div.contributors-wrapper .wrapper-border {
+    padding: 16px !important;
+    row-gap: 16px;
+    column-gap: 40px;
+    flex-wrap: wrap;
+    background: white;
     border: 1px solid lightgray;
     border-radius: 4px;
 }
 
-main div.contributors-wrapper {
-    padding: 16px !important;
-    margin: 16px;
+main div.contributors-wrapper div.contributors-content > div.lastUpdateDetails,
+main div.contributors-wrapper div.contributors-content > div.feedbackWrapper {
+    flex: 0 1 auto;
 }
 
 main div.contributors-wrapper div.feedbackWrapper {
@@ -31,7 +33,7 @@ main div.contributors-wrapper button {
 
 main div.contributors-wrapper a {
     display: flex;
-    gap: 25px;
+    gap: 20px;
     align-items: center;
     text-decoration: none;
     color: rgb(44, 44, 44);
@@ -51,9 +53,9 @@ main div.contributors-wrapper .imageList {
     left: 0;
     top: 0;
     transition: visibility 0s linear 130ms;
-    width: 100vw;
+    width: 100%;
     z-index: 2;
-    height: 100vh;
+    height: 100%;
 }
 
 .contributor-modal .show-model-contributors {
@@ -83,7 +85,6 @@ main div.contributors-wrapper .imageList {
     grid-area: "buttonGroup";
     justify-content: flex-end;
     padding-top: 40px;
-    padding-left: 16px;
 }
 
 .contributor-modal .close-button {
@@ -111,12 +112,12 @@ main div.contributors-wrapper .span-Image-contributor {
 .contributor-modal {
     display: none;
     position: fixed;
-    z-index: 1;
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
     background-color: rgba(0, 0, 0, 0.4);
     opacity: 0;
     transform: translateY(10px);
@@ -129,18 +130,13 @@ main div.contributors-wrapper .span-Image-contributor {
 }
 
 main .contributors-wrapper-container {
-    position: fixed;
-    bottom: 3px;
-    background: white;
-    padding: .75rem;
+    position: sticky;
+    bottom: 0;
     width: 100%;
+    z-index: 1000;
 }
 
-@media screen and (min-width : 320px) and (max-width : 767px) {
-    main div.contributors-wrapper .contibutors-wrapper-comp {
-        gap: 20px;
-    }
-
+@media screen and (max-width: 767px) {
     .contributor-modal .button-wrapper-contributor {
         flex-direction: column;
     }

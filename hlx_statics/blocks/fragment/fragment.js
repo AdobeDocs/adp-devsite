@@ -9,7 +9,13 @@ import {
   } from '../../scripts/scripts.js';
   import {
     loadSections,
+    getMetadata,
+    IS_DEV_DOCS
   } from '../../scripts/lib-helix.js';
+
+  import {
+    isLocalHostEnvironment
+  } from '../../scripts/lib-adobeio.js';
   /**
    * Loads a fragment.
    * @param {string} path The path to the fragment
@@ -21,10 +27,39 @@ import {
 
       const lastSlashIndex = path?.lastIndexOf('/');
       const lastPrefix = path?.substring(lastSlashIndex + 1);
+      const isLocalHostForDocs = isLocalHostEnvironment(window.location.origin) && IS_DEV_DOCS;
 
-      const fetchPathUrl = (lastPrefix && lastPrefix === 'config') 
-        ? path 
-        : `${path.replace(/\.\w+$/, '')}.plain.html`;
+      let fetchPathUrl;
+      if (lastPrefix && lastPrefix === 'config') {
+        fetchPathUrl = path;
+      } else {
+        // Remove existing extension
+        let resolvedPath = path.replace(/\.\w+$/, '');
+
+
+        // Use .md for localhost, .plain.html for production
+        const fileExtension = isLocalHostForDocs ? '.md' : '.plain.html';
+
+        // Handle absolute paths by prepending pathPrefix if needed
+        if (resolvedPath.startsWith('/')) {
+          const pathPrefix = getMetadata('pathprefix');
+          if (pathPrefix && !resolvedPath.startsWith(`/${pathPrefix}`)) {
+            resolvedPath = `${pathPrefix}${resolvedPath}`;
+          }
+          const origin = isLocalHostForDocs
+            ? window.location.origin.replace(':3000', ':3002')
+            : window.location.origin;
+          fetchPathUrl = `${origin}${resolvedPath}${fileExtension}`;
+        } else {
+          // Relative paths
+          if (isLocalHostForDocs) {
+            const fullUrl = new URL(`${resolvedPath}${fileExtension}`, window.location.href);
+            fetchPathUrl = fullUrl.href.replace(':3000', ':3002');
+          } else {
+            fetchPathUrl = `${resolvedPath}${fileExtension}`;
+          }
+        }
+      }
 
       const hashCode = (s) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0);
       const fragmentHash = `${hashCode(fetchPathUrl)}`;
@@ -36,8 +71,18 @@ import {
     } else {
       const resp = await fetch(fetchPathUrl);
       if (resp.ok) {
+        const htmlText = await resp.text();
         main = document.createElement('main');
-        main.innerHTML = await resp.text();
+        if (isLocalHostForDocs ) {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlText, 'text/html');
+          const mainContent = doc.querySelector('main');
+          if (mainContent) {
+            main.innerHTML = mainContent.innerHTML;
+          }
+        } else {
+          main.innerHTML = htmlText;
+        }
         sessionStorage.setItem(fragmentHash, main.innerHTML);
       }
     }
@@ -70,13 +115,12 @@ export default async function decorate(block) {
     if (fragmentSection) {
       // Get the wrapper that contains this specific block
       const wrapper = block.parentElement;
-      
       // Add classes from fragment section to the current section
+      
       const currentSection = block.closest('.section');
       if (currentSection) {
         currentSection.classList.add(...fragmentSection.classList);
       }
-      
       // Replace only this fragment's wrapper with the fragment content
       wrapper.replaceWith(...fragment.childNodes);
     }

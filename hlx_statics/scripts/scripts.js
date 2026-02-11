@@ -18,11 +18,13 @@ import {
   toCamelCase,
   toClassName,
   githubActionsBlock,
+  hasContributorsJson
 } from './lib-helix.js';
 
 import {
   buildBreadcrumbs,
   buildCodes,
+  buildContributors,
   buildEmbeds,
   buildGrid,
   buildHero,
@@ -53,6 +55,8 @@ import {
   imsGetProfile,
   imsGetProfileSuccess,
   imsGetProfileError,
+  scrollWithLayoutAdjustment,
+  whenFirstVisible
 } from './lib-adobeio.js';
 
 export {
@@ -144,6 +148,13 @@ function loadNextPrev(nextPrev) {
   nextPrev.append(nextPrevBlock);
   decorateBlock(nextPrevBlock);
   loadBlock(nextPrevBlock);
+}
+
+function loadContributors(contributors) {
+  const contributorsBlock = buildBlock('contributors', '');
+  contributors.append(contributorsBlock);
+  decorateBlock(contributorsBlock);
+  loadBlock(contributorsBlock);
 }
 
 /**
@@ -355,34 +366,265 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
   };
 }
 
-export async function loadAep() {
-  addExtraScript(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js');
+export async function loadSearch() {
+// load algolia scripts
+  // sources: https://www.jsdelivr.com/package/npm/algoliasearch
+  // sources: https://www.jsdelivr.com/package/npm/instantsearch.js
+  addExtraScriptWithLoad(
+    document.body,
+    "https://cdn.jsdelivr.net/npm/algoliasearch@5.47.0/dist/algoliasearch.umd.min.js",
+    () => {
+      addExtraScriptWithLoad(
+        document.body,
+        "https://cdn.jsdelivr.net/npm/instantsearch.js@4.86.1/dist/instantsearch.production.min.js",
+        () => {
+          const algoliasearch = window.algoliasearch;
+          const instantsearch = window.instantsearch;
 
-  const intervalId = setInterval(watchVariable, 1000);
-  function watchVariable() {
-    // wait for _satellite to become available and track page
-    // eslint-disable-next-line no-undef
-    if (typeof window._satellite !== 'undefined') {
-      console.log(`Route tracking page name as: ${location.href}`);
+          if (!algoliasearch || !instantsearch) {
+            console.error("Required search libraries not loaded");
+            return;
+          }
 
-      // eslint-disable-next-line no-undef
-      _satellite.track('state',
-        {
-          xdm: {},
-          data: {
-            _adobe_corpnew: {
-              web: {
-                webPageDetails: {
-                  customPageName: location.href
-                }
-              }
-            }
+          // Trigger index validation after Algolia is loaded
+          if (window.adp_search?.triggerIndexValidation) {
+            window.adp_search.triggerIndexValidation();
           }
         }
       );
-
-      clearInterval(intervalId);
     }
+  );
+
+  //load search and product map
+  window.adp_search = {};
+  
+  try {
+    const resp = await fetch('/franklin_assets/product-index-map.json');
+    if (!resp.ok) {
+      // Server responded but with an error status
+      console.error(`Failed to load product map: ${resp.status} ${resp.statusText}`);
+      window.adp_search.completeProductMap = null;
+    } else {
+      const json = await resp.json();
+      window.adp_search.product_index_map = json.data;
+
+      // Create a new Map to hold the indexName and productName pairs
+      window.adp_search.index_mapping = new Map();
+
+      // Iterate over the product_index_map array and populate the Map
+      window.adp_search.product_index_map.forEach((product) => {
+        window.adp_search.index_mapping.set(product.indexName, {
+            productName: product.productName,
+            indexPathPrefix: product.indexPathPrefix
+        });
+      });
+      window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
+    }
+  } catch (error) {
+    // Network error or JSON parsing error
+    window.adp_search.completeProductMap = null;
+    console.error('Error fetching product map:', error);
+  }
+
+  window.adp_search.APP_KEY = 'E642SEDTHL';
+  window.adp_search.API_KEY = '6d498e750458eb371e764fcc11212df4';
+  window.adp_search.map_found = true;
+
+  //if no map found then don't initialze search at all
+  if(!window.adp_search.completeProductMap){
+    window.adp_search.map_found = false;
+  }else{
+    // Create initial mappings (will be updated after validation)
+    const allIndices = Object.keys(window.adp_search.completeProductMap);
+    window.adp_search.indices = allIndices;
+    window.adp_search.index_to_product = Object.fromEntries(
+      Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
+    );
+    window.adp_search.path_prefix_to_product = Object.fromEntries(
+        Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+    );
+    window.adp_search.products = Array.from(
+        new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
+    );
+
+    // Validate indices using listIndices() and cross-reference with JSON map
+    async function validateAndFilterIndices() {
+      if (!window.algoliasearch) {
+        console.error('Algolia not loaded, cannot validate indices');
+        return allIndices;
+      }
+
+      try {
+        // Create Algolia search client
+        const searchClient = window.algoliasearch.algoliasearch(
+          window.adp_search.APP_KEY, 
+          window.adp_search.API_KEY
+        );
+
+        // Fetch all available indices from Algolia
+        const algoliaResponse = await searchClient.listIndices();
+
+        // Extract index names from Algolia response
+        let algoliaIndexNames = [];
+        if (algoliaResponse.items) {
+          // Algolia v3/v4 format
+          algoliaIndexNames = Object.values(algoliaResponse.items).map(index => index.name);
+        } else if (algoliaResponse.results) {
+          // Algolia v5 format (if exists)
+          algoliaIndexNames = algoliaResponse.results.map(index => index.name);
+        } else if (Array.isArray(algoliaResponse)) {
+          // Direct array response
+          algoliaIndexNames = algoliaResponse.map(index => index.name || index);
+        } else {
+          console.warn('Unexpected listIndices() response format:', algoliaResponse);
+        }
+
+        // Cross-validate: Only keep indices that exist in BOTH Algolia AND product index JSON map
+        const validIndices = allIndices.filter(indexName => 
+          algoliaIndexNames.includes(indexName)
+        );
+
+        // console.log(`Validated ${validIndices.length} indices that exist in both Algolia and JSON map`);
+        return validIndices;
+
+      } catch (error) {
+        console.error('Error during index validation with listIndices():', error);
+        return allIndices;
+      }
+    }
+
+    window.adp_search.triggerIndexValidation = function() {
+      window.adp_search.indicesValidationPromise = validateAndFilterIndices();
+
+      window.adp_search.indicesValidationPromise.then(validIndices => {
+        // Only update if validation actually removed some indices
+        if (validIndices.length < allIndices.length) {
+          const validProductMap = {};
+          validIndices.forEach(indexName => {
+            if (window.adp_search.completeProductMap[indexName]) {
+              validProductMap[indexName] = window.adp_search.completeProductMap[indexName];
+            }
+          });
+
+          // Update all maps with validated indices
+          window.adp_search.completeProductMap = validProductMap;
+          window.adp_search.indices = validIndices;
+          window.adp_search.index_to_product = Object.fromEntries(
+            Object.entries(validProductMap).map(([indexName, { productName }]) => [indexName, productName])
+          );
+          window.adp_search.path_prefix_to_product = Object.fromEntries(
+            Object.values(validProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+          );
+          window.adp_search.products = Array.from(
+            new Set(Object.values(validProductMap).map(data => data.productName))
+          );
+        }
+      }).catch(error => {
+        console.error('Error during index validation:', error);
+      });
+    };
+
+    // Initialize promise as unresolved
+    window.adp_search.indicesValidationPromise = null;
+  }
+}
+
+export async function loadAep() {
+  window.aepLoaded =
+    window.aepLoaded ||
+    new Promise((resolve, reject) => {
+      // Don't load AEP on localhost
+      if (isLocalHostEnvironment(window.location.host)) {
+        console.log('Adobe Experience Platform not loaded on localhost');
+        resolve();
+        return;
+      }
+
+      whenFirstVisible.then(() => {
+        addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
+        console.log('Adobe Experience Platform loaded');
+
+        // Track page view when _satellite is available
+        const timeout = setTimeout(() => {
+          // Resolve even if _satellite never becomes available
+          resolve();
+        }, 5000);
+
+        const trackPageView = () => {
+          // eslint-disable-next-line no-undef
+          if (typeof window._satellite !== 'undefined') {
+            clearTimeout(timeout);
+            console.log(`Route tracking page name as: ${location.href}`);
+            // eslint-disable-next-line no-undef
+            _satellite.track('state',
+              {
+                xdm: {},
+                data: {
+                  _adobe_corpnew: {
+                    web: {
+                      webPageDetails: {
+                        customPageName: location.href
+                      }
+                    }
+                  }
+                }
+              }
+            );
+            resolve();
+          } else {
+            // If _satellite not ready yet, check again after a short delay
+            setTimeout(trackPageView, 100);
+          }
+        };
+
+        trackPageView();
+      });
+      });
+    });
+  return window.aepLoaded;
+}
+
+export function loadPrivacyStandalone() {
+  addExtraScriptWithLoad(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js', () => {
+    // Check for C0002 (Performance/Analytics) consent before loading AEP - part of new privacy library implementation
+    function checkConsent() {
+      // Check if adobePrivacy is available
+      if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
+        console.error('Privacy library not loaded yet, waiting for consent events');
+        return;
+      }
+
+      const activeGroups = window.adobePrivacy.activeCookieGroups();
+
+      // Check if user gave permission for performance/analytics tracking (C0002)
+      if (activeGroups.indexOf('C0002') !== -1) {
+        loadAep();
+      } else {
+        console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
+      }
+    }
+    
+    // Listen for consent events from the privacy library
+    window.addEventListener('adobePrivacy:PrivacyConsent', () => {
+      // Event: User accepted all consent
+      checkConsent();
+    });
+
+    window.addEventListener('adobePrivacy:PrivacyCustom', () => {
+      // Event: User customized consent preferences
+      checkConsent();
+    });
+
+    window.addEventListener('adobePrivacy:PrivacyReject', () => {
+      // Event: User rejected optional consent
+      checkConsent();
+    });
+  });
+
+  // Check immediately if privacy library already loaded (return visitor)
+  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
+    // Privacy library already available, checking consent immediately
+    checkConsent();
   }
 }
 
@@ -395,7 +637,7 @@ export async function loadIms() {
       // different IMS clients
       if (isHlxPath(window.location.host)) {
         const client_id = 'helix_adobeio';
-        const scope = 'AdobeID,openid,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk';
+        const scope = 'AdobeID,openid,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
         const environment = 'stg1';
         const logsEnabled = true;
 
@@ -410,7 +652,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'stage_adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
           const environment = 'stg1';
           const logsEnabled = true;
 
@@ -426,7 +668,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
           const environment = 'prod';
           const logsEnabled = false;
 
@@ -453,7 +695,6 @@ function loadConfig() {
   // cookie preference
   window.fedsConfig = {
     privacy: {
-      // TODO config from adobe.com
       otDomainId: '7a5eb705-95ed-4cc4-a11d-0cc5760e93db',
       footerLinkSelector: '#openPrivacy',
     },
@@ -502,189 +743,20 @@ function loadConfig() {
 async function loadLazy(doc) {
   const main = doc.querySelector('main');
 
-  loadIms();
   loadAep();
-
-  // Load Algolia search scripts
-  addExtraScriptWithLoad(
-    document.body,
-    "https://cdn.jsdelivr.net/npm/algoliasearch@5.20.1/dist/lite/builds/browser.umd.js",
-    () => {
-      addExtraScriptWithLoad(
-        document.body,
-        "https://cdn.jsdelivr.net/npm/instantsearch.js@4.77.3/dist/instantsearch.production.min.js",
-        () => {
-          const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-          // const searchClient = algoliasearch("E642SEDTHL", "424b546ba7ae75391585a10c6ea38dab");
-
-          if (!algoliasearch || !instantsearch) {
-            console.error("Required search libraries not loaded");
-            return;
-          }else{
-            console.log("Algolia InstantSearch loaded successfully!")
-          }
-
-          // Trigger index validation after Algolia is loaded
-          if (window.adp_search && window.adp_search.triggerIndexValidation) {
-            window.adp_search.triggerIndexValidation();
-          }
-        }
-      );
-    }
-  );
-
-  //load search and product map
-  window.adp_search = {};
-  
-  try {
-    const resp = await fetch('/franklin_assets/product-index-map.json');
-    if (!resp.ok) {
-      // Server responded but with an error status
-      console.error(`Failed to load product map: ${resp.status} ${resp.statusText}`);
-      window.adp_search.completeProductMap = null;
-    } else {
-      const json = await resp.json();
-      window.adp_search.product_index_map = json.data;
-
-      // Create a new Map to hold the indexName and productName pairs
-      window.adp_search.index_mapping = new Map();
-
-      // Iterate over the product_index_map array and populate the Map
-      window.adp_search.product_index_map.forEach((product) => {
-        window.adp_search.index_mapping.set(product.indexName, {
-            productName: product.productName,
-            indexPathPrefix: product.indexPathPrefix
-        });
-      });
-      window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
-    }
-  } catch (error) {
-    // Network error or JSON parsing error
-    window.adp_search.completeProductMap = null;
-    console.error('Error fetching product map:', error);
-  }
-
-  window.adp_search.APP_KEY = 'E642SEDTHL';
-  window.adp_search.API_KEY = '424b546ba7ae75391585a10c6ea38dab';
-  window.adp_search.map_found = true;
-
-  //if no map found then don't initialze search at all
-  if(!window.adp_search.completeProductMap){
-    window.adp_search.map_found = false;
-  }else{
-    // Create initial mappings (will be updated after validation)
-    const allIndices = Object.keys(window.adp_search.completeProductMap);
-    window.adp_search.indices = allIndices;
-    window.adp_search.index_to_product = Object.fromEntries(
-      Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
-    );
-    window.adp_search.path_prefix_to_product = Object.fromEntries(
-        Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
-    );
-    window.adp_search.products = Array.from(
-        new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
-    );
-
-    // Function to validate if an index exists in Algolia
-    async function validateIndex(indexName, searchClient) {
-      try {
-        // Perform a search to validate the index exists
-        const response = await searchClient.search({
-          requests: [{
-            indexName: indexName,
-            query: '',
-            hitsPerPage: 0
-          }]
-        });
-        
-        if (response && response.results && response.results.length > 0) {
-          return { indexName, exists: true };
-        } else {
-          console.warn(`Index "${indexName}" returned empty results`);
-          return { indexName, exists: false };
-        }
-      } catch (error) {
-        console.warn(`Index "${indexName}" is not accessible or does not exist:`, error.message);
-        return { indexName, exists: false };
-      }
+  loadPrivacyStandalone();
+  loadIms().then(() => {
+    if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
+      window.adobeImsFactory.createIMSLib(window.adobeid);
     }
 
-    // Validate all indices in parallel
-    async function validateAndFilterIndices() {
-      if (!window["algoliasearch/lite"]) {
-        console.error('Algolia not loaded, cannot validate indices');
-        return allIndices;
-      }
-
-      const { liteClient: algoliasearch } = window["algoliasearch/lite"];
-      const searchClient = algoliasearch(window.adp_search.APP_KEY, window.adp_search.API_KEY);
-
-      // console.log(`Validating ${allIndices.length} indices...`);
-      const validationResults = await Promise.allSettled(
-        allIndices.map(indexName => validateIndex(indexName, searchClient))
-      );
-
-      // Filter to only include indices that exist
-      const validIndices = validationResults
-        .filter(result => result.status === 'fulfilled' && result.value.exists)
-        .map(result => result.value.indexName);
-
-      const removedIndices = allIndices.filter(idx => !validIndices.includes(idx));
-      
-      if (removedIndices.length > 0) {
-        console.log(`Removed ${removedIndices.length} non-existent indices:`, removedIndices);
-      }
-      return validIndices;
+    if (window.adobeIMS && window.adobeIMS.initialize) {
+      window.adobeIMS.initialize();
     }
-
-    window.adp_search.triggerIndexValidation = function() {
-      window.adp_search.indicesValidationPromise = validateAndFilterIndices();
-
-      window.adp_search.indicesValidationPromise.then(validIndices => {
-        // Only update if validation actually removed some indices
-        if (validIndices.length < allIndices.length) {
-          const validProductMap = {};
-          validIndices.forEach(indexName => {
-            if (window.adp_search.completeProductMap[indexName]) {
-              validProductMap[indexName] = window.adp_search.completeProductMap[indexName];
-            }
-          });
-
-          // Update all maps with validated indices
-          window.adp_search.completeProductMap = validProductMap;
-          window.adp_search.indices = validIndices;
-          window.adp_search.index_to_product = Object.fromEntries(
-            Object.entries(validProductMap).map(([indexName, { productName }]) => [indexName, productName])
-          );
-          window.adp_search.path_prefix_to_product = Object.fromEntries(
-            Object.values(validProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
-          );
-          window.adp_search.products = Array.from(
-            new Set(Object.values(validProductMap).map(data => data.productName))
-          );
-        }
-      }).catch(error => {
-        console.error('Error during index validation:', error);
-      });
-    };
-
-    // Initialize promise as unresolved
-    window.adp_search.indicesValidationPromise = null;
-  }
-
-  if (window.adobeImsFactory && window.adobeImsFactory.createIMSLib) {
-    window.adobeImsFactory.createIMSLib(window.adobeid);
-  }
-
-  if (window.adobeIMS && window.adobeIMS.initialize) {
-    window.adobeIMS.initialize();
-  }
+  });
+  loadSearch();
 
   await loadBlocks(main);
-
-  const { hash } = window.location;
-  const element = hash ? doc.getElementById(hash.substring(1)) : false;
-  if (hash && element) element.scrollIntoView();
 
   loadHeader(doc.querySelector('header'));
   await decorateIcons(main);
@@ -702,8 +774,9 @@ async function loadLazy(doc) {
     }
 
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
+    const hasCredential = Boolean(document.querySelector('.getcredential-wrapper'));
     const hasHeading = main.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)').length !== 0;
-    const hasOnThisPage = !hasHero && hasHeading;
+    const hasOnThisPage = !hasHero && hasHeading && !hasCredential;
 
     const hasAside = hasOnThisPage || hasResources;
     if (hasAside) {
@@ -722,6 +795,12 @@ async function loadLazy(doc) {
       loadNextPrev(doc.querySelector('.next-prev-wrapper'));
     }
 
+    const hasContributors = await hasContributorsJson();
+    if (hasContributors) {
+      buildContributors(main);
+      loadContributors(doc.querySelector('.contributors-wrapper'));
+    }
+
     if (hasResources) {
       buildResources(main);
     }
@@ -733,7 +812,9 @@ async function loadLazy(doc) {
   sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
   sampleRUM.observe(main.querySelectorAll('picture > img'));
 
-  if (window.location.hostname.endsWith('hlx.page') || window.location.hostname === ('localhost')) {
+  scrollToHash(doc);
+
+  if (window.location.hostname.endsWith('aem.page') || window.location.hostname === ('localhost')) {
     // eslint-disable-next-line import/no-cycle
     import('../../tools/preview/experimentation-preview.js');
   }
@@ -798,21 +879,6 @@ function loadPrism(document) {
             window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
             window.Prism.plugins.autoloader.use_minified = true;
           }
-          // Register "Try it" button for code blocks with "try" class
-          if (window.Prism?.plugins?.toolbar) {
-            window.Prism.plugins.toolbar.registerButton('try-code', (env) => {
-              const pre = env.element.closest('pre');
-              if (!pre?.classList.contains('try') && !env.element.classList.contains('try')) return null;
-              const btn = createTag('button' , {class : 'try-code-button'});
-              btn.textContent = 'Try in playground';
-              btn.onclick = () => {
-                const id = Array.from(pre?.classList || []).find(c => c.startsWith('id='))?.replace('id=', '') || pre?.id || 'default';
-                window.open(`https://express.adobe.com/new?mode=playground&session=new&sessionId=${id}&executionMode=script`, '_blank');
-              };
-              return btn;
-            });
-          }
-          
           // Run highlighting without Web Workers (avoids missing filename with dynamic import)
           window.Prism.highlightAll();
           // Re-highlight when tab panels become active (without modifying tab block)
@@ -872,11 +938,24 @@ function loadPrism(document) {
   codeBlocks.forEach((block) => observer.observe(block));
 }
 
+function scrollToHash(doc) {
+  const { hash } = window.location;
+  const element = hash ? doc.getElementById(hash.substring(1)) : false;
+  if (element) {    
+    if (document.readyState === 'complete') {
+      scrollWithLayoutAdjustment(element);
+    } else {
+      window.addEventListener('load', () => scrollWithLayoutAdjustment(element));
+    }
+  }
+}
+
 function fixLocalDev(document){
   if(isLocalHostEnvironment(window.location.host)){
     // replace all images with eds div structure
     document.querySelectorAll('img').forEach((img) => {
-      if(img.src.includes('raw.githubusercontent.com')) {
+      // Check for both GitHub raw URLs AND localhost URLs
+      if(img.src.includes('raw.githubusercontent.com') || img.src.includes('127.0.0.1:3003') || img.src.includes('localhost:3003')) {
         const lastDotIndex = img.src.lastIndexOf('.');
         let imageExtension = '';
         if (lastDotIndex !== -1) {
@@ -894,6 +973,7 @@ function fixLocalDev(document){
     });
   }
 }
+
 async function loadPage() {
   fixLocalDev(document);
   await loadEager(document);

@@ -2,6 +2,7 @@ import {
     createTag,
     addExtraScriptWithReturn,
   } from '../../scripts/lib-adobeio.js';
+import { IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 
 function penpalOnLoad() {
     const createConnection = () => {
@@ -107,7 +108,7 @@ export default async function decorate(block) {
     const params = new URLSearchParams(window.location.search);
 
     // filteredClassList is an array so make it a string separated by a space
-    const iframe = createTag('iframe', { 'title': title, class: filteredClassList.join(' '), 'src': iframeSrc.href+'?'+params.toString(), 'id': 'penpalIframe' });
+    const iframe = createTag('iframe', { 'title': title, class: filteredClassList.join(' '), 'src': IS_DEV_DOCS ? block.getAttribute('data-src') : iframeSrc.href+'?'+params.toString(), 'id': 'penpalIframe' });
 
     penpalScript.onload = () => {
         iframeContainer.append(iframe);

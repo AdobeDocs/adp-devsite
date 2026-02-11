@@ -1,5 +1,5 @@
 import decoratePreformattedCode, { applyLanguageDirectives, extractLanguageDirectives } from "../../components/code.js";
-import { getMetadata } from "../../scripts/scripts.js";
+import { IS_DEV_DOCS } from "../../scripts/lib-helix.js";
 
 /**
  * Decorates the tab block 
@@ -87,7 +87,7 @@ const createSubTabs = (table) => {
 
 export default async function decorate(block) {
   let orientation;
-  if (getMetadata('template') === 'documentation') {
+  if (IS_DEV_DOCS) {
     orientation = block.getAttribute('data-orientation') || 'horizontal';
   }
   block.classList.add(orientation);

@@ -94,16 +94,20 @@ export default async function decorate(block) {
     nav.append(ol);
 
     const crumbs = await buildBreadcrumbs();
-    const lis = crumbs.map(crumb => {
-      const a = document.createElement('a');
-      a.classList.add('spectrum-Breadcrumbs-itemLink');
-      a.innerText = crumb.title;
-      a.href = crumb.href;
-
+    const lis = crumbs.map((crumb, index) => {
+      const isLast = index === crumbs.length - 1;
       const li = document.createElement('li');
       li.classList.add('spectrum-Breadcrumbs-item');
-      li.append(a);
-      li.insertAdjacentHTML("beforeend", chevronRightIcon);
+      
+      if (!isLast) {
+        // Regular clickable breadcrumb
+        const a = document.createElement('a');
+        a.classList.add('spectrum-Breadcrumbs-itemLink');
+        a.innerText = crumb.title;
+        a.href = crumb.href;
+        li.append(a);
+        li.insertAdjacentHTML("beforeend", chevronRightIcon);
+      }
 
       return li;
     })

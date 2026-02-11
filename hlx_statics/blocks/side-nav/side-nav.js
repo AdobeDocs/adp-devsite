@@ -6,6 +6,7 @@ import {
 import {
   fetchSideNavHtml,
   fetchTopNavHtml,
+  fetchTopButtonsNavHtml,
   IS_DEV_DOCS
 } from "../../scripts/lib-helix.js";
 import { loadFragment } from '../fragment/fragment.js';
@@ -26,6 +27,12 @@ function createNavSection(className, labelText) {
  * @param {Element} block The site-nav block element
  */
 export default async function decorate(block) {
+  // Hide side nav during processing to avoid visible updates
+  const sideNavContainer = document.querySelector(".side-nav-container");
+  if (sideNavContainer) {
+    sideNavContainer.style.visibility = "hidden";
+  }
+
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
 
@@ -97,9 +104,20 @@ export default async function decorate(block) {
           const nestedLink = nestedLi.querySelector('a');
           if (nestedLink) {
             nestedLink.style.fontWeight = '400';
+            const linkText = nestedLink.textContent.trim();
+            const description = nestedLi.textContent.replace(linkText, '').trim();
+            Array.from(nestedLi.childNodes).forEach((node) => {
+              if (node.nodeType === Node.TEXT_NODE) {
+                node.remove();
+              }
+            });
             if (!nestedLi.querySelector('ul')) {
-              nestedLink.innerHTML = nestedLink.textContent.trim();
               nestedLi.classList.add('no-chevron');
+              if (description) {
+                const descSpan = createTag('span', { class: 'nav-dropdown-description' });
+                descSpan.textContent = description;
+                nestedLi.appendChild(descSpan);
+              }
             }
           }
         });
@@ -159,17 +177,39 @@ export default async function decorate(block) {
     processNestedNavigation(menuUl);
   }
 
-  // Add console button
-  const consoleButtonLi = createTag("li", { class: "spectrum-SideNav-item" });
-  consoleButtonLi.innerHTML = `
-    <div class="nav-console-button">
-      <a href="https://developer.adobe.com/console/" 
-         class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM">
-        <span class="spectrum-Button-label">Console</span>
+  // Add dynamic buttons from config, or fall back to console button
+  let topButtonsNavHtml = null;
+  if (IS_DEV_DOCS) {
+    try {
+      topButtonsNavHtml = await fetchTopButtonsNavHtml();
+    } catch (e) {
+      // No buttons config found, will fallback to console button
+    }
+  }
+
+  // Parse buttons from config or use default console button
+  const buttons = [];
+  if (topButtonsNavHtml) {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = topButtonsNavHtml;
+    tempDiv.querySelectorAll('li a').forEach((link) => {
+      buttons.push({ href: link.getAttribute('href'), title: link.getAttribute('title') || link.textContent });
+    });
+  }
+  if (!buttons.length) {
+    buttons.push({ href: 'https://developer.adobe.com/console/', title: 'Console' });
+  }
+
+  buttons.forEach(({ href, title }, index) => {
+    const style = index === 0 && buttons.length > 1 ? 'accent' : 'secondary';
+    const buttonLi = createTag("li", { class: "spectrum-SideNav-item" });
+    buttonLi.innerHTML = `<div class="nav-buttons-container">
+      <a href="${href}" class="spectrum-Button spectrum-Button--outline spectrum-Button--${style} spectrum-Button--sizeM">
+        <span class="spectrum-Button-label">${title}</span>
       </a>
-    </div>
-  `;
-  menuUl.appendChild(consoleButtonLi);
+    </div>`;
+    menuUl.appendChild(buttonLi);
+  });
 
   mainMenuSection.append(menuUl);
 
@@ -182,9 +222,9 @@ export default async function decorate(block) {
   }
   block.append(navigationLinks);
 
-  // Add spectrum classes to navigation items
+  // Add spectrum classes to navigation items (exclude button anchors)
   block.querySelectorAll("li").forEach((li) => li.classList.add("spectrum-SideNav-item"));
-  block.querySelectorAll("a").forEach((a) => a.classList.add("spectrum-SideNav-itemLink"));
+  block.querySelectorAll("a:not(.spectrum-Button)").forEach((a) => a.classList.add("spectrum-SideNav-itemLink"));
 
   function assignLayerNumbers(ul, layer = 1) {
     const listItems = ul.children;
@@ -195,6 +235,13 @@ export default async function decorate(block) {
       const getAnchorTag = li.querySelector("a");
       const childUl = li.querySelector("ul");
 
+      // Check if this item contains "header"
+      const directText = Array.from(li.childNodes)
+        .filter(node => node.nodeType === Node.TEXT_NODE)
+        .map(node => node.textContent)
+        .join('');
+      const isHeaderLabel = directText.includes('header');
+
       if (layer === 1 && childUl) {
         li.classList.add("header");
       }
@@ -203,7 +250,35 @@ export default async function decorate(block) {
       li.setAttribute("aria-level", layer);
 
       const currentUrl = window.location.href.split('#')[0];
-      if (getAnchorTag) {
+
+      // Handle header labels (items with "header")
+      if (isHeaderLabel) {
+        // Convert to non-clickable span
+        const textContent = getAnchorTag
+          ? getAnchorTag.textContent.replace('header', '').trim()
+          : li.textContent.replace('header', '').trim();
+
+        const label = document.createElement('h2');
+        label.className = 'spectrum-SideNav-itemLink';
+        label.textContent = textContent;
+        label.style.paddingLeft = `calc(${layer} * 12px)`;
+
+        const childUl = li.querySelector('ul');
+        li.textContent = '';
+        li.appendChild(label);
+        li.classList.add('nav-header-label');
+        if (childUl){
+          if (!li.contains(childUl)){
+            li.appendChild(childUl);
+          }
+          childUl.setAttribute("role", "group");
+          childUl.classList.add("spectrum-SideNav");
+          assignLayerNumbers(childUl, layer + 1);
+        }
+
+
+      } else if (getAnchorTag) {
+        // Normal anchor behavior (existing code unchanged)
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
         getAnchorTag.onclick = (e) => {
@@ -328,16 +403,18 @@ export default async function decorate(block) {
     const openedPaths = getOpenedPaths();
 
     openedPaths.forEach(pathname => {
-      const anchor = Array.from(navigationLinksUl.querySelectorAll("a"))
-        .find(a => a.href && a.getAttribute("href") === pathname);
+      // Find ALL anchors with this href (multiple items can have the same href)
+      const anchors = Array.from(navigationLinksUl.querySelectorAll("a"))
+        .filter(a => a.href && a.getAttribute("href") === pathname);
 
-      if (anchor) {
+      // Expand all matching items
+      anchors.forEach(anchor => {
         const li = anchor.closest("li");
         const childUl = li?.querySelector("ul");
         if (li && childUl) {
           toggleNavItem(li, true, childUl, anchor);
         }
-      }
+      });
     });
   }
 
@@ -345,11 +422,14 @@ export default async function decorate(block) {
 
   const sideNav = document.querySelector(".side-nav>nav>div");
   sideNav.addEventListener('scroll', () => {
-    localStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
+    sessionStorage.setItem('sidenavScrollPos', sideNav.scrollTop);
   });
 
-  const savedPos = localStorage.getItem('sidenavScrollPos');
+  // Store scroll restoration function for later use
+  const savedPos = sessionStorage.getItem('sidenavScrollPos');
   if (savedPos !== null) {
-    sideNav.scrollTop = parseInt(savedPos, 10);
+    window.restoreSideNavScroll = () => {
+      sideNav.scrollTop = parseInt(savedPos, 10);
+    };
   }
 }

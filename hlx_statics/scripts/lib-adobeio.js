@@ -27,6 +27,14 @@ export const LoadingState = {
 };
 
 /**
+ * Dynamically load JSZip if not already loaded
+ */
+export async function loadJSZip() {
+  await import('./jszip.js');
+  return window.JSZip;
+}
+
+/**
  * Checks if an a tag href points to an external link.
  * Updates the tag target and rel attributes accordingly.
  * @param {*} a The a tag to check
@@ -243,7 +251,7 @@ export function buildCodes(container) {
       // Check if the closest div ancestor has the class 'inlinealert'
       return !pre.closest('div.inlinealert');
     });
-    validPreElements[0].replaceWith(block);
+    validPreElements[0]?.replaceWith(block);
   });
 }
 
@@ -414,6 +422,16 @@ export function buildNextPrev(main) {
   gridAreaMain.appendChild(nextPrevWrapper)
 }
 
+ /**
+ * Builds the contributors wrapper
+ * @param {*} main The grid container
+ */
+ export function buildContributors(main) {
+  let contributorsWrapper = createTag('div', { class: 'contributors-wrapper block', 'data-block-name': 'contributors' });
+  const gridAreaMain = main.querySelector('.grid-main-area');
+  gridAreaMain.appendChild(contributorsWrapper);
+}
+
 /**
  * Builds the breadcrumbs
  * @param {*} main The grid container
@@ -531,14 +549,43 @@ function activateTab(tabItem, isMainPage) {
   underlineItem.parentElement.classList.add("activeTab");
 }
 
+function shouldHideNavItem(linkPath, topNavPath) {
+  return !linkPath.startsWith(topNavPath);
+}
+
 function activeSubNav(actTab) {
   let showSidenav = false;
+
   if (actTab) {
     const navLinksUl = document.querySelector(".side-nav-subpages-section");
     const sidenavItems = navLinksUl?.querySelectorAll(':scope > ul li') || [];
     const topNavPath = actTab.pathname;
     const pagePath = window.location.pathname;
+
     sidenavItems.forEach(li => {
+      // Handle header labels - check the next sibling's link
+      if (li.classList.contains('nav-header-label')) {
+        let nextSibling = li.nextElementSibling;
+
+        // Find the next sibling that has a link
+        while (nextSibling && !nextSibling.querySelector('a')) {
+          nextSibling = nextSibling.nextElementSibling;
+        }
+
+        if (nextSibling) {
+          const nextLink = nextSibling.querySelector('a');
+          if (nextLink) {
+            const nextLinkPath = new URL(nextLink.href, window.location.origin).pathname;
+            if (shouldHideNavItem(nextLinkPath, topNavPath)) {
+              li.classList.add('hidden');
+            }
+          }
+        } else {
+          li.classList.add('hidden');
+        }
+        return;
+      }
+
       const link = li.querySelector(':scope > a');
       if (link) {
         const fullPath = link.getAttribute('href');
@@ -551,6 +598,7 @@ function activeSubNav(actTab) {
         if (linkPath.startsWith(pagePath) && getMetadata("template") === "documentation") {
           showSidenav = true;
         }
+
         if (!linkPath.startsWith(topNavPath)) {
           li.classList.add('hidden');
         }
@@ -563,9 +611,20 @@ function activeSubNav(actTab) {
   if (!showSidenav) {
     document.querySelector("main").classList.add("no-sidenav");
   }
+
   const sidecontainer = document.querySelector(".side-nav-container");
-  sidecontainer.style.visibility = "visible";
+  // Make side nav visible after all updates are complete
+  if (sidecontainer) {
+    sidecontainer.style.visibility = "visible";
+    
+    // Restore scroll position after side nav is visible and filtering is complete
+    if (window.restoreSideNavScroll) {
+      window.restoreSideNavScroll();
+    }
+  }
 }
+
+
 /**
  * Checks whether the current URL is one of the top level navigation items
  * @param {*} urlPathname The current URL path name
@@ -820,10 +879,10 @@ function globalNavProfileTemplate(profile) {
             <div class="nav-profile-popover-divider">
               <hr />
             </div>
-            <a href="https://account.adobe.com/" class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit">
+            <a href="https://account.adobe.com/" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit">
               Edit Profile
             </a>
-            <a href="#" id="signOut" class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out">
+            <a href="#" id="signOut" data-prefetch=false class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out">
               Sign out
             </a>
           </div>
@@ -952,6 +1011,17 @@ export function decorateAnchorLink(header) {
   const anchorLink = createAnchorLink(header.id);
   header.appendChild(anchorLink);
   // });
+}
+
+/**
+ * Scrolls element into view with adjustment for lazy-loaded decorations.
+ * @param {Element} element The element to scroll to
+ */
+export function scrollWithLayoutAdjustment(element) {
+  // Scroll to element (triggers lazy decorations)
+  element.scrollIntoView();
+  // Re-scroll after decorations settle (no completion event available)
+  setTimeout(() => element.scrollIntoView(), 500);
 }
 
 /**
@@ -1103,3 +1173,15 @@ export async function redirect() {
     }
   }
 }
+
+/**
+ * Waits for the page to be visible before resolving the promise
+ * @returns {Promise} A promise that resolves when the page is visible
+ */
+export const whenFirstVisible = new Promise((resolve) => {
+  if (document.hidden) {
+    document.addEventListener('visibilitychange', resolve, {once: true});
+  } else {
+    resolve();
+  }
+});

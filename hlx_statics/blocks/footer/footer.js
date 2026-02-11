@@ -60,4 +60,14 @@ export default async function decorate(block) {
   block.querySelectorAll('div.footer-legal > div > p').forEach((p) => {
     p.className = 'spectrum-Body spectrum-Body--sizeXS footer-date';
   });
+
+  // Find cookie preference link and add privacy library id
+  const cookiePreferenceLink = Array.from(block.querySelectorAll('a')).find(
+    (link) => link.textContent.toLowerCase().includes('cookie preferences')
+  );
+
+  if (cookiePreferenceLink) {
+    cookiePreferenceLink.href = `${window.location.href}#/`;
+    cookiePreferenceLink.id = 'openPrivacy';
+  }
 }

@@ -278,6 +278,13 @@ main.dev-docs:not(.no-layout):not(:has(.herosimple)):not(:has(.superhero)) .foot
   max-width: 1280px;
 }
 
+@media screen and (max-width: 767px) {
+  /* Ensures contributors is sticky */
+  main:has(.contributors-container) {
+    overflow: visible;
+  }
+}
+
 main.dev-docs .aside-wrapper .aside {
   position: sticky;
   top: 128px;
@@ -1186,7 +1193,7 @@ main .default-content-wrapper strong{
 main .content-header {
   display:flex;
   gap: 32px;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
 }
 
@@ -1198,7 +1205,7 @@ main .github-actions-block{
   display: flex;
   gap: 20px;
   min-width: 250px;
-  align-items: center;
+  align-items: start;
 }
 
 main .action-buttons{
@@ -1294,6 +1301,11 @@ header.global-nav-header img.icon {
   height: 18px;
   width: 22px;
   margin-right: 8px;
+}
+
+.toolbar{
+  display: flex;
+  gap: 10px;
 }
 
 .spectrum-Button.spectrum-Button--outline.spectrum-Button--accent{
