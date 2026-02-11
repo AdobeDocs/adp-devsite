@@ -454,7 +454,7 @@ export function buildBreadcrumbs(main) {
  */
 export function buildAiAssistant(main) {
   let aiAssistantWrapper = createTag('div', { class: 'ai-assistant-wrapper block', 'data-block-name': 'ai-assistant' });
-  const gridAreaMain = main.querySelector('.grid-main-area');
+  const gridAreaMain = main.querySelector('.grid-main-area') ? main.querySelector('.grid-main-area') : main;
   gridAreaMain.appendChild(aiAssistantWrapper)
 }
 
