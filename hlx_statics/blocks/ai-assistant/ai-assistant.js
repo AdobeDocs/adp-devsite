@@ -7,7 +7,7 @@ const chatLine= (content) => {
       <div class="chat-line-content-header">
         <div class="chat-line-content-header-left">
           <div class="chat-line-content-header-left-avatar">
-            <img src="https://via.placeholder.com/150" alt="Avatar">
+            <img src="/hlx_statics/icons/avatar.svg" alt="Avatar">
           </div>
         </div>
       </div>
@@ -30,14 +30,14 @@ export default async function decorate(block) {
 
   const section = createTag("div", { class: 'ai-assistant-section' });
   const label = createTag("h2", { class: "ai-assistant-label" });
-  label.textContent = "Ai Assistant";
+  label.textContent = "Adobe Developer AI assistant";
   section.appendChild(label);
 
   const content = createTag("div", { class: "ai-assistant-content" });
   content.textContent = "Ai Assistant content";
   section.appendChild(content);
 
-  content.appendChild(chatLine("Hello, how can I help you today?"));
-  content.appendChild(chatLine("I'm here to help you with your questions and concerns."));
+  content.appendChild(chatLine("Hello, welcome to Adobe Developer Website!"));
+  content.appendChild(chatLine("What would you like to know today?"));
   block.appendChild(section);
 }

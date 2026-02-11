@@ -160,7 +160,7 @@ function loadContributors(contributors) {
 
 function loadAiAssistant(aiAssitant) {
   const aiAssistantBlock = buildBlock('ai-assistant', '');
-  aiAssistantBlock.append(aiAssistantBlock);
+  aiAssitant.append(aiAssistantBlock);
   decorateBlock(aiAssistantBlock);
   loadBlock(aiAssistantBlock);
 }
