@@ -22,7 +22,7 @@ import {
 } from './lib-helix.js';
 
 import {
-  buildAIAssistant,
+  buildAiAssistant,
   buildBreadcrumbs,
   buildCodes,
   buildContributors,
@@ -158,9 +158,9 @@ function loadContributors(contributors) {
   loadBlock(contributorsBlock);
 }
 
-function loadAIAssistant() {
+function loadAiAssistant(aiAssitant) {
   const aiAssistantBlock = buildBlock('ai-assistant', '');
-  aiAssistantBlock.append(ai-assistantBlock);
+  aiAssistantBlock.append(aiAssistantBlock);
   decorateBlock(aiAssistantBlock);
   loadBlock(aiAssistantBlock);
 }
@@ -813,8 +813,8 @@ async function loadLazy(doc) {
     }
   }
 
-  buildAIAssistant(main);
-  loadAIAssistant(doc.querySelector('.ai-assistant-wrapper'));
+  buildAiAssistant(main);
+  loadAiAssistant(doc.querySelector('.ai-assistant-wrapper'));
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   addFavIcon('/hlx_statics/icons/adobe.svg');

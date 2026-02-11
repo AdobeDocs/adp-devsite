@@ -452,7 +452,7 @@ export function buildBreadcrumbs(main) {
  * Builds the ai assistant wrapper
  * @param {*} main The grid container
  */
-export function buildAIAssistant(main) {
+export function buildAiAssistant(main) {
   let aiAssistantWrapper = createTag('div', { class: 'ai-assistant-wrapper block', 'data-block-name': 'ai-assistant' });
   const gridAreaMain = main.querySelector('.grid-main-area');
   gridAreaMain.appendChild(aiAssistantWrapper)
