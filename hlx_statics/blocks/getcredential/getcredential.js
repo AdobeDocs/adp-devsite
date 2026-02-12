@@ -397,78 +397,47 @@ function updateProjectCardDetails(returnContainer, project) {
     return;
   }
 
-  // Extract data (similar to credential card)
   const projectName = project.title || project.name || 'Untitled Project';
   const projectId = project.id;
   const workspace = project.workspaces?.[0];
   const credential = workspace?.credentials?.[0];
 
-  // Extract API Key - try nested structure first, then fallback to flat structure or other properties
-  const apiKey = credential?.clientId
-    || project.clientId  // Fallback: if clientId is directly on project
-    || credential?.id_integration
-    || credential?.apiKey
-    || credential?.id
-    || 'Not available';
-
-  // Extract Allowed Origins - try nested structure first, then fallback to flat structure
-  const allowedOrigins = credential?.metadata?.['adobeid.domain']
-    || project.metadata?.['adobeid.domain']  // Fallback: if metadata is directly on project
-    || credential?.metadata?.adobeid?.domain
-    || credential?.metadata?.domain
-    || 'Not set';
-
+  const apiKey = credential?.clientId || project.clientId || credential?.id_integration || credential?.apiKey || credential?.id || 'Not available';
+  const allowedOrigins = credential?.metadata?.['adobeid.domain'] || project.metadata?.['adobeid.domain'] || credential?.metadata?.adobeid?.domain || credential?.metadata?.domain || 'Not set';
   const orgName = selectedOrganization?.name || 'Unknown';
+  const clientId = credential?.clientId || project.clientId || apiKey;
+  const scopes = credential?.scopes || project.scopes || credential?.metadata?.scopes || '—';
+  const imsOrgId = credential?.ims_org_id || project.ims_org_id || selectedOrganization?.id || '—';
 
-  // Update project title
+  const card = returnContainer.querySelector('.return-project-card');
 
   const projectTitle = returnContainer.querySelector('.project-title');
-  if (projectTitle) {
-    projectTitle.textContent = projectName;
-  }
+  if (projectTitle) projectTitle.textContent = projectName;
 
-  // Update project link
   const projectLink = returnContainer.querySelector('.project-link');
   if (projectLink && projectId) {
     const orgId = selectedOrganization?.id || project.org_id;
-    const consoleUrl = `/console/projects/${orgId}/${projectId}/overview`;
-
-    projectLink.href = consoleUrl;
+    projectLink.href = `/console/projects/${orgId}/${projectId}/overview`;
     const projectLinkText = projectLink.querySelector('p');
-    if (projectLinkText) {
-      projectLinkText.textContent = projectName;
+    if (projectLinkText) projectLinkText.textContent = projectName;
+  }
+
+  const setField = (dataField, value, copyable = true) => {
+    const el = card?.querySelector(`[data-field="${dataField}"]`) || returnContainer.querySelector(`[data-field="${dataField}"]`);
+    if (!el) return;
+    el.textContent = value;
+    if (copyable && value && value !== 'Not available' && value !== 'Not set' && value !== '—') {
+      const copyBtn = el.closest('.credential-detail-field')?.querySelector('.copy-button');
+      if (copyBtn) copyBtn.setAttribute('data-copy', value);
     }
-  }
+  };
 
-  // Update API Key
-  const apiKeyElement = returnContainer.querySelector('.return-project-card [data-field="apiKey"]')
-    || returnContainer.querySelector('[data-field="apiKey"]');
-  if (apiKeyElement) {
-    apiKeyElement.textContent = apiKey;
-    const copyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && apiKey !== 'Not available') {
-      copyButton.setAttribute('data-copy', apiKey);
-    }
-  }
-
-  // Update Allowed Origins
-  const originsElement = returnContainer.querySelector('.return-project-card [data-field="allowedOrigins"]')
-    || returnContainer.querySelector('[data-field="allowedOrigins"]');
-  if (originsElement) {
-    originsElement.textContent = allowedOrigins;
-    const copyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && allowedOrigins !== 'Not set') {
-      copyButton.setAttribute('data-copy', allowedOrigins);
-    }
-  }
-
-  // Update Organization
-  const orgElement = returnContainer.querySelector('.return-project-card [data-field="organization"]')
-    || returnContainer.querySelector('[data-field="organization"]');
-  if (orgElement) {
-    orgElement.textContent = orgName;
-  }
-
+  setField('apiKey', apiKey);
+  setField('allowedOrigins', allowedOrigins);
+  setField('organization', orgName);
+  setField('clientId', clientId);
+  setField('scopes', typeof scopes === 'string' ? scopes : (Array.isArray(scopes) ? scopes.join(', ') : '—'));
+  setField('imsOrgId', imsOrgId);
 }
 
 async function fetchOrganizations() {
@@ -708,6 +677,10 @@ function clearForm(formContainer) {
   // Clear error messages
   const errorDescriptions = formContainer?.querySelectorAll('.field-description.error');
   errorDescriptions?.forEach(desc => desc.classList.remove('error'));
+
+  // Hide UnknownError banner if present
+  const errorBanner = formContainer?.querySelector('.unknown-error-banner');
+  if (errorBanner) errorBanner.classList.add('hidden');
 
   // Hide alert icons
   const alertIcons = formContainer?.querySelectorAll('.alert-icon');
@@ -1150,6 +1123,102 @@ function createSideContent(config) {
 }
 
 // ============================================================================
+// REQUEST ACCESS PAGE
+// ============================================================================
+
+function createRequestAccessContent(config) {
+  const wrapper = createTag('div', { class: 'request-access-wrapper' });
+
+  if (config.title) {
+    const title = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeXL request-access-title' });
+    title.textContent = config.title;
+    wrapper.appendChild(title);
+  }
+
+  if (config.paragraph) {
+    const paragraph = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL request-access-description' });
+    paragraph.textContent = config.paragraph;
+    wrapper.appendChild(paragraph);
+  }
+
+  const contentWrapper = createTag('div', { class: 'request-access-content' });
+
+  // RestrictedAccess section
+  if (config.components?.RestrictedAccess) {
+    const restricted = config.components.RestrictedAccess;
+    const section = createTag('div', { class: 'request-access-restricted' });
+    if (restricted.title) {
+      const sectionTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeM' });
+      sectionTitle.textContent = restricted.title;
+      section.appendChild(sectionTitle);
+    }
+    if (restricted.buttonLabel) {
+      const link = restricted.buttonLink || '#';
+      const btn = createTag('a', { href: link, target: '_blank', rel: 'noopener', class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM request-access-button' });
+      btn.textContent = restricted.buttonLabel;
+      section.appendChild(btn);
+    }
+    if (restricted.components?.Products?.items?.length) {
+      const productsList = createTag('div', { class: 'products-list' });
+      restricted.components.Products.items.forEach((item) => {
+        const product = item.Product;
+        const productItem = createTag('div', { class: 'product-item' });
+        if (product?.icon) {
+          productItem.appendChild(createTag('img', { class: 'product-icon icon', src: product.icon }));
+        }
+        if (product?.label) {
+          const label = createTag('span', { class: 'product-label' });
+          label.textContent = product.label;
+          productItem.appendChild(label);
+        }
+        productsList.appendChild(productItem);
+      });
+      section.appendChild(productsList);
+    }
+    contentWrapper.appendChild(section);
+  }
+
+  // EdgeCase: show first available (e.g. NoProduct) as fallback when no RestrictedAccess products
+  const edgeCase = config.components?.EdgeCase?.components;
+  if (edgeCase && !config.components?.RestrictedAccess) {
+    const firstCase = edgeCase.NoProduct || edgeCase.Type1User || edgeCase.NotMember || edgeCase.NotSignUp;
+    if (firstCase) {
+      const section = createTag('div', { class: 'request-access-edge-case' });
+      if (firstCase.title) {
+        const sectionTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeM' });
+        sectionTitle.textContent = firstCase.title;
+        section.appendChild(sectionTitle);
+      }
+      if (firstCase.buttonLabel && firstCase.buttonLink) {
+        const a = createTag('a', { href: firstCase.buttonLink, target: '_blank', rel: 'noopener', class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM' });
+        a.textContent = firstCase.buttonLabel;
+        section.appendChild(a);
+      }
+      contentWrapper.appendChild(section);
+    }
+  }
+
+  wrapper.appendChild(contentWrapper);
+
+  // RequestAccessSide
+  if (config.components?.RequestAccessSide?.content?.elements) {
+    const sideContainer = createTag('div', { class: 'request-access-side' });
+    const sideContent = config.components.RequestAccessSide.content;
+    if (sideContent.style) Object.assign(sideContainer.style, sideContent.style);
+    sideContent.elements.forEach((element) => {
+      const el = createTag(element.type, { class: element.className || '' });
+      if (element.style) Object.assign(el.style, element.style);
+      if (element.href) el.href = element.href;
+      if (element.text) el.textContent = element.text;
+      sideContainer.appendChild(el);
+    });
+    wrapper.appendChild(sideContainer);
+  }
+
+  return wrapper;
+}
+
+// ============================================================================
 // SIGN IN PAGE
 // ============================================================================
 
@@ -1168,7 +1237,8 @@ function createSignInContent(config) {
     signInWrapper.appendChild(paragraph);
   }
 
-  const button = createSpectrumButton('Sign in to create credentials', 'outline', 'M');
+  const buttonText = config.buttonText || 'Sign in to create credentials';
+  const button = createSpectrumButton(buttonText, 'outline', 'M');
   button.classList.add('sign-in-button');
   button.setAttribute('data-cy', 'sign-in-button');
   signInWrapper.appendChild(button);
@@ -1179,7 +1249,7 @@ function createSignInContent(config) {
 // ============================================================================
 // RETURN PAGE (Previously Created Projects)
 // ============================================================================
-function createReturnContent(config, handleReturnOrgChange) {
+function createReturnContent(config, handleReturnOrgChange, formConfig = null) {
   const returnWrapper = createTag('div', { class: 'return-wrapper' });
 
   const contentWrapper = createTag('div', { class: 'return-content-wrapper' });
@@ -1187,14 +1257,14 @@ function createReturnContent(config, handleReturnOrgChange) {
   // Left side - "Get credentials" content
   const leftContent = createTag('div', { class: 'return-left-content' });
 
-  // Get credentials header
+  // Get credentials header (title/paragraph from formConfig when provided)
   const getCredHeader = createTag('div', { class: 'get-cred-header' });
   const getCredTitle = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeXL' });
-  getCredTitle.textContent = 'Get credentials';
+  getCredTitle.textContent = formConfig?.title || 'Get credentials';
   getCredHeader.appendChild(getCredTitle);
 
   const getCredDesc = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL' });
-  getCredDesc.textContent = 'Create unique credentials that you will use to call Adobe Express Embed SDK from your application.';
+  getCredDesc.textContent = formConfig?.paragraph || 'Create unique credentials that you will use to call Adobe Express Embed SDK from your application.';
   getCredHeader.appendChild(getCredDesc);
 
   // Organization notice
@@ -1296,13 +1366,17 @@ function createReturnContent(config, handleReturnOrgChange) {
   const projectHeader = createProjectHeader('', config.components?.Products, isCollapsable);
   projectCard.appendChild(projectHeader);
 
-  // Collapsible content wrapper
+  // Collapsible content wrapper (same order as success card: Access Token → Dev Console → Credential details → Buttons)
   const cardContent = createTag('div', { class: 'card-collapsible-content' });
 
   // Divider
   cardContent.appendChild(createDivider());
 
-  // Developer Console Project (will be updated dynamically)
+  // 1. Access Token section (same card design as success card)
+  const accessTokenSection = createAccessTokenSection(config.components?.AccessToken);
+  if (accessTokenSection) cardContent.appendChild(accessTokenSection);
+
+  // 2. Developer Console Project (will be updated dynamically)
   if (config.components?.DevConsoleLink) {
     const devConsoleSection = createTag('div', { class: 'dev-console-section' });
     const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
@@ -1314,22 +1388,28 @@ function createReturnContent(config, handleReturnOrgChange) {
     cardContent.appendChild(devConsoleSection);
   }
 
-  // Credential Details
+  // 3. Credential Details
   if (config.components?.CredentialDetails) {
     cardContent.appendChild(createCredentialSection(config.components.CredentialDetails));
   }
 
-  // Next steps button
+  // 4. Buttons section (Next steps + Manage on Developer Console – same as success card)
+  const buttonsSection = createTag('div', { class: 'card-buttons' });
   if (config.nextStepsLabel && config.nextStepsHref) {
-    const buttonsSection = createTag('div', { class: 'card-buttons' });
     const nextStepsButton = createTag('a', {
       class: 'spectrum-Button spectrum-Button--outline spectrum-Button--primary spectrum-Button--sizeM',
       href: config.nextStepsHref
     });
     nextStepsButton.innerHTML = `<span class="spectrum-Button-label">${config.nextStepsLabel}</span>`;
     buttonsSection.appendChild(nextStepsButton);
-    cardContent.appendChild(buttonsSection);
   }
+  const manageLabel = config.developerConsoleManage || 'Manage on Developer console';
+  const manageHref = config.devConsoleDirection || '/console/';
+  const manageLink = createExternalLink(manageLabel, manageHref);
+  manageLink.classList.remove('project-link');
+  manageLink.classList.add('manage-link');
+  buttonsSection.appendChild(manageLink);
+  cardContent.appendChild(buttonsSection);
 
   projectCard.appendChild(cardContent);
 
@@ -1390,6 +1470,30 @@ function setLoadingText(loadingContainer, text) {
 }
 
 // ============================================================================
+// CARD SECTIONS (shared design: Access Token → Dev Console → Credential details → Buttons)
+// ============================================================================
+
+function createAccessTokenSection(config) {
+  if (!config?.heading) return null;
+  const section = createTag('div', { class: 'access-token-section dev-console-section' });
+  const heading = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
+  heading.textContent = config.heading;
+  section.appendChild(heading);
+  if (config.helpText) {
+    const help = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS access-token-help' });
+    help.textContent = config.helpText;
+    section.appendChild(help);
+  }
+  if (config.buttonLabel) {
+    const btn = createSpectrumButton(config.buttonLabel, 'accent', 'M');
+    btn.classList.add('generate-token-button');
+    btn.setAttribute('data-cy', 'generate-token-btn');
+    section.appendChild(btn);
+  }
+  return section;
+}
+
+// ============================================================================
 // SUCCESS CARD PAGE
 // ============================================================================
 
@@ -1431,12 +1535,16 @@ function createCredentialCard(config) {
   const projectHeader = createProjectHeader('', config.components?.Products, isCollapsable);
   projectCard.appendChild(projectHeader);
 
-  // Collapsible content wrapper
+  // Collapsible content wrapper (order: Access Token → Developer Console → Credential details → Buttons)
   const cardCollapsibleContent = createTag('div', { class: 'card-collapsible-content' });
 
   cardCollapsibleContent.appendChild(createDivider());
 
-  // Developer Console Project section (will be updated dynamically)
+  // 1. Access Token section (first, per card design)
+  const accessTokenSection = createAccessTokenSection(config.components?.AccessToken);
+  if (accessTokenSection) cardCollapsibleContent.appendChild(accessTokenSection);
+
+  // 2. Developer Console Project section (will be updated dynamically)
   if (config.components?.DevConsoleLink) {
     const devConsoleSection = createTag('div', { class: 'dev-console-section' });
     const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
@@ -1450,14 +1558,14 @@ function createCredentialCard(config) {
     cardCollapsibleContent.appendChild(devConsoleSection);
   }
 
-  // Credential Details section
+  // 3. Credential Details section
   if (config.components?.CredentialDetails) {
     const credSection = createCredentialSection(config.components.CredentialDetails);
     // Values will be populated dynamically after API call via updateCredentialCard()
     cardCollapsibleContent.appendChild(credSection);
   }
 
-  // Buttons section (inside project card)
+  // 4. Buttons section (Next steps + Manage on Developer Console)
   const buttonsSection = createTag('div', { class: 'card-buttons' });
 
   // Next steps button
@@ -1473,7 +1581,9 @@ function createCredentialCard(config) {
   }
 
   // Manage on Developer console link
-  const manageLink = createExternalLink('Manage on Developer console', '/console/');
+  const manageLabel = config.developerConsoleManage || 'Manage on Developer console';
+  const manageHref = config.devConsoleDirection || '/console/';
+  const manageLink = createExternalLink(manageLabel, manageHref);
   manageLink.classList.remove('project-link');
   manageLink.classList.add('manage-link');
   buttonsSection.appendChild(manageLink);
@@ -1530,26 +1640,49 @@ export default async function decorate(block) {
   const navPath = `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
 
   let credentialData;
+  let getCredConfig;
   try {
     const response = await fetch(navPath);
     if (!response.ok) throw new Error('Failed to load');
     const credentialJSON = await response.json();
     credentialData = credentialJSON?.data?.[0]?.['GetCredential']?.components;
+    getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
     if (!credentialData) {
       block.innerHTML = '<p>No credential data available.</p>';
       return;
     }
 
     // Extract template and organization data for API calls
-    const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
 
     // Get template configuration from JSON - use templateId from config
     const isStageOrLocalHost = isStageEnvironment(window.location.host)
       || isLocalHostEnvironment(window.location.host);
+    const templateId = isStageOrLocalHost
+      ? (getCredConfig?.stageTemplateId ?? getCredConfig?.templateId)
+      : getCredConfig?.templateId;
+
+    // Build apis from config or from Form.components.Products.items
+    const formProducts = credentialData?.Form?.components?.Products?.items;
+    const apisFromConfig = getCredConfig?.apis;
+    const apis = apisFromConfig?.length
+      ? apisFromConfig.map((api) => ({
+        code: api.code,
+        credentialType: api.credentialType || 'apikey',
+        flowType: api.flowType || 'public',
+        licenseConfigs: Array.isArray(api.licenseConfigs) && api.licenseConfigs.length > 0
+          ? [{ ...api.licenseConfigs[0], op: 'add' }]
+          : [],
+      }))
+      : (formProducts?.map((item) => ({
+        code: item.Product?.code || 'cc-embed',
+        credentialType: 'apikey',
+        flowType: 'public',
+        licenseConfigs: [],
+      })) || []);
+
     templateData = {
-      id: isStageOrLocalHost
-        ? (getCredConfig?.stageTemplateId ?? getCredConfig?.templateId)
-        : getCredConfig?.templateId
+      id: templateId,
+      apis,
     };
 
     if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
@@ -1588,6 +1721,9 @@ export default async function decorate(block) {
   }
 
   block.innerHTML = '';
+  if (getCredConfig?.className) {
+    getCredConfig.className.split(/\s+/).filter(Boolean).forEach((c) => block.classList.add(c));
+  }
 
   // Create sign-in container (always start as visible, will hide if user is signed in)
   let signInContainer;
@@ -1742,7 +1878,7 @@ export default async function decorate(block) {
 
     // Always create return container as hidden initially
     returnContainer = createTag('div', { class: 'return-container hidden' });
-    returnContainer.appendChild(createReturnContent(credentialData.Return, handleReturnOrgChange));
+    returnContainer.appendChild(createReturnContent(credentialData.Return, handleReturnOrgChange, credentialData.Form));
     block.appendChild(returnContainer);
 
     // Note: Navigation for already signed-in users is now handled by checkAlreadySignedIn()
@@ -1751,8 +1887,10 @@ export default async function decorate(block) {
 
   // Create form container
   if (credentialData.Form) {
-    const { title, paragraph, components } = credentialData.Form;
-    formContainer = createTag('div', { class: 'getcredential-form hidden' });
+    const { title, paragraph, components, className: formClassName } = credentialData.Form;
+    const formClasses = ['getcredential-form', 'hidden'];
+    if (formClassName) formClasses.push(...formClassName.split(/\s+/).filter(Boolean));
+    formContainer = createTag('div', { class: formClasses.join(' ') });
     const formHeader = createTag('div', { class: 'form-header' });
 
     if (title) {
@@ -1800,6 +1938,27 @@ export default async function decorate(block) {
       selectedOrganization,
       handleOrgChange
     ));
+
+    // UnknownError banner (hidden by default; shown on create credential failure when config present)
+    if (credentialData.UnknownError) {
+      const unknownErrorConfig = credentialData.UnknownError;
+      const errorBanner = createTag('div', {
+        class: `unknown-error-banner hidden ${(unknownErrorConfig.className || '').trim()}`.trim()
+      });
+      const errorMessageEl = createTag('p', { class: 'unknown-error-message spectrum-Body spectrum-Body--sizeM' });
+      errorBanner.appendChild(errorMessageEl);
+      if (unknownErrorConfig.helpLink && unknownErrorConfig.helpLinkText) {
+        const helpLinkEl = createTag('a', {
+          href: unknownErrorConfig.helpLink,
+          target: '_blank',
+          rel: 'noopener',
+          class: 'unknown-error-help spectrum-Link'
+        });
+        helpLinkEl.textContent = unknownErrorConfig.helpLinkText;
+        errorBanner.appendChild(helpLinkEl);
+      }
+      formHeader.appendChild(errorBanner);
+    }
 
     const formWrapper = createTag('div', { class: 'form-wrapper' });
     const formFields = createTag('form', { class: 'credential-form' });
@@ -1858,6 +2017,14 @@ export default async function decorate(block) {
     block.appendChild(cardContainer);
   }
 
+  // Create request access container (shown when user has no organizations)
+  let requestAccessContainer;
+  if (credentialData.RequestAccess) {
+    requestAccessContainer = createTag('div', { class: 'request-access-container hidden' });
+    requestAccessContainer.appendChild(createRequestAccessContent(credentialData.RequestAccess));
+    block.appendChild(requestAccessContainer);
+  }
+
   // Setup navigation handlers
   signInContainer?.querySelector('.sign-in-button')?.addEventListener('click', () => {
     if (window.adobeIMS?.isSignedInUser()) {
@@ -1903,6 +2070,9 @@ export default async function decorate(block) {
 
   formContainer?.querySelector('.create-button')?.addEventListener('click', async (e) => {
     e.preventDefault();
+
+    // Hide previous UnknownError banner on retry
+    formContainer?.querySelector('.unknown-error-banner')?.classList.add('hidden');
 
     // Validate all fields before submission
     const isCredentialNameValid = validationState.CredentialName.valid;
@@ -1981,10 +2151,20 @@ export default async function decorate(block) {
         navigateTo(loadingContainer, formContainer);
       }
     } catch (error) {
-      // API error - Show error message
-      // API error received - Hide loading and show form again
+      // API error - Show error message and UnknownError banner if configured
       navigateTo(loadingContainer, formContainer);
       showToast(`Error: ${error.message}`, 'error', 5000);
+      const errorBanner = formContainer?.querySelector('.unknown-error-banner');
+      if (errorBanner && credentialData.UnknownError) {
+        const msgEl = errorBanner.querySelector('.unknown-error-message');
+        if (msgEl) msgEl.textContent = error.message;
+        const helpEl = errorBanner.querySelector('.unknown-error-help');
+        if (helpEl && credentialData.UnknownError.helpLink) {
+          helpEl.href = credentialData.UnknownError.helpLink;
+          helpEl.textContent = credentialData.UnknownError.helpLinkText || 'Get Help';
+        }
+        errorBanner.classList.remove('hidden');
+      }
     }
   });
 
@@ -2090,42 +2270,40 @@ export default async function decorate(block) {
             clearInterval(checkSignIn);
             // Fetch organizations first
             fetchOrganizations().then(async orgs => {
+              if (!orgs || orgs.length === 0) {
+                if (requestAccessContainer) {
+                  navigateTo(loadingContainer, requestAccessContainer);
+                  return undefined;
+                }
+              }
               if (orgs && orgs.length > 0) {
                 organizationsData = orgs;
-                // Initialize organization (from localStorage or default)
                 try {
                   await switchOrganization(null);
                 } catch (error) {
                 }
               }
 
-              // Fetch existing credentials
-
               return fetchExistingCredentials(selectedOrganization?.code);
             }).then(async (existingCreds) => {
+              if (existingCreds === undefined) return;
 
               if (existingCreds) {
-                // Pass the data in consistent format (handle both array and object responses)
                 const dataToPass = Array.isArray(existingCreds)
                   ? { projects: existingCreds }
                   : existingCreds;
 
-                // Populate dropdown and update card (filter from cached data)
                 const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
 
                 if (!hasProjects) {
-                  // No projects - navigate to form instead of return page
                   navigateTo(loadingContainer, formContainer);
                   updateCancelButtonVisibility(formContainer);
                   return;
                 }
               }
 
-              // API response received - hide loading and show return page
-
               navigateTo(loadingContainer, returnContainer);
             }).catch(error => {
-              // On error, hide loading and still navigate to return page
               navigateTo(loadingContainer, returnContainer);
             });
           }
@@ -2159,8 +2337,23 @@ export default async function decorate(block) {
         // Then fetch credentials and navigate to appropriate page
         // This is handled by the existing logic in the Return container creation (lines 1687-1730)
         // We just need to trigger it
-        if (returnContainer) {
-          fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
+        if (returnContainer || requestAccessContainer) {
+          fetchOrganizations().then(async (orgs) => {
+            if (!orgs || orgs.length === 0) {
+              if (requestAccessContainer) {
+                navigateTo(loadingContainer, requestAccessContainer);
+                return undefined;
+              }
+            }
+            if (orgs && orgs.length > 0) {
+              organizationsData = orgs;
+              try {
+                await switchOrganization(null);
+              } catch (err) {}
+            }
+            return fetchExistingCredentials(selectedOrganization?.code);
+          }).then(async (existingCreds) => {
+            if (existingCreds === undefined) return;
             const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
 
             if (projectsArray && projectsArray.length > 0) {
