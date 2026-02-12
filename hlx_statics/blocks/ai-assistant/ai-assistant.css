@@ -8,6 +8,7 @@
   bottom: 0;
   right: 0;
   z-index: 1000;
+  pointer-events: none;
 }
 
 .ai-assistant-container {
@@ -17,7 +18,7 @@
   padding: 40px;
 }
 
-.ai-assistant-container .chatButton {
+.ai-assistant-container .chat-button {
   /* From https://github.com/adobe/react-spectrum/blob/1a2b8f860ef2cee6aa579aa6b5e7032ca3be1cb1/packages/%40react-spectrum/s2/src/Button.tsx#L278 */
   --border-linear-gradient: linear-gradient(to bottom right, var(--red-900) 0%, var(--magenta-900) 33%, var(--indigo-900) 100%);
   --background-color: #ffffff;
@@ -33,13 +34,14 @@
     linear-gradient(var(--background-color), var(--background-color)) padding-box,
     var(--border-linear-gradient) border-box;
   align-self: flex-end;
+  pointer-events: auto;
 
   &:hover {
     --background-color: #f0f0f0;
   }
 }
 
-.ai-assistant-section {
+.ai-assistant-container .chat-window {
   max-height: 600px;
   background: #ffffff;
   border-radius: 12px;
@@ -47,9 +49,27 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  visibility: hidden;
+  transition: opacity 0.25s ease-out,
+              transform 0.25s ease-out,
+              visibility 0s linear 0.25s; /* Delay visibility change */
+
+
+  &.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+    transition: opacity 0.25s ease-out,
+                transform 0.25s ease-out,
+                visibility 0s linear 0s; /* No delay when showing */
+    pointer-events: auto;
+  }
 }
 
-.ai-assistant-label {
+.chat-window .chat-window-label {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #ffffff;
   margin: 0;
@@ -59,7 +79,7 @@
   border-radius: 12px 12px 0 0;
 }
 
-.ai-assistant-content {
+.chat-window .chat-window-content {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
@@ -71,7 +91,7 @@
 }
 
 /* Chat Line Styles */
-.chat-line {
+.chat-window-content .chat-line {
   display: flex;
   margin-bottom: 16px;
   animation: fadeIn 0.3s ease-in;

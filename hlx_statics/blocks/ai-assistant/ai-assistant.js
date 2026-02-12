@@ -27,35 +27,68 @@ const chatLine = (content) => {
  *
  */
 export default async function decorate(block) {
+  const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
+  const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
+  const CHAT_WINDOW_ID = "ai-assistant-chat-window";
+  const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
+
   const container = createTag("div", { class: "ai-assistant-container" });
 
-  const section = createTag("div", { class: "ai-assistant-section" });
-  const label = createTag("h2", { class: "ai-assistant-label" });
+  const chatWindow = createTag("div", {
+    class: "chat-window",
+    id: CHAT_WINDOW_ID,
+    role: "dialog",
+    "aria-modal": "false",
+    "aria-labelledby": CHAT_WINDOW_LABEL_ID,
+  });
+  const label = createTag("h2", {
+    class: "chat-window-label",
+    id: CHAT_WINDOW_LABEL_ID,
+  });
   label.textContent = "Adobe Developer AI assistant";
-  section.appendChild(label);
+  chatWindow.appendChild(label);
 
-  const content = createTag("div", { class: "ai-assistant-content" });
+  const content = createTag("div", { class: "chat-window-content" });
   content.textContent = "Ai Assistant content";
-  section.appendChild(content);
+  chatWindow.appendChild(content);
 
   content.appendChild(chatLine("Hello, welcome to Adobe Developer Website!"));
   content.appendChild(chatLine("What would you like to know today?"));
 
-  const chatButton = createTag("button", { class: "chatButton" });
-  chatButton.innerHTML = `<img src="/hlx_statics/icons/ai-chat.svg" alt="" aria-hidden="true">`;
-  chatButton.ariaLabel = "Open AI Assistant";
-  /**
-   * TODO: Double check the accessibility of the button.
-   *
-   * Improvements:
-   *   - Change label based on chat window state;
-   *   - Add aria-controls attribute to link the button to the chat window;
-   *   - Add aria-expanded attribute to indicate the state of the chat window;
-   *   - Add aria-haspopup attribute to indicate the type of popup that will be opened by the button;
-   */
+  const chatButton = createTag("button", {
+    class: "chat-button",
+    type: "button",
+    "aria-controls": CHAT_WINDOW_ID,
+    "aria-expanded": "false",
+    "aria-haspopup": "dialog",
+  });
+  const buttonIcon = createTag("img", {
+    src: "/hlx_statics/icons/ai-chat.svg",
+    alt: "",
+    ariaHidden: true,
+  });
+  chatButton.appendChild(buttonIcon);
+  chatButton.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
+
   container.appendChild(chatButton);
-
-  container.appendChild(section);
-
+  container.appendChild(chatWindow);
   block.appendChild(container);
+
+  const toggleChatWindow = () => {
+    const chatWindow = document.querySelector(
+      ".ai-assistant-container .chat-window",
+    );
+    const isOpen = chatWindow.classList.contains("show");
+
+    // Update aria-expanded to reflect new state
+    chatButton.setAttribute("aria-expanded", isOpen ? "false" : "true");
+
+    // Update button label for screen readers
+    chatButton.ariaLabel = isOpen
+      ? CHAT_BUTTON_LABEL_OPEN
+      : CHAT_BUTTON_LABEL_CLOSE;
+    chatWindow.classList.toggle("show");
+  };
+
+  chatButton.addEventListener("click", toggleChatWindow);
 }
