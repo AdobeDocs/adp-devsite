@@ -484,38 +484,64 @@ export function createProjectHeader(projectTitle, products, isCollapsable = fals
   return projectHeader;
 }
 
+const CREDENTIAL_FIELD_META = {
+  APIKey: { dataField: 'apiKey', showCopy: true },
+  AllowedOrigins: { dataField: 'allowedOrigins', showCopy: true },
+  OrganizationName: { dataField: 'organization', showCopy: false },
+  ClientId: { dataField: 'clientId', showCopy: true },
+  Scopes: { dataField: 'scopes', showCopy: true },
+  ClientSecret: { dataField: 'clientSecret', showCopy: false },
+  ImsOrgID: { dataField: 'imsOrgId', showCopy: true },
+};
+
 export function createCredentialSection(config) {
   const credentialSection = createTag('div', { class: 'credential-section' });
   const credentialTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
   credentialTitle.textContent = config.heading;
   credentialSection.appendChild(credentialTitle);
 
-  const components = config.components;
-  if (components?.APIKey) {
-    credentialSection.appendChild(createCredentialDetailField(
-      components.APIKey.heading,
-      components.APIKey.value || '',
-      true,
-      'apiKey'  // Add fieldName for dynamic updates
-    ));
-  }
+  const components = config.components || {};
+  const orderBy = config.orderBy ? config.orderBy.split(',').map(s => s.trim()) : null;
+  const keysToRender = orderBy && orderBy.length > 0
+    ? orderBy.filter(k => components[k])
+    : Object.keys(components);
 
-  if (components?.AllowedOrigins) {
-    credentialSection.appendChild(createCredentialDetailField(
-      components.AllowedOrigins.heading,
-      components.AllowedOrigins.value || '',
-      true,
-      'allowedOrigins'  // Add fieldName for dynamic updates
-    ));
-  }
+  keysToRender.forEach((key) => {
+    const comp = components[key];
+    if (!comp?.heading) return;
+    const meta = CREDENTIAL_FIELD_META[key] || { dataField: key, showCopy: true };
 
-  if (components?.OrganizationName) {
+    if (comp.buttonLabel) {
+      const secretField = createTag('div', { class: 'credential-detail-field credential-detail-field--action' });
+      const secretLabel = createTag('label', { class: 'credential-detail-label spectrum-Body spectrum-Body--sizeS' });
+      secretLabel.textContent = comp.heading;
+      secretField.appendChild(secretLabel);
+      const secretBtn = createTag('button', { type: 'button', class: 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM retrieve-secret-button', 'data-field': meta.dataField });
+      secretBtn.textContent = comp.buttonLabel;
+      secretField.appendChild(secretBtn);
+      credentialSection.appendChild(secretField);
+      return;
+    }
+
+    const value = comp.value ?? (comp.scope || '');
     credentialSection.appendChild(createCredentialDetailField(
-      components.OrganizationName.heading,
-      components.OrganizationName.value || '',
-      false,
-      'organization'  // Add fieldName for dynamic updates
+      comp.heading,
+      value,
+      meta.showCopy,
+      meta.dataField
     ));
+  });
+
+  if (keysToRender.length === 0) {
+    if (components.APIKey) {
+      credentialSection.appendChild(createCredentialDetailField(components.APIKey.heading, components.APIKey.value || '', true, 'apiKey'));
+    }
+    if (components.AllowedOrigins) {
+      credentialSection.appendChild(createCredentialDetailField(components.AllowedOrigins.heading, components.AllowedOrigins.value || '', true, 'allowedOrigins'));
+    }
+    if (components.OrganizationName) {
+      credentialSection.appendChild(createCredentialDetailField(components.OrganizationName.heading, components.OrganizationName.value || '', false, 'organization'));
+    }
   }
 
   return credentialSection;
