@@ -1,17 +1,51 @@
 /* Ai Assistant Floating Chat Bot */
-.ai-assistant-section {
+.ai-assistant-wrapper {
+  --magenta-900: #ff3377;
+  --red-900: #fc432e;
+  --indigo-900: #8077fe;
+
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 380px;
+  bottom: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.ai-assistant-container {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 12px;
+  padding: 40px;
+}
+
+.ai-assistant-container .chatButton {
+  /* From https://github.com/adobe/react-spectrum/blob/1a2b8f860ef2cee6aa579aa6b5e7032ca3be1cb1/packages/%40react-spectrum/s2/src/Button.tsx#L278 */
+  --border-linear-gradient: linear-gradient(to bottom right, var(--red-900) 0%, var(--magenta-900) 33%, var(--indigo-900) 100%);
+  --background-color: #ffffff;
+  --size: 48px;
+
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  background: 
+    linear-gradient(var(--background-color), var(--background-color)) padding-box,
+    var(--border-linear-gradient) border-box;
+  align-self: flex-end;
+
+  &:hover {
+    --background-color: #f0f0f0;
+  }
+}
+
+.ai-assistant-section {
   max-height: 600px;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   overflow: hidden;
 }
 
