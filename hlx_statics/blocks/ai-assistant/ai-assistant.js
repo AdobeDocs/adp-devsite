@@ -195,6 +195,7 @@ export default async function decorate(block) {
           source: "ai",
         }),
       );
+      content.scrollTop = content.scrollHeight;
     }
   };
 
