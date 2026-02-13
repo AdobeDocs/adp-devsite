@@ -89,6 +89,31 @@ export default async function decorate(block) {
   const content = createTag("div", { class: "chat-window-content" });
   chatWindow.appendChild(content);
 
+  const inputSection = createTag("div", { class: "chat-window-input-section" });
+  const textarea = createTag("textarea", {
+    placeholder: "Type your message...",
+    rows: "4",
+    "aria-label": "Type your message",
+  });
+  const disclaimerText = createTag("div", { class: "chat-disclaimer-text" });
+  disclaimerText.innerHTML = `By using AI Assistant, you agree to the <a href="https://www.adobe.com/legal/licenses-terms/adobe-gen-ai-user-guidelines.html" target="_blank" rel="noopener noreferrer">Generative AI User Guidelines</a>.`;
+  const sendButton = createTag("button", {
+    class: "chat-send-button",
+    type: "button",
+    "aria-label": "Send message",
+  });
+  const sendIcon = createTag("img", {
+    src: "/hlx_statics/icons/send.svg",
+    alt: "",
+    "aria-hidden": "true",
+  });
+  sendButton.appendChild(sendIcon);
+
+  inputSection.appendChild(textarea);
+  inputSection.appendChild(disclaimerText);
+  inputSection.appendChild(sendButton);
+  chatWindow.appendChild(inputSection);
+
   const chatButton = createTag("button", {
     class: "chat-button",
     type: "button",
@@ -136,7 +161,29 @@ export default async function decorate(block) {
       : CHAT_BUTTON_LABEL_CLOSE;
     chatWindow.classList.toggle("show");
   };
+  const sendMessage = () => {
+    const message = textarea.value.trim();
+    if (message) {
+      content.appendChild(
+        chatBubble({
+          content: message,
+          source: "user",
+        }),
+      );
+      textarea.value = "";
+      content.scrollTop = content.scrollHeight;
+
+      // TODO: Add AI response logic here (?)
+    }
+  };
 
   chatButton.addEventListener("click", toggleChatWindow);
   closeButton.addEventListener("click", toggleChatWindow);
+  sendButton.addEventListener("click", sendMessage);
+  textarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
 }
