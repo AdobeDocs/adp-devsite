@@ -484,6 +484,28 @@ export function createProjectHeader(projectTitle, products, isCollapsable = fals
   return projectHeader;
 }
 
+/**
+ * Build a single credential detail field from component config.
+ * Supports: APIKey, AllowedOrigins, OrganizationName, ClientId, ClientSecret, Scopes, ImsOrgID.
+ * ImsOrgID is only rendered when present in components (config-driven).
+ */
+function buildCredentialDetailFromComponent(components, key) {
+  const c = components[key];
+  if (!c || !c.heading) return null;
+  const fieldNames = {
+    APIKey: ['apiKey', true],
+    AllowedOrigins: ['allowedOrigins', true],
+    OrganizationName: ['organization', false],
+    ClientId: ['clientId', true],
+    ClientSecret: ['clientSecret', true],
+    Scopes: ['scopes', false],
+    ImsOrgID: ['imsOrgId', false]
+  };
+  const [fieldName, showCopy] = fieldNames[key] ?? [key.toLowerCase(), false];
+  const value = (key === 'Scopes' && c.scope) ? c.scope : (c.value || '');
+  return createCredentialDetailField(c.heading, value, showCopy, fieldName);
+}
+
 export function createCredentialSection(config) {
   const credentialSection = createTag('div', { class: 'credential-section' });
   const credentialTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
@@ -491,32 +513,25 @@ export function createCredentialSection(config) {
   credentialSection.appendChild(credentialTitle);
 
   const components = config.components;
-  if (components?.APIKey) {
-    credentialSection.appendChild(createCredentialDetailField(
-      components.APIKey.heading,
-      components.APIKey.value || '',
-      true,
-      'apiKey'  // Add fieldName for dynamic updates
-    ));
+  if (!components) return credentialSection;
+
+  const orderBy = config.orderBy ? config.orderBy.split(',').map((s) => s.trim()) : null;
+  if (orderBy && orderBy.length > 0) {
+    orderBy.forEach((key) => {
+      if (!components[key]) return;
+      const field = buildCredentialDetailFromComponent(components, key);
+      if (field) credentialSection.appendChild(field);
+    });
+    return credentialSection;
   }
 
-  if (components?.AllowedOrigins) {
-    credentialSection.appendChild(createCredentialDetailField(
-      components.AllowedOrigins.heading,
-      components.AllowedOrigins.value || '',
-      true,
-      'allowedOrigins'  // Add fieldName for dynamic updates
-    ));
-  }
-
-  if (components?.OrganizationName) {
-    credentialSection.appendChild(createCredentialDetailField(
-      components.OrganizationName.heading,
-      components.OrganizationName.value || '',
-      false,
-      'organization'  // Add fieldName for dynamic updates
-    ));
-  }
+  // Legacy order when no orderBy: APIKey, AllowedOrigins, OrganizationName, then OAuth fields
+  const legacyOrder = ['APIKey', 'AllowedOrigins', 'OrganizationName', 'ClientId', 'ClientSecret', 'Scopes', 'ImsOrgID'];
+  legacyOrder.forEach((key) => {
+    if (!components[key]) return;
+    const field = buildCredentialDetailFromComponent(components, key);
+    if (field) credentialSection.appendChild(field);
+  });
 
   return credentialSection;
 }
