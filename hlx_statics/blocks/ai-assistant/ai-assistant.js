@@ -1,32 +1,44 @@
 import { createTag } from "../../scripts/lib-adobeio.js";
 
-const chatLine = (content) => {
-  const chatLine = createTag("div", { class: "chat-line" });
-  chatLine.innerHTML = `
-    <div class="chat-line-content">
-      <div class="chat-line-content-header">
-        <div class="chat-line-content-header-left">
-          <div class="chat-line-content-header-left-avatar">
-            <img src="/hlx_statics/icons/avatar.svg" alt="Avatar">
-          </div>
-        </div>
-      </div>
-      <div class="chat-line-content-body">
-        <div class="chat-line-content-body-text">
-          <p>${content}</p>
-        </div>
-      </div>
-    `;
+const chatBubble = ({ content, source }) => {
+  const chatBubble = createTag("div", { class: "chat-bubble" });
+  const contentElement = createTag("div", { class: "chat-bubble-content" });
+  const isContinuingConversation =
+    window.TEMP_CHAT_BUBBLES.at(-1)?.source === source;
 
-  return chatLine;
+  if (source === "ai") {
+    if (!isContinuingConversation) {
+      chatBubble.appendChild(aiAvatar());
+    } else {
+      chatBubble.style.paddingLeft = "36px";
+    }
+  } else {
+    chatBubble.classList.add("chat-bubble-user");
+  }
+
+  if (!isContinuingConversation && window.TEMP_CHAT_BUBBLES.length > 0) {
+    contentElement.style.marginTop = "24px";
+  }
+
+  content
+    .trim()
+    .split("\n")
+    .forEach((line) => {
+      const lineElement = createTag("p");
+      lineElement.textContent = line.trim();
+      contentElement.appendChild(lineElement);
+    });
+  chatBubble.appendChild(contentElement);
+
+  window.TEMP_CHAT_BUBBLES.push({ content, source, element: chatBubble });
+  return chatBubble;
 };
 
-const aiAvatar = (size) => {
-  const avatar = createTag("div", {
+const aiAvatar = () => {
+  return createTag("div", {
     class: "chat-ai-avatar",
     "aria-hidden": true,
   });
-  return avatar;
 };
 
 /**
@@ -35,6 +47,7 @@ const aiAvatar = (size) => {
  *
  */
 export default async function decorate(block) {
+  window.TEMP_CHAT_BUBBLES = [];
   const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
   const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
   const CHAT_WINDOW_ID = "ai-assistant-chat-window";
@@ -74,11 +87,7 @@ export default async function decorate(block) {
   chatWindow.appendChild(chatWindowHeader);
 
   const content = createTag("div", { class: "chat-window-content" });
-  content.textContent = "Ai Assistant content";
   chatWindow.appendChild(content);
-
-  content.appendChild(chatLine("Hello, welcome to Adobe Developer Website!"));
-  content.appendChild(chatLine("What would you like to know today?"));
 
   const chatButton = createTag("button", {
     class: "chat-button",
@@ -101,6 +110,26 @@ export default async function decorate(block) {
 
   const toggleChatWindow = () => {
     const isOpen = chatWindow.classList.contains("show");
+
+    if (!isOpen && window.TEMP_CHAT_BUBBLES.length === 0) {
+      window.setTimeout(() => {
+        content.appendChild(
+          chatBubble({
+            content: "Hello, welcome to Adobe Developer Website!",
+            source: "ai",
+          }),
+        );
+      }, 250);
+      window.setTimeout(() => {
+        content.appendChild(
+          chatBubble({
+            content: "What would you like to know today?",
+            source: "ai",
+          }),
+        );
+      }, 500);
+    }
+
     chatButton.setAttribute("aria-expanded", isOpen ? "false" : "true");
     chatButton.ariaLabel = isOpen
       ? CHAT_BUTTON_LABEL_OPEN
