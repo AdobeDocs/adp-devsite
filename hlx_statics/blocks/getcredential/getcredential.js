@@ -138,6 +138,9 @@ let organizationsData = null;
 // Local storage key for organization
 const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
 
+// Form config: used so button state only requires fields that exist in the form
+let formHasAllowedOrigins = true;
+
 // ============================================================================
 // API FUNCTIONS
 // ============================================================================
@@ -419,9 +422,12 @@ function updateProjectCardDetails(returnContainer, project) {
     || 'Not set';
 
   const orgName = selectedOrganization?.name || 'Unknown';
+  const clientId = credential?.clientId || project.clientId || apiKey;
+  const clientSecret = credential?.clientSecret;
+  const scopes = credential?.scopes;
+  const imsOrgId = project.org_id || selectedOrganization?.id;
 
   // Update project title
-
   const projectTitle = returnContainer.querySelector('.project-title');
   if (projectTitle) {
     projectTitle.textContent = projectName;
@@ -440,35 +446,23 @@ function updateProjectCardDetails(returnContainer, project) {
     }
   }
 
-  // Update API Key
-  const apiKeyElement = returnContainer.querySelector('.return-project-card [data-field="apiKey"]')
-    || returnContainer.querySelector('[data-field="apiKey"]');
-  if (apiKeyElement) {
-    apiKeyElement.textContent = apiKey;
-    const copyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && apiKey !== 'Not available') {
-      copyButton.setAttribute('data-copy', apiKey);
+  function setReturnField(fieldName, value, isCopyable = true) {
+    const el = returnContainer.querySelector(`.return-project-card [data-field="${fieldName}"]`) || returnContainer.querySelector(`[data-field="${fieldName}"]`);
+    if (!el || value == null || value === '') return;
+    el.textContent = value;
+    if (isCopyable && value !== 'Not available' && value !== 'Not set') {
+      const copyButton = el.closest('.credential-detail-field')?.querySelector('.copy-button');
+      if (copyButton) copyButton.setAttribute('data-copy', value);
     }
   }
 
-  // Update Allowed Origins
-  const originsElement = returnContainer.querySelector('.return-project-card [data-field="allowedOrigins"]')
-    || returnContainer.querySelector('[data-field="allowedOrigins"]');
-  if (originsElement) {
-    originsElement.textContent = allowedOrigins;
-    const copyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && allowedOrigins !== 'Not set') {
-      copyButton.setAttribute('data-copy', allowedOrigins);
-    }
-  }
-
-  // Update Organization
-  const orgElement = returnContainer.querySelector('.return-project-card [data-field="organization"]')
-    || returnContainer.querySelector('[data-field="organization"]');
-  if (orgElement) {
-    orgElement.textContent = orgName;
-  }
-
+  setReturnField('apiKey', apiKey);
+  setReturnField('allowedOrigins', allowedOrigins);
+  setReturnField('organization', orgName, false);
+  setReturnField('clientId', clientId);
+  setReturnField('clientSecret', clientSecret);
+  setReturnField('scopes', scopes, false);
+  setReturnField('imsOrgId', imsOrgId, false);
 }
 
 async function fetchOrganizations() {
@@ -729,14 +723,16 @@ function updateCredentialCard(cardContainer, responseData) {
 
   if (!cardContainer || !responseData) return;
 
-  // Extract data based on actual API response structure
-  // API Response: { apiKey, projectId, id, orgId, workspaceId, subscriptionResult }
-
-  const projectName = formData.CredentialName; // From form input
+  // Extract data: support both API Key (apiKey, allowedOrigins) and OAuth (clientId, clientSecret, scopes, imsOrgId) shapes
+  const projectName = formData.CredentialName;
   const projectId = responseData.projectId || responseData.id;
-  const apiKey = responseData.apiKey; // Direct from response
-  const allowedOrigins = formData.AllowedOrigins; // From form textarea
-  const orgName = selectedOrganization?.name; // From selected org
+  const apiKey = responseData.apiKey || responseData.clientId;
+  const allowedOrigins = formData.AllowedOrigins;
+  const orgName = selectedOrganization?.name;
+  const clientId = responseData.clientId || responseData.apiKey;
+  const clientSecret = responseData.clientSecret;
+  const scopes = responseData.scopes;
+  const imsOrgId = responseData.imsOrgId || responseData.orgId || selectedOrganization?.id;
 
   // Update project title
   const projectTitle = cardContainer.querySelector('.project-title');
@@ -744,72 +740,42 @@ function updateCredentialCard(cardContainer, responseData) {
     projectTitle.textContent = projectName;
   }
 
-  // Update API Key value (try multiple selectors)
-  let apiKeyValue = cardContainer.querySelector('[data-field="apiKey"]');
-  if (!apiKeyValue) {
-    apiKeyValue = cardContainer.querySelector('.credential-detail-field:nth-child(1) .credential-detail-value');
-  }
-
-  if (apiKeyValue && apiKey) {
-    apiKeyValue.textContent = apiKey;
-
-    // Update copy button data attribute
-    const copyButton = apiKeyValue.closest('.credential-detail-field')?.querySelector('.copy-button')
-      || apiKeyValue.parentElement?.querySelector('.copy-button');
-    if (copyButton) {
-      copyButton.setAttribute('data-copy', apiKey);
+  function setFieldValue(fieldName, value, isCopyable = true) {
+    const valueEl = cardContainer.querySelector(`[data-field="${fieldName}"]`);
+    if (!valueEl || value == null || value === '') return;
+    const isValue = valueEl.classList.contains('credential-detail-value');
+    valueEl.textContent = value;
+    if (isCopyable && value !== 'Not available' && value !== 'Not set') {
+      const copyButton = valueEl.closest('.credential-detail-field')?.querySelector('.copy-button')
+        || valueEl.parentElement?.querySelector('.copy-button');
+      if (copyButton) copyButton.setAttribute('data-copy', value);
     }
   }
 
-  // Update Allowed Origins value (try multiple selectors)
-  let originsValue = cardContainer.querySelector('[data-field="allowedOrigins"]');
-  if (!originsValue) {
-    originsValue = cardContainer.querySelector('.credential-detail-field:nth-child(2) .credential-detail-value');
-  }
-
-  if (originsValue && allowedOrigins) {
-    originsValue.textContent = allowedOrigins;
-    // Update copy button data attribute
-    const copyButton = originsValue.closest('.credential-detail-field')?.querySelector('.copy-button')
-      || originsValue.parentElement?.querySelector('.copy-button');
-    if (copyButton) {
-      copyButton.setAttribute('data-copy', allowedOrigins);
-    }
-  }
-
-  // Update Organization Name (try multiple selectors)
-  let orgNameValue = cardContainer.querySelector('[data-field="organization"]');
-  if (!orgNameValue) {
-    orgNameValue = cardContainer.querySelector('.credential-detail-field:nth-child(3) .credential-detail-text');
-  }
-
-  if (orgNameValue && orgName) {
-    orgNameValue.textContent = orgName;
-  }
+  setFieldValue('apiKey', apiKey);
+  setFieldValue('allowedOrigins', allowedOrigins);
+  setFieldValue('organization', orgName, false);
+  setFieldValue('clientId', clientId);
+  setFieldValue('clientSecret', clientSecret);
+  setFieldValue('scopes', scopes, false);
+  setFieldValue('imsOrgId', imsOrgId, false);
 
   // Update project link if available
   if (projectId && projectName) {
     const projectLink = cardContainer.querySelector('.project-link');
-
-    // Build complete console URL with org ID and workspace ID
     const orgId = selectedOrganization?.id || responseData.orgId;
-
     const consoleUrl = `/console/projects/${orgId}/${projectId}/overview`;
 
     if (projectLink) {
       projectLink.href = consoleUrl;
-
-      // Update the text inside the <p> tag with project NAME (not ID)
       const projectLinkText = projectLink.querySelector('p');
       if (projectLinkText) {
-        projectLinkText.textContent = projectName;  // Show project name from form
+        projectLinkText.textContent = projectName;
       } else {
-        projectLink.textContent = projectName;  // Show project name from form
+        projectLink.textContent = projectName;
       }
-
     }
   }
-
 }
 
 function handleInputChange(value, fieldName) {
@@ -876,7 +842,7 @@ function updateButtonState() {
   }
 
   const isCredentialNameValid = validationState.CredentialName.valid;
-  const isAllowedOriginsValid = validationState.AllowedOrigins.valid;
+  const isAllowedOriginsValid = !formHasAllowedOrigins || validationState.AllowedOrigins.valid;
   const isCredentialNameFilled = formData.CredentialName.trim() !== '';
   const isAgreementChecked = formData.AdobeDeveloperConsole;
 
@@ -1472,8 +1438,10 @@ function createCredentialCard(config) {
     buttonsSection.appendChild(nextStepsButton);
   }
 
-  // Manage on Developer console link
-  const manageLink = createExternalLink('Manage on Developer console', '/console/');
+  // Manage on Developer console link (use config when available)
+  const manageLabel = config.developerConsoleManage || config.components?.ManageDeveloperConsole?.label || 'Manage on Developer console';
+  const manageHref = config.components?.ManageDeveloperConsole?.direction || config.devConsoleDirection || '/console/';
+  const manageLink = createExternalLink(manageLabel, manageHref);
   manageLink.classList.remove('project-link');
   manageLink.classList.add('manage-link');
   buttonsSection.appendChild(manageLink);
@@ -1752,6 +1720,7 @@ export default async function decorate(block) {
   // Create form container
   if (credentialData.Form) {
     const { title, paragraph, components } = credentialData.Form;
+    formHasAllowedOrigins = !!components?.AllowedOrigins;
     formContainer = createTag('div', { class: 'getcredential-form hidden' });
     const formHeader = createTag('div', { class: 'form-header' });
 
