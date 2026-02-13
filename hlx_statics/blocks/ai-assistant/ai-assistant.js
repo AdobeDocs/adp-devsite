@@ -1,5 +1,20 @@
 import { createTag } from "../../scripts/lib-adobeio.js";
 
+const DEMO_RESPONSES = {
+  api: "Adobe offers various APIs including Photoshop API, Lightroom API, and PDF Services API.",
+  documentation: "You can find our documentation at developer.adobe.com/docs",
+  default:
+    "I can help you with Adobe APIs, documentation, and developer tools. What would you like to know?",
+};
+
+const getDemoResponse = (message) => {
+  const lower = message.toLowerCase();
+  for (const [key, response] of Object.entries(DEMO_RESPONSES)) {
+    if (lower.includes(key)) return response;
+  }
+  return DEMO_RESPONSES.default;
+};
+
 const chatBubble = ({ content, source }) => {
   const chatBubble = createTag("div", { class: "chat-bubble" });
   const contentElement = createTag("div", { class: "chat-bubble-content" });
@@ -17,7 +32,7 @@ const chatBubble = ({ content, source }) => {
   }
 
   if (!isContinuingConversation && window.TEMP_CHAT_BUBBLES.length > 0) {
-    contentElement.style.marginTop = "24px";
+    chatBubble.style.marginTop = "24px";
   }
 
   content
@@ -174,6 +189,12 @@ export default async function decorate(block) {
       content.scrollTop = content.scrollHeight;
 
       // TODO: Add AI response logic here (?)
+      content.appendChild(
+        chatBubble({
+          content: getDemoResponse(message),
+          source: "ai",
+        }),
+      );
     }
   };
 
