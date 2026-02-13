@@ -12,6 +12,9 @@
 }
 
 .ai-assistant-container {
+  /* From https://github.com/adobe/react-spectrum/blob/1a2b8f860ef2cee6aa579aa6b5e7032ca3be1cb1/packages/%40react-spectrum/s2/src/Button.tsx#L278 */
+  --ai-border-linear-gradient: linear-gradient(to bottom right, var(--red-900) 0%, var(--magenta-900) 33%, var(--indigo-900) 100%);
+
   display: flex;
   flex-direction: column-reverse;
   gap: 12px;
@@ -21,8 +24,6 @@
 }
 
 .ai-assistant-container .chat-button {
-  /* From https://github.com/adobe/react-spectrum/blob/1a2b8f860ef2cee6aa579aa6b5e7032ca3be1cb1/packages/%40react-spectrum/s2/src/Button.tsx#L278 */
-  --border-linear-gradient: linear-gradient(to bottom right, var(--red-900) 0%, var(--magenta-900) 33%, var(--indigo-900) 100%);
   --background-color: #ffffff;
   --size: 48px;
 
@@ -34,7 +35,7 @@
   padding: 0;
   background: 
     linear-gradient(var(--background-color), var(--background-color)) padding-box,
-    var(--border-linear-gradient) border-box;
+    var(--ai-border-linear-gradient) border-box;
   align-self: flex-end;
   pointer-events: auto;
 
@@ -73,13 +74,54 @@
   }
 }
 
-.chat-window .chat-window-label {
-  color: #292929;
-  margin: 0;
+.chat-window .chat-ai-avatar {
+  width: var(--size, 32px);
+  height: var(--size, 32px);
+  border-radius: 50%;
+  border: 3px solid transparent;
+  padding: 0;
+  background: 
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    var(--ai-border-linear-gradient) border-box;
+}
+
+.chat-window .chat-window-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 16px 24px;
+  border-bottom: 2px solid #E1E1E1;
+  color: #292929;
+}
+
+.chat-window-header .chat-window-label {
+  margin: 0;
   font-size: 18px;
   font-weight: 700;
-  border-bottom: 2px solid #E1E1E1;
+  flex: 1;
+}
+
+.chat-window-header .chat-window-close {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  align-self: flex-end;
+
+  img {
+    width: 140%;
+    height: 140%;
+    margin-top: -20%;
+    margin-left: -20%;
+  }
+
+  &:hover {
+    background: #e1e1e1;
+  }
 }
 
 .chat-window .chat-window-content {

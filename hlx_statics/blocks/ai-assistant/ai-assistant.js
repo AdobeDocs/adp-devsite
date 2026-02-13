@@ -21,6 +21,14 @@ const chatLine = (content) => {
   return chatLine;
 };
 
+const aiAvatar = (size) => {
+  const avatar = createTag("div", {
+    class: "chat-ai-avatar",
+    "aria-hidden": true,
+  });
+  return avatar;
+};
+
 /**
  * decorates the next-prev
  * @param {Element} block The next-prev block element
@@ -41,12 +49,29 @@ export default async function decorate(block) {
     "aria-modal": "false",
     "aria-labelledby": CHAT_WINDOW_LABEL_ID,
   });
+
+  const chatWindowHeader = createTag("header", { class: "chat-window-header" });
+  chatWindowHeader.appendChild(aiAvatar(32));
   const label = createTag("h2", {
     class: "chat-window-label",
     id: CHAT_WINDOW_LABEL_ID,
   });
   label.textContent = "Adobe Developer AI assistant";
-  chatWindow.appendChild(label);
+  const closeButton = createTag("button", {
+    class: "chat-window-close",
+    type: "button",
+    "aria-label": CHAT_BUTTON_LABEL_CLOSE,
+  });
+  const closeButtonIcon = createTag("img", {
+    src: "/hlx_statics/icons/dismiss.svg",
+    alt: "",
+    "aria-hidden": true,
+  });
+  closeButton.appendChild(closeButtonIcon);
+
+  chatWindowHeader.appendChild(label);
+  chatWindowHeader.appendChild(closeButton);
+  chatWindow.appendChild(chatWindowHeader);
 
   const content = createTag("div", { class: "chat-window-content" });
   content.textContent = "Ai Assistant content";
@@ -62,12 +87,12 @@ export default async function decorate(block) {
     "aria-expanded": "false",
     "aria-haspopup": "dialog",
   });
-  const buttonIcon = createTag("img", {
+  const chatButtonIcon = createTag("img", {
     src: "/hlx_statics/icons/ai-chat.svg",
     alt: "",
-    ariaHidden: true,
+    "aria-hidden": true,
   });
-  chatButton.appendChild(buttonIcon);
+  chatButton.appendChild(chatButtonIcon);
   chatButton.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
 
   container.appendChild(chatButton);
@@ -75,15 +100,8 @@ export default async function decorate(block) {
   block.appendChild(container);
 
   const toggleChatWindow = () => {
-    const chatWindow = document.querySelector(
-      ".ai-assistant-container .chat-window",
-    );
     const isOpen = chatWindow.classList.contains("show");
-
-    // Update aria-expanded to reflect new state
     chatButton.setAttribute("aria-expanded", isOpen ? "false" : "true");
-
-    // Update button label for screen readers
     chatButton.ariaLabel = isOpen
       ? CHAT_BUTTON_LABEL_OPEN
       : CHAT_BUTTON_LABEL_CLOSE;
@@ -91,4 +109,5 @@ export default async function decorate(block) {
   };
 
   chatButton.addEventListener("click", toggleChatWindow);
+  closeButton.addEventListener("click", toggleChatWindow);
 }
