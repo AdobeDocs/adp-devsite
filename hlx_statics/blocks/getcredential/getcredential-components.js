@@ -522,16 +522,13 @@ export function createCredentialSection(config) {
       const field = buildCredentialDetailFromComponent(components, key);
       if (field) credentialSection.appendChild(field);
     });
-    return credentialSection;
+  } else {
+    // No orderBy: render components in object key order (no forced order)
+    Object.keys(components).forEach((key) => {
+      const field = buildCredentialDetailFromComponent(components, key);
+      if (field) credentialSection.appendChild(field);
+    });
   }
-
-  // Legacy order when no orderBy: APIKey, AllowedOrigins, OrganizationName, then OAuth fields
-  const legacyOrder = ['APIKey', 'AllowedOrigins', 'OrganizationName', 'ClientId', 'ClientSecret', 'Scopes', 'ImsOrgID'];
-  legacyOrder.forEach((key) => {
-    if (!components[key]) return;
-    const field = buildCredentialDetailFromComponent(components, key);
-    if (field) credentialSection.appendChild(field);
-  });
 
   return credentialSection;
 }
