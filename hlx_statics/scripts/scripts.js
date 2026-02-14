@@ -652,7 +652,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'stage_adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api,unified_dev_portal,session,adobeio.appregistry.read,adobeio.appregistry.write,test-users.read,test-users.write,client.read,devconsole.email_alerts,service_principals.write,service_principals.read,manage_client_secrets,client.manage.ui,read_client_secret';
           const environment = 'stg1';
           const logsEnabled = true;
 
@@ -668,7 +668,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api,unified_dev_portal,session,adobeio.appregistry.read,adobeio.appregistry.write,test-users.read,test-users.write,client.read,devconsole.email_alerts,service_principals.write,service_principals.read,manage_client_secrets,client.manage.ui,read_client_secret';
           const environment = 'prod';
           const logsEnabled = false;
 
