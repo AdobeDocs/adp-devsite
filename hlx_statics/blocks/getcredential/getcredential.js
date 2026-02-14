@@ -13,6 +13,7 @@ import {
   createDivider,
   createProjectHeader,
   createCredentialSection,
+  createAccessTokenSection,
   createOrgNotice,
   separator,
   showToast,
@@ -463,6 +464,15 @@ function updateProjectCardDetails(returnContainer, project) {
   setReturnField('clientSecret', clientSecret);
   setReturnField('scopes', scopes, false);
   setReturnField('imsOrgId', imsOrgId, false);
+
+  // Set data for "Retrieve and copy client secret" API (secrets endpoint)
+  const card = returnContainer.querySelector('.return-project-card');
+  const credId = credential?.id ?? projectId;
+  const orgCode = selectedOrganization?.code ?? selectedOrganization?.id;
+  if (card && orgCode && credId) {
+    card.dataset.orgCode = orgCode;
+    card.dataset.integrationId = String(credId);
+  }
 }
 
 async function fetchOrganizations() {
@@ -722,6 +732,17 @@ function clearForm(formContainer) {
 function updateCredentialCard(cardContainer, responseData) {
 
   if (!cardContainer || !responseData) return;
+
+  // Integration ID for secrets API: workspaces[0].credentials[0].id or projectId/id
+  const integrationId = responseData?.workspaces?.[0]?.credentials?.[0]?.id
+    ?? responseData.projectId
+    ?? responseData.id;
+  const orgCode = selectedOrganization?.code ?? selectedOrganization?.id;
+  const card = cardContainer?.querySelector?.('.project-card') || cardContainer;
+  if (card && orgCode && integrationId) {
+    card.dataset.orgCode = orgCode;
+    card.dataset.integrationId = String(integrationId);
+  }
 
   // Extract data: support both API Key (apiKey, allowedOrigins) and OAuth (clientId, clientSecret, scopes, imsOrgId) shapes
   const projectName = formData.CredentialName;
@@ -1268,22 +1289,24 @@ function createReturnContent(config, handleReturnOrgChange) {
   // Divider
   cardContent.appendChild(createDivider());
 
-  // Developer Console Project (will be updated dynamically)
-  if (config.components?.DevConsoleLink) {
-    const devConsoleSection = createTag('div', { class: 'dev-console-section' });
-    const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
-    devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
-    devConsoleSection.appendChild(devConsoleLabel);
-
-    const projectLink = createExternalLink('', '#');
-    devConsoleSection.appendChild(projectLink);
-    cardContent.appendChild(devConsoleSection);
-  }
-
-  // Credential Details
-  if (config.components?.CredentialDetails) {
-    cardContent.appendChild(createCredentialSection(config.components.CredentialDetails));
-  }
+  // Card sections driven by JSON config (only sections present in config are shown)
+  const cardSectionOrder = ['AccessToken', 'DevConsoleLink', 'CredentialDetails'];
+  cardSectionOrder.forEach((key) => {
+    if (!config.components?.[key]) return;
+    if (key === 'AccessToken') {
+      cardContent.appendChild(createAccessTokenSection(config.components.AccessToken));
+    } else if (key === 'DevConsoleLink') {
+      const devConsoleSection = createTag('div', { class: 'dev-console-section' });
+      const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
+      devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
+      devConsoleSection.appendChild(devConsoleLabel);
+      const projectLink = createExternalLink('', '#');
+      devConsoleSection.appendChild(projectLink);
+      cardContent.appendChild(devConsoleSection);
+    } else if (key === 'CredentialDetails') {
+      cardContent.appendChild(createCredentialSection(config.components.CredentialDetails));
+    }
+  });
 
   // Next steps button
   if (config.nextStepsLabel && config.nextStepsHref) {
@@ -1402,26 +1425,26 @@ function createCredentialCard(config) {
 
   cardCollapsibleContent.appendChild(createDivider());
 
-  // Developer Console Project section (will be updated dynamically)
-  if (config.components?.DevConsoleLink) {
-    const devConsoleSection = createTag('div', { class: 'dev-console-section' });
-    const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
-    devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
-    devConsoleSection.appendChild(devConsoleLabel);
-
-    const projectLink = createExternalLink('', '#');
-    projectLink.setAttribute('data-cy', 'credentialName-link');
-    devConsoleSection.appendChild(projectLink);
-
-    cardCollapsibleContent.appendChild(devConsoleSection);
-  }
-
-  // Credential Details section
-  if (config.components?.CredentialDetails) {
-    const credSection = createCredentialSection(config.components.CredentialDetails);
-    // Values will be populated dynamically after API call via updateCredentialCard()
-    cardCollapsibleContent.appendChild(credSection);
-  }
+  // Card sections driven by JSON config (only sections present in config are shown)
+  const cardSectionOrder = ['AccessToken', 'DevConsoleLink', 'CredentialDetails'];
+  cardSectionOrder.forEach((key) => {
+    if (!config.components?.[key]) return;
+    if (key === 'AccessToken') {
+      cardCollapsibleContent.appendChild(createAccessTokenSection(config.components.AccessToken));
+    } else if (key === 'DevConsoleLink') {
+      const devConsoleSection = createTag('div', { class: 'dev-console-section' });
+      const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
+      devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
+      devConsoleSection.appendChild(devConsoleLabel);
+      const projectLink = createExternalLink('', '#');
+      projectLink.setAttribute('data-cy', 'credentialName-link');
+      devConsoleSection.appendChild(projectLink);
+      cardCollapsibleContent.appendChild(devConsoleSection);
+    } else if (key === 'CredentialDetails') {
+      const credSection = createCredentialSection(config.components.CredentialDetails);
+      cardCollapsibleContent.appendChild(credSection);
+    }
+  });
 
   // Buttons section (inside project card)
   const buttonsSection = createTag('div', { class: 'card-buttons' });

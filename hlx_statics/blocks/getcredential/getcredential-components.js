@@ -405,6 +405,130 @@ export function createOrganizationModal(organizations, currentOrg, onOrgChange) 
 }
 
 // ============================================================================
+// TOKEN GENERATION (client credentials)
+// ============================================================================
+
+/**
+ * Exchange client credentials for an access token via /ims/token/v3.
+ * @param {string} apikey - Client ID (API key)
+ * @param {string} secret - Client secret
+ * @param {{ scope?: string }} scopesDetails - Object with scope string
+ * @returns {Promise<string>} access_token
+ */
+export const generateToken = async (apikey, secret, scopesDetails) => {
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: apikey,
+      client_secret: secret,
+      grant_type: 'client_credentials',
+      scope: scopesDetails?.scope ?? '',
+    }),
+  };
+
+  const tokenResponse = await fetch('/ims/token/v3', options);
+  const tokenJson = await tokenResponse.json();
+
+  if (!tokenResponse.ok) {
+    const errMsg = tokenJson?.error_description ?? tokenJson?.error ?? `Request failed (${tokenResponse.status})`;
+    throw new Error(errMsg);
+  }
+
+  return tokenJson.access_token;
+};
+
+// ============================================================================
+// ACCESS TOKEN SECTION
+// ============================================================================
+
+/**
+ * Creates the Access Token section from config (heading, buttonLabel from JSON).
+ * Uses client credentials (generateToken) when card has clientId, secret, and scopes; otherwise IMS user token.
+ * @param {Object} [accessTokenConfig] - AccessToken component from config (heading, buttonLabel)
+ */
+export function createAccessTokenSection(accessTokenConfig = {}) {
+  const section = createTag('div', { class: 'access-token-section credential-section' });
+  const heading = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
+  heading.textContent = accessTokenConfig?.heading ?? 'Access Token';
+  section.appendChild(heading);
+
+  const buttonLabel = accessTokenConfig?.buttonLabel ?? 'Generate and copy token';
+  const button = createSpectrumButton(buttonLabel, 'accent', 'M');
+  button.classList.add('generate-token-button');
+  button.setAttribute('data-cy', 'generate-token-button');
+  button.addEventListener('click', async () => {
+    const card = section.closest('.project-card') || section.closest('.return-project-card');
+    const apikey = card?.querySelector?.('[data-field="clientId"]')?.textContent?.trim();
+    const scopes = card?.querySelector?.('[data-field="scopes"]')?.textContent?.trim();
+    const secretEl = card?.querySelector?.('[data-field="clientSecret"]');
+    let secret = secretEl?.textContent?.trim();
+    const orgCode = card?.dataset?.orgCode;
+    const integrationId = card?.dataset?.integrationId;
+
+    const labelEl = button.querySelector('.spectrum-Button-label');
+    const originalLabel = labelEl?.textContent;
+
+    try {
+      // If we have client id + scopes and (secret in DOM or can fetch it), use client credentials flow
+      if (apikey && scopes) {
+        if (!secret && orgCode && integrationId) {
+          const token = window.adobeIMS?.getTokenFromStorage()?.token;
+          if (token) {
+            const secretsUrl = `/console/api/organizations/${orgCode}/integrations/${integrationId}/secrets`;
+            const secretsResponse = await fetch(secretsUrl, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                'x-api-key': window.adobeIMS?.adobeIdData?.client_id,
+              },
+            });
+            if (secretsResponse.ok) {
+              const secrets = await secretsResponse.json();
+              secret = secrets?.client_secrets?.[0]?.client_secret ?? secrets?.client_secret ?? '';
+            }
+          }
+        }
+        if (secret) {
+          if (labelEl) labelEl.textContent = 'Generating...';
+          button.disabled = true;
+          const accessToken = await generateToken(apikey, secret, { scope: scopes });
+          await navigator.clipboard.writeText(accessToken);
+          showToast('Access token generated and copied to clipboard', 'success', 2000);
+          return;
+        }
+      }
+
+      // Fallback: IMS user token
+      if (labelEl) labelEl.textContent = 'Generating...';
+      button.disabled = true;
+      if (!window.adobeIMS?.getAccessToken) {
+        showToast('Please sign in to generate an access token.', 'error', 4000);
+        return;
+      }
+      const tokenData = await window.adobeIMS.getAccessToken();
+      const token = tokenData?.token ?? (typeof tokenData === 'string' ? tokenData : null);
+      if (!token) {
+        showToast('Could not get access token. Please sign in again.', 'error', 4000);
+        return;
+      }
+      await navigator.clipboard.writeText(token);
+      showToast('Access token copied to clipboard', 'success', 2000);
+    } catch (err) {
+      console.error('[ACCESS TOKEN]', err);
+      showToast(err?.message || 'Failed to generate or copy access token', 'error', 5000);
+    } finally {
+      button.disabled = false;
+      if (labelEl) labelEl.textContent = originalLabel || buttonLabel;
+    }
+  });
+  section.appendChild(button);
+  return section;
+}
+
+// ============================================================================
 // CREDENTIAL DETAILS
 // ============================================================================
 
@@ -485,19 +609,102 @@ export function createProjectHeader(projectTitle, products, isCollapsable = fals
 }
 
 /**
+ * Build Client Secret field from config (heading, buttonLabel from JSON).
+ * Button calls console secrets API, shows the result in the UI, and copies to clipboard.
+ */
+function createClientSecretField(heading, buttonLabel = 'Retrieve and copy client secret') {
+  const field = createTag('div', { class: 'credential-detail-field' });
+  const fieldLabel = createTag('label', { class: 'credential-detail-label spectrum-Body spectrum-Body--sizeS' });
+  fieldLabel.textContent = heading;
+  field.appendChild(fieldLabel);
+
+  const valueHolder = createTag('div', { class: 'credential-detail-value credential-detail-secret-value', 'data-field': 'clientSecret' });
+  valueHolder.setAttribute('aria-live', 'polite');
+  valueHolder.style.display = 'none';
+  field.appendChild(valueHolder);
+
+  const button = createSpectrumButton(buttonLabel, 'outline', 'M');
+  button.classList.add('retrieve-secret-button');
+  button.setAttribute('data-cy', 'retrieve-secret-button');
+  button.addEventListener('click', async () => {
+    const card = field.closest('.project-card') || field.closest('.return-project-card');
+    const orgCode = card?.dataset?.orgCode;
+    const integrationId = card?.dataset?.integrationId;
+
+    if (!orgCode || !integrationId) {
+      showToast('Credential context not available. Select a project or create a credential first.', 'info', 4000);
+      return;
+    }
+
+    const token = window.adobeIMS?.getTokenFromStorage()?.token;
+    if (!token) {
+      showToast('Please sign in to retrieve the client secret.', 'error', 4000);
+      return;
+    }
+
+    const originalLabel = button.querySelector('.spectrum-Button-label')?.textContent;
+    const labelEl = button.querySelector('.spectrum-Button-label');
+    if (labelEl) labelEl.textContent = 'Retrieving...';
+    button.disabled = true;
+
+    try {
+      const secretsUrl = `/console/api/organizations/${orgCode}/integrations/${integrationId}/secrets`;
+      const secretsResponse = await fetch(secretsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'x-api-key': window.adobeIMS?.adobeIdData?.client_id,
+        },
+      });
+
+      if (!secretsResponse.ok) {
+        const errText = await secretsResponse.text();
+        throw new Error(secretsResponse.status === 401 ? 'Session expired. Please sign in again.' : errText || `Request failed (${secretsResponse.status})`);
+      }
+
+      const secrets = await secretsResponse.json();
+      const secret = secrets?.client_secrets?.[0]?.client_secret ?? secrets?.client_secret ?? '';
+
+      if (secret) {
+        valueHolder.textContent = secret;
+        valueHolder.style.display = 'block';
+        await navigator.clipboard.writeText(secret);
+        showToast('Client secret retrieved and copied to clipboard', 'success', 2000);
+      } else {
+        valueHolder.textContent = 'Not available';
+        valueHolder.style.display = 'block';
+        showToast('No client secret returned for this credential', 'info', 4000);
+      }
+    } catch (err) {
+      console.error('[RETRIEVE CLIENT SECRET]', err);
+      valueHolder.textContent = '';
+      valueHolder.style.display = 'none';
+      showToast(err?.message || 'Failed to retrieve client secret', 'error', 5000);
+    } finally {
+      button.disabled = false;
+      if (labelEl) labelEl.textContent = originalLabel || buttonLabel;
+    }
+  });
+  field.appendChild(button);
+  return field;
+}
+
+/**
  * Build a single credential detail field from component config.
  * Supports: APIKey, AllowedOrigins, OrganizationName, ClientId, ClientSecret, Scopes, ImsOrgID.
- * ImsOrgID is only rendered when present in components (config-driven).
+ * Labels and buttonLabel come from JSON config.
  */
 function buildCredentialDetailFromComponent(components, key) {
   const c = components[key];
   if (!c || !c.heading) return null;
+  if (key === 'ClientSecret') {
+    return createClientSecretField(c.heading, c.buttonLabel);
+  }
   const fieldNames = {
     APIKey: ['apiKey', true],
     AllowedOrigins: ['allowedOrigins', true],
     OrganizationName: ['organization', false],
     ClientId: ['clientId', true],
-    ClientSecret: ['clientSecret', true],
     Scopes: ['scopes', false],
     ImsOrgID: ['imsOrgId', false]
   };
