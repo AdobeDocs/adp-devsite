@@ -628,11 +628,6 @@ export function loadPrivacyStandalone() {
   }
 }
 
-// IMS scope for sign-in. Full scope (e.g. + manage_client_secrets, adobeio.appregistry.write) can cause 500
-// if the IMS client isn't registered for those scopes. If you get 500, use IMS_SCOPE_BASE instead of IMS_SCOPE_DEV_PORTAL.
-const IMS_SCOPE_BASE = 'AdobeID,openid,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
-const IMS_SCOPE_DEV_PORTAL = `${IMS_SCOPE_BASE},unified_dev_portal,session,adobeio.appregistry.read`;
-
 export async function loadIms() {
   window.imsLoaded =
     window.imsLoaded ||
@@ -642,7 +637,7 @@ export async function loadIms() {
       // different IMS clients
       if (isHlxPath(window.location.host)) {
         const client_id = 'helix_adobeio';
-        const scope = IMS_SCOPE_DEV_PORTAL;
+        const scope = 'AdobeID,openid,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
         const environment = 'stg1';
         const logsEnabled = true;
 
@@ -657,7 +652,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'stage_adobe_io';
-          const scope = IMS_SCOPE_DEV_PORTAL;
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
           const environment = 'stg1';
           const logsEnabled = true;
 
@@ -673,7 +668,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'adobe_io';
-          const scope = IMS_SCOPE_DEV_PORTAL;
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
           const environment = 'prod';
           const logsEnabled = false;
 
