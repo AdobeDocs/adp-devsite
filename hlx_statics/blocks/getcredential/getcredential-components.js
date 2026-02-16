@@ -623,8 +623,7 @@ function createClientSecretField(heading, buttonLabel = 'Retrieve and copy clien
   valueHolder.style.display = 'none';
   field.appendChild(valueHolder);
 
-  const button = createSpectrumButton(buttonLabel, 'outline', 'M');
-  button.classList.add('retrieve-secret-button');
+  const button = createTag('button', { class: 'retrieve-secret-button' });
   button.setAttribute('data-cy', 'retrieve-secret-button');
   button.addEventListener('click', async () => {
     const card = field.closest('.project-card') || field.closest('.return-project-card');
@@ -670,10 +669,12 @@ function createClientSecretField(heading, buttonLabel = 'Retrieve and copy clien
         valueHolder.style.display = 'block';
         await navigator.clipboard.writeText(secret);
         showToast('Client secret retrieved and copied to clipboard', 'success', 2000);
+        button.remove();
       } else {
         valueHolder.textContent = 'Not available';
         valueHolder.style.display = 'block';
         showToast('No client secret returned for this credential', 'info', 4000);
+        button.remove();
       }
     } catch (err) {
       console.error('[RETRIEVE CLIENT SECRET]', err);
@@ -682,7 +683,7 @@ function createClientSecretField(heading, buttonLabel = 'Retrieve and copy clien
       showToast(err?.message || 'Failed to retrieve client secret', 'error', 5000);
     } finally {
       button.disabled = false;
-      if (labelEl) labelEl.textContent = originalLabel || buttonLabel;
+      if (labelEl && button.isConnected) labelEl.textContent = originalLabel || buttonLabel;
     }
   });
   field.appendChild(button);
@@ -692,11 +693,11 @@ function createClientSecretField(heading, buttonLabel = 'Retrieve and copy clien
 /**
  * Build a single credential detail field from component config.
  * Supports: APIKey, AllowedOrigins, OrganizationName, ClientId, ClientSecret, Scopes, ImsOrgID.
- * Labels and buttonLabel come from JSON config.
+ * Labels and buttonLabel come from JSON config. ImsOrgID defaults to "Organization ID" when heading not set.
  */
 function buildCredentialDetailFromComponent(components, key) {
   const c = components[key];
-  if (!c || !c.heading) return null;
+  if (!c) return null;
   if (key === 'ClientSecret') {
     return createClientSecretField(c.heading, c.buttonLabel);
   }
@@ -709,8 +710,10 @@ function buildCredentialDetailFromComponent(components, key) {
     ImsOrgID: ['imsOrgId', false]
   };
   const [fieldName, showCopy] = fieldNames[key] ?? [key.toLowerCase(), false];
+  const label = key === 'ImsOrgID' ? (c.heading || 'Organization ID') : c.heading;
+  if (!label) return null;
   const value = (key === 'Scopes' && c.scope) ? c.scope : (c.value || '');
-  return createCredentialDetailField(c.heading, value, showCopy, fieldName);
+  return createCredentialDetailField(label, value, showCopy, fieldName);
 }
 
 export function createCredentialSection(config) {
