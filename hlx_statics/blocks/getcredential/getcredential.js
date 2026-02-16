@@ -1117,14 +1117,15 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
     if (descriptionText) {
       const descEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-description' });
       descEl.textContent = descriptionText;
-      card.appendChild(descEl);
       if (showChangeOrg) {
-        const changeOrgWrap = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-change-org-wrap' });
+        descEl.appendChild(document.createTextNode(' '));
+        const changeOrgWrap = createTag('span', { class: 'request-access-edge-case-change-org-wrap' });
         const changeOrgLink = createTag('a', { href: '#', class: 'request-access-change-org-link' });
         changeOrgLink.textContent = 'Change organization?';
         changeOrgWrap.appendChild(changeOrgLink);
-        card.appendChild(changeOrgWrap);
+        descEl.appendChild(changeOrgWrap);
       }
+      card.appendChild(descEl);
     }
     if (edgeCase.buttonLabel) {
       const link = createTag('a', {
