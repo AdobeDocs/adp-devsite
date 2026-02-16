@@ -405,6 +405,237 @@ export function createOrganizationModal(organizations, currentOrg, onOrgChange) 
 }
 
 // ============================================================================
+// REQUEST ACCESS MODAL
+// ============================================================================
+
+const REQUEST_ACCESS_MODAL_INTRO = 'To start using this app or service, you\'ll need to submit a request.';
+const REQUEST_ACCESS_LEARN_MORE_LINK = 'https://developer.adobe.com/developer-console/docs/guides/credentials/request-access/';
+const REQUEST_ACCESS_LEARN_MORE_LABEL = 'Learn more about requesting Adobe apps';
+const BUSINESS_REASON_OPTIONS = [
+  'I need access to this application for my work',
+  'I need access for a project or campaign',
+  'I need access for testing or development',
+  'Other',
+];
+
+/**
+ * Create the "Request access to an API or service" modal (shown when user clicks Request access).
+ * @param {Object} options
+ * @param {Array<{ label: string, icon?: string }>} [options.products] - List of products/services to show (from config)
+ * @param {() => void} [options.onSendRequest] - Called when user clicks "Send request"
+ * @param {() => void} [options.onCancel] - Called when user clicks "Cancel"
+ * @returns {HTMLElement} Modal overlay element (append to body)
+ */
+export function createRequestAccessModal(options = {}) {
+  const { products: productsList = [], onSendRequest, onCancel } = options;
+  const modalOverlay = createTag('div', { class: 'request-access-modal-overlay' });
+  const modal = createTag('div', { class: 'request-access-modal' });
+
+  const modalHeader = createTag('div', { class: 'request-access-modal-header' });
+  const modalTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeM' });
+  modalTitle.textContent = 'Request access to an API or service';
+  modalHeader.appendChild(modalTitle);
+  modal.appendChild(modalHeader);
+
+  const modalBody = createTag('div', { class: 'request-access-modal-body' });
+  const intro = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS' });
+  intro.textContent = REQUEST_ACCESS_MODAL_INTRO;
+  modalBody.appendChild(intro);
+  const learnMore = createTag('a', {
+    class: 'request-access-learn-more',
+    href: REQUEST_ACCESS_LEARN_MORE_LINK,
+    target: '_blank',
+    rel: 'noreferrer'
+  });
+  learnMore.textContent = REQUEST_ACCESS_LEARN_MORE_LABEL;
+  modalBody.appendChild(learnMore);
+
+  const requestToLabel = createTag('label', { class: 'spectrum-Body spectrum-Body--sizeS request-access-field-label' });
+  requestToLabel.textContent = 'Request access to:';
+  modalBody.appendChild(requestToLabel);
+  const requestToList = createTag('div', { class: 'request-access-to-list' });
+  (productsList.length ? productsList : [{ label: '—', icon: '' }]).forEach((product) => {
+    const requestToField = createTag('div', { class: 'request-access-to-field' });
+    if (product.icon) {
+      const img = createTag('img', { class: 'request-access-product-icon', src: product.icon, alt: '' });
+      requestToField.appendChild(img);
+    }
+    const requestToValue = createTag('span', { class: 'request-access-to-value' });
+    requestToValue.textContent = product.label || '—';
+    requestToField.appendChild(requestToValue);
+    requestToList.appendChild(requestToField);
+  });
+  modalBody.appendChild(requestToList);
+
+  const reasonHeading = createTag('h4', { class: 'spectrum-Heading spectrum-Heading--sizeXS request-access-reason-heading' });
+  reasonHeading.textContent = 'Let your admin know why you need this app or service.';
+  modalBody.appendChild(reasonHeading);
+  const reasonLabel = createTag('label', { class: 'spectrum-Body spectrum-Body--sizeS request-access-field-label' });
+  reasonLabel.textContent = 'Business reason';
+  modalBody.appendChild(reasonLabel);
+  const reasonSelect = createTag('select', { class: 'spectrum-Picker request-access-reason-select' });
+  BUSINESS_REASON_OPTIONS.forEach((opt) => {
+    const option = createTag('option', { value: opt });
+    option.textContent = opt;
+    reasonSelect.appendChild(option);
+  });
+  modalBody.appendChild(reasonSelect);
+  modal.appendChild(modalBody);
+
+  const modalFooter = createTag('div', { class: 'request-access-modal-footer' });
+  const cancelBtn = createTag('button', {
+    class: 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM'
+  });
+  cancelBtn.innerHTML = '<span class="spectrum-Button-label">Cancel</span>';
+  const sendBtn = createTag('button', {
+    class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM'
+  });
+  sendBtn.innerHTML = '<span class="spectrum-Button-label">Send request</span>';
+  modalFooter.appendChild(cancelBtn);
+  modalFooter.appendChild(sendBtn);
+  modal.appendChild(modalFooter);
+
+  modalOverlay.appendChild(modal);
+
+  const close = () => {
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    modalOverlay.remove();
+    if (typeof onCancel === 'function') onCancel();
+  };
+
+  cancelBtn.addEventListener('click', close);
+  sendBtn.addEventListener('click', () => {
+    if (typeof onSendRequest === 'function') onSendRequest();
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    modalOverlay.remove();
+  });
+
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+  document.body.appendChild(modalOverlay);
+  return modalOverlay;
+}
+
+// ============================================================================
+// REQUEST ACCESS IFRAME MODAL (ACRS - same as React RequestAccessModal)
+// ============================================================================
+
+const INITIAL_IFRAME_HEIGHT = 420;
+
+/**
+ * Create the ACRS Request Access iframe modal (same as React RequestAccessModal).
+ * Listens for postMessage: AppLoaded (hide loading), Resize (set height), Close (close + onClose).
+ * @param {Object} options
+ * @param {string} options.accessPlatformAppId - App ID for ACRS (from template)
+ * @param {() => void} [options.onClose] - Called when iframe sends Close (e.g. refetch template)
+ * @returns {HTMLElement} Modal overlay element
+ */
+export function createRequestAccessIframeModal(options = {}) {
+  const { accessPlatformAppId, onClose } = options;
+  let iframeHeight = INITIAL_IFRAME_HEIGHT;
+  let loading = true;
+  let targetUrl = '';
+
+  const modalOverlay = createTag('div', { class: 'request-access-iframe-modal-overlay' });
+  const underlay = createTag('div', {
+    class: 'spectrum-Underlay spectrum-overlay is-open spectrum-overlay--open',
+    'aria-hidden': 'true',
+    'data-testid': 'underlay'
+  });
+  underlay.style.overflow = 'hidden';
+  const modal = createTag('div', { class: 'spectrum-Modal is-open request-access-iframe-modal', 'data-testid': 'modal' });
+  modal.style.backgroundColor = 'white';
+  modal.style.zIndex = '2';
+  modal.style.position = 'absolute';
+  const section = createTag('section', {
+    class: 'spectrum-Dialog spectrum-Dialog--large',
+    role: 'alertdialog',
+    tabIndex: '-1',
+    'aria-modal': 'true'
+  });
+  section.style.width = '480px';
+  section.style.height = `${iframeHeight + 40}px`;
+
+  const loadingEl = createTag('div', { class: 'request-access-iframe-loading' });
+  loadingEl.style.cssText = 'width: 480px; height: 480px; display: flex; justify-content: center; align-items: center;';
+  loadingEl.textContent = 'Loading…';
+
+  const iframe = createTag('iframe', {
+    title: 'Request Access Dialog',
+    'data-cy': 'request-access-iframe'
+  });
+  iframe.style.cssText = 'margin-top: 20px; overflow: hidden; width: 480px; height: ' + iframeHeight + 'px; border: none; display: none;';
+
+  section.appendChild(loadingEl);
+  section.appendChild(iframe);
+  modal.appendChild(section);
+  modalOverlay.appendChild(underlay);
+  modalOverlay.appendChild(modal);
+
+  const closeModal = () => {
+    window.removeEventListener('message', handleIframeMessage);
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    modalOverlay.remove();
+    if (typeof onClose === 'function') onClose();
+  };
+
+  const handleIframeMessage = (event) => {
+    if (!event.isTrusted) return;
+    const raw = event.data;
+    if (typeof raw !== 'string' && !(raw instanceof String)) return;
+    let eventData;
+    try {
+      eventData = JSON.parse(raw);
+    } catch (e) {
+      return;
+    }
+    if (!eventData || eventData.app !== 'acrs-request-access' || eventData.type !== 'System') return;
+    switch (eventData.subType) {
+      case 'AppLoaded':
+        loading = false;
+        loadingEl.style.display = 'none';
+        iframe.style.display = 'block';
+        break;
+      case 'Resize':
+        if (eventData.data?.height != null) {
+          iframeHeight = eventData.data.height;
+          iframe.style.height = `${iframeHeight}px`;
+          section.style.height = `${iframeHeight + 40}px`;
+        }
+        break;
+      case 'Close':
+        closeModal();
+        break;
+      default:
+        break;
+    }
+  };
+
+  window.addEventListener('message', handleIframeMessage);
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+  document.body.appendChild(modalOverlay);
+
+  (async () => {
+    try {
+      const profile = await window.adobeIMS?.getProfile();
+      const userId = profile?.userId || '';
+      const env = window.adobeIMS?.adobeIdData?.environment;
+      const acrsHostPrefix = env === 'prod' ? '' : 'stage.';
+      targetUrl = `https://${acrsHostPrefix}acrs.adobe.com/requestAccess?flow=frame&colorScheme=light&applicationId=UDPWeb1&appId=${accessPlatformAppId}&userId=${userId}&accessRequestType=apiAccess`;
+      iframe.src = targetUrl;
+    } catch (e) {
+      loadingEl.textContent = 'Failed to load.';
+    }
+  })();
+
+  return modalOverlay;
+}
+
+// ============================================================================
 // TOKEN GENERATION (client credentials)
 // ============================================================================
 
