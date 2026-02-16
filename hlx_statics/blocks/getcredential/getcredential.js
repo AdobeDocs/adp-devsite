@@ -426,8 +426,7 @@ function updateProjectCardDetails(returnContainer, project) {
   const clientId = credential?.clientId || project.clientId || apiKey;
   const clientSecret = credential?.clientSecret;
   const scopes = credential?.scopes;
-  // Display only: from selected organization, not from project/response
-  const imsOrgIdDisplay = formatImsOrgIdForDisplay(selectedOrganization?.code);
+  const imsOrgId = selectedOrganization?.code;
 
   // Update project title
   const projectTitle = returnContainer.querySelector('.project-title');
@@ -464,7 +463,7 @@ function updateProjectCardDetails(returnContainer, project) {
   setReturnField('clientId', clientId);
   setReturnField('clientSecret', clientSecret);
   setReturnField('scopes', scopes, false);
-  setReturnField('imsOrgId', imsOrgIdDisplay, false);
+  setReturnField('imsOrgId', imsOrgId, false);
 
   // Set data for "Retrieve and copy client secret" API (secrets endpoint)
   const card = returnContainer.querySelector('.return-project-card');
@@ -754,8 +753,7 @@ function updateCredentialCard(cardContainer, responseData) {
   const clientId = responseData.clientId || responseData.apiKey;
   const clientSecret = responseData.clientSecret;
   const scopes = responseData.scopes;
-  // Display only: from selected organization, not from response
-  const imsOrgIdDisplay = formatImsOrgIdForDisplay(selectedOrganization?.code);
+  const imsOrgId = responseData.imsOrgId || responseData.orgId || selectedOrganization?.code;
 
   // Update project title
   const projectTitle = cardContainer.querySelector('.project-title');
@@ -781,7 +779,7 @@ function updateCredentialCard(cardContainer, responseData) {
   setFieldValue('clientId', clientId);
   setFieldValue('clientSecret', clientSecret);
   setFieldValue('scopes', scopes, false);
-  setFieldValue('imsOrgId', imsOrgIdDisplay, false);
+  setFieldValue('imsOrgId', imsOrgId, false);
 
   // Update project link if available
   if (projectId && projectName) {
