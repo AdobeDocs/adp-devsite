@@ -17,7 +17,10 @@ import {
   createOrgNotice,
   separator,
   showToast,
-  downloadZipViaApi
+  downloadZipViaApi,
+  createRequestAccessModal,
+  createRequestAccessIframeModal,
+  createOrganizationModal
 } from "./getcredential-components.js";
 
 // ============================================================================
@@ -319,6 +322,58 @@ async function fetchExistingCredentials(orgCode) {
   }
 
   return null;
+}
+
+/**
+ * Fetch template entitlement for current org (same API as React GetCredential).
+ * @returns {Promise<{ userEntitled: boolean, orgEntitled: boolean, disEntitledReasons?: string[], canRequestAccess?: boolean }|null>}
+ */
+async function fetchTemplateEntitlement() {
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  const templateId = templateData?.id;
+  const orgCode = selectedOrganization?.code || selectedOrganization?.id;
+  if (!token || !templateId) return null;
+  try {
+    const url = `/templates/${templateId}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+    };
+    if (orgCode) headers['x-org-id'] = orgCode;
+    const response = await fetch(url, { method: 'GET', headers });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const userEntitled = data?.userEntitled !== false;
+    const orgEntitled = data?.orgEntitled !== false;
+    const disEntitledReasons = data?.disEntitledReasons;
+    const canRequestAccess = data?.canRequestAccess;
+    return { userEntitled, orgEntitled, disEntitledReasons, canRequestAccess, template: data };
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Derive which left-column card to show (same logic as React RestrictedAccess render()).
+ * 4 edge cases from config.RequestAccess.components.EdgeCase.components:
+ *   Type1User, NotSignUp, NoProduct, NotMember.
+ * When template.canRequestAccess === true we show the main RestrictedAccess card (products + Request access button).
+ * @param {Object} entitlement - Result from fetchTemplateEntitlement()
+ * @param {Object} selectedOrg - selectedOrganization
+ * @param {Object} requestAccessConfig - credentialData.RequestAccess
+ * @returns {string|null} EdgeCase key ('Type1User'|'NotSignUp'|'NoProduct'|'NotMember') or null for RestrictedAccess card
+ */
+function getRequestAccessLeftCardKey(entitlement, selectedOrg, requestAccessConfig) {
+  if (!entitlement) return null;
+  const disEntitledReason = Array.isArray(entitlement.disEntitledReasons) ? entitlement.disEntitledReasons[0] : null;
+  const hasType1User = requestAccessConfig?.components?.EdgeCase?.components?.Type1User;
+
+  if (selectedOrg?.type === 'developer' && hasType1User) return 'Type1User';
+  if (disEntitledReason === 'USER_MISSING_PUBLIC_BETA') return 'NotSignUp';
+  if (disEntitledReason === 'ORG_MISSING_FIS') return 'NoProduct';
+  if (entitlement.canRequestAccess === true) return null;
+  return 'NotMember';
 }
 
 function populateProjectsDropdown(returnContainer, projectsData) {
@@ -1124,7 +1179,9 @@ function createAgreementField(config) {
 
 function createSideContent(config) {
   const sideContainer = createTag('div', { class: 'side-content' });
-
+  if (!config?.content?.elements) return sideContainer;
+  const style = config.content.style;
+  if (style) Object.assign(sideContainer.style, style);
   config.content.elements.forEach(element => {
     const el = createTag(element.type, { class: element.className || '' });
     if (element.style) Object.assign(el.style, element.style);
@@ -1132,8 +1189,146 @@ function createSideContent(config) {
     el.textContent = element.text;
     sideContainer.appendChild(el);
   });
-
   return sideContainer;
+}
+
+/**
+ * Build the left-column card for Request Access: either RestrictedAccess (products + Request access button)
+ * or an EdgeCase variant (title + single link button).
+ * @param {Object} [options] - Optional: { selectedOrganization } for restricted card org message and "Change organization?" link
+ */
+function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
+  const { selectedOrganization } = options;
+  const edgeCases = config.components?.EdgeCase?.components;
+  const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
+  if (edgeCase) {
+    const card = createTag('div', { class: 'request-access-edge-case-card' });
+    if (edgeCase.title) {
+      const titleEl = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-edge-case-title' });
+      titleEl.textContent = edgeCase.title;
+      card.appendChild(titleEl);
+    }
+    if (edgeCase.buttonLabel) {
+      const link = createTag('a', {
+        href: edgeCase.buttonLink || '#',
+        class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM request-access-edge-case-btn'
+      });
+      link.innerHTML = `<span class="spectrum-Button-label">${edgeCase.buttonLabel}</span>`;
+      if (edgeCase.buttonLink) {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noreferrer');
+      }
+      card.appendChild(link);
+    }
+    return card;
+  }
+  const restricted = config.components?.RestrictedAccess;
+  if (!restricted) return null;
+  const card = createTag('div', { class: 'request-access-restricted-card' });
+  if (restricted.title) {
+    const titleRow = createTag('div', { class: 'request-access-restricted-title-row' });
+    const cardTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-restricted-title' });
+    cardTitle.textContent = restricted.title;
+    titleRow.appendChild(cardTitle);
+    const infoIcon = createTag('span', { class: 'request-access-restricted-info-icon', 'aria-label': 'Information' });
+    infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+    titleRow.appendChild(infoIcon);
+    card.appendChild(titleRow);
+  }
+  const orgName = selectedOrganization?.name || selectedOrganization?.code || 'this organization';
+  const introPara = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-restricted-intro' });
+  introPara.innerHTML = `You're creating this credential in <strong>[${orgName}]</strong> but you do not have a developer access in this organization and need admin approval to use this API. <a href="#" class="request-access-change-org-link">Change organization?</a>`;
+  card.appendChild(introPara);
+  const products = restricted.components?.Products;
+  if (products?.label) {
+    const productsLabel = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-products-label' });
+    productsLabel.textContent = products.label;
+    card.appendChild(productsLabel);
+  }
+  if (products?.items?.length) {
+    const list = createTag('div', { class: 'request-access-products-list' });
+    products.items.forEach((item) => {
+      const product = item?.Product || item;
+      const row = createTag('div', { class: 'request-access-product-item' });
+      if (product.icon) {
+        const img = createTag('img', { class: 'request-access-product-icon', src: product.icon, alt: '' });
+        row.appendChild(img);
+      }
+      const label = createTag('span', { class: 'request-access-product-label' });
+      label.textContent = product?.label || '';
+      row.appendChild(label);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+  }
+  if (restricted.buttonLabel) {
+    const btn = createTag('button', {
+      type: 'button',
+      class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM request-access-request-btn'
+    });
+    btn.innerHTML = `<span class="spectrum-Button-label">${restricted.buttonLabel}</span>`;
+    btn.setAttribute('data-request-access-trigger', 'true');
+    card.appendChild(btn);
+  }
+  return card;
+}
+
+/**
+ * Update the Request Access left column to show RestrictedAccess or the given EdgeCase variant.
+ * @param {Object} [options] - Optional: { selectedOrganization } for restricted card org message
+ */
+function updateRequestAccessLeftColumn(container, requestAccessConfig, edgeCaseKey, options = {}) {
+  const leftCol = container?.querySelector('.request-access-left');
+  if (!leftCol || !requestAccessConfig) return;
+  const slot = leftCol.querySelector('.request-access-left-slot');
+  if (!slot) return;
+  const card = buildRequestAccessLeftCard(requestAccessConfig, edgeCaseKey, options);
+  if (card) {
+    slot.innerHTML = '';
+    slot.appendChild(card);
+  }
+}
+
+/**
+ * Build Request Access page from config (title, paragraph, left card from RestrictedAccess or EdgeCase + RequestAccessSide).
+ * Config is read from credential JSON: GetCredential.components.RequestAccess.
+ */
+function createRequestAccessContent(config) {
+  const wrapper = createTag('div', { class: 'request-access-wrapper' });
+  const contentWrapper = createTag('div', { class: 'request-access-content-wrapper' });
+
+  const header = createTag('div', { class: 'request-access-header' });
+  if (config.title) {
+    const titleEl = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeXL request-access-title' });
+    titleEl.textContent = config.title;
+    header.appendChild(titleEl);
+  }
+  if (config.paragraph) {
+    const para = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL request-access-paragraph' });
+    para.textContent = config.paragraph;
+    header.appendChild(para);
+  }
+  contentWrapper.appendChild(header);
+
+  const columns = createTag('div', { class: 'request-access-columns' });
+  const leftCol = createTag('div', { class: 'request-access-left' });
+  const slot = createTag('div', { class: 'request-access-left-slot' });
+  const defaultCard = buildRequestAccessLeftCard(config, null);
+  if (defaultCard) slot.appendChild(defaultCard);
+  leftCol.appendChild(slot);
+  columns.appendChild(leftCol);
+
+  const side = config.components?.RequestAccessSide;
+  if (side?.content) {
+    const divider = separator();
+    const rightCol = createTag('div', { class: 'request-access-right' });
+    columns.appendChild(divider);
+    rightCol.appendChild(createSideContent(side));
+    columns.appendChild(rightCol);
+  }
+  contentWrapper.appendChild(columns);
+  wrapper.appendChild(contentWrapper);
+  return wrapper;
 }
 
 // ============================================================================
@@ -1626,6 +1821,16 @@ export default async function decorate(block) {
   const loadingContainer = createLoadingPage();
   block.appendChild(loadingContainer);
 
+  // Local/stage only: force show Request Access view via ?requestAccess=1 or ?showRequestAccess=true (optional ?edgeCase=NotMember|NoProduct|NotSignUp|Type1User)
+  const getForceRequestAccessParams = () => {
+    if (!isStageOrLocalHost || !credentialData.RequestAccess) return null;
+    const params = new URLSearchParams(window.location.search);
+    const on = params.get('requestAccess') === '1' || params.get('showRequestAccess') === 'true';
+    if (!on) return null;
+    const edgeCase = params.get('edgeCase') || null;
+    return { edgeCase };
+  };
+
   // Define navigateTo function FIRST (used in multiple places below)
   const navigateTo = (hideEl, showEl, scroll = false) => {
     hideEl?.classList.add('hidden');
@@ -1699,6 +1904,100 @@ export default async function decorate(block) {
   // Declare containers at top level for handler access
   let returnContainer;
   let formContainer;
+  let requestAccessContainer;
+  /** When we show Request Access view, store entitlement (with template) for the modal's accessPlatformAppId and onClose refetch */
+  let lastRequestAccessEntitlement = null;
+
+  // Create Request Access container (shown after sign-in when user/org not entitled).
+  // Config comes from credential JSON: GetCredential.components.RequestAccess.
+  if (credentialData.RequestAccess) {
+    requestAccessContainer = createTag('div', { class: 'request-access-container hidden' });
+    requestAccessContainer.appendChild(createRequestAccessContent(credentialData.RequestAccess));
+    block.appendChild(requestAccessContainer);
+
+    const requestAccessConfig = credentialData.RequestAccess;
+    const restricted = requestAccessConfig.components?.RestrictedAccess;
+    const productsConfig = restricted?.components?.Products;
+    const products = (productsConfig?.items || []).map((item) => {
+      const p = item?.Product || item;
+      return { label: p?.label || '', icon: p?.icon || '' };
+    });
+
+    requestAccessContainer.addEventListener('click', (e) => {
+      const changeOrgLink = e.target.closest('.request-access-change-org-link');
+      if (changeOrgLink) {
+        e.preventDefault();
+        const orgs = organizationsData || [];
+        const overlay = createOrganizationModal(orgs, selectedOrganization, (newOrg) => {
+          switchOrganization(newOrg).then(() => {
+            showToast('Organization Changed', 'success', 3000);
+            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, getForceRequestAccessParams()?.edgeCase ?? null, { selectedOrganization });
+          });
+        });
+        document.body.appendChild(overlay);
+        return;
+      }
+      const trigger = e.target.closest('[data-request-access-trigger]');
+      if (!trigger) return;
+      e.preventDefault();
+      const accessPlatformAppId = lastRequestAccessEntitlement?.template?.accessPlatformAppId;
+      if (accessPlatformAppId) {
+        createRequestAccessIframeModal({
+          accessPlatformAppId,
+          onClose: async () => {
+            setLoadingText(loadingContainer, 'Loading...');
+            navigateTo(requestAccessContainer, loadingContainer);
+            const entitlement = await fetchTemplateEntitlement();
+            lastRequestAccessEntitlement = entitlement;
+            if (entitlement && entitlement.userEntitled && entitlement.orgEntitled) {
+              if (!returnContainer) {
+                navigateTo(loadingContainer, formContainer);
+                updateFormOrgNotice(formContainer);
+                updateCancelButtonVisibility(formContainer);
+                return;
+              }
+              fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
+                const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+                if (projectsArray && projectsArray.length > 0) {
+                  const dataToPass = Array.isArray(existingCreds) ? { projects: existingCreds } : existingCreds;
+                  const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+                  if (!hasProjects) {
+                    navigateTo(loadingContainer, formContainer);
+                    updateFormOrgNotice(formContainer);
+                    updateCancelButtonVisibility(formContainer);
+                  } else {
+                    navigateTo(loadingContainer, returnContainer);
+                    updateReturnOrgNotice(returnContainer);
+                  }
+                } else {
+                  navigateTo(loadingContainer, formContainer);
+                  updateFormOrgNotice(formContainer);
+                  updateCancelButtonVisibility(formContainer);
+                }
+              }).catch(() => {
+                navigateTo(loadingContainer, formContainer);
+                updateFormOrgNotice(formContainer);
+                updateCancelButtonVisibility(formContainer);
+              });
+            } else {
+              if (requestAccessContainer && entitlement) {
+                const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+                updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization });
+              }
+              navigateTo(loadingContainer, requestAccessContainer);
+            }
+          }
+        });
+      } else {
+        createRequestAccessModal({
+          products,
+          onSendRequest() {
+            showToast('Request sent. Your admin will be notified.', 'success', 4000);
+          }
+        });
+      }
+    });
+  }
 
   // Create return container (previously created projects)
   if (credentialData.Return) {
@@ -1706,8 +2005,8 @@ export default async function decorate(block) {
     // Define handleReturnOrgChange handler with access to all containers
     const handleReturnOrgChange = async (newOrg) => {
       try {
-        // Use switchOrganization function
         await switchOrganization(newOrg);
+        showToast('Organization Changed', 'success', 3000);
 
         // Show loading page while fetching
         setLoadingText(loadingContainer, 'Loading...');
@@ -1796,8 +2095,8 @@ export default async function decorate(block) {
     // Organization notice
     const handleOrgChange = async (newOrg) => {
       try {
-        // Use switchOrganization function
         await switchOrganization(newOrg);
+        showToast('Organization Changed', 'success', 3000);
 
         // Update org notice text
         updateFormOrgNotice(formContainer);
@@ -2115,44 +2414,59 @@ export default async function decorate(block) {
           if (isSignedIn) {
             clearInterval(checkSignIn);
             // Fetch organizations first
-            fetchOrganizations().then(async orgs => {
+            fetchOrganizations().then(async (orgs) => {
               if (orgs && orgs.length > 0) {
                 organizationsData = orgs;
-                // Initialize organization (from localStorage or default)
                 try {
                   await switchOrganization(null);
-                } catch (error) {
+                } catch (error) {}
+              }
+              // Local/stage: ?requestAccess=1 forces Request Access view without calling entitlement API
+              const forceParams = getForceRequestAccessParams();
+              if (forceParams && requestAccessContainer) {
+                updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization });
+                navigateTo(loadingContainer, requestAccessContainer);
+                return;
+              }
+              // If Request Access config exists, check entitlement first (same as React: !template.userEntitled || !template.orgEntitled -> RequestAccess)
+              if (requestAccessContainer) {
+                const entitlement = await fetchTemplateEntitlement();
+                if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+                  lastRequestAccessEntitlement = entitlement;
+                  const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+                  updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization });
+                  navigateTo(loadingContainer, requestAccessContainer);
+                  return;
                 }
               }
-
-              // Fetch existing credentials
-
               return fetchExistingCredentials(selectedOrganization?.code);
             }).then(async (existingCreds) => {
-
+              if (existingCreds === undefined) return; // already navigated to request access
+              if (!returnContainer) {
+                navigateTo(loadingContainer, formContainer);
+                updateFormOrgNotice(formContainer);
+                updateCancelButtonVisibility(formContainer);
+                return;
+              }
               if (existingCreds) {
-                // Pass the data in consistent format (handle both array and object responses)
                 const dataToPass = Array.isArray(existingCreds)
                   ? { projects: existingCreds }
                   : existingCreds;
-
-                // Populate dropdown and update card (filter from cached data)
                 const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
                 if (!hasProjects) {
-                  // No projects - navigate to form instead of return page
                   navigateTo(loadingContainer, formContainer);
                   updateCancelButtonVisibility(formContainer);
                   return;
                 }
               }
-
-              // API response received - hide loading and show return page
-
               navigateTo(loadingContainer, returnContainer);
-            }).catch(error => {
-              // On error, hide loading and still navigate to return page
-              navigateTo(loadingContainer, returnContainer);
+            }).catch(() => {
+              if (returnContainer) navigateTo(loadingContainer, returnContainer);
+              else {
+                navigateTo(loadingContainer, formContainer);
+                updateFormOrgNotice(formContainer);
+                updateCancelButtonVisibility(formContainer);
+              }
             });
           }
         }, 100);
@@ -2182,20 +2496,21 @@ export default async function decorate(block) {
         setLoadingText(loadingContainer, 'Loading...');
         navigateTo(signInContainer, loadingContainer, true);
 
-        // Then fetch credentials and navigate to appropriate page
-        // This is handled by the existing logic in the Return container creation (lines 1687-1730)
-        // We just need to trigger it
-        if (returnContainer) {
+        // If Request Access config exists, check template entitlement first; show Request Access when not entitled
+        const runFormOrReturnFlow = () => {
+          if (!returnContainer) {
+            navigateTo(loadingContainer, formContainer);
+            updateFormOrgNotice(formContainer);
+            updateCancelButtonVisibility(formContainer);
+            return;
+          }
           fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
             const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-
             if (projectsArray && projectsArray.length > 0) {
               const dataToPass = Array.isArray(existingCreds)
                 ? { projects: existingCreds }
                 : existingCreds;
-
               const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
               if (!hasProjects) {
                 navigateTo(loadingContainer, formContainer);
                 updateFormOrgNotice(formContainer);
@@ -2209,11 +2524,33 @@ export default async function decorate(block) {
               updateFormOrgNotice(formContainer);
               updateCancelButtonVisibility(formContainer);
             }
-          }).catch(error => {
+          }).catch(() => {
             navigateTo(loadingContainer, formContainer);
             updateFormOrgNotice(formContainer);
             updateCancelButtonVisibility(formContainer);
           });
+        };
+
+        const forceParams = getForceRequestAccessParams();
+        if (forceParams && requestAccessContainer) {
+          updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization });
+          navigateTo(loadingContainer, requestAccessContainer);
+          return;
+        }
+        // Same as React: if !template.userEntitled || !template.orgEntitled -> show RequestAccess (RestrictedAccess or EdgeCase)
+        if (requestAccessContainer) {
+          fetchTemplateEntitlement().then((entitlement) => {
+            if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+              lastRequestAccessEntitlement = entitlement;
+              const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+              updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization });
+              navigateTo(loadingContainer, requestAccessContainer);
+              return;
+            }
+            runFormOrReturnFlow();
+          }).catch(() => runFormOrReturnFlow());
+        } else {
+          runFormOrReturnFlow();
         }
       }
     }
