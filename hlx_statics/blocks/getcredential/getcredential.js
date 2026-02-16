@@ -170,10 +170,6 @@ async function getOrgIdWithFallback(initialOrgId = null) {
           orgId = profile.projectedProductContext[0].prodCtx.owningEntity;
         }
       }
-      
-      if (orgId) {
-        console.log('[GET ORG ID] orgId fallback resolved:', orgId);
-      }
     } catch (error) {
       console.error('[GET ORG ID] Failed to get default orgId:', error);
     }
@@ -395,20 +391,6 @@ function populateProjectsDropdown(returnContainer, projectsData) {
     projects = [];
   }
 
-  // Log summary of all projects with their key data
-  projects.forEach((proj, idx) => {
-    const workspace = proj.workspaces?.[0];
-    const credential = workspace?.credentials?.[0];
-  });
-
-  // Log first project structure for debugging
-  if (projects.length > 0) {
-    if (projects[0].workspaces?.[0]) {
-      if (projects[0].workspaces[0].credentials?.[0]) {
-      }
-    }
-  }
-
   // Clear existing options
   dropdown.innerHTML = '';
 
@@ -432,22 +414,15 @@ function populateProjectsDropdown(returnContainer, projectsData) {
 
     if (selectedProject) {
       updateProjectCardDetails(returnContainer, selectedProject);
-    } else {
-      console.error('Project not found in array:', selectedProjectId);
     }
 
   });
 
-  // Set default selection to first project (by ID)
   if (projects[0]?.id) {
     dropdown.value = projects[0].id;
-
-    // Update card with project data (search API already includes workspaces/credentials)
     updateProjectCardDetails(returnContainer, projects[0]);
-  } else {
   }
-
-  return true; // Return true to indicate projects exist
+  return true;
 }
 
 function updateProjectCardDetails(returnContainer, project) {
@@ -606,84 +581,6 @@ async function fetchOrganizations() {
   return null;
 }
 
-// async function getCredentialSecrets(response, orgCode) {
-
-//   const token = window.adobeIMS?.getTokenFromStorage()?.token;
-
-//   if (!token) {
-//     return null;
-//   }
-
-//   try {
-//     // Get project/credential ID from response
-//     const projectId = response?.workspaces
-//       ? response.workspaces[0]?.credentials[0]?.id
-//       : response?.id;
-
-//     const selectedOrgCode = orgCode || selectedOrganization?.code;
-
-//     if (!selectedOrgCode || !projectId) {
-//       return null;
-//     }
-
-//     const secretsUrl = `/console/api/organizations/${selectedOrgCode}/integrations/${projectId}/secrets`;
-
-//     const secretsResponse = await fetch(secretsUrl, {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Authorization': `Bearer ${token}`,
-//         'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
-//       },
-//     });
-
-//     if (secretsResponse.ok) {
-//       const secrets = await secretsResponse.json();
-
-//       const secret = secrets.client_secrets?.[0]?.client_secret;
-//       const result = {
-//         clientId: secrets?.client_id,
-//         clientSecret: secret
-//       };
-//       return result;
-//     }
-//   } catch (error) {
-//     // Error handled
-//   }
-
-//   return null;
-// }
-
-// async function generateToken(apiKey, secret, scopesDetails) {
-
-//   try {
-//     const options = {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/x-www-form-urlencoded',
-//       },
-//       body: new URLSearchParams({
-//         client_id: apiKey,
-//         client_secret: secret,
-//         grant_type: 'client_credentials',
-//         scope: scopesDetails?.scope || '',
-//       }),
-//     };
-
-//     const url = '/ims/token/v3';
-//     const tokenResponse = await fetch(url, options);
-
-//     if (tokenResponse.ok) {
-//       const tokenJson = await tokenResponse.json();
-//       return tokenJson.access_token;
-//     }
-//   } catch (error) {
-//     // Error handled
-//   }
-
-//   return null;
-// }
-
 async function switchOrganization(org) {
 
   const profile = await window.adobeIMS?.getProfile();
@@ -692,8 +589,6 @@ async function switchOrganization(org) {
   if (!org) {
     // This means it's initial load. Try reading from local storage
     const savedOrgString = localStorage.getItem(LOCAL_STORAGE_ORG_KEY);
-    if (!savedOrgString) {
-    }
     const orgInLocalStorage = savedOrgString ? JSON.parse(savedOrgString) : null;
 
     // Check if the user has access to the org
@@ -1042,11 +937,8 @@ function createDownloadsField(config) {
 
   // Set default download based on number of options
   if (config.items && config.items.length > 0) {
-    // Always set the first item as default
     const firstDownload = config.items[0].Download;
     formData.Download = firstDownload;
-  } else {
-    console.warn('[DOWNLOAD FIELD] No download items in config');
   }
 
   if (config.items?.length > 1) {
@@ -1979,35 +1871,7 @@ export default async function decorate(block) {
             const entitlement = await fetchTemplateEntitlement();
             lastRequestAccessEntitlement = entitlement;
             if (entitlement && entitlement.userEntitled && entitlement.orgEntitled) {
-              if (!returnContainer) {
-                navigateTo(loadingContainer, formContainer);
-                updateFormOrgNotice(formContainer);
-                updateCancelButtonVisibility(formContainer);
-                return;
-              }
-              fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-                const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-                if (projectsArray && projectsArray.length > 0) {
-                  const dataToPass = Array.isArray(existingCreds) ? { projects: existingCreds } : existingCreds;
-                  const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-                  if (!hasProjects) {
-                    navigateTo(loadingContainer, formContainer);
-                    updateFormOrgNotice(formContainer);
-                    updateCancelButtonVisibility(formContainer);
-                  } else {
-                    navigateTo(loadingContainer, returnContainer);
-                    updateReturnOrgNotice(returnContainer);
-                  }
-                } else {
-                  navigateTo(loadingContainer, formContainer);
-                  updateFormOrgNotice(formContainer);
-                  updateCancelButtonVisibility(formContainer);
-                }
-              }).catch(() => {
-                navigateTo(loadingContainer, formContainer);
-                updateFormOrgNotice(formContainer);
-                updateCancelButtonVisibility(formContainer);
-              });
+              runFormOrReturnFlow();
             } else {
               if (requestAccessContainer && entitlement) {
                 const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
@@ -2138,39 +2002,30 @@ export default async function decorate(block) {
     }
   }
 
-  // Shared: run form/return flow (fetch credentials, show return or form). Used after sign-in and after org change.
+  const showFormFromLoading = () => {
+    navigateTo(loadingContainer, formContainer);
+    updateFormOrgNotice(formContainer);
+    updateCancelButtonVisibility(formContainer);
+  };
+
   const runFormOrReturnFlow = () => {
     if (!returnContainer) {
-      navigateTo(loadingContainer, formContainer);
-      updateFormOrgNotice(formContainer);
-      updateCancelButtonVisibility(formContainer);
+      showFormFromLoading();
       return;
     }
-    fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
+    fetchExistingCredentials(selectedOrganization?.code).then((existingCreds) => {
       const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-      if (projectsArray && projectsArray.length > 0) {
-        const dataToPass = Array.isArray(existingCreds)
-          ? { projects: existingCreds }
-          : existingCreds;
+      if (projectsArray?.length > 0) {
+        const dataToPass = Array.isArray(existingCreds) ? { projects: existingCreds } : existingCreds;
         const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-        if (!hasProjects) {
-          navigateTo(loadingContainer, formContainer);
-          updateFormOrgNotice(formContainer);
-          updateCancelButtonVisibility(formContainer);
-        } else {
+        if (hasProjects) {
           navigateTo(loadingContainer, returnContainer);
           updateReturnOrgNotice(returnContainer);
+          return;
         }
-      } else {
-        navigateTo(loadingContainer, formContainer);
-        updateFormOrgNotice(formContainer);
-        updateCancelButtonVisibility(formContainer);
       }
-    }).catch(() => {
-      navigateTo(loadingContainer, formContainer);
-      updateFormOrgNotice(formContainer);
-      updateCancelButtonVisibility(formContainer);
-    });
+      showFormFromLoading();
+    }).catch(showFormFromLoading);
   };
 
   // Re-render page after organization change: show loading, then entitlement check (if Request Access) and show correct view.
@@ -2325,54 +2180,16 @@ export default async function decorate(block) {
         navigateTo(loadingContainer, formContainer);
       }
     } catch (error) {
-      // API error - Show error message
-      // API error received - Hide loading and show form again
       navigateTo(loadingContainer, formContainer);
       showToast(`Error: ${error.message}`, 'error', 5000);
     }
   });
 
-  formContainer?.querySelector('.cancel-link')?.addEventListener('click', async (e) => {
+  formContainer?.querySelector('.cancel-link')?.addEventListener('click', (e) => {
     e.preventDefault();
-
-    // Show loading page
     setLoadingText(loadingContainer, 'Loading...');
     navigateTo(formContainer, loadingContainer, true);
-
-    try {
-      // Fetch organizations first
-      await fetchOrganizations();
-
-      // Then fetch existing credentials
-      const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
-
-      if (existingCreds) {
-        // Pass the data in consistent format (handle both array and object responses)
-        const dataToPass = Array.isArray(existingCreds)
-          ? { projects: existingCreds }
-          : existingCreds;
-
-        // Populate dropdown with fresh data
-        const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
-        if (hasProjects) {
-          navigateTo(loadingContainer, returnContainer);
-          updateReturnOrgNotice(returnContainer);
-        } else {
-          // No projects found, stay on form
-          navigateTo(loadingContainer, formContainer);
-          updateFormOrgNotice(formContainer);
-        }
-      } else {
-        // Error fetching, stay on form
-        navigateTo(loadingContainer, formContainer);
-        updateFormOrgNotice(formContainer);
-      }
-    } catch (error) {
-      // On error, stay on form
-      navigateTo(loadingContainer, formContainer);
-      updateFormOrgNotice(formContainer);
-    }
+    runFormOrReturnFlow();
   });
 
   cardContainer?.querySelector('.restart-link')?.addEventListener('click', (e) => {
@@ -2401,14 +2218,9 @@ export default async function decorate(block) {
           await downloadZipViaApi(downloadAPI, zipFileURL, fileName);
           showToast('Download started successfully', 'success', 2000);
         } catch (error) {
-          console.error('[RESTART DOWNLOAD ERROR]', error);
           showToast('Failed to download credential files', 'error', 3000);
         }
-      } else {
-        console.warn('[RESTART DOWNLOAD SKIPPED] Missing required parameters');
       }
-    } else {
-      console.warn('[RESTART DOWNLOAD SKIPPED] No credential response available');
     }
   });
 
@@ -2460,34 +2272,7 @@ export default async function decorate(block) {
                   return;
                 }
               }
-              return fetchExistingCredentials(selectedOrganization?.code);
-            }).then(async (existingCreds) => {
-              if (existingCreds === undefined) return; // already navigated to request access
-              if (!returnContainer) {
-                navigateTo(loadingContainer, formContainer);
-                updateFormOrgNotice(formContainer);
-                updateCancelButtonVisibility(formContainer);
-                return;
-              }
-              if (existingCreds) {
-                const dataToPass = Array.isArray(existingCreds)
-                  ? { projects: existingCreds }
-                  : existingCreds;
-                const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-                if (!hasProjects) {
-                  navigateTo(loadingContainer, formContainer);
-                  updateCancelButtonVisibility(formContainer);
-                  return;
-                }
-              }
-              navigateTo(loadingContainer, returnContainer);
-            }).catch(() => {
-              if (returnContainer) navigateTo(loadingContainer, returnContainer);
-              else {
-                navigateTo(loadingContainer, formContainer);
-                updateFormOrgNotice(formContainer);
-                updateCancelButtonVisibility(formContainer);
-              }
+              runFormOrReturnFlow();
             });
           }
         }, 100);
@@ -2495,9 +2280,7 @@ export default async function decorate(block) {
         setTimeout(() => {
           clearInterval(checkSignIn);
         }, 5000);
-      } else {
       }
-    } else {
     }
   };
 
