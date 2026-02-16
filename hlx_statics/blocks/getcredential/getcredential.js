@@ -1213,12 +1213,19 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
       titleRow.appendChild(infoIcon);
       card.appendChild(titleRow);
     }
-    if (edgeCase.description) {
-      const descText = String(edgeCase.description).replace(/\[userEmail\]|\[user_email\]|\{\{userEmail\}\}/gi, userEmail || 'your email');
+    const defaultDescriptions = {
+      Type1User: `You are currently signed in with your personal account ${userEmail} and can not access this service.`,
+      NotMember: `You are currently signed in with your personal account ${userEmail} and can not access this service.`,
+      NotSignUp: `You are currently signed in with your personal account ${userEmail} and can not access this service.`,
+      NoProduct: `Your organization does not have access to this service. Contact your admin or change organization.`
+    };
+    const showChangeOrg = edgeCase.showChangeOrgLink !== false && (['Type1User', 'NotMember', 'NotSignUp', 'NoProduct'].includes(edgeCaseKey) || edgeCase.showChangeOrgLink);
+    const defaultDescription = defaultDescriptions[edgeCaseKey] || '';
+    const descriptionText = edgeCase.description || defaultDescription;
+    if (descriptionText) {
       const descEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-description' });
-      descEl.textContent = descText;
+      descEl.textContent = descriptionText;
       card.appendChild(descEl);
-      const showChangeOrg = edgeCase.showChangeOrgLink !== false && (edgeCaseKey === 'Type1User' || edgeCase.showChangeOrgLink);
       if (showChangeOrg) {
         const changeOrgWrap = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-change-org-wrap' });
         const changeOrgLink = createTag('a', { href: '#', class: 'request-access-change-org-link' });
@@ -1946,6 +1953,7 @@ export default async function decorate(block) {
       const changeOrgLink = e.target.closest('.request-access-change-org-link');
       if (changeOrgLink) {
         e.preventDefault();
+        e.stopPropagation();
         const orgs = organizationsData || [];
         const overlay = createOrganizationModal(orgs, selectedOrganization, (newOrg) => {
           switchOrganization(newOrg).then(async () => {
