@@ -1515,28 +1515,62 @@ function createCredentialCard(config) {
   return cardContainer;
 }
 
+/**
+ * Resolve template ID for this page/block so we can load the correct credential config.
+ * Different template IDs can have different configs (e.g. API Key vs OAuth).
+ * Priority: block data attribute > page metadata > undefined (then we match by first row).
+ */
+function resolveTemplateId(block) {
+  const fromBlock = block?.dataset?.templateId || block?.dataset?.templateid;
+  if (fromBlock) return fromBlock.trim();
+  const fromMeta = getMetadata('templateid') || getMetadata('template-id');
+  if (fromMeta) return String(fromMeta).trim();
+  return undefined;
+}
+
 export default async function decorate(block) {
 
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   const navPath = `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
 
+  const pageTemplateId = resolveTemplateId(block);
+  const isStageOrLocalHost = isStageEnvironment(window.location.host)
+    || isLocalHostEnvironment(window.location.host);
+
   let credentialData;
+  let getCredConfig;
   try {
     const response = await fetch(navPath);
     if (!response.ok) throw new Error('Failed to load');
     const credentialJSON = await response.json();
-    credentialData = credentialJSON?.data?.[0]?.['GetCredential']?.components;
+    const dataRows = credentialJSON?.data;
+    if (!Array.isArray(dataRows) || dataRows.length === 0) {
+      block.innerHTML = '<p>No credential data available.</p>';
+      return;
+    }
+
+    // Select the row that matches this page's template ID (so different templates show different configs)
+    let selectedRow = dataRows[0];
+    if (pageTemplateId) {
+      const matched = dataRows.find((row) => {
+        const gc = row?.GetCredential;
+        if (!gc) return false;
+        const rowTemplateId = isStageOrLocalHost
+          ? (gc.stageTemplateId ?? gc.templateId)
+          : gc.templateId;
+        return String(rowTemplateId || '') === String(pageTemplateId);
+      });
+      if (matched) selectedRow = matched;
+    }
+
+    getCredConfig = selectedRow?.GetCredential;
+    credentialData = getCredConfig?.components;
     if (!credentialData) {
       block.innerHTML = '<p>No credential data available.</p>';
       return;
     }
 
-    // Extract template and organization data for API calls
-    const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
-
-    // Get template configuration from JSON - use templateId from config
-    const isStageOrLocalHost = isStageEnvironment(window.location.host)
-      || isLocalHostEnvironment(window.location.host);
+    // Template data for API calls (create credential, fetch projects, etc.)
     templateData = {
       id: isStageOrLocalHost
         ? (getCredConfig?.stageTemplateId ?? getCredConfig?.templateId)
