@@ -625,6 +625,7 @@ function createClientSecretField(heading, buttonLabel = 'Retrieve and copy clien
 
   const button = createTag('button', { class: 'retrieve-secret-button' });
   button.setAttribute('data-cy', 'retrieve-secret-button');
+  button.textContent = buttonLabel;
   button.addEventListener('click', async () => {
     const card = field.closest('.project-card') || field.closest('.return-project-card');
     const orgCode = card?.dataset?.orgCode;
@@ -667,6 +668,10 @@ function createClientSecretField(heading, buttonLabel = 'Retrieve and copy clien
       if (secret) {
         valueHolder.textContent = secret;
         valueHolder.style.display = 'block';
+        const valueWrapper = createTag('div', { class: 'credential-detail-value-wrapper' });
+        valueHolder.parentNode.insertBefore(valueWrapper, valueHolder);
+        valueWrapper.appendChild(valueHolder);
+        valueWrapper.appendChild(createCopyButton(secret));
         await navigator.clipboard.writeText(secret);
         showToast('Client secret retrieved and copied to clipboard', 'success', 2000);
         button.remove();
@@ -693,7 +698,7 @@ function createClientSecretField(heading, buttonLabel = 'Retrieve and copy clien
 /**
  * Build a single credential detail field from component config.
  * Supports: APIKey, AllowedOrigins, OrganizationName, ClientId, ClientSecret, Scopes, ImsOrgID.
- * Labels and buttonLabel come from JSON config. ImsOrgID defaults to "Organization ID" when heading not set.
+ * All fields have copy button. ImsOrgID label defaults to "Organization ID" when heading not set.
  */
 function buildCredentialDetailFromComponent(components, key) {
   const c = components[key];
@@ -704,13 +709,13 @@ function buildCredentialDetailFromComponent(components, key) {
   const fieldNames = {
     APIKey: ['apiKey', true],
     AllowedOrigins: ['allowedOrigins', true],
-    OrganizationName: ['organization', false],
+    OrganizationName: ['organization', true],
     ClientId: ['clientId', true],
-    Scopes: ['scopes', false],
-    ImsOrgID: ['imsOrgId', false]
+    Scopes: ['scopes', true],
+    ImsOrgID: ['imsOrgId', true]
   };
-  const [fieldName, showCopy] = fieldNames[key] ?? [key.toLowerCase(), false];
-  const label = key === 'ImsOrgID' ? (c.heading || 'Organization ID') : c.heading;
+  const [fieldName, showCopy] = fieldNames[key] ?? [key.toLowerCase(), true];
+  const label = key === 'ImsOrgID' ? (c.heading || 'IMS Organization ID') : c.heading;
   if (!label) return null;
   const value = (key === 'Scopes' && c.scope) ? c.scope : (c.value || '');
   return createCredentialDetailField(label, value, showCopy, fieldName);
