@@ -1194,24 +1194,43 @@ function createSideContent(config) {
 
 /**
  * Build the left-column card for Request Access: either RestrictedAccess (products + Request access button)
- * or an EdgeCase variant (title + single link button).
- * @param {Object} [options] - Optional: { selectedOrganization } for restricted card org message and "Change organization?" link
+ * or an EdgeCase variant (title, optional description, optional "Change organization?" link, outline button).
+ * @param {Object} [options] - Optional: { selectedOrganization, userEmail } for org message and description placeholder
  */
 function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
-  const { selectedOrganization } = options;
+  const { selectedOrganization, userEmail } = options;
   const edgeCases = config.components?.EdgeCase?.components;
   const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
   if (edgeCase) {
     const card = createTag('div', { class: 'request-access-edge-case-card' });
     if (edgeCase.title) {
+      const titleRow = createTag('div', { class: 'request-access-edge-case-title-row' });
       const titleEl = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-edge-case-title' });
       titleEl.textContent = edgeCase.title;
-      card.appendChild(titleEl);
+      titleRow.appendChild(titleEl);
+      const infoIcon = createTag('span', { class: 'request-access-edge-case-info-icon', 'aria-label': 'Information' });
+      infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+      titleRow.appendChild(infoIcon);
+      card.appendChild(titleRow);
+    }
+    if (edgeCase.description) {
+      const descText = String(edgeCase.description).replace(/\[userEmail\]|\[user_email\]|\{\{userEmail\}\}/gi, userEmail || 'your email');
+      const descEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-description' });
+      descEl.textContent = descText;
+      card.appendChild(descEl);
+      const showChangeOrg = edgeCase.showChangeOrgLink !== false && (edgeCaseKey === 'Type1User' || edgeCase.showChangeOrgLink);
+      if (showChangeOrg) {
+        const changeOrgWrap = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-change-org-wrap' });
+        const changeOrgLink = createTag('a', { href: '#', class: 'request-access-change-org-link' });
+        changeOrgLink.textContent = 'Change organization?';
+        changeOrgWrap.appendChild(changeOrgLink);
+        card.appendChild(changeOrgWrap);
+      }
     }
     if (edgeCase.buttonLabel) {
       const link = createTag('a', {
         href: edgeCase.buttonLink || '#',
-        class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM request-access-edge-case-btn'
+        class: 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM request-access-edge-case-btn'
       });
       link.innerHTML = `<span class="spectrum-Button-label">${edgeCase.buttonLabel}</span>`;
       if (edgeCase.buttonLink) {
@@ -1929,9 +1948,10 @@ export default async function decorate(block) {
         e.preventDefault();
         const orgs = organizationsData || [];
         const overlay = createOrganizationModal(orgs, selectedOrganization, (newOrg) => {
-          switchOrganization(newOrg).then(() => {
+          switchOrganization(newOrg).then(async () => {
             showToast('Organization Changed', 'success', 3000);
-            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, getForceRequestAccessParams()?.edgeCase ?? null, { selectedOrganization });
+            const profile = await window.adobeIMS?.getProfile().catch(() => null);
+            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, getForceRequestAccessParams()?.edgeCase ?? null, { selectedOrganization, userEmail: profile?.email });
           });
         });
         document.body.appendChild(overlay);
@@ -2424,7 +2444,8 @@ export default async function decorate(block) {
               // Local/stage: ?requestAccess=1 forces Request Access view without calling entitlement API
               const forceParams = getForceRequestAccessParams();
               if (forceParams && requestAccessContainer) {
-                updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization });
+                const profile = await window.adobeIMS?.getProfile().catch(() => null);
+                updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
                 navigateTo(loadingContainer, requestAccessContainer);
                 return;
               }
@@ -2434,7 +2455,8 @@ export default async function decorate(block) {
                 if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
                   lastRequestAccessEntitlement = entitlement;
                   const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
-                  updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization });
+                  const profile = await window.adobeIMS?.getProfile().catch(() => null);
+                  updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
                   navigateTo(loadingContainer, requestAccessContainer);
                   return;
                 }
@@ -2533,17 +2555,23 @@ export default async function decorate(block) {
 
         const forceParams = getForceRequestAccessParams();
         if (forceParams && requestAccessContainer) {
-          updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization });
-          navigateTo(loadingContainer, requestAccessContainer);
+          window.adobeIMS?.getProfile().then((profile) => {
+            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
+            navigateTo(loadingContainer, requestAccessContainer);
+          }).catch(() => {
+            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization });
+            navigateTo(loadingContainer, requestAccessContainer);
+          });
           return;
         }
         // Same as React: if !template.userEntitled || !template.orgEntitled -> show RequestAccess (RestrictedAccess or EdgeCase)
         if (requestAccessContainer) {
-          fetchTemplateEntitlement().then((entitlement) => {
+          fetchTemplateEntitlement().then(async (entitlement) => {
             if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
               lastRequestAccessEntitlement = entitlement;
               const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
-              updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization });
+              const profile = await window.adobeIMS?.getProfile().catch(() => null);
+              updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
               navigateTo(loadingContainer, requestAccessContainer);
               return;
             }
