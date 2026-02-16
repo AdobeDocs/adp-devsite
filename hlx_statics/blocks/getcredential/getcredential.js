@@ -1933,6 +1933,8 @@ export default async function decorate(block) {
   let requestAccessContainer;
   /** When we show Request Access view, store entitlement (with template) for the modal's accessPlatformAppId and onClose refetch */
   let lastRequestAccessEntitlement = null;
+  /** Re-render the page after org change: show loading, then form/return or request access. Set after containers exist. */
+  let renderPageAfterOrgChange = null;
 
   // Create Request Access container (shown after sign-in when user/org not entitled).
   // Config comes from credential JSON: GetCredential.components.RequestAccess.
@@ -1956,10 +1958,9 @@ export default async function decorate(block) {
         e.stopPropagation();
         const orgs = organizationsData || [];
         const overlay = createOrganizationModal(orgs, selectedOrganization, (newOrg) => {
-          switchOrganization(newOrg).then(async () => {
+          switchOrganization(newOrg).then(() => {
             showToast('Organization Changed', 'success', 3000);
-            const profile = await window.adobeIMS?.getProfile().catch(() => null);
-            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, getForceRequestAccessParams()?.edgeCase ?? null, { selectedOrganization, userEmail: profile?.email });
+            if (renderPageAfterOrgChange) renderPageAfterOrgChange(requestAccessContainer);
           });
         });
         document.body.appendChild(overlay);
@@ -2035,59 +2036,8 @@ export default async function decorate(block) {
       try {
         await switchOrganization(newOrg);
         showToast('Organization Changed', 'success', 3000);
-
-        // Show loading page while fetching
-        setLoadingText(loadingContainer, 'Loading...');
-        navigateTo(returnContainer, loadingContainer);
-
-        // Refresh credentials for new org
-        fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-
-          if (existingCreds) {
-            // Pass the data in consistent format (handle both array and object responses)
-            const dataToPass = Array.isArray(existingCreds)
-              ? { projects: existingCreds }
-              : existingCreds;
-
-            // Check if there are actually projects
-            const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-
-            if (!projectsArray || projectsArray.length === 0) {
-              // No projects found - immediately move to credential form
-              navigateTo(loadingContainer, formContainer);
-              updateFormOrgNotice(formContainer);
-              await updateCancelButtonVisibility(formContainer);
-              return;
-            }
-
-            // Populate dropdown with new org's projects (filter from cached data)
-            const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
-            if (!hasProjects) {
-              // No projects found - immediately move to credential form
-              navigateTo(loadingContainer, formContainer);
-
-              updateFormOrgNotice(formContainer);
-              await updateCancelButtonVisibility(formContainer);
-            } else {
-              // Has projects - show return page
-              navigateTo(loadingContainer, returnContainer);
-              updateReturnOrgNotice(returnContainer);
-            }
-          } else {
-            // No credentials found - immediately move to credential form
-            navigateTo(loadingContainer, formContainer);
-            updateFormOrgNotice(formContainer);
-            await updateCancelButtonVisibility(formContainer);
-          }
-        }).catch(error => {
-          // On error, move to credential form
-          navigateTo(loadingContainer, formContainer);
-          updateFormOrgNotice(formContainer);
-          updateCancelButtonVisibility(formContainer);
-        });
+        if (renderPageAfterOrgChange) renderPageAfterOrgChange(returnContainer);
       } catch (error) {
-        // Silently handle error and stay on current page
         console.error('[ORG SWITCH ERROR]', error);
       }
     };
@@ -2125,23 +2075,8 @@ export default async function decorate(block) {
       try {
         await switchOrganization(newOrg);
         showToast('Organization Changed', 'success', 3000);
-
-        // Update org notice text
-        updateFormOrgNotice(formContainer);
-
-        // Check and update cancel button visibility
-        await updateCancelButtonVisibility(formContainer);
-
-        // Reset form data if needed (e.g., agreement checkbox)
-        if (formData.Agree) {
-          formData.Agree = false;
-          const agreeCheckbox = formFields.querySelector('input[type="checkbox"]');
-          if (agreeCheckbox) {
-            agreeCheckbox.checked = false;
-          }
-        }
+        if (renderPageAfterOrgChange) renderPageAfterOrgChange(formContainer);
       } catch (error) {
-        // Silently handle error
         console.error('[ORG SWITCH ERROR]', error);
       }
     };
@@ -2202,6 +2137,62 @@ export default async function decorate(block) {
       updateFormOrgNotice(formContainer);
     }
   }
+
+  // Shared: run form/return flow (fetch credentials, show return or form). Used after sign-in and after org change.
+  const runFormOrReturnFlow = () => {
+    if (!returnContainer) {
+      navigateTo(loadingContainer, formContainer);
+      updateFormOrgNotice(formContainer);
+      updateCancelButtonVisibility(formContainer);
+      return;
+    }
+    fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
+      const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+      if (projectsArray && projectsArray.length > 0) {
+        const dataToPass = Array.isArray(existingCreds)
+          ? { projects: existingCreds }
+          : existingCreds;
+        const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+        if (!hasProjects) {
+          navigateTo(loadingContainer, formContainer);
+          updateFormOrgNotice(formContainer);
+          updateCancelButtonVisibility(formContainer);
+        } else {
+          navigateTo(loadingContainer, returnContainer);
+          updateReturnOrgNotice(returnContainer);
+        }
+      } else {
+        navigateTo(loadingContainer, formContainer);
+        updateFormOrgNotice(formContainer);
+        updateCancelButtonVisibility(formContainer);
+      }
+    }).catch(() => {
+      navigateTo(loadingContainer, formContainer);
+      updateFormOrgNotice(formContainer);
+      updateCancelButtonVisibility(formContainer);
+    });
+  };
+
+  // Re-render page after organization change: show loading, then entitlement check (if Request Access) and show correct view.
+  renderPageAfterOrgChange = (sourceContainer) => {
+    setLoadingText(loadingContainer, 'Loading...');
+    navigateTo(sourceContainer, loadingContainer);
+    if (requestAccessContainer) {
+      fetchTemplateEntitlement().then(async (entitlement) => {
+        if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+          lastRequestAccessEntitlement = entitlement;
+          const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+          const profile = await window.adobeIMS?.getProfile().catch(() => null);
+          updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
+          navigateTo(loadingContainer, requestAccessContainer);
+        } else {
+          runFormOrReturnFlow();
+        }
+      }).catch(() => runFormOrReturnFlow());
+    } else {
+      runFormOrReturnFlow();
+    }
+  };
 
   // Create success card container
   let cardContainer;
@@ -2525,41 +2516,6 @@ export default async function decorate(block) {
         // Navigate from sign-in to loading
         setLoadingText(loadingContainer, 'Loading...');
         navigateTo(signInContainer, loadingContainer, true);
-
-        // If Request Access config exists, check template entitlement first; show Request Access when not entitled
-        const runFormOrReturnFlow = () => {
-          if (!returnContainer) {
-            navigateTo(loadingContainer, formContainer);
-            updateFormOrgNotice(formContainer);
-            updateCancelButtonVisibility(formContainer);
-            return;
-          }
-          fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-            const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-            if (projectsArray && projectsArray.length > 0) {
-              const dataToPass = Array.isArray(existingCreds)
-                ? { projects: existingCreds }
-                : existingCreds;
-              const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-              if (!hasProjects) {
-                navigateTo(loadingContainer, formContainer);
-                updateFormOrgNotice(formContainer);
-                updateCancelButtonVisibility(formContainer);
-              } else {
-                navigateTo(loadingContainer, returnContainer);
-                updateReturnOrgNotice(returnContainer);
-              }
-            } else {
-              navigateTo(loadingContainer, formContainer);
-              updateFormOrgNotice(formContainer);
-              updateCancelButtonVisibility(formContainer);
-            }
-          }).catch(() => {
-            navigateTo(loadingContainer, formContainer);
-            updateFormOrgNotice(formContainer);
-            updateCancelButtonVisibility(formContainer);
-          });
-        };
 
         const forceParams = getForceRequestAccessParams();
         if (forceParams && requestAccessContainer) {
