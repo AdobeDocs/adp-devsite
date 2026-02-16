@@ -302,7 +302,7 @@ export function createExternalLink(text, href) {
 }
 
 // ============================================================================
-// ORGANIZATION MODAL - Done
+// ORGANIZATION MODAL
 // ============================================================================
 
 export function createOrganizationModal(organizations, currentOrg, onOrgChange) {
@@ -681,7 +681,7 @@ export const generateToken = async (apikey, secret, scopesDetails) => {
  * @param {Object} [accessTokenConfig] - AccessToken component from config (heading, buttonLabel)
  */
 export function createAccessTokenSection(accessTokenConfig = {}) {
-  const section = createTag('div', { class: 'access-token-section credential-section' });
+  const section = createTag('div', { class: 'access-token-section' });
   const heading = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
   heading.textContent = accessTokenConfig?.heading ?? 'Access Token';
   section.appendChild(heading);
