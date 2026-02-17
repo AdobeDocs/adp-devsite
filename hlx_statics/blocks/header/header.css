@@ -293,7 +293,7 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
   }
 
   header.global-nav-header > ul#navigation-links > li.activeTab .menu-item > a:hover {
-    border-bottom: 3px solid black;
+    border-bottom: none;
   }
 
   header.global-nav-header > ul#navigation-links > li.activeTab button{
