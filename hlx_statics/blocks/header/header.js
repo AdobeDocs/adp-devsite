@@ -792,7 +792,9 @@ function globalNavLinkItemDropdown(id, name, links) {
 function globalNavLinkItemDropdownItem(url, name, description) {
   return `
       <li class="spectrum-Menu-item menu-item">
-        <span class="spectrum-Menu-itemLabel nav-dropdown-item"><a href="${url}" class="nav-dropdown-links" daa-ll="${name}" >${name}</a>${description ? '<span class="nav-dropdown-description">' + description + '</span>' : ''}</span>
+        <a href="${url}" class="nav-dropdown-links spectrum-Menu-itemLabel nav-dropdown-item" daa-ll="${name}">
+          <span class="nav-dropdown-name">${name}</span>${description ? '<span class="nav-dropdown-description">' + description + '</span>' : ''}
+        </a>
       </li>
     `;
 }
