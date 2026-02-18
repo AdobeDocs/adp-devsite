@@ -585,47 +585,7 @@ export async function loadAep() {
 }
 
 export function loadPrivacyStandalone() {
-  addExtraScriptWithLoad(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js', () => {
-    // Check for C0002 (Performance/Analytics) consent before loading AEP - part of new privacy library implementation
-    function checkConsent() {
-      // Check if adobePrivacy is available
-      if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
-        console.error('Privacy library not loaded yet, waiting for consent events');
-        return;
-      }
-
-      const activeGroups = window.adobePrivacy.activeCookieGroups();
-
-      // Check if user gave permission for performance/analytics tracking (C0002)
-      if (activeGroups.indexOf('C0002') !== -1) {
-        loadAep();
-      } else {
-        console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
-      }
-    }
-    
-    // Listen for consent events from the privacy library
-    window.addEventListener('adobePrivacy:PrivacyConsent', () => {
-      // Event: User accepted all consent
-      checkConsent();
-    });
-
-    window.addEventListener('adobePrivacy:PrivacyCustom', () => {
-      // Event: User customized consent preferences
-      checkConsent();
-    });
-
-    window.addEventListener('adobePrivacy:PrivacyReject', () => {
-      // Event: User rejected optional consent
-      checkConsent();
-    });
-  });
-
-  // Check immediately if privacy library already loaded (return visitor)
-  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
-    // Privacy library already available, checking consent immediately
-    checkConsent();
-  }
+  addExtraScript(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js');
 }
 
 export async function loadIms() {
