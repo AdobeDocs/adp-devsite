@@ -841,6 +841,8 @@ function loadTitle() {
       let titleFromH1 = null;
 
       for (const h1 of h1Elements) {
+        // Skip H1 inside the nav profile dropdown popover
+        if (h1.closest('#nav-profile-dropdown-popover')) continue;
         // Check if this H1 contains an image
         const hasImage = h1.querySelector('img');
         if (!hasImage) {
