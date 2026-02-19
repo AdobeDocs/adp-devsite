@@ -351,6 +351,7 @@ async function initSearch() {
       checkbox.id = `checkbox-${product.replace(/\s+/g, '-')}`;
       checkbox.value = product;
       checkbox.classList.add('search-checkbox');
+      checkbox.setAttribute("daa-ll", `search-filter-checkbox-${product}`);
 
       // don't check products if new tab or if all products are selected
       checkbox.checked = selectedProducts.includes(product) && !allProductsCheckbox.checked;
@@ -461,9 +462,9 @@ async function initSearch() {
           section.innerHTML += `
             <div class="result-item">
               <h1 class="spectrum-Body spectrum-Body--sizeM css-1i3xfjj">
-                <a href="${value.url}">${key}</a>
+                <a href="${value.url}" daa-ll="search-result-title-${key}">${key}</a>
               </h1>
-              <a href="${value.url} class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>        
+              <a href="${value.url}" class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary" daa-ll="search-result-url-${value.url}">${value.url}</a>
               <p class="result-content spectrum-Body spectrum-Body--sizeS">${value.content}</p>  
             </div>
             <hr>
@@ -563,12 +564,12 @@ function globalConsoleButton() {
 
 function globalNavSearchButton() {
   const div = createTag('div', { class: 'nav-console-search-button' });
-  div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
+  div.innerHTML = `<button class="nav-dropdown-search" aria-label="search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet" daa-ll="search-button-open">
       <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true" aria-label="Edit">
         <use href="/hlx_statics/icons/search.svg#spectrum-icon-24-Search"></use>
       </svg>
     </button>
-    <button class="close-search-button" aria-label="Close Search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet">
+    <button class="close-search-button" aria-label="Close Search" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--emphasized spectrum-ActionButton--quiet" daa-ll="search-button-close">
       <svg class="spectrum-Icon spectrum-Icon--sizeL" focusable="false" aria-hidden="true">
         <use href="/hlx_statics/icons/close.svg#close-icon"></use>
       </svg>
@@ -580,14 +581,14 @@ const globalNavSearchDropDown = () => {
   const searchDropDown = createTag('div', { class: 'nav-console-search-frame' });
   searchDropDown.innerHTML = `
    <div class="outer-search-box">
-    <div id="search-box" class="search-box">
+    <div id="search-box" class="search-box" daa-ll="search-box">
       <form onsubmit="return false;">
         <div>
           <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeMd icon-left">
             <path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path>
           </svg>
           <input id="search-input" type="text" placeholder="Search..." autocomplete="off" class="search-input">
-          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
+          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet" daa-ll="search-button-form-clear">
             <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="icon-right spectrum-Icon spectrum-Icon--sizeM">
               <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
             </svg>
@@ -603,11 +604,11 @@ const globalNavSearchDropDown = () => {
     </div>
 
     <div class="search-results">
-      <div class="search-refinement">
+      <div class="search-refinement" daa-lh="search-refinement">
         <h4 class="spectrum-Heading spectrum-Heading--sizeXS filter-heading">Filter by Products</h4>
         <div class="filters"></div>
       </div>
-      <div class="merged-results"></div>
+      <div class="merged-results" daa-lh="search-results"></div>
     </div>
     `;
 
