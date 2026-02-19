@@ -12,6 +12,7 @@ export default async function decorate(block) {
     // delete first div that gets inserted for some reason
     block.querySelector('div').remove();
     let aside = createTag('aside');
+    aside.setAttribute("daa-lh", "onthispage");
     block.append(aside);
 
     const mainContainer = document.querySelector('main');
