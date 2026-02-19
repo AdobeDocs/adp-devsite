@@ -54,6 +54,8 @@ export default async function decorate(block) {
         block.appendChild(createLink(page.href, page.title, direction, className, div));
       }
     });
+
+    block.setAttribute("daa-lh", "next-prev");
   }
 
 }
