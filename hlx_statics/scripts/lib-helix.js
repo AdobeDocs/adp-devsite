@@ -858,6 +858,7 @@ export function githubActionsBlock(doc) {
   if (!hasHero) {
     const newContent = doc.createElement('div');
     newContent.classList.add('section', 'github-actions-wrapper');
+    newContent.setAttribute("daa-lh", "github-actions");
     newContent.innerHTML = `
               <div class="github-actions-block">
                       ${!hideEditInGitHub ? `<a class="action-buttons" target="_blank" rel="noopener noreferrer nofollow" href=${githubEditUrl} role="button">

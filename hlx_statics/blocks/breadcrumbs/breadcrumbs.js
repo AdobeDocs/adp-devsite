@@ -87,6 +87,7 @@ export default async function decorate(block) {
     const nav = document.createElement('nav');
     nav.ariaLabel = "Breadcrumb";
     nav.role = "navigation";
+    nav.setAttribute("daa-lh", "breadcrumbs");
     block.append(nav);
 
     const ol = document.createElement('ol');
