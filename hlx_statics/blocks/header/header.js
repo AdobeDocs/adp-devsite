@@ -462,9 +462,9 @@ async function initSearch() {
           section.innerHTML += `
             <div class="result-item">
               <h1 class="spectrum-Body spectrum-Body--sizeM css-1i3xfjj">
-                <a href="${value.url}" daa-ll="search-result-title-${key}">${key}</a>
+                <a href="${value.url}">${key}</a>
               </h1>
-              <a href="${value.url}" class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary" daa-ll="search-result-url-${value.url}">${value.url}</a>
+              <a href="${value.url}" class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>
               <p class="result-content spectrum-Body spectrum-Body--sizeS">${value.content}</p>  
             </div>
             <hr>
