@@ -761,7 +761,7 @@ function globalSpinner() {
 function globalSignIn() {
   const div = createTag('div', { id: 'nav-sign-in', class: 'nav-sign-in' });
   div.innerHTML = `<button class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet">
-    <span id="signIn" class="spectrum-ActionButton-label">Sign in</span>
+    <span id="signIn" class="spectrum-ActionButton-label" daa-ll="sign-in-button">Sign in</span>
   </button>`;
   return div;
 }
