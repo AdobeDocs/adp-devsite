@@ -861,7 +861,7 @@ export const getQueryString = () => {
 function globalNavProfileTemplate(profile) {
   return `
     <div class="nav-profile spectrum--lightest">
-      <button id="nav-profile-dropdown-button" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet  navigation-dropdown">
+      <button id="nav-profile-dropdown-button" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet  navigation-dropdown" daa-ll="profile-dropdown-button">
         <svg class="spectrum-Icon spectrum-Icon--sizeM" focusable="false" aria-hidden="true" aria-label="Profile">
           <use xlink:href="#spectrum-icon-24-RealTimeCustomerProfile"></use>
         </svg>
@@ -879,10 +879,10 @@ function globalNavProfileTemplate(profile) {
             <div class="nav-profile-popover-divider">
               <hr />
             </div>
-            <a href="https://account.adobe.com/" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit">
+            <a href="https://account.adobe.com/" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit" daa-ll="profile-edit-button">
               Edit Profile
             </a>
-            <a href="#" id="signOut" data-prefetch=false class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out">
+            <a href="#" id="signOut" data-prefetch=false class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out" daa-ll="profile-sign-out-button">
               Sign out
             </a>
           </div>
