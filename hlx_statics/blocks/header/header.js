@@ -462,9 +462,9 @@ async function initSearch() {
           section.innerHTML += `
             <div class="result-item">
               <h1 class="spectrum-Body spectrum-Body--sizeM css-1i3xfjj">
-                <a href="${value.url}">${key}</a>
+                <a href="${value.url}" daa-ll="search-result-title-${value.url}">${key}</a>
               </h1>
-              <a href="${value.url}" class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary">${value.url}</a>
+              <a href="${value.url}" class="spectrum-Link spectrum-Link--quiet spectrum-Link--secondary" daa-ll="search-result-title-${value.url}">${value.url}</a>
               <p class="result-content spectrum-Body spectrum-Body--sizeS">${value.content}</p>  
             </div>
             <hr>
@@ -522,7 +522,7 @@ async function initSearch() {
           // If there are results, render them
           productGroupedResults.get(product).forEach(({ key, value }) => {
               productDiv.innerHTML += `
-                  <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-suggestions-a">
+                  <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-suggestions-a" daa-ll="search-suggestion-${value.url}">
                     <span class="spectrum-Menu-itemLabel">
                         <div>
                             <strong>${key}</strong>
