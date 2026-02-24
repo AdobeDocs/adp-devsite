@@ -1,72 +1,24 @@
-import { createTag } from "../../scripts/lib-adobeio.js";
+import {
+  addExtraScriptWithReturn,
+  createTag,
+} from "../../scripts/lib-adobeio.js";
 
-const DEMO_RESPONSES = {
-  api: "Adobe offers various APIs including Photoshop API, Lightroom API, and PDF Services API.",
-  documentation: "You can find our documentation at developer.adobe.com/docs",
-  default:
-    "I can help you with Adobe APIs, documentation, and developer tools. What would you like to know?",
-};
-
-const getDemoResponse = (message) => {
-  const lower = message.toLowerCase();
-  for (const [key, response] of Object.entries(DEMO_RESPONSES)) {
-    if (lower.includes(key)) return response;
-  }
-  return DEMO_RESPONSES.default;
-};
-
-const chatBubble = ({ content, source }) => {
-  const chatBubble = createTag("div", { class: "chat-bubble" });
-  const contentElement = createTag("div", { class: "chat-bubble-content" });
-  const isContinuingConversation =
-    window.TEMP_CHAT_BUBBLES.at(-1)?.source === source;
-
-  if (source === "ai") {
-    if (!isContinuingConversation) {
-      chatBubble.appendChild(aiAvatar());
-    } else {
-      chatBubble.style.paddingLeft = "36px";
-    }
-  } else {
-    chatBubble.classList.add("chat-bubble-user");
-  }
-
-  if (!isContinuingConversation && window.TEMP_CHAT_BUBBLES.length > 0) {
-    chatBubble.style.marginTop = "24px";
-  }
-
-  content
-    .trim()
-    .split("\n")
-    .forEach((line) => {
-      const lineElement = createTag("p");
-      lineElement.textContent = line.trim();
-      contentElement.appendChild(lineElement);
-    });
-  chatBubble.appendChild(contentElement);
-
-  window.TEMP_CHAT_BUBBLES.push({ content, source, element: chatBubble });
-  return chatBubble;
-};
-
-const aiAvatar = () => {
-  return createTag("div", {
-    class: "chat-ai-avatar",
-    "aria-hidden": true,
-  });
-};
+// const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
+const AI_API_BASE_URL = "http://localhost:6003";
+const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
 
 /**
- * decorates the next-prev
- * @param {Element} block The next-prev block element
- *
+ * Decorates the ai-assistant block
+ * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
+  addExtraScriptWithReturn(
+    document.body,
+    "https://unpkg.com/marked@^17/lib/marked.umd.js",
+  );
+
+  // TODO: Move to session storage
   window.TEMP_CHAT_BUBBLES = [];
-  const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
-  const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
-  const CHAT_WINDOW_ID = "ai-assistant-chat-window";
-  const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
 
   const container = createTag("div", { class: "ai-assistant-container" });
 
@@ -77,9 +29,52 @@ export default async function decorate(block) {
     "aria-modal": "false",
     "aria-labelledby": CHAT_WINDOW_LABEL_ID,
   });
+  ELEMENTS.CHAT_WINDOW = chatWindow;
 
+  chatWindow.appendChild(createChatWindowHeader());
+  const content = createTag("div", { class: "chat-window-content" });
+  ELEMENTS.CHAT_WINDOW_CONTENT = content;
+  chatWindow.appendChild(content);
+  chatWindow.appendChild(createInputSection());
+
+  container.appendChild(createChatButton());
+  container.appendChild(chatWindow);
+
+  block.appendChild(container);
+
+  ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
+  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
+  ELEMENTS.CHAT_SEND_BUTTON.addEventListener("click", sendMessage);
+  ELEMENTS.CHAT_TEXTAREA.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+}
+
+const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
+const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
+const CHAT_WINDOW_ID = "ai-assistant-chat-window";
+const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
+const ELEMENTS = {
+  CHAT_BUTTON: null,
+  CHAT_WINDOW_CLOSE_BUTTON: null,
+  CHAT_SEND_BUTTON: null,
+  CHAT_TEXTAREA: null,
+  CHAT_WINDOW: null,
+  CHAT_WINDOW_CONTENT: null,
+};
+const GENERIC_ERROR_MESSAGE =
+  "Sorry, I encountered an error. Please try again later.";
+
+/**
+ * Creates the chat window header
+ * @returns {HTMLElement} The chat window header element
+ */
+const createChatWindowHeader = () => {
   const chatWindowHeader = createTag("header", { class: "chat-window-header" });
-  chatWindowHeader.appendChild(aiAvatar(32));
+  chatWindowHeader.appendChild(aiAvatar());
   const label = createTag("h2", {
     class: "chat-window-label",
     id: CHAT_WINDOW_LABEL_ID,
@@ -99,10 +94,15 @@ export default async function decorate(block) {
 
   chatWindowHeader.appendChild(label);
   chatWindowHeader.appendChild(closeButton);
-  chatWindow.appendChild(chatWindowHeader);
+  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON = closeButton;
+  return chatWindowHeader;
+};
 
-  const content = createTag("div", { class: "chat-window-content" });
-  chatWindow.appendChild(content);
+/**
+ * Creates the input section
+ * @returns {HTMLElement} The input section element
+ */
+const createInputSection = () => {
   const inputSection = createTag("div", { class: "chat-window-input-section" });
   const textarea = createTag("textarea", {
     placeholder: "Type your message...",
@@ -121,8 +121,16 @@ export default async function decorate(block) {
   inputSection.appendChild(textarea);
   inputSection.appendChild(disclaimerText);
   inputSection.appendChild(sendButton);
-  chatWindow.appendChild(inputSection);
+  ELEMENTS.CHAT_SEND_BUTTON = sendButton;
+  ELEMENTS.CHAT_TEXTAREA = textarea;
+  return inputSection;
+};
 
+/**
+ * Creates the chat button
+ * @returns {HTMLElement} The chat button element
+ */
+const createChatButton = () => {
   const chatButton = createTag("button", {
     class: "chat-button",
     type: "button",
@@ -132,68 +140,228 @@ export default async function decorate(block) {
     "aria-label": CHAT_BUTTON_LABEL_OPEN,
   });
   chatButton.innerHTML = `<svg width="26" height="26" viewBox="0 0 26 26" focusable="false" aria-hidden="true" role="img" class="spectrum-Icon spectrum-Icon--sizeXL"><path d="M8.1248 24.6977C7.99531 24.6977 7.86582 24.6723 7.74267 24.6202C7.38339 24.4666 7.1498 24.1137 7.1498 23.7227V19.4977H6.1748C3.48721 19.4977 1.2998 17.3103 1.2998 14.6227V7.47266C1.2998 4.78506 3.48721 2.59766 6.1748 2.59766H11.3139C11.8521 2.59766 12.2889 3.03438 12.2889 3.57266C12.2889 4.11093 11.8521 4.54766 11.3139 4.54766H6.1748C4.56251 4.54766 3.2498 5.86036 3.2498 7.47266V14.6227C3.2498 16.235 4.56251 17.5477 6.1748 17.5477H8.1248C8.66308 17.5477 9.0998 17.9844 9.0998 18.5227V21.4299L12.8487 17.8206C13.0303 17.6454 13.2728 17.5477 13.5254 17.5477H19.8248C21.4371 17.5477 22.7498 16.235 22.7498 14.6227V12.9697C22.7498 12.4315 23.1865 11.9947 23.7248 11.9947C24.2631 11.9947 24.6998 12.4315 24.6998 12.9697V14.6227C24.6998 17.3103 22.5124 19.4977 19.8248 19.4977H13.9189L8.80147 24.4247C8.61611 24.6037 8.37236 24.6977 8.1248 24.6977Z" fill="#292929"/><path d="M17.2617 11.8078C17.0167 11.8078 16.7704 11.7443 16.5482 11.6161C16.0074 11.3051 15.7332 10.6868 15.8639 10.0774L16.4619 7.31493L14.5639 5.22147C14.145 4.75936 14.0726 4.08778 14.3837 3.54823C14.696 3.00868 15.3206 2.73446 15.9223 2.86395L18.6848 3.4619L20.7783 1.56395C21.2404 1.14627 21.9158 1.07517 22.4515 1.38368C22.9924 1.69472 23.2666 2.31297 23.1358 2.92234L22.5379 5.68484L24.4358 7.7783C24.8548 8.24041 24.9271 8.91199 24.6161 9.45154C24.3038 9.99237 23.6843 10.2691 23.0774 10.1358L20.3149 9.53788L18.2215 11.4358C17.9511 11.6808 17.6083 11.8078 17.2617 11.8078ZM17.0979 5.11355L18.0856 6.2028C18.3929 6.53796 18.5211 7.01022 18.4246 7.46218L18.1136 8.90184L19.2028 7.91414C19.5392 7.60691 20.0166 7.47996 20.4622 7.57517L21.9018 7.88621L20.9141 6.79696C20.6069 6.4618 20.4787 5.98954 20.5752 5.53758L20.8862 4.09793L19.797 5.08564C19.4618 5.39413 18.987 5.52362 18.5376 5.4246L17.0979 5.11355Z" fill="#292929"/><path d="M10.3125 14.9542C10.1449 14.9542 9.97734 14.911 9.82499 14.8234C9.45809 14.6114 9.2702 14.1874 9.35907 13.7735L9.59012 12.7071L8.8576 11.8997C8.57322 11.5861 8.5237 11.124 8.73572 10.7571C8.94774 10.3902 9.37429 10.2099 9.78563 10.2912L10.852 10.5222L11.6594 9.78972C11.9743 9.50535 12.4339 9.45583 12.802 9.66785C13.1689 9.87987 13.3568 10.3039 13.2679 10.7178L13.0369 11.7842L13.7694 12.5916C14.0538 12.9051 14.1033 13.3673 13.8913 13.7342C13.6793 14.1011 13.2515 14.2851 12.8414 14.2001L11.775 13.969L10.9676 14.7016C10.7835 14.8679 10.5486 14.9542 10.3125 14.9542Z" fill="#292929"/></svg>`;
-  container.appendChild(chatButton);
-  container.appendChild(chatWindow);
-  block.appendChild(container);
+  ELEMENTS.CHAT_BUTTON = chatButton;
+  return chatButton;
+};
 
-  const toggleChatWindow = () => {
-    const isOpen = chatWindow.classList.contains("show");
+const openChatWindow = () => {
+  ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
+  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_CLOSE;
+  ELEMENTS.CHAT_WINDOW.classList.add("show");
 
-    if (!isOpen && window.TEMP_CHAT_BUBBLES.length === 0) {
-      window.setTimeout(() => {
-        content.appendChild(
-          chatBubble({
-            content: "Hello, welcome to Adobe Developer Website!",
-            source: "ai",
-          }),
-        );
-      }, 250);
-      window.setTimeout(() => {
-        content.appendChild(
-          chatBubble({
-            content: "What would you like to know today?",
-            source: "ai",
-          }),
-        );
-      }, 500);
+  // Initial messages
+  if (window.TEMP_CHAT_BUBBLES.length === 0) {
+    window.setTimeout(() => {
+      sendMessage({
+        content: "Hello, welcome to Adobe Developer Website!",
+        source: "ai",
+      });
+    }, 250);
+    window.setTimeout(() => {
+      sendMessage({
+        content: "What would you like to know today?",
+        source: "ai",
+      });
+    }, 500);
+  }
+};
+
+const closeChatWindow = () => {
+  ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "false");
+  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
+  ELEMENTS.CHAT_WINDOW.classList.remove("show");
+};
+
+const toggleChatWindow = () => {
+  if (ELEMENTS.CHAT_WINDOW.classList.contains("show")) {
+    closeChatWindow();
+  } else {
+    openChatWindow();
+  }
+};
+
+/**
+ * Sends a message to the content area and scrolls to the bottom.
+ * If no options are provided, the content of the textarea will be used and the source will be set to "user".
+ * @param {Object} [options] - The options for the message
+ * @param {string} [options.content] - The content of the message
+ * @param {"user" | "ai"} [options.source] - The source of the
+ * @returns {boolean | HTMLElement} - A chat bubble element if the message was sent successfully, false otherwise
+ */
+const sendMessage = ({ content, source = "user" } = {}) => {
+  let messageContent = content;
+  if (!content && source === "user") {
+    messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
+    ELEMENTS.CHAT_TEXTAREA.value = "";
+  }
+
+  if (!messageContent) return false;
+
+  const bubble = chatBubble({ content: messageContent, source });
+  ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble);
+  ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+    ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+
+  if (source === "user") {
+    retrieveAiResponse(messageContent);
+  }
+
+  return bubble;
+};
+
+/**
+ * Creates a chat bubble element
+ * @param {Object} options - The options for the chat bubble
+ * @param {string} options.content - The content of the chat bubble
+ * @param {"user" | "ai"} options.source - The source of the chat bubble
+ * @returns {HTMLElement} The chat bubble element
+ */
+const chatBubble = ({ content, source }) => {
+  const bubble = createTag("div", { class: "chat-bubble" });
+  const contentElement = createTag("div", { class: "chat-bubble-content" });
+  const isContinuingConversation =
+    window.TEMP_CHAT_BUBBLES.at(-1)?.source === source;
+
+  if (source === "ai") {
+    if (!isContinuingConversation) {
+      bubble.appendChild(aiAvatar());
+    } else {
+      bubble.style.paddingLeft = "36px";
     }
+  } else {
+    bubble.classList.add("chat-bubble-user");
+  }
 
-    chatButton.setAttribute("aria-expanded", isOpen ? "false" : "true");
-    chatButton.ariaLabel = isOpen
-      ? CHAT_BUTTON_LABEL_OPEN
-      : CHAT_BUTTON_LABEL_CLOSE;
-    chatWindow.classList.toggle("show");
-  };
-  const sendMessage = () => {
-    const message = textarea.value.trim();
-    if (message) {
-      content.appendChild(
-        chatBubble({
-          content: message,
-          source: "user",
-        }),
-      );
-      textarea.value = "";
-      content.scrollTop = content.scrollHeight;
+  if (!isContinuingConversation && window.TEMP_CHAT_BUBBLES.length > 0) {
+    bubble.style.marginTop = "24px";
+  }
 
-      // TODO: Add AI response logic here (?)
-      content.appendChild(
-        chatBubble({
-          content: getDemoResponse(message),
-          source: "ai",
-        }),
-      );
-      content.scrollTop = content.scrollHeight;
-    }
-  };
+  contentElement.innerHTML = window.marked.parse(content);
+  bubble.appendChild(contentElement);
 
-  chatButton.addEventListener("click", toggleChatWindow);
-  closeButton.addEventListener("click", toggleChatWindow);
-  sendButton.addEventListener("click", sendMessage);
-  textarea.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+  // TODO: Save in session storage
+  window.TEMP_CHAT_BUBBLES.push({
+    content,
+    source,
+    element: bubble,
+    contentElement,
   });
-}
+
+  return bubble;
+};
+
+/**
+ * Creates an AI avatar element
+ * @returns {HTMLElement} The AI avatar element
+ */
+const aiAvatar = () => {
+  return createTag("div", {
+    class: "chat-ai-avatar",
+    "aria-hidden": true,
+  });
+};
+
+const retrieveAiResponse = async (messageContent) => {
+  /** @type {HTMLElement} */
+  const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
+  targetBubble.classList.add("thinking");
+
+  const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
+    targetBubble.classList.remove("thinking");
+    targetBubble.querySelector(".chat-bubble-content").innerHTML = message;
+    return;
+  };
+
+  // TODO: We'll have to decide how much context to send to the AI.
+  const queryContext = window.TEMP_CHAT_BUBBLES.slice(0, -1)
+    .map(({ source, content }) => JSON.stringify({ source, content }))
+    .join("\n");
+
+  try {
+    const response = await fetch(
+      `${AI_API_BASE_URL}/v1/inference/retrieve/generate/stream`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Api-Key": AI_API_KEY,
+        },
+        body: JSON.stringify({
+          query: `
+          <history>
+            ${queryContext}
+          </history>
+          <question>
+            ${messageContent}
+          </question>
+          `,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      // TODO: Log error somehow somewhere?
+      showErrorMessage();
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let responseContent = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        window.TEMP_CHAT_BUBBLES.at(-1).content = responseContent;
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const event = line.replace("data: ", "").trim();
+          if (event.length === 0) {
+            continue;
+          }
+
+          try {
+            /**
+             * @type {Object}
+             * @property {'metadata' | 'content' | 'timing' | 'citation' | 'complete'} type
+             * @property {string} [text] - The text of the event
+             */
+            const data = JSON.parse(event);
+
+            if (data.type === "content" && data.text) {
+              responseContent += data.text;
+              targetBubble.classList.remove("thinking");
+              targetBubble.querySelector(".chat-bubble-content").innerHTML =
+                window.marked?.parse?.(responseContent) || responseContent;
+              targetBubble.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+              });
+            }
+
+            if (data.type === "complete") {
+              window.TEMP_CHAT_BUBBLES.at(-1).content = responseContent;
+              return;
+            }
+          } catch (parseError) {
+            // TODO: Log error somehow somewhere?
+            showErrorMessage();
+            return;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // TODO: Log error somehow somewhere?
+    showErrorMessage();
+    return;
+  }
+};

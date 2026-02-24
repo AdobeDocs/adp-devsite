@@ -14,11 +14,12 @@
 .ai-assistant-container {
   /* From https://github.com/adobe/react-spectrum/blob/1a2b8f860ef2cee6aa579aa6b5e7032ca3be1cb1/packages/%40react-spectrum/s2/src/Button.tsx#L278 */
   --ai-border-linear-gradient: linear-gradient(to bottom right, var(--red-900) 0%, var(--magenta-900) 33%, var(--indigo-900) 100%);
+  --container-padding: 40px;
 
   display: flex;
   flex-direction: column-reverse;
   gap: 12px;
-  padding: 40px;
+  padding: var(--container-padding);
   padding-top: 24px;
   height: calc(100vh - 64px);
 }
@@ -134,7 +135,7 @@
   gap: 12px;
 }
 
-/* Input Section */
+/* MARK: Input Section */
 .chat-window .chat-window-input-section {
   display: grid;
   grid-template-areas:
@@ -258,6 +259,24 @@
   }
 }
 
+/* Thinking state animation */
+.chat-bubble.thinking .chat-bubble-content {
+  opacity: 0.7;
+}
+
+.chat-bubble.thinking .chat-bubble-content p::after {
+  content: '';
+  animation: ellipsis 1.5s infinite;
+}
+
+@keyframes ellipsis {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+  100% { content: ''; }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -271,36 +290,37 @@
 
 
 /* Scrollbar styling */
-.ai-assistant-content::-webkit-scrollbar {
+.chat-window .chat-window-content::-webkit-scrollbar {
   width: 6px;
 }
 
-.ai-assistant-content::-webkit-scrollbar-track {
+.chat-window .chat-window-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
 
-.ai-assistant-content::-webkit-scrollbar-thumb {
+.chat-window .chat-window-content::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 10px;
 }
 
-.ai-assistant-content::-webkit-scrollbar-thumb:hover {
+.chat-window .chat-window-content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
-/* Responsive design */
+/* TODO: Rethink/Retest this Responsive design */
 @media screen and (max-width: 768px) {
-  .ai-assistant-section {
-    width: calc(100vw - 40px);
-    max-width: 380px;
-    bottom: 10px;
-    right: 10px;
-    max-height: calc(100vh - 100px);
+  .ai-assistant-container {
+    --container-padding: 16px;
+    
+    .chat-window {
+      width: calc(100vw - 32px);
+      max-width: 400px;
+    }
   }
 
-  .ai-assistant-content {
+  /* .ai-assistant-content {
     max-height: calc(100vh - 200px);
-  }
+  } */
 }
 
