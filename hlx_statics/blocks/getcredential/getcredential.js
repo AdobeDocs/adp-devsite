@@ -1088,56 +1088,10 @@ function createSideContent(config) {
  * @param {Object} [options] - Optional: { selectedOrganization, userEmail } for org message and description placeholder
  */
 function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
-  const { selectedOrganization, userEmail } = options;
   const edgeCases = config.components?.EdgeCase?.components;
   const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
   if (edgeCase) {
-    const card = createTag('div', { class: 'request-access-edge-case-card' });
-    if (edgeCase.title) {
-      const titleRow = createTag('div', { class: 'request-access-edge-case-title-row' });
-      const titleEl = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-edge-case-title' });
-      titleEl.textContent = edgeCase.title;
-      titleRow.appendChild(titleEl);
-      const infoIcon = createTag('span', { class: 'request-access-edge-case-info-icon', 'aria-label': 'Information' });
-      infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
-      titleRow.appendChild(infoIcon);
-      card.appendChild(titleRow);
-    }
-    const defaultDescriptions = {
-      Type1User: `You are currently signed in with your personal account ${userEmail} and can not access this service.`,
-      NotMember: `You are currently signed in with your personal account ${userEmail} and can not access this service.`,
-      NotSignUp: `You are currently signed in with your personal account ${userEmail} and can not access this service.`,
-      NoProduct: `Your organization does not have access to this service. Contact your admin or change organization.`
-    };
-    const showChangeOrg = edgeCase.showChangeOrgLink !== false && (['Type1User', 'NotMember', 'NotSignUp', 'NoProduct'].includes(edgeCaseKey) || edgeCase.showChangeOrgLink);
-    const defaultDescription = defaultDescriptions[edgeCaseKey] || '';
-    const descriptionText = edgeCase.description || defaultDescription;
-    if (descriptionText) {
-      const descEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-description' });
-      descEl.textContent = descriptionText;
-      if (showChangeOrg) {
-        descEl.appendChild(document.createTextNode(' '));
-        const changeOrgWrap = createTag('span', { class: 'request-access-edge-case-change-org-wrap' });
-        const changeOrgLink = createTag('a', { href: '#', class: 'request-access-change-org-link' });
-        changeOrgLink.textContent = 'Change organization?';
-        changeOrgWrap.appendChild(changeOrgLink);
-        descEl.appendChild(changeOrgWrap);
-      }
-      card.appendChild(descEl);
-    }
-    if (edgeCase.buttonLabel) {
-      const link = createTag('a', {
-        href: edgeCase.buttonLink || '#',
-        class: 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM request-access-edge-case-btn'
-      });
-      link.innerHTML = `<span class="spectrum-Button-label">${edgeCase.buttonLabel}</span>`;
-      if (edgeCase.buttonLink) {
-        link.setAttribute('target', '_blank');
-        link.setAttribute('rel', 'noreferrer');
-      }
-      card.appendChild(link);
-    }
-    return card;
+    return buildEdgeCaseCard(config, edgeCaseKey, options);
   }
   const restricted = config.components?.RestrictedAccess;
   if (!restricted) return null;
@@ -1189,6 +1143,60 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
   }
   return card;
 }
+
+function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
+  const { userEmail } = options;
+  const edgeCases = config.components?.EdgeCase?.components;
+  const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
+  if (!edgeCase) return null;
+  const card = createTag('div', { class: 'request-access-edge-case-card' });
+  if (edgeCase.title) {
+    const titleRow = createTag('div', { class: 'request-access-edge-case-title-row' });
+    const titleEl = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-edge-case-title' });
+    titleEl.textContent = edgeCase.title;
+    titleRow.appendChild(titleEl);
+    const infoIcon = createTag('span', { class: 'request-access-edge-case-info-icon', 'aria-label': 'Information' });
+    infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+    titleRow.appendChild(infoIcon);
+    card.appendChild(titleRow);
+  }
+  const defaultDescriptions = {
+    Type1User: `You are currently signed in with your personal account ${userEmail} and can not access ${productsLabel} APIs.`,
+    NotMember: `You are currently signed in with [${userEmail}] in ${selectedOrganization?.type === "developer" ? "your personal developer organization" : `organization [<span className="spectrum-Heading spectrum-Heading--sizeXXS">${selectedOrganization?.name}</span>]`} and can not access ${productsLabel} APIs.`,
+    NotSignUp: `You are currently signed in with your personal account ${userEmail} and can not access ${productsLabel} APIs.`,
+    NoProduct: `Your organization does not have access to this ${productsLabel} service. Contact your admin or change organization.`
+  };
+  const showChangeOrg = edgeCase.showChangeOrgLink !== false && (['Type1User', 'NotMember', 'NotSignUp', 'NoProduct'].includes(edgeCaseKey) || edgeCase.showChangeOrgLink);
+  const defaultDescription = defaultDescriptions[edgeCaseKey] || '';
+  const descriptionText = edgeCase.description || defaultDescription;
+  if (descriptionText) {
+    const descEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-description' });
+    descEl.textContent = descriptionText;
+    if (showChangeOrg) {
+      descEl.appendChild(document.createTextNode(' '));
+      const changeOrgWrap = createTag('span', { class: 'request-access-edge-case-change-org-wrap' });
+      const changeOrgLink = createTag('a', { href: '#', class: 'request-access-change-org-link' });
+      changeOrgLink.textContent = 'Change organization?';
+      changeOrgWrap.appendChild(changeOrgLink);
+      descEl.appendChild(changeOrgWrap);
+    }
+    card.appendChild(descEl);
+  }
+  if (edgeCase.buttonLabel) {
+    const link = createTag('a', {
+      href: edgeCase.buttonLink || '#',
+      class: 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM request-access-edge-case-btn'
+    });
+    link.innerHTML = `<span class="spectrum-Button-label">${edgeCase.buttonLabel}</span>`;
+    if (edgeCase.buttonLink) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noreferrer');
+    }
+    card.appendChild(link);
+  }
+  return card;
+}
+
 
 /**
  * Update the Request Access left column to show RestrictedAccess or the given EdgeCase variant.
