@@ -1,4 +1,7 @@
-import { addExtraScript, createTag } from "../../scripts/lib-adobeio.js";
+import {
+  addExtraScriptWithLoad,
+  createTag,
+} from "../../scripts/lib-adobeio.js";
 
 // const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
 const AI_API_BASE_URL = "http://localhost:6003";
@@ -9,17 +12,19 @@ const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
  * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
-  addExtraScript(
+  addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@^17/lib/marked.umd.js",
+    () => {
+      addExtraScriptWithLoad(
+        document.body,
+        "https://unpkg.com/dompurify@^3/dist/purify.min.js",
+        () => {
+          restoreChatHistory();
+        },
+      );
+    },
   );
-  addExtraScript(
-    document.body,
-    "https://unpkg.com/dompurify@^3/dist/purify.min.js",
-  );
-
-  // TODO: Move to session storage
-  window.TEMP_CHAT_BUBBLES = [];
 
   const container = createTag("div", { class: "ai-assistant-container" });
 
@@ -58,6 +63,7 @@ const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
 const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
 const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
+const CHAT_HISTORY_STORAGE_KEY = "ai-assistant-chat-history";
 const ELEMENTS = {
   CHAT_BUTTON: null,
   CHAT_WINDOW_CLOSE_BUTTON: null,
@@ -151,7 +157,8 @@ const openChatWindow = () => {
   ELEMENTS.CHAT_WINDOW.classList.add("show");
 
   // Initial messages
-  if (window.TEMP_CHAT_BUBBLES.length === 0) {
+  const chatHistory = getChatHistory();
+  if (chatHistory.length === 0) {
     window.setTimeout(() => {
       sendMessage({
         content: "Hello, welcome to Adobe Developer Website!",
@@ -162,6 +169,7 @@ const openChatWindow = () => {
       sendMessage({
         content: "What would you like to know today?",
         source: "ai",
+        isContinuingConversation: true,
       });
     }, 500);
   }
@@ -187,9 +195,14 @@ const toggleChatWindow = () => {
  * @param {Object} [options] - The options for the message
  * @param {string} [options.content] - The content of the message
  * @param {"user" | "ai"} [options.source] - The source of the
+ * @param {boolean} [options.isContinuingConversation = false] - Whether the message is continuing a conversation
  * @returns {boolean | HTMLElement} - A chat bubble element if the message was sent successfully, false otherwise
  */
-const sendMessage = ({ content, source = "user" } = {}) => {
+const sendMessage = ({
+  content,
+  source = "user",
+  isContinuingConversation = false,
+} = {}) => {
   let messageContent = content;
   if (!content && source === "user") {
     messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
@@ -198,7 +211,17 @@ const sendMessage = ({ content, source = "user" } = {}) => {
 
   if (!messageContent) return false;
 
-  const bubble = chatBubble({ content: messageContent, source });
+  const bubble = chatBubble({
+    content: messageContent,
+    source,
+    isContinuingConversation,
+  });
+
+  addToChatHistory({
+    content: messageContent,
+    source,
+  });
+
   ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble);
   ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
     ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
@@ -215,13 +238,12 @@ const sendMessage = ({ content, source = "user" } = {}) => {
  * @param {Object} options - The options for the chat bubble
  * @param {string} options.content - The content of the chat bubble
  * @param {"user" | "ai"} options.source - The source of the chat bubble
+ * @param {boolean} [options.isContinuingConversation = false] - Whether the chat bubble is continuing a conversation
  * @returns {HTMLElement} The chat bubble element
  */
-const chatBubble = ({ content, source }) => {
+const chatBubble = ({ content, source, isContinuingConversation = false }) => {
   const bubble = createTag("div", { class: "chat-bubble" });
   const contentElement = createTag("div", { class: "chat-bubble-content" });
-  const isContinuingConversation =
-    window.TEMP_CHAT_BUBBLES.at(-1)?.source === source;
 
   if (source === "ai") {
     if (!isContinuingConversation) {
@@ -229,24 +251,16 @@ const chatBubble = ({ content, source }) => {
     } else {
       bubble.style.paddingLeft = "36px";
     }
-  } else {
+  } else if (source === "user") {
     bubble.classList.add("chat-bubble-user");
   }
 
-  if (!isContinuingConversation && window.TEMP_CHAT_BUBBLES.length > 0) {
+  if (!isContinuingConversation) {
     bubble.style.marginTop = "24px";
   }
 
   contentElement.innerHTML = window.marked.parse(content);
   bubble.appendChild(contentElement);
-
-  // TODO: Save in session storage
-  window.TEMP_CHAT_BUBBLES.push({
-    content,
-    source,
-    element: bubble,
-    contentElement,
-  });
 
   return bubble;
 };
@@ -275,7 +289,9 @@ const retrieveAiResponse = async (messageContent) => {
 
   // TODO: We'll have to decide how much context to send to the AI.
   // -2 because we want to exclude the current user message and the thinking message
-  const queryContext = window.TEMP_CHAT_BUBBLES.slice(0, -2)
+  const chatHistory = getChatHistory();
+  const queryContext = chatHistory
+    .slice(0, -2)
     .map(({ source, content }) => JSON.stringify({ source, content }))
     .join("\n");
 
@@ -319,7 +335,7 @@ const retrieveAiResponse = async (messageContent) => {
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        window.TEMP_CHAT_BUBBLES.at(-1).content = responseContent;
+        updateLastChatMessage({ content: responseContent });
         break;
       }
 
@@ -360,7 +376,7 @@ const retrieveAiResponse = async (messageContent) => {
             }
 
             if (data.type === "complete") {
-              window.TEMP_CHAT_BUBBLES.at(-1).content = responseContent;
+              updateLastChatMessage({ content: responseContent });
               return;
             }
           } catch (parseError) {
@@ -375,5 +391,98 @@ const retrieveAiResponse = async (messageContent) => {
     // TODO: Log error somehow somewhere?
     showErrorMessage();
     return;
+  }
+};
+
+/**
+ * Retrieves chat history from sessionStorage
+ * @returns {Array} The chat history array
+ */
+const getChatHistory = () => {
+  try {
+    const stored = sessionStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    // Filter out element and contentElement properties as they can't be serialized
+    return parsed.map(({ content, source }) => ({ content, source }));
+  } catch (error) {
+    console.error("Error retrieving chat history from sessionStorage:", error);
+    return [];
+  }
+};
+
+/**
+ * Saves chat history to sessionStorage
+ * @param {Array} history - The chat history array to save
+ */
+const saveChatHistory = (history) => {
+  try {
+    // Only save serializable properties (content and source)
+    const serializable = history.map(({ content, source }) => ({
+      content,
+      source,
+    }));
+    sessionStorage.setItem(
+      CHAT_HISTORY_STORAGE_KEY,
+      JSON.stringify(serializable),
+    );
+  } catch (error) {
+    console.error("Error saving chat history to sessionStorage:", error);
+  }
+};
+
+/**
+ * Adds a message to chat history
+ * @param {Object} message - The message object to add
+ * @param {string} message.content - The content of the message
+ * @param {"user" | "ai"} message.source - The source of the message
+ */
+const addToChatHistory = (message) => {
+  const history = getChatHistory();
+  history.push(message);
+  saveChatHistory(history);
+};
+
+/**
+ * Updates the last message in chat history
+ * @param {Object} updates - The properties to update
+ */
+const updateLastChatMessage = (updates) => {
+  const history = getChatHistory();
+  if (history.length > 0) {
+    history[history.length - 1] = {
+      ...history[history.length - 1],
+      ...updates,
+    };
+    saveChatHistory(history);
+  }
+};
+
+/**
+ * Clears chat history from sessionStorage
+ */
+const clearChatHistory = () => {
+  try {
+    sessionStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+  } catch (error) {
+    console.error("Error clearing chat history from sessionStorage:", error);
+  }
+};
+
+const restoreChatHistory = () => {
+  const chatHistory = getChatHistory();
+  if (chatHistory.length > 0) {
+    for (const [index, { content, source }] of chatHistory.entries()) {
+      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(
+        chatBubble({
+          content,
+          source,
+          isContinuingConversation:
+            index > 0 && source === chatHistory[index - 1]?.source,
+        }),
+      );
+    }
+    ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+      ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
   }
 };
