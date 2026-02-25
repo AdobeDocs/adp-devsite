@@ -1,7 +1,4 @@
-import {
-  addExtraScriptWithReturn,
-  createTag,
-} from "../../scripts/lib-adobeio.js";
+import { addExtraScript, createTag } from "../../scripts/lib-adobeio.js";
 
 // const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
 const AI_API_BASE_URL = "http://localhost:6003";
@@ -12,9 +9,13 @@ const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
  * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
-  addExtraScriptWithReturn(
+  addExtraScript(
     document.body,
     "https://unpkg.com/marked@^17/lib/marked.umd.js",
+  );
+  addExtraScript(
+    document.body,
+    "https://unpkg.com/dompurify@^3/dist/purify.min.js",
   );
 
   // TODO: Move to session storage
@@ -273,7 +274,8 @@ const retrieveAiResponse = async (messageContent) => {
   };
 
   // TODO: We'll have to decide how much context to send to the AI.
-  const queryContext = window.TEMP_CHAT_BUBBLES.slice(0, -1)
+  // -2 because we want to exclude the current user message and the thinking message
+  const queryContext = window.TEMP_CHAT_BUBBLES.slice(0, -2)
     .map(({ source, content }) => JSON.stringify({ source, content }))
     .join("\n");
 
@@ -288,6 +290,10 @@ const retrieveAiResponse = async (messageContent) => {
         },
         body: JSON.stringify({
           query: `
+          <system>
+            Use markdown formatting for the response.
+            ALWAYS provide a follow up question.
+          </system>
           <history>
             ${queryContext}
           </history>
@@ -339,8 +345,14 @@ const retrieveAiResponse = async (messageContent) => {
             if (data.type === "content" && data.text) {
               responseContent += data.text;
               targetBubble.classList.remove("thinking");
+              let processedContent = responseContent;
+              if (window.marked && window.DOMPurify) {
+                processedContent = window.DOMPurify.sanitize(
+                  window.marked.parse(responseContent),
+                );
+              }
               targetBubble.querySelector(".chat-bubble-content").innerHTML =
-                window.marked?.parse?.(responseContent) || responseContent;
+                processedContent;
               targetBubble.scrollIntoView({
                 behavior: "smooth",
                 block: "end",
