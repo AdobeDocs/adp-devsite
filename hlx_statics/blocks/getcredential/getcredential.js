@@ -540,13 +540,11 @@ async function fetchOrganizations() {
     accountsResult.accounts?.forEach(account => {
       if (account.organizations?.length > 0) {
         account.organizations.forEach(org => {
-          if (org.role !=null) {
-            organizations.push({
-             ...org,
-             accountId: account.id,
-             accountType: account.type
-           });
-          }
+          organizations.push({
+            ...org,
+            accountId: account.id,
+            accountType: account.type
+          });
         });
       }
     });
