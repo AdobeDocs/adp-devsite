@@ -3,8 +3,7 @@ import {
   createTag,
 } from "../../scripts/lib-adobeio.js";
 
-// const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
-const AI_API_BASE_URL = "http://localhost:6003";
+const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
 const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
 
 /**
