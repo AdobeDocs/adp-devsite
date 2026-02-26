@@ -256,20 +256,6 @@ export function buildCodes(container) {
 }
 
 /**
- * Builds all hr blocks inside a container
- * @param {*} container The container to inspect
- */
-export function decorateHR(container) {
-  const hrWrappers = container.querySelectorAll('main div.horizontalline-wrapper div.horizontalline');
-
-  hrWrappers.forEach(hrWrapper => {
-    const hr = document.createElement('hr');
-    hrWrapper.innerHTML = ''
-    hrWrapper.appendChild(hr)
-  });
-}
-
-/**
  * Builds all embed blocks inside a container
  * @param {*} container The container to inspect
  */

@@ -45,7 +45,6 @@ import {
   isProdEnvironment,
   addExtraScript,
   addExtraScriptWithLoad,
-  decorateHR,
   buildNextPrev,
   buildResources,
   checkExternalLink,
@@ -189,7 +188,6 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateNestedCodes(main);
-  decorateHR(main);
   checkExternalLink(main);
 }
 
@@ -397,7 +395,7 @@ export async function loadSearch() {
 
   //load search and product map
   window.adp_search = {};
-  
+
   try {
     const resp = await fetch('/franklin_assets/product-index-map.json');
     if (!resp.ok) {
@@ -457,7 +455,7 @@ export async function loadSearch() {
       try {
         // Create Algolia search client
         const searchClient = window.algoliasearch.algoliasearch(
-          window.adp_search.APP_KEY, 
+          window.adp_search.APP_KEY,
           window.adp_search.API_KEY
         );
 
@@ -480,7 +478,7 @@ export async function loadSearch() {
         }
 
         // Cross-validate: Only keep indices that exist in BOTH Algolia AND product index JSON map
-        const validIndices = allIndices.filter(indexName => 
+        const validIndices = allIndices.filter(indexName =>
           algoliaIndexNames.includes(indexName)
         );
 
@@ -923,7 +921,7 @@ function loadPrism(document) {
 function scrollToHash(doc) {
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
-  if (element) {    
+  if (element) {
     if (document.readyState === 'complete') {
       scrollWithLayoutAdjustment(element);
     } else {
