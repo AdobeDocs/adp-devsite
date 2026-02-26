@@ -227,14 +227,20 @@
 .chat-window-content .chat-bubble {
   --bubble-background-color: #f8f8f8;
   --bubble-text-color: #292929;
-  display: flex;
-  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "avatar content"
+    "avatar sources";
   gap: 12px;
+  width: 100%;
   animation: fadeIn 0.3s ease-in;
   font-size: 16px;
 
   &.chat-bubble-user {
-    justify-content: flex-end;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "spacer content";
     --bubble-background-color: #7A6AFD;
     --bubble-text-color: #ffffff;
   }
@@ -242,9 +248,12 @@
 
 .chat-bubble .chat-ai-avatar {
   --size: 24px;
+  grid-area: avatar;
+  align-self: start;
 }
 
 .chat-bubble .chat-bubble-content {
+  grid-area: content;
   width: auto;
   display: flex;
   flex-direction: column;
@@ -257,6 +266,53 @@
   p {
     margin: 0;
   }
+}
+
+/* Sources section (AI response references) */
+.chat-bubble .chat-bubble-sources {
+  grid-area: sources;
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.chat-bubble .chat-bubble-sources-heading {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #292929;
+}
+
+.chat-bubble .chat-bubble-sources-list {
+  margin: 0;
+  padding: 0;
+  list-style-type: decimal;
+  list-style-position: inside;
+  font-size: 14px;
+}
+
+.chat-bubble .chat-bubble-sources-item {
+  display: list-item;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  width: fit-content;
+  margin-bottom: 8px;
+}
+
+.chat-bubble .chat-bubble-sources-item:last-child {
+  margin-bottom: 0;
+}
+
+.chat-bubble .chat-bubble-sources-item a {
+  color: #3b63fb;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.chat-bubble .chat-bubble-sources-item a:hover {
+  color: #2952e0;
 }
 
 /* Thinking state animation */

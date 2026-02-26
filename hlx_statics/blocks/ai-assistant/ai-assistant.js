@@ -275,6 +275,36 @@ const aiAvatar = () => {
   });
 };
 
+/**
+ * Appends a Sources section to an AI chat bubble.
+ * @param {HTMLElement} bubble - The chat bubble element
+ * @param {Array<{url: string, title: string}>} references - Array of reference objects with url and title
+ */
+const appendSourcesToBubble = (bubble, references) => {
+  if (!references?.length) return;
+  if (bubble.querySelector(".chat-bubble-sources")) return;
+
+  const wrapper = createTag("div", { class: "chat-bubble-sources" });
+  const heading = createTag("p", { class: "chat-bubble-sources-heading" });
+  heading.textContent = "Sources:";
+  wrapper.appendChild(heading);
+
+  const list = createTag("ol", { class: "chat-bubble-sources-list" });
+  references.forEach(({ url, title }) => {
+    const li = createTag("li", { class: "chat-bubble-sources-item" });
+    const a = createTag("a", {
+      href: url,
+      target: "_blank",
+      rel: "noopener noreferrer",
+    });
+    a.textContent = title || url;
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+  wrapper.appendChild(list);
+  bubble.appendChild(wrapper);
+};
+
 const retrieveAiResponse = async (messageContent) => {
   /** @type {HTMLElement} */
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
@@ -330,11 +360,16 @@ const retrieveAiResponse = async (messageContent) => {
     const decoder = new TextDecoder();
     let buffer = "";
     let responseContent = "";
+    /** @type {Array<{url: string, title: string}>} */
+    let accumulatedReferences = [];
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        updateLastChatMessage({ content: responseContent });
+        updateLastChatMessage({
+          content: responseContent,
+          references: accumulatedReferences,
+        });
         break;
       }
 
@@ -374,8 +409,37 @@ const retrieveAiResponse = async (messageContent) => {
               });
             }
 
+            if (
+              data.type === "citation" &&
+              data.citation?.retrievedReferences?.length
+            ) {
+              const refs = data.citation.retrievedReferences;
+              const seen = new Set();
+              const references = refs
+                .map((ref) => {
+                  const url = ref.metadata?.url;
+                  if (!url || seen.has(url)) return null;
+                  seen.add(url);
+                  const title = ref.metadata?.title || url;
+                  return { url, title };
+                })
+                .filter(Boolean);
+              if (references.length) {
+                accumulatedReferences = references;
+                appendSourcesToBubble(targetBubble, references);
+                updateLastChatMessage({ content: responseContent, references });
+                targetBubble.scrollIntoView({
+                  behavior: "smooth",
+                  block: "end",
+                });
+              }
+            }
+
             if (data.type === "complete") {
-              updateLastChatMessage({ content: responseContent });
+              updateLastChatMessage({
+                content: responseContent,
+                references: accumulatedReferences,
+              });
               return;
             }
           } catch (parseError) {
@@ -403,7 +467,11 @@ const getChatHistory = () => {
     if (!stored) return [];
     const parsed = JSON.parse(stored);
     // Filter out element and contentElement properties as they can't be serialized
-    return parsed.map(({ content, source }) => ({ content, source }));
+    return parsed.map(({ content, source, references }) => ({
+      content,
+      source,
+      ...(references?.length && { references }),
+    }));
   } catch (error) {
     console.error("Error retrieving chat history from sessionStorage:", error);
     return [];
@@ -416,10 +484,11 @@ const getChatHistory = () => {
  */
 const saveChatHistory = (history) => {
   try {
-    // Only save serializable properties (content and source)
-    const serializable = history.map(({ content, source }) => ({
+    // Only save serializable properties (content, source, references)
+    const serializable = history.map(({ content, source, references }) => ({
       content,
       source,
+      ...(references?.length && { references }),
     }));
     sessionStorage.setItem(
       CHAT_HISTORY_STORAGE_KEY,
@@ -471,15 +540,20 @@ const clearChatHistory = () => {
 const restoreChatHistory = () => {
   const chatHistory = getChatHistory();
   if (chatHistory.length > 0) {
-    for (const [index, { content, source }] of chatHistory.entries()) {
-      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(
-        chatBubble({
-          content,
-          source,
-          isContinuingConversation:
-            index > 0 && source === chatHistory[index - 1]?.source,
-        }),
-      );
+    for (const [
+      index,
+      { content, source, references },
+    ] of chatHistory.entries()) {
+      const bubble = chatBubble({
+        content,
+        source,
+        isContinuingConversation:
+          index > 0 && source === chatHistory[index - 1]?.source,
+      });
+      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble);
+      if (source === "ai" && references?.length) {
+        appendSourcesToBubble(bubble, references);
+      }
     }
     ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
       ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
