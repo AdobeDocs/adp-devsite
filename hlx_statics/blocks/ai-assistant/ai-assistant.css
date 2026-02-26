@@ -132,7 +132,7 @@
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* gap: 12px; */
 }
 
 /* MARK: Input Section */

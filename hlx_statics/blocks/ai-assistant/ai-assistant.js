@@ -3,8 +3,320 @@ import {
   createTag,
 } from "../../scripts/lib-adobeio.js";
 
+// #region Constants
+/** TODO: This should be different based on the environment */
 const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
 const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
+const COPY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="chat-bubble-copy-icon"><path fill="currentColor" d="M11.75 18h-7.5C3.01 18 2 16.99 2 15.75v-7.5C2 7.01 3.01 6 4.25 6c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75v7.5c0 .413.337.75.75.75h7.5c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M6.75 5C6.336 5 6 4.664 6 4.25 6 3.01 7.01 2 8.25 2c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75 0 .414-.336.75-.75.75M13 3.5h-2c-.414 0-.75-.336-.75-.75S10.586 2 11 2h2c.414 0 .75.336.75.75s-.336.75-.75.75"/><path fill="currentColor" d="M13 14h-2c-.414 0-.75-.336-.75-.75s.336-.75.75-.75h2c.414 0 .75.336.75.75s-.336.75-.75.75M15.75 14c-.414 0-.75-.336-.75-.75s.336-.75.75-.75c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M17.25 5c-.414 0-.75-.336-.75-.75 0-.413-.337-.75-.75-.75-.414 0-.75-.336-.75-.75s.336-.75.75-.75C16.99 2 18 3.01 18 4.25c0 .414-.336.75-.75.75M17.25 9.75c-.414 0-.75-.336-.75-.75V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M6.75 9.75C6.336 9.75 6 9.414 6 9V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M8.25 14C7.01 14 6 12.99 6 11.75c0-.414.336-.75.75-.75s.75.336.75.75c0 .413.337.75.75.75.414 0 .75.336.75.75s-.336.75-.75.75"/></svg>`;
+/** used for copy feedback */
+const CHECK_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="chat-bubble-copy-icon chat-bubble-copy-icon-check"><path fill="currentColor" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>`;
+
+const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
+const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
+const CHAT_WINDOW_ID = "ai-assistant-chat-window";
+const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
+const ELEMENTS = {
+  CHAT_BUTTON: null,
+  CHAT_WINDOW_CLOSE_BUTTON: null,
+  CHAT_SEND_BUTTON: null,
+  CHAT_TEXTAREA: null,
+  CHAT_WINDOW: null,
+  CHAT_WINDOW_CONTENT: null,
+};
+const GENERIC_ERROR_MESSAGE =
+  "Sorry, I encountered an error. Please try again later.";
+const COPY_FEEDBACK_REVERT_MS = 2000;
+const COPY_BUTTON_LABEL = "Copy response";
+const COPY_BUTTON_LABEL_COPIED = "Copied to clipboard";
+const COPY_BUTTON_LABEL_FAILED = "Copy failed";
+// #endregion
+
+// #region ChatBubble
+class ChatBubble {
+  constructor({ content, source, isContinuingConversation = false, id }) {
+    this.content = content;
+    this.source = source;
+    this.isContinuingConversation = isContinuingConversation;
+    this.id = id;
+    this.references = null;
+    /** @type {HTMLElement} */
+    this.element = this.#_init();
+  }
+
+  /**
+   * Creates the DOM element
+   */
+  #_init() {
+    const bubble = createTag("div", { class: "chat-bubble" });
+    const contentElement = createTag("div", { class: "chat-bubble-content" });
+
+    if (this.source === "ai") {
+      if (!this.isContinuingConversation) {
+        bubble.appendChild(createAiAvatar());
+      } else {
+        bubble.style.paddingLeft = "36px";
+      }
+    } else if (this.source === "user") {
+      bubble.classList.add("chat-bubble-user");
+    }
+
+    if (!this.isContinuingConversation) {
+      bubble.style.marginTop = "24px";
+    }
+
+    contentElement.innerHTML = window.marked.parse(this.content);
+    bubble.appendChild(contentElement);
+
+    if (this.source === "ai" && this.id) {
+      bubble.dataset.messageId = this.id;
+      contentElement.appendChild(this.#_createCopyButton());
+    }
+
+    return bubble;
+  }
+
+  /**
+   * Creates the copy button element
+   * @returns {HTMLButtonElement} The copy button element
+   */
+  #_createCopyButton() {
+    const button = createTag("button", {
+      class: "chat-bubble-copy",
+      type: "button",
+      "aria-label": COPY_BUTTON_LABEL,
+    });
+    button.innerHTML = COPY_ICON_SVG;
+    return button;
+  }
+
+  /**
+   * Updates the content of the chat bubble
+   * @param {string} content
+   */
+  updateContent(content) {
+    this.content = content;
+    const contentElement = this.element.querySelector(".chat-bubble-content");
+    if (contentElement) {
+      contentElement.innerHTML = window.DOMPurify.sanitize(
+        window.marked.parse(this.content),
+      );
+    }
+  }
+
+  scrollIntoView() {
+    this.element.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }
+
+  showThinking() {
+    this.element.classList.add("thinking");
+  }
+  hideThinking() {
+    this.element.classList.remove("thinking");
+  }
+
+  /**
+   * Appends the copy button to the bubble (for AI messages after streaming completes)
+   * @param {string} messageId - The message ID to set
+   */
+  appendCopyButton(messageId) {
+    if (!messageId || this.source !== "ai") return;
+
+    this.id = messageId;
+    this.element.dataset.messageId = messageId;
+
+    const contentElement = this.element.querySelector(".chat-bubble-content");
+    if (!contentElement) return;
+
+    // Check if copy button already exists
+    if (contentElement.querySelector(".chat-bubble-copy")) return;
+
+    contentElement.appendChild(this.#_createCopyButton());
+  }
+
+  /**
+   * Appends references to the chat bubble
+   * @param {Array<{url: string, title: string}>} references
+   */
+  appendReferences(references) {
+    if (!references?.length) {
+      console.warn("[AI Assistant] No references provided");
+      return;
+    }
+
+    if (this.references?.length) {
+      console.warn("[AI Assistant] References already appended to chat bubble");
+      return;
+    }
+
+    this.references = references;
+
+    const wrapper = createTag("div", { class: "chat-bubble-sources" });
+    const heading = createTag("p", { class: "chat-bubble-sources-heading" });
+    heading.textContent = "Sources:";
+    wrapper.appendChild(heading);
+
+    const list = createTag("ol", { class: "chat-bubble-sources-list" });
+    references.forEach(({ url, title }) => {
+      const li = createTag("li", { class: "chat-bubble-sources-item" });
+      const a = createTag("a", {
+        href: url,
+        target: "_blank",
+        rel: "noopener noreferrer",
+      });
+      a.textContent = title || url;
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+    wrapper.appendChild(list);
+    this.element.appendChild(wrapper);
+  }
+}
+// #endregion
+
+// #region ChatHistory
+/**
+ * Manages chat message history with sessionStorage persistence
+ */
+class ChatHistory {
+  static STORAGE_KEY = "ai-assistant-chat-history";
+
+  /**
+   * Gets all messages from history
+   * @returns {Array<{id?: string, content: string, source: 'user'|'ai', references?: Array}>}
+   */
+  getAll() {
+    if (this._cache) return [...this._cache]; // Return copy to prevent mutations
+
+    try {
+      const stored = sessionStorage.getItem(ChatHistory.STORAGE_KEY);
+      if (!stored) {
+        this._cache = [];
+        return [];
+      }
+      const parsed = JSON.parse(stored);
+      this._cache = this._sanitizeMessages(parsed);
+      return [...this._cache];
+    } catch (error) {
+      console.error("Error retrieving chat history:", error);
+      this._cache = [];
+      return [];
+    }
+  }
+
+  /**
+   * Adds a new message to history
+   * @param {{content: string, source: 'user'|'ai', id?: string, references?: Array}} message
+   */
+  add(message) {
+    const history = this.getAll();
+    history.push(message);
+    this._save(history);
+  }
+
+  /**
+   * Updates the last message in history
+   * @param {Object} updates - Properties to merge into last message
+   */
+  updateLast(updates) {
+    const history = this.getAll();
+    if (history.length > 0) {
+      history[history.length - 1] = {
+        ...history[history.length - 1],
+        ...updates,
+      };
+      this._save(history);
+    }
+  }
+
+  /**
+   * Finds a message by ID
+   * @param {string} id - Message ID to find
+   * @returns {Object|undefined} The message object or undefined
+   */
+  findById(id) {
+    return this.getAll().find((m) => m.id === id);
+  }
+
+  /**
+   * Gets messages formatted for AI context (excludes last N messages)
+   * @param {number} excludeLast - Number of recent messages to exclude
+   * @returns {string} Formatted context string
+   */
+  getContextForAI(excludeLast = 2) {
+    return this.getAll()
+      .slice(0, -excludeLast)
+      .map(({ source, content }) => JSON.stringify({ source, content }))
+      .join("\n");
+  }
+
+  /**
+   * Clears all history
+   */
+  clear() {
+    try {
+      sessionStorage.removeItem(ChatHistory.STORAGE_KEY);
+      this._cache = [];
+    } catch (error) {
+      console.error("Error clearing chat history:", error);
+    }
+  }
+
+  /**
+   * Gets the number of messages in history
+   * @returns {number}
+   */
+  get length() {
+    return this.getAll().length;
+  }
+
+  /**
+   * Checks if history is empty
+   * @returns {boolean}
+   */
+  isEmpty() {
+    return this.length === 0;
+  }
+
+  /**
+   * Saves history to sessionStorage
+   * @param {Array} history - The chat history array to save
+   * @private
+   */
+  _save(history) {
+    try {
+      const serializable = this._sanitizeMessages(history);
+      sessionStorage.setItem(
+        ChatHistory.STORAGE_KEY,
+        JSON.stringify(serializable),
+      );
+      this._cache = serializable;
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+    }
+  }
+
+  /**
+   * Sanitizes messages to only include serializable properties
+   * @param {Array} messages - Messages to sanitize
+   * @returns {Array} Sanitized messages
+   * @private
+   */
+  _sanitizeMessages(messages) {
+    return messages.map(({ id, content, source, references }) => ({
+      ...(id && { id }),
+      content,
+      source,
+      ...(references?.length && { references }),
+    }));
+  }
+}
+// #endregion
+
+// Create singleton instance of ChatHistory
+const chatHistory = new ChatHistory();
 
 /**
  * Decorates the ai-assistant block
@@ -59,33 +371,22 @@ export default async function decorate(block) {
   });
 }
 
-const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
-const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
-const CHAT_WINDOW_ID = "ai-assistant-chat-window";
-const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
-const CHAT_HISTORY_STORAGE_KEY = "ai-assistant-chat-history";
-const ELEMENTS = {
-  CHAT_BUTTON: null,
-  CHAT_WINDOW_CLOSE_BUTTON: null,
-  CHAT_SEND_BUTTON: null,
-  CHAT_TEXTAREA: null,
-  CHAT_WINDOW: null,
-  CHAT_WINDOW_CONTENT: null,
+// #region Chat UI fns
+/**
+ * Creates the AI avatar element
+ */
+const createAiAvatar = () => {
+  return createTag("div", {
+    class: "chat-ai-avatar",
+    "aria-hidden": true,
+  });
 };
-const GENERIC_ERROR_MESSAGE =
-  "Sorry, I encountered an error. Please try again later.";
-const COPY_FEEDBACK_REVERT_MS = 2000;
-const COPY_BUTTON_LABEL = "Copy response";
-const COPY_BUTTON_LABEL_COPIED = "Copied to clipboard";
-const COPY_BUTTON_LABEL_FAILED = "Copy failed";
-
 /**
  * Creates the chat window header
- * @returns {HTMLElement} The chat window header element
  */
 const createChatWindowHeader = () => {
   const chatWindowHeader = createTag("header", { class: "chat-window-header" });
-  chatWindowHeader.appendChild(aiAvatar());
+  chatWindowHeader.appendChild(createAiAvatar());
   const label = createTag("h2", {
     class: "chat-window-label",
     id: CHAT_WINDOW_LABEL_ID,
@@ -111,7 +412,6 @@ const createChatWindowHeader = () => {
 
 /**
  * Creates the input section
- * @returns {HTMLElement} The input section element
  */
 const createInputSection = () => {
   const inputSection = createTag("div", { class: "chat-window-input-section" });
@@ -139,7 +439,6 @@ const createInputSection = () => {
 
 /**
  * Creates the chat button
- * @returns {HTMLElement} The chat button element
  */
 const createChatButton = () => {
   const chatButton = createTag("button", {
@@ -154,6 +453,7 @@ const createChatButton = () => {
   ELEMENTS.CHAT_BUTTON = chatButton;
   return chatButton;
 };
+// #endregion
 
 const openChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
@@ -161,19 +461,28 @@ const openChatWindow = () => {
   ELEMENTS.CHAT_WINDOW.classList.add("show");
 
   // Initial messages
-  const chatHistory = getChatHistory();
-  if (chatHistory.length === 0) {
+  if (chatHistory.isEmpty()) {
     window.setTimeout(() => {
-      sendMessage({
+      const bubble = new ChatBubble({
+        content: "Hello, welcome to Adobe Developer Website!",
+        source: "ai",
+      });
+      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
+      chatHistory.add({
         content: "Hello, welcome to Adobe Developer Website!",
         source: "ai",
       });
     }, 250);
     window.setTimeout(() => {
-      sendMessage({
+      const bubble = new ChatBubble({
         content: "What would you like to know today?",
         source: "ai",
         isContinuingConversation: true,
+      });
+      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
+      chatHistory.add({
+        content: "What would you like to know today?",
+        source: "ai",
       });
     }, 500);
   }
@@ -200,7 +509,7 @@ const toggleChatWindow = () => {
  * @param {string} [options.content] - The content of the message
  * @param {"user" | "ai"} [options.source] - The source of the
  * @param {boolean} [options.isContinuingConversation = false] - Whether the message is continuing a conversation
- * @returns {boolean | HTMLElement} - A chat bubble element if the message was sent successfully, false otherwise
+ * @returns {boolean | ChatBubble} - A ChatBubble instance if the message was sent successfully, false otherwise
  */
 const sendMessage = ({
   content,
@@ -215,18 +524,18 @@ const sendMessage = ({
 
   if (!messageContent) return false;
 
-  const bubble = chatBubble({
+  const bubble = new ChatBubble({
     content: messageContent,
     source,
     isContinuingConversation,
   });
 
-  addToChatHistory({
+  chatHistory.add({
     content: messageContent,
     source,
   });
 
-  ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble);
+  ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
   ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
     ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
 
@@ -235,95 +544,6 @@ const sendMessage = ({
   }
 
   return bubble;
-};
-
-/**
- * Creates a chat bubble element
- * @param {Object} options - The options for the chat bubble
- * @param {string} options.content - The content of the chat bubble
- * @param {"user" | "ai"} options.source - The source of the chat bubble
- * @param {boolean} [options.isContinuingConversation = false] - Whether the chat bubble is continuing a conversation
- * @param {string} [options.id] - Optional message id (for AI messages; enables copy button when set)
- * @returns {HTMLElement} The chat bubble element
- */
-const chatBubble = ({
-  content,
-  source,
-  isContinuingConversation = false,
-  id,
-} = {}) => {
-  const bubble = createTag("div", { class: "chat-bubble" });
-  const contentElement = createTag("div", { class: "chat-bubble-content" });
-
-  if (source === "ai") {
-    if (!isContinuingConversation) {
-      bubble.appendChild(aiAvatar());
-    } else {
-      bubble.style.paddingLeft = "36px";
-    }
-  } else if (source === "user") {
-    bubble.classList.add("chat-bubble-user");
-  }
-
-  if (!isContinuingConversation) {
-    bubble.style.marginTop = "24px";
-  }
-
-  contentElement.innerHTML = window.marked.parse(content);
-  bubble.appendChild(contentElement);
-
-  if (source === "ai" && id) {
-    bubble.dataset.messageId = id;
-    contentElement.appendChild(createCopyButton());
-  }
-
-  return bubble;
-};
-
-/**
- * Creates an AI avatar element
- * @returns {HTMLElement} The AI avatar element
- */
-const aiAvatar = () => {
-  return createTag("div", {
-    class: "chat-ai-avatar",
-    "aria-hidden": true,
-  });
-};
-
-/** Copy icon SVG (inline, currentColor for theme) */
-const COPY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="chat-bubble-copy-icon"><path fill="currentColor" d="M11.75 18h-7.5C3.01 18 2 16.99 2 15.75v-7.5C2 7.01 3.01 6 4.25 6c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75v7.5c0 .413.337.75.75.75h7.5c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M6.75 5C6.336 5 6 4.664 6 4.25 6 3.01 7.01 2 8.25 2c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75 0 .414-.336.75-.75.75M13 3.5h-2c-.414 0-.75-.336-.75-.75S10.586 2 11 2h2c.414 0 .75.336.75.75s-.336.75-.75.75"/><path fill="currentColor" d="M13 14h-2c-.414 0-.75-.336-.75-.75s.336-.75.75-.75h2c.414 0 .75.336.75.75s-.336.75-.75.75M15.75 14c-.414 0-.75-.336-.75-.75s.336-.75.75-.75c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M17.25 5c-.414 0-.75-.336-.75-.75 0-.413-.337-.75-.75-.75-.414 0-.75-.336-.75-.75s.336-.75.75-.75C16.99 2 18 3.01 18 4.25c0 .414-.336.75-.75.75M17.25 9.75c-.414 0-.75-.336-.75-.75V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M6.75 9.75C6.336 9.75 6 9.414 6 9V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M8.25 14C7.01 14 6 12.99 6 11.75c0-.414.336-.75.75-.75s.75.336.75.75c0 .413.337.75.75.75.414 0 .75.336.75.75s-.336.75-.75.75"/></svg>`;
-
-/** Checkmark icon SVG for "Copied" feedback state */
-const CHECK_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="chat-bubble-copy-icon chat-bubble-copy-icon-check"><path fill="currentColor" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>`;
-
-/**
- * Creates the copy button element (icon only, accessible).
- * @returns {HTMLButtonElement} The copy button element
- */
-const createCopyButton = () => {
-  const button = createTag("button", {
-    class: "chat-bubble-copy",
-    type: "button",
-    "aria-label": COPY_BUTTON_LABEL,
-  });
-  button.innerHTML = COPY_ICON_SVG;
-  return button;
-};
-
-/**
- * Appends the copy button to an AI bubble and sets its message id.
- * Call only after streaming is complete (or for restored history).
- * @param {HTMLElement} bubble - The chat bubble element
- * @param {string} messageId - The message id (e.g. sessionId from SSE metadata)
- */
-const appendCopyButtonToBubble = (bubble, messageId) => {
-  if (!messageId) return;
-  const contentEl = bubble.querySelector(".chat-bubble-content");
-  if (!contentEl) return;
-  bubble.dataset.messageId = messageId;
-  const copyButton = createCopyButton();
-  contentEl.appendChild(copyButton);
 };
 
 /**
@@ -355,8 +575,7 @@ const handleCopyButtonClick = (e) => {
   const bubble = button.closest(".chat-bubble");
   const messageId = bubble?.dataset?.messageId;
   if (!messageId) return;
-  const history = getChatHistory();
-  const message = history.find((m) => m.id === messageId);
+  const message = chatHistory.findById(messageId);
   const text = message?.content ?? "";
   if (navigator.clipboard?.writeText) {
     navigator.clipboard
@@ -368,54 +587,20 @@ const handleCopyButtonClick = (e) => {
   }
 };
 
-/**
- * Appends a Sources section to an AI chat bubble.
- * @param {HTMLElement} bubble - The chat bubble element
- * @param {Array<{url: string, title: string}>} references - Array of reference objects with url and title
- */
-const appendSourcesToBubble = (bubble, references) => {
-  if (!references?.length) return;
-  if (bubble.querySelector(".chat-bubble-sources")) return;
-
-  const wrapper = createTag("div", { class: "chat-bubble-sources" });
-  const heading = createTag("p", { class: "chat-bubble-sources-heading" });
-  heading.textContent = "Sources:";
-  wrapper.appendChild(heading);
-
-  const list = createTag("ol", { class: "chat-bubble-sources-list" });
-  references.forEach(({ url, title }) => {
-    const li = createTag("li", { class: "chat-bubble-sources-item" });
-    const a = createTag("a", {
-      href: url,
-      target: "_blank",
-      rel: "noopener noreferrer",
-    });
-    a.textContent = title || url;
-    li.appendChild(a);
-    list.appendChild(li);
-  });
-  wrapper.appendChild(list);
-  bubble.appendChild(wrapper);
-};
-
 const retrieveAiResponse = async (messageContent) => {
-  /** @type {HTMLElement} */
+  /** @type {ChatBubble} */
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
-  targetBubble.classList.add("thinking");
+  targetBubble.showThinking();
 
   const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
-    targetBubble.classList.remove("thinking");
-    targetBubble.querySelector(".chat-bubble-content").innerHTML = message;
+    targetBubble.hideThinking();
+    targetBubble.updateContent(message);
     return;
   };
 
   // TODO: We'll have to decide how much context to send to the AI.
   // -2 because we want to exclude the current user message and the thinking message
-  const chatHistory = getChatHistory();
-  const queryContext = chatHistory
-    .slice(0, -2)
-    .map(({ source, content }) => JSON.stringify({ source, content }))
-    .join("\n");
+  const queryContext = chatHistory.getContextForAI(2);
 
   try {
     const response = await fetch(
@@ -461,7 +646,7 @@ const retrieveAiResponse = async (messageContent) => {
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        updateLastChatMessage({
+        chatHistory.updateLast({
           content: responseContent,
           references: accumulatedReferences,
         });
@@ -489,24 +674,14 @@ const retrieveAiResponse = async (messageContent) => {
 
             if (data.type === "metadata" && data.sessionId) {
               currentSessionId = data.sessionId;
-              updateLastChatMessage({ id: data.sessionId });
+              chatHistory.updateLast({ id: data.sessionId });
             }
 
             if (data.type === "content" && data.text) {
               responseContent += data.text;
-              targetBubble.classList.remove("thinking");
-              let processedContent = responseContent;
-              if (window.marked && window.DOMPurify) {
-                processedContent = window.DOMPurify.sanitize(
-                  window.marked.parse(responseContent),
-                );
-              }
-              targetBubble.querySelector(".chat-bubble-content").innerHTML =
-                processedContent;
-              targetBubble.scrollIntoView({
-                behavior: "smooth",
-                block: "end",
-              });
+              targetBubble.hideThinking();
+              targetBubble.updateContent(responseContent);
+              targetBubble.scrollIntoView();
             }
 
             if (
@@ -526,26 +701,23 @@ const retrieveAiResponse = async (messageContent) => {
                 .filter(Boolean);
               if (references.length) {
                 accumulatedReferences = references;
-                appendSourcesToBubble(targetBubble, references);
-                updateLastChatMessage({ content: responseContent, references });
-                targetBubble.scrollIntoView({
-                  behavior: "smooth",
-                  block: "end",
+                targetBubble.appendReferences(references);
+                chatHistory.updateLast({
+                  content: responseContent,
+                  references,
                 });
+                targetBubble.scrollIntoView();
               }
             }
 
             if (data.type === "complete") {
-              updateLastChatMessage({
+              chatHistory.updateLast({
                 content: responseContent,
                 references: accumulatedReferences,
               });
               if (currentSessionId) {
-                appendCopyButtonToBubble(targetBubble, currentSessionId);
-                targetBubble.scrollIntoView({
-                  behavior: "smooth",
-                  block: "end",
-                });
+                targetBubble.appendCopyButton(currentSessionId);
+                targetBubble.scrollIntoView();
               }
               return;
             }
@@ -564,105 +736,23 @@ const retrieveAiResponse = async (messageContent) => {
   }
 };
 
-/**
- * Retrieves chat history from sessionStorage
- * @returns {Array} The chat history array
- */
-const getChatHistory = () => {
-  try {
-    const stored = sessionStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    // Filter out element and contentElement properties as they can't be serialized
-    return parsed.map(({ id, content, source, references }) => ({
-      ...(id && { id }),
-      content,
-      source,
-      ...(references?.length && { references }),
-    }));
-  } catch (error) {
-    console.error("Error retrieving chat history from sessionStorage:", error);
-    return [];
-  }
-};
-
-/**
- * Saves chat history to sessionStorage
- * @param {Array} history - The chat history array to save
- */
-const saveChatHistory = (history) => {
-  try {
-    // Only save serializable properties (id, content, source, references)
-    const serializable = history.map(({ id, content, source, references }) => ({
-      ...(id && { id }),
-      content,
-      source,
-      ...(references?.length && { references }),
-    }));
-    sessionStorage.setItem(
-      CHAT_HISTORY_STORAGE_KEY,
-      JSON.stringify(serializable),
-    );
-  } catch (error) {
-    console.error("Error saving chat history to sessionStorage:", error);
-  }
-};
-
-/**
- * Adds a message to chat history
- * @param {Object} message - The message object to add
- * @param {string} message.content - The content of the message
- * @param {"user" | "ai"} message.source - The source of the message
- */
-const addToChatHistory = (message) => {
-  const history = getChatHistory();
-  history.push(message);
-  saveChatHistory(history);
-};
-
-/**
- * Updates the last message in chat history
- * @param {Object} updates - The properties to update
- */
-const updateLastChatMessage = (updates) => {
-  const history = getChatHistory();
-  if (history.length > 0) {
-    history[history.length - 1] = {
-      ...history[history.length - 1],
-      ...updates,
-    };
-    saveChatHistory(history);
-  }
-};
-
-/**
- * Clears chat history from sessionStorage
- */
-const clearChatHistory = () => {
-  try {
-    sessionStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
-  } catch (error) {
-    console.error("Error clearing chat history from sessionStorage:", error);
-  }
-};
-
 const restoreChatHistory = () => {
-  const chatHistory = getChatHistory();
-  if (chatHistory.length > 0) {
+  const messages = chatHistory.getAll();
+  if (messages.length > 0) {
     for (const [
       index,
       { id, content, source, references },
-    ] of chatHistory.entries()) {
-      const bubble = chatBubble({
+    ] of messages.entries()) {
+      const bubble = new ChatBubble({
         id,
         content,
         source,
         isContinuingConversation:
-          index > 0 && source === chatHistory[index - 1]?.source,
+          index > 0 && source === messages[index - 1]?.source,
       });
-      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble);
+      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
       if (source === "ai" && references?.length) {
-        appendSourcesToBubble(bubble, references);
+        bubble.appendReferences(references);
       }
     }
     ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
