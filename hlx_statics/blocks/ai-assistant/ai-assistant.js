@@ -182,6 +182,22 @@ class ChatBubble {
   }
 
   /**
+   * Shows the streaming cursor (call when streaming starts)
+   */
+  showStreamingCursor() {
+    if (this.source === "ai") {
+      this.element.classList.add("streaming");
+    }
+  }
+
+  /**
+   * Hides the streaming cursor (call when streaming completes)
+   */
+  hideStreamingCursor() {
+    this.element.classList.remove("streaming");
+  }
+
+  /**
    * Sets the message ID for this bubble
    * @param {string} messageId - The message ID to set
    */
@@ -202,6 +218,9 @@ class ChatBubble {
    */
   showCopyButton() {
     if (this.source !== "ai" || !this._copyButton) return;
+
+    // Hide the streaming cursor when streaming completes
+    this.hideStreamingCursor();
 
     // Check if button is already in the DOM
     if (this._copyButton.parentElement) return;
@@ -629,6 +648,7 @@ const retrieveAiResponse = async (messageContent) => {
 
   const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
     targetBubble.hideThinking();
+    targetBubble.hideStreamingCursor();
     targetBubble.updateContent(message);
     return;
   };
@@ -716,6 +736,7 @@ const retrieveAiResponse = async (messageContent) => {
             if (data.type === "content" && data.text) {
               responseContent += data.text;
               targetBubble.hideThinking();
+              targetBubble.showStreamingCursor();
               targetBubble.updateContent(responseContent);
               targetBubble.scrollIntoView();
             }
