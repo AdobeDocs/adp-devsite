@@ -268,6 +268,38 @@
   }
 }
 
+.chat-bubble .chat-bubble-copy {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-bubble .chat-bubble-copy:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.chat-bubble.chat-bubble-user .chat-bubble-copy:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.chat-bubble .chat-bubble-copy .chat-bubble-copy-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 /* Sources section (AI response references) */
 .chat-bubble .chat-bubble-sources {
   grid-area: sources;

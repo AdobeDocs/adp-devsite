@@ -50,6 +50,7 @@ export default async function decorate(block) {
   ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
   ELEMENTS.CHAT_SEND_BUTTON.addEventListener("click", sendMessage);
+  ELEMENTS.CHAT_WINDOW_CONTENT.addEventListener("click", handleCopyButtonClick);
   ELEMENTS.CHAT_TEXTAREA.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -73,6 +74,10 @@ const ELEMENTS = {
 };
 const GENERIC_ERROR_MESSAGE =
   "Sorry, I encountered an error. Please try again later.";
+const COPY_FEEDBACK_REVERT_MS = 2000;
+const COPY_BUTTON_LABEL = "Copy response";
+const COPY_BUTTON_LABEL_COPIED = "Copied to clipboard";
+const COPY_BUTTON_LABEL_FAILED = "Copy failed";
 
 /**
  * Creates the chat window header
@@ -238,9 +243,15 @@ const sendMessage = ({
  * @param {string} options.content - The content of the chat bubble
  * @param {"user" | "ai"} options.source - The source of the chat bubble
  * @param {boolean} [options.isContinuingConversation = false] - Whether the chat bubble is continuing a conversation
+ * @param {string} [options.id] - Optional message id (for AI messages; enables copy button when set)
  * @returns {HTMLElement} The chat bubble element
  */
-const chatBubble = ({ content, source, isContinuingConversation = false }) => {
+const chatBubble = ({
+  content,
+  source,
+  isContinuingConversation = false,
+  id,
+} = {}) => {
   const bubble = createTag("div", { class: "chat-bubble" });
   const contentElement = createTag("div", { class: "chat-bubble-content" });
 
@@ -261,6 +272,11 @@ const chatBubble = ({ content, source, isContinuingConversation = false }) => {
   contentElement.innerHTML = window.marked.parse(content);
   bubble.appendChild(contentElement);
 
+  if (source === "ai" && id) {
+    bubble.dataset.messageId = id;
+    contentElement.appendChild(createCopyButton());
+  }
+
   return bubble;
 };
 
@@ -273,6 +289,83 @@ const aiAvatar = () => {
     class: "chat-ai-avatar",
     "aria-hidden": true,
   });
+};
+
+/** Copy icon SVG (inline, currentColor for theme) */
+const COPY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="chat-bubble-copy-icon"><path fill="currentColor" d="M11.75 18h-7.5C3.01 18 2 16.99 2 15.75v-7.5C2 7.01 3.01 6 4.25 6c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75v7.5c0 .413.337.75.75.75h7.5c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M6.75 5C6.336 5 6 4.664 6 4.25 6 3.01 7.01 2 8.25 2c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75 0 .414-.336.75-.75.75M13 3.5h-2c-.414 0-.75-.336-.75-.75S10.586 2 11 2h2c.414 0 .75.336.75.75s-.336.75-.75.75"/><path fill="currentColor" d="M13 14h-2c-.414 0-.75-.336-.75-.75s.336-.75.75-.75h2c.414 0 .75.336.75.75s-.336.75-.75.75M15.75 14c-.414 0-.75-.336-.75-.75s.336-.75.75-.75c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M17.25 5c-.414 0-.75-.336-.75-.75 0-.413-.337-.75-.75-.75-.414 0-.75-.336-.75-.75s.336-.75.75-.75C16.99 2 18 3.01 18 4.25c0 .414-.336.75-.75.75M17.25 9.75c-.414 0-.75-.336-.75-.75V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M6.75 9.75C6.336 9.75 6 9.414 6 9V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M8.25 14C7.01 14 6 12.99 6 11.75c0-.414.336-.75.75-.75s.75.336.75.75c0 .413.337.75.75.75.414 0 .75.336.75.75s-.336.75-.75.75"/></svg>`;
+
+/** Checkmark icon SVG for "Copied" feedback state */
+const CHECK_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="chat-bubble-copy-icon chat-bubble-copy-icon-check"><path fill="currentColor" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>`;
+
+/**
+ * Creates the copy button element (icon only, accessible).
+ * @returns {HTMLButtonElement} The copy button element
+ */
+const createCopyButton = () => {
+  const button = createTag("button", {
+    class: "chat-bubble-copy",
+    type: "button",
+    "aria-label": COPY_BUTTON_LABEL,
+  });
+  button.innerHTML = COPY_ICON_SVG;
+  return button;
+};
+
+/**
+ * Appends the copy button to an AI bubble and sets its message id.
+ * Call only after streaming is complete (or for restored history).
+ * @param {HTMLElement} bubble - The chat bubble element
+ * @param {string} messageId - The message id (e.g. sessionId from SSE metadata)
+ */
+const appendCopyButtonToBubble = (bubble, messageId) => {
+  if (!messageId) return;
+  const contentEl = bubble.querySelector(".chat-bubble-content");
+  if (!contentEl) return;
+  bubble.dataset.messageId = messageId;
+  const copyButton = createCopyButton();
+  contentEl.appendChild(copyButton);
+};
+
+/**
+ * Shows "Copied" feedback on the copy button (icon + aria-label), then reverts after delay.
+ * @param {HTMLButtonElement} button - The copy button element
+ * @param {boolean} success - Whether the copy succeeded (false shows "Copy failed")
+ */
+const showCopyFeedback = (button, success) => {
+  if (button._copyRevertTimeout) {
+    clearTimeout(button._copyRevertTimeout);
+  }
+  const label = success ? COPY_BUTTON_LABEL_COPIED : COPY_BUTTON_LABEL_FAILED;
+  button.setAttribute("aria-label", label);
+  button.innerHTML = success ? CHECK_ICON_SVG : COPY_ICON_SVG;
+  button._copyRevertTimeout = setTimeout(() => {
+    button.setAttribute("aria-label", COPY_BUTTON_LABEL);
+    button.innerHTML = COPY_ICON_SVG;
+    button._copyRevertTimeout = null;
+  }, COPY_FEEDBACK_REVERT_MS);
+};
+
+/**
+ * Handles copy button click: copy markdown from chat history to clipboard and show feedback.
+ * @param {Event} e - Click event
+ */
+const handleCopyButtonClick = (e) => {
+  const button = e.target.closest(".chat-bubble-copy");
+  if (!button) return;
+  const bubble = button.closest(".chat-bubble");
+  const messageId = bubble?.dataset?.messageId;
+  if (!messageId) return;
+  const history = getChatHistory();
+  const message = history.find((m) => m.id === messageId);
+  const text = message?.content ?? "";
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => showCopyFeedback(button, true))
+      .catch(() => showCopyFeedback(button, false));
+  } else {
+    showCopyFeedback(button, false);
+  }
 };
 
 /**
@@ -360,6 +453,8 @@ const retrieveAiResponse = async (messageContent) => {
     const decoder = new TextDecoder();
     let buffer = "";
     let responseContent = "";
+    /** @type {string | null} */
+    let currentSessionId = null;
     /** @type {Array<{url: string, title: string}>} */
     let accumulatedReferences = [];
 
@@ -391,6 +486,11 @@ const retrieveAiResponse = async (messageContent) => {
              * @property {string} [text] - The text of the event
              */
             const data = JSON.parse(event);
+
+            if (data.type === "metadata" && data.sessionId) {
+              currentSessionId = data.sessionId;
+              updateLastChatMessage({ id: data.sessionId });
+            }
 
             if (data.type === "content" && data.text) {
               responseContent += data.text;
@@ -440,6 +540,13 @@ const retrieveAiResponse = async (messageContent) => {
                 content: responseContent,
                 references: accumulatedReferences,
               });
+              if (currentSessionId) {
+                appendCopyButtonToBubble(targetBubble, currentSessionId);
+                targetBubble.scrollIntoView({
+                  behavior: "smooth",
+                  block: "end",
+                });
+              }
               return;
             }
           } catch (parseError) {
@@ -467,7 +574,8 @@ const getChatHistory = () => {
     if (!stored) return [];
     const parsed = JSON.parse(stored);
     // Filter out element and contentElement properties as they can't be serialized
-    return parsed.map(({ content, source, references }) => ({
+    return parsed.map(({ id, content, source, references }) => ({
+      ...(id && { id }),
       content,
       source,
       ...(references?.length && { references }),
@@ -484,8 +592,9 @@ const getChatHistory = () => {
  */
 const saveChatHistory = (history) => {
   try {
-    // Only save serializable properties (content, source, references)
-    const serializable = history.map(({ content, source, references }) => ({
+    // Only save serializable properties (id, content, source, references)
+    const serializable = history.map(({ id, content, source, references }) => ({
+      ...(id && { id }),
       content,
       source,
       ...(references?.length && { references }),
@@ -542,9 +651,10 @@ const restoreChatHistory = () => {
   if (chatHistory.length > 0) {
     for (const [
       index,
-      { content, source, references },
+      { id, content, source, references },
     ] of chatHistory.entries()) {
       const bubble = chatBubble({
+        id,
         content,
         source,
         isContinuingConversation:
