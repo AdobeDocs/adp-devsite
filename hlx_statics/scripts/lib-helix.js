@@ -136,13 +136,41 @@ export async function fetchSideNavHtml() {
   return fetchNavHtml('subPages:');
 }
 
+let siteMetadataPromise = null;
+
+/**
+ * Fetches adp-site-metadata.json once and caches the result as a Map of key→value.
+ * Returns null if the file doesn't exist (repo hasn't deployed it yet).
+ */
+export function fetchSiteMetadata() {
+  if (!siteMetadataPromise) {
+    const pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+    siteMetadataPromise = fetch(`${window.location.origin}/${pathPrefix}/adp-site-metadata.json`)
+      .then(r => r.ok ? r.json() : null)
+      .then(json => {
+        if (!json?.data) return null;
+        const map = new Map();
+        json.data.forEach(({ key, value }) => map.set(key, value?.replace(/^src\/pages\//, '') ?? null));
+        return map;
+      })
+      .catch(() => null);
+  }
+  return siteMetadataPromise;
+}
+
 /**
  * Retrieves the site-wide-banner json file
  * @returns {string} The site-wide-banner json file
  */
 export async function fetchSiteWideBanner() {
+  const metadata = await fetchSiteMetadata();
+  const metadataPath = metadata?.get('site-wide-banner');
+  if (metadata && !metadataPath) return undefined;
+
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  let siteWideBannerFile = `${window.location.origin}/${pathPrefix}/site-wide-banner.json`;
+  let siteWideBannerFile = metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/site-wide-banner.json`;
   let siteWideBannerJSON = await fetch(siteWideBannerFile)
     .then(response => {
       if (response.ok) {
@@ -197,6 +225,11 @@ export async function fetchRedirectJson() {
 }
 
 export async function hasContributorsJson() {
+  const metadata = await fetchSiteMetadata();
+  if (metadata) {
+    return !!metadata.get('contributors');
+  }
+
   return fetch(`${window.location.origin}/${getMetadata('pathprefix').replace(/^\/|\/$/g, '')}/contributors.json`)
     .then(r => r.ok)
     .catch(() => false);
