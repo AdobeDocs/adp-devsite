@@ -6,6 +6,7 @@
 
 import { createTag, isLocalHostEnvironment, isStageEnvironment } from "../../scripts/lib-adobeio.js";
 import { getMetadata } from "../../scripts/scripts.js";
+import { fetchSiteMetadata } from "../../scripts/lib-helix.js";
 import {
   createFieldLabel,
   createSpectrumButton,
@@ -1650,8 +1651,14 @@ function resolveTemplateId(block) {
 
 export default async function decorate(block) {
 
+  const metadata = await fetchSiteMetadata();
+  const metadataPath = metadata?.get('get-credentials');
+  if (metadata && !metadataPath) return;
+
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
-  const navPath = `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
+  const navPath = metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
 
   const pageTemplateId = resolveTemplateId(block);
   const isStageOrLocalHost = isStageEnvironment(window.location.host)
