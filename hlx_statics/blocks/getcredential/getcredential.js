@@ -1965,7 +1965,8 @@ export default async function decorate(block) {
       'org-notice',
       organizationsData,
       selectedOrganization,
-      handleOrgChange
+      handleOrgChange,
+      () => selectedOrganization
     ));
 
     const formWrapper = createTag('div', { class: 'form-wrapper' });
