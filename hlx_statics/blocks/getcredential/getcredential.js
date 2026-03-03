@@ -362,7 +362,6 @@ async function fetchTemplateEntitlement() {
  * @returns {string|null} EdgeCase key ('Type1User'|'NotSignUp'|'NoProduct'|'NotMember') or null for RestrictedAccess card
  */
 function getRequestAccessLeftCardKey(entitlement, selectedOrg, requestAccessConfig) {
-  console.log('getRequestAccessLeftCardKey--', entitlement, selectedOrg, requestAccessConfig);
   if (!entitlement) return null;
   const disEntitledReason = Array.isArray(entitlement.disEntitledReasons) ? entitlement.disEntitledReasons[0] : null;
   const hasType1User = requestAccessConfig?.components?.EdgeCase?.components?.Type1User;
@@ -1092,7 +1091,6 @@ function createSideContent(config) {
 function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
   const edgeCases = config.components?.EdgeCase?.components;
   const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
-  console.log('edgeCase', edgeCase);
   if (edgeCase) {
     return buildEdgeCaseCard(config, edgeCaseKey, options);
   }
@@ -2057,15 +2055,8 @@ export default async function decorate(block) {
     navigateTo(sourceContainer, loadingContainer);
     if (requestAccessContainer) {
       fetchTemplateEntitlement().then(async (entitlement) => {
-        console.log('entitlement--', entitlement);
         if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
-          lastRequestAccessEntitlement = entitlement;
-          console.log('entitlement--', entitlement);
-          console.log('selectedOrganization--', selectedOrganization);
-          console.log('credentialData.RequestAccess--', credentialData.RequestAccess);
-          
           const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
-          console.log('leftCardKey--', leftCardKey);
           const profile = await window.adobeIMS?.getProfile().catch(() => null);
           updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
           navigateTo(loadingContainer, requestAccessContainer);
@@ -2285,7 +2276,6 @@ export default async function decorate(block) {
               const forceParams = getForceRequestAccessParams();
               if (forceParams && requestAccessContainer) {
                 const profile = await window.adobeIMS?.getProfile().catch(() => null);
-                console.log('forceParams--', forceParams);
                 updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
                 navigateTo(loadingContainer, requestAccessContainer);
                 return;
