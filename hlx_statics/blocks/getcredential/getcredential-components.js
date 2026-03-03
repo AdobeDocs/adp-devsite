@@ -338,7 +338,8 @@ export function createOrganizationModal(organizations, currentOrg, onOrgChange) 
     organizations.forEach((org, index) => {
       const option = createTag('option', { value: org.code || org.id });
       option.textContent = org.name || org.code || `Organization ${index + 1}`;
-      if (currentOrg && (org.code === currentOrg.code || org.id === currentOrg.code)) {
+      const currentId = currentOrg?.code || currentOrg?.id;
+      if (currentId && (org.code || org.id) === currentId) {
         option.selected = true;
       }
       dropdown.appendChild(option);
@@ -979,7 +980,7 @@ export function createCredentialSection(config) {
   return credentialSection;
 }
 
-export function createOrgNotice(text, className = 'org-notice', organizationsData = null, currentOrg = null, onOrgChange = null) {
+export function createOrgNotice(text, className = 'org-notice', organizationsData = null, currentOrg = null, onOrgChange = null, getCurrentOrg = null) {
   const orgNotice = createTag('div', { class: className });
   const orgText = createTag('span', { class: 'org-text' });
   orgText.textContent = text;
@@ -988,7 +989,8 @@ export function createOrgNotice(text, className = 'org-notice', organizationsDat
   changeOrgLink.textContent = 'Change organization';
   changeOrgLink.addEventListener('click', (e) => {
     e.preventDefault();
-    document.body.appendChild(createOrganizationModal(organizationsData, currentOrg, onOrgChange));
+    const orgForModal = (typeof getCurrentOrg === 'function' ? getCurrentOrg() : null) ?? currentOrg;
+    document.body.appendChild(createOrganizationModal(organizationsData, orgForModal, onOrgChange));
   });
 
   orgNotice.appendChild(orgText);

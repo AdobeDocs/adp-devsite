@@ -1311,7 +1311,8 @@ function createReturnContent(config, handleReturnOrgChange) {
     'org-notice-return',
     organizationsData,
     selectedOrganization,
-    handleReturnOrgChange
+    handleReturnOrgChange,
+    () => selectedOrganization
   ));
 
   leftContent.appendChild(getCredHeader);
