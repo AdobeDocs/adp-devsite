@@ -1091,6 +1091,7 @@ function createSideContent(config) {
 function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
   const edgeCases = config.components?.EdgeCase?.components;
   const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
+  console.log('edgeCase', edgeCase);
   if (edgeCase) {
     return buildEdgeCaseCard(config, edgeCaseKey, options);
   }
@@ -1146,10 +1147,12 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
 }
 
 function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
+  console.log('buildEdgeCaseCard--', config, edgeCaseKey, options);
   const { userEmail } = options;
   const edgeCases = config.components?.EdgeCase?.components;
   const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
   if (!edgeCase) return null;
+  console.log('edgeCasefinale--', edgeCase);
   const card = createTag('div', { class: 'request-access-edge-case-card' });
   if (edgeCase.title) {
     const titleRow = createTag('div', { class: 'request-access-edge-case-title-row' });
@@ -1195,6 +1198,7 @@ function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
     }
     card.appendChild(link);
   }
+  console.log('cardfinale--', card);
   return card;
 }
 
@@ -2052,7 +2056,12 @@ export default async function decorate(block) {
       fetchTemplateEntitlement().then(async (entitlement) => {
         if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
           lastRequestAccessEntitlement = entitlement;
+          console.log('entitlement--', entitlement);
+          console.log('selectedOrganization--', selectedOrganization);
+          console.log('credentialData.RequestAccess--', credentialData.RequestAccess);
+          
           const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+          console.log('leftCardKey--', leftCardKey);
           const profile = await window.adobeIMS?.getProfile().catch(() => null);
           updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
           navigateTo(loadingContainer, requestAccessContainer);
