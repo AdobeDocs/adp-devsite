@@ -411,8 +411,166 @@ class ChatHistory {
 }
 // #endregion
 
-// Create singleton instance of ChatHistory
+// #region AiApiClient
+/**
+ * Generic API client for AI endpoint interactions
+ * Handles streaming responses and various endpoint operations
+ */
+class AiApiClient {
+  static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
+  /**
+   * Creates an instance of AiApiClient
+   * @param {Object} config - Configuration object
+   * @param {string} config.baseUrl - The base URL for the AI API
+   * @param {string} config.apiKey - The API key for authentication
+   */
+  constructor({ baseUrl, apiKey }) {
+    if (!baseUrl || !apiKey) {
+      throw new Error("AiApiClient requires both baseUrl and apiKey");
+    }
+    this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
+  }
+
+  /**
+   * Makes a streaming request to the AI endpoint
+   * @param {Object} options - Request options
+   * @param {Object} options.body - The request body
+   * @param {Function} options.onMetadata - Callback for metadata events (sessionId, requestId, etc.)
+   * @param {Function} options.onContent - Callback for content chunks
+   * @param {Function} options.onCitation - Callback for citation events
+   * @param {Function} options.onTiming - Callback for timing events
+   * @param {Function} options.onComplete - Callback when streaming completes
+   * @param {Function} options.onError - Callback for errors
+   * @returns {Promise<void>}
+   */
+  async streamRequest({
+    body,
+    onMetadata = () => {},
+    onContent = () => {},
+    onCitation = () => {},
+    onTiming = () => {},
+    onComplete = () => {},
+    onError = () => {},
+  }) {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}${AiApiClient.STREAMING_ENDPOINT}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Api-Key": this.apiKey,
+          },
+          body: JSON.stringify(body),
+        },
+      );
+
+      if (!response.ok) {
+        const error = new Error(`HTTP error! status: ${response.status}`);
+        error.status = response.status;
+        onError(error);
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          onComplete();
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const event = line.replace("data: ", "").trim();
+            if (event.length === 0) continue;
+
+            try {
+              const data = JSON.parse(event);
+
+              switch (data.type) {
+                case "metadata":
+                  onMetadata(data);
+                  break;
+                case "content":
+                  onContent(data);
+                  break;
+                case "citation":
+                  onCitation(data);
+                  break;
+                case "timing":
+                  onTiming(data);
+                  break;
+                case "complete":
+                  onComplete(data);
+                  return;
+                default:
+                  console.warn(
+                    `[AiApiClient] Unknown event type: ${data.type}`,
+                  );
+              }
+            } catch (parseError) {
+              console.error("[AiApiClient] Error parsing event:", parseError);
+              onError(parseError);
+              return;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[AiApiClient] Stream request error:", error);
+      onError(error);
+    }
+  }
+
+  /**
+   * Makes a query request with conversation history
+   * @param {Object} options - Query options
+   * @param {string} options.query - The user's query
+   * @param {string} [options.context] - Optional conversation context/history
+   * @param {string} [options.systemPrompt] - Optional system prompt instructions
+   * @param {Object} options.callbacks - Event callbacks (onMetadata, onContent, etc.)
+   * @returns {Promise<void>}
+   */
+  async query({ query, context = "", systemPrompt = "", callbacks = {} }) {
+    const defaultSystemPrompt = `
+      Use markdown formatting for the response.
+      ALWAYS provide a follow up question.
+    `;
+
+    const body = {
+      query: `
+        <system>
+          ${systemPrompt || defaultSystemPrompt}
+        </system>
+        ${context ? `<history>\n${context}\n</history>` : ""}
+        <question>
+          ${query}
+        </question>
+      `,
+    };
+
+    return this.streamRequest({
+      body,
+      ...callbacks,
+    });
+  }
+}
+// #endregion
+
 const chatHistory = new ChatHistory();
+const aiApiClient = new AiApiClient({
+  baseUrl: AI_API_BASE_URL,
+  apiKey: AI_API_KEY,
+});
 
 /**
  * Decorates the ai-assistant block
@@ -657,140 +815,67 @@ const retrieveAiResponse = async (messageContent) => {
   // -2 because we want to exclude the current user message and the thinking message
   const queryContext = chatHistory.getContextForAI(2);
 
-  try {
-    const response = await fetch(
-      `${AI_API_BASE_URL}/v1/inference/retrieve/generate/stream`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Api-Key": AI_API_KEY,
-        },
-        body: JSON.stringify({
-          query: `
-          <system>
-            Use markdown formatting for the response.
-            ALWAYS provide a follow up question.
-          </system>
-          <history>
-            ${queryContext}
-          </history>
-          <question>
-            ${messageContent}
-          </question>
-          `,
-        }),
+  let responseContent = "";
+  let accumulatedReferences = [];
+
+  await aiApiClient.query({
+    query: messageContent,
+    context: queryContext,
+    callbacks: {
+      onMetadata: (data) => {
+        if (data.sessionId) {
+          chatHistory.updateLast({ id: data.sessionId });
+          targetBubble.setMessageId(data.sessionId);
+        }
       },
-    );
-
-    if (!response.ok) {
-      // TODO: Log error somehow somewhere?
-      showErrorMessage();
-      return;
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let responseContent = "";
-    /** @type {string | null} */
-    let currentSessionId = null;
-    /** @type {Array<{url: string, title: string}>} */
-    let accumulatedReferences = [];
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
+      onContent: (data) => {
+        if (data.text) {
+          responseContent += data.text;
+          targetBubble.hideThinking();
+          targetBubble.showStreamingCursor();
+          targetBubble.updateContent(responseContent);
+          targetBubble.scrollIntoView();
+        }
+      },
+      onCitation: (data) => {
+        if (data.citation?.retrievedReferences?.length) {
+          const refs = data.citation.retrievedReferences;
+          const seen = new Set();
+          const references = refs
+            .map((ref) => {
+              const url = ref.metadata?.url;
+              if (!url || seen.has(url)) return null;
+              seen.add(url);
+              const title = ref.metadata?.title || url;
+              return { url, title };
+            })
+            .filter(Boolean);
+          if (references.length) {
+            accumulatedReferences = references;
+            targetBubble.appendReferences(references);
+            chatHistory.updateLast({
+              content: responseContent,
+              references,
+            });
+            targetBubble.scrollIntoView();
+          }
+        }
+      },
+      onComplete: () => {
         chatHistory.updateLast({
           content: responseContent,
           references: accumulatedReferences,
         });
-        break;
-      }
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const event = line.replace("data: ", "").trim();
-          if (event.length === 0) {
-            continue;
-          }
-
-          try {
-            /**
-             * @type {Object}
-             * @property {'metadata' | 'content' | 'timing' | 'citation' | 'complete'} type
-             * @property {string} [text] - The text of the event
-             */
-            const data = JSON.parse(event);
-
-            if (data.type === "metadata" && data.sessionId) {
-              currentSessionId = data.sessionId;
-              chatHistory.updateLast({ id: data.sessionId });
-              targetBubble.setMessageId(data.sessionId);
-            }
-
-            if (data.type === "content" && data.text) {
-              responseContent += data.text;
-              targetBubble.hideThinking();
-              targetBubble.showStreamingCursor();
-              targetBubble.updateContent(responseContent);
-              targetBubble.scrollIntoView();
-            }
-
-            if (
-              data.type === "citation" &&
-              data.citation?.retrievedReferences?.length
-            ) {
-              const refs = data.citation.retrievedReferences;
-              const seen = new Set();
-              const references = refs
-                .map((ref) => {
-                  const url = ref.metadata?.url;
-                  if (!url || seen.has(url)) return null;
-                  seen.add(url);
-                  const title = ref.metadata?.title || url;
-                  return { url, title };
-                })
-                .filter(Boolean);
-              if (references.length) {
-                accumulatedReferences = references;
-                targetBubble.appendReferences(references);
-                chatHistory.updateLast({
-                  content: responseContent,
-                  references,
-                });
-                targetBubble.scrollIntoView();
-              }
-            }
-
-            if (data.type === "complete") {
-              chatHistory.updateLast({
-                content: responseContent,
-                references: accumulatedReferences,
-              });
-              if (currentSessionId) {
-                targetBubble.showCopyButton();
-                targetBubble.scrollIntoView();
-              }
-              return;
-            }
-          } catch (parseError) {
-            // TODO: Log error somehow somewhere?
-            showErrorMessage();
-            return;
-          }
-        }
-      }
-    }
-  } catch (error) {
-    // TODO: Log error somehow somewhere?
-    showErrorMessage();
-    return;
-  }
+        targetBubble.showCopyButton();
+        targetBubble.scrollIntoView();
+      },
+      onError: (error) => {
+        // TODO: Log error somehow somewhere?
+        console.error("[AI Assistant] Error:", error);
+        showErrorMessage();
+      },
+    },
+  });
 };
 
 const restoreChatHistory = () => {
