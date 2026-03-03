@@ -267,6 +267,17 @@
   p {
     margin: 0;
   }
+
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+
+    code {
+      white-space: inherit;
+    }
+  }
+
 }
 
 .chat-bubble .chat-bubble-copy {
