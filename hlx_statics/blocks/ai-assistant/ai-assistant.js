@@ -46,8 +46,6 @@ class ChatBubble {
     if (this.source === "ai") {
       if (!this.isContinuingConversation) {
         bubble.appendChild(createAiAvatar());
-      } else {
-        bubble.style.paddingLeft = "36px";
       }
     } else if (this.source === "user") {
       bubble.classList.add("chat-bubble-user");
@@ -273,9 +271,6 @@ class ChatBubble {
 // #endregion
 
 // #region ChatHistory
-/**
- * Manages chat message history with sessionStorage persistence
- */
 class ChatHistory {
   static STORAGE_KEY = "ai-assistant-chat-history";
 
@@ -412,17 +407,12 @@ class ChatHistory {
 // #endregion
 
 // #region AiApiClient
-/**
- * Generic API client for AI endpoint interactions
- * Handles streaming responses and various endpoint operations
- */
 class AiApiClient {
   static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
   /**
-   * Creates an instance of AiApiClient
-   * @param {Object} config - Configuration object
-   * @param {string} config.baseUrl - The base URL for the AI API
-   * @param {string} config.apiKey - The API key for authentication
+   * @param {Object} config
+   * @param {string} config.baseUrl
+   * @param {string} config.apiKey
    */
   constructor({ baseUrl, apiKey }) {
     if (!baseUrl || !apiKey) {
@@ -434,7 +424,7 @@ class AiApiClient {
 
   /**
    * Makes a streaming request to the AI endpoint
-   * @param {Object} options - Request options
+   * @param {Object} options
    * @param {Object} options.body - The request body
    * @param {Function} options.onMetadata - Callback for metadata events (sessionId, requestId, etc.)
    * @param {Function} options.onContent - Callback for content chunks
@@ -543,7 +533,6 @@ class AiApiClient {
   async query({ query, context = "", systemPrompt = "", callbacks = {} }) {
     const defaultSystemPrompt = `
       Use markdown formatting for the response.
-      ALWAYS provide a follow up question.
     `;
 
     const body = {
@@ -565,64 +554,6 @@ class AiApiClient {
   }
 }
 // #endregion
-
-const chatHistory = new ChatHistory();
-const aiApiClient = new AiApiClient({
-  baseUrl: AI_API_BASE_URL,
-  apiKey: AI_API_KEY,
-});
-
-/**
- * Decorates the ai-assistant block
- * @param {Element} block - the ai-assistant block element
- */
-export default async function decorate(block) {
-  addExtraScriptWithLoad(
-    document.body,
-    "https://unpkg.com/marked@^17/lib/marked.umd.js",
-    () => {
-      addExtraScriptWithLoad(
-        document.body,
-        "https://unpkg.com/dompurify@^3/dist/purify.min.js",
-        () => {
-          restoreChatHistory();
-        },
-      );
-    },
-  );
-
-  const container = createTag("div", { class: "ai-assistant-container" });
-
-  const chatWindow = createTag("div", {
-    class: "chat-window",
-    id: CHAT_WINDOW_ID,
-    role: "dialog",
-    "aria-modal": "false",
-    "aria-labelledby": CHAT_WINDOW_LABEL_ID,
-  });
-  ELEMENTS.CHAT_WINDOW = chatWindow;
-
-  chatWindow.appendChild(createChatWindowHeader());
-  const content = createTag("div", { class: "chat-window-content" });
-  ELEMENTS.CHAT_WINDOW_CONTENT = content;
-  chatWindow.appendChild(content);
-  chatWindow.appendChild(createInputSection());
-
-  container.appendChild(createChatButton());
-  container.appendChild(chatWindow);
-
-  block.appendChild(container);
-
-  ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
-  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
-  ELEMENTS.CHAT_SEND_BUTTON.addEventListener("click", sendMessage);
-  ELEMENTS.CHAT_TEXTAREA.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-}
 
 // #region Chat UI fns
 /**
@@ -708,6 +639,7 @@ const createChatButton = () => {
 };
 // #endregion
 
+// #region Interaction fns
 const openChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_CLOSE;
@@ -716,26 +648,16 @@ const openChatWindow = () => {
   // Initial messages
   if (chatHistory.isEmpty()) {
     window.setTimeout(() => {
-      const bubble = new ChatBubble({
-        content: "Hello, welcome to Adobe Developer Website!",
-        source: "ai",
-      });
-      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
-      chatHistory.add({
+      sendMessage({
         content: "Hello, welcome to Adobe Developer Website!",
         source: "ai",
       });
     }, 250);
     window.setTimeout(() => {
-      const bubble = new ChatBubble({
+      sendMessage({
         content: "What would you like to know today?",
         source: "ai",
         isContinuingConversation: true,
-      });
-      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
-      chatHistory.add({
-        content: "What would you like to know today?",
-        source: "ai",
       });
     }, 500);
   }
@@ -756,50 +678,19 @@ const toggleChatWindow = () => {
 };
 
 /**
- * Sends a message to the content area and scrolls to the bottom.
- * If no options are provided, the content of the textarea will be used and the source will be set to "user".
- * @param {Object} [options] - The options for the message
- * @param {string} [options.content] - The content of the message
- * @param {"user" | "ai"} [options.source] - The source of the
- * @param {boolean} [options.isContinuingConversation = false] - Whether the message is continuing a conversation
- * @returns {boolean | ChatBubble} - A ChatBubble instance if the message was sent successfully, false otherwise
+ * Gets the user's query, sends it to the AI, and displays the response.
  */
-const sendMessage = ({
-  content,
-  source = "user",
-  isContinuingConversation = false,
-} = {}) => {
-  let messageContent = content;
-  if (!content && source === "user") {
-    messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
-    ELEMENTS.CHAT_TEXTAREA.value = "";
+const handleUserQuery = async () => {
+  // get user content and clear inpt
+  const messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
+  ELEMENTS.CHAT_TEXTAREA.value = "";
+
+  if (!messageContent) {
+    return;
   }
 
-  if (!messageContent) return false;
+  sendMessage({ content: messageContent, source: "user" });
 
-  const bubble = new ChatBubble({
-    content: messageContent,
-    source,
-    isContinuingConversation,
-  });
-
-  chatHistory.add({
-    content: messageContent,
-    source,
-  });
-
-  ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
-  ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-    ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-
-  if (source === "user") {
-    retrieveAiResponse(messageContent);
-  }
-
-  return bubble;
-};
-
-const retrieveAiResponse = async (messageContent) => {
   /** @type {ChatBubble} */
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
   targetBubble.showThinking();
@@ -877,6 +768,46 @@ const retrieveAiResponse = async (messageContent) => {
     },
   });
 };
+// #endregion
+
+// #region Utility fns
+/**
+ * Sends a message to the content area and scrolls to the bottom. Also adds the message to the chat history.
+ * @param {Object} options - The options for the message
+ * @param {string} [options.id] - The ID of the message
+ * @param {string} options.content - The content of the message
+ * @param {"user" | "ai"} options.source - The source of the
+ * @param {boolean} [options.isContinuingConversation=false] - Set this to `true` if the previous message was from the same source
+ * @returns {boolean | ChatBubble} - A ChatBubble instance if the message was sent successfully, false otherwise
+ */
+const sendMessage = ({
+  id,
+  content,
+  source,
+  isContinuingConversation = false,
+  shouldAppendToHistory = true,
+} = {}) => {
+  const bubble = new ChatBubble({
+    id,
+    content,
+    source,
+    isContinuingConversation,
+  });
+
+  if (shouldAppendToHistory) {
+    chatHistory.add({
+      id,
+      content,
+      source,
+    });
+  }
+
+  ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
+  ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+    ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+
+  return bubble;
+};
 
 const restoreChatHistory = () => {
   const messages = chatHistory.getAll();
@@ -885,15 +816,15 @@ const restoreChatHistory = () => {
       index,
       { id, content, source, references },
     ] of messages.entries()) {
-      const bubble = new ChatBubble({
+      const bubble = sendMessage({
         id,
         content,
         source,
         isContinuingConversation:
           index > 0 && source === messages[index - 1]?.source,
+        shouldAppendToHistory: false,
       });
-      ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
-      if (source === "ai" && references?.length) {
+      if (references?.length) {
         bubble.appendReferences(references);
       }
     }
@@ -901,3 +832,66 @@ const restoreChatHistory = () => {
       ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
   }
 };
+// #endregion
+
+// #region Global state
+const chatHistory = new ChatHistory();
+const aiApiClient = new AiApiClient({
+  baseUrl: AI_API_BASE_URL,
+  apiKey: AI_API_KEY,
+});
+// #endregion
+
+// #region decorate fn
+/**
+ * Decorates the ai-assistant block
+ * @param {Element} block - the ai-assistant block element
+ */
+export default async function decorate(block) {
+  addExtraScriptWithLoad(
+    document.body,
+    "https://unpkg.com/marked@^17/lib/marked.umd.js",
+    () => {
+      addExtraScriptWithLoad(
+        document.body,
+        "https://unpkg.com/dompurify@^3/dist/purify.min.js",
+        () => {
+          restoreChatHistory();
+        },
+      );
+    },
+  );
+
+  const container = createTag("div", { class: "ai-assistant-container" });
+
+  const chatWindow = createTag("div", {
+    class: "chat-window",
+    id: CHAT_WINDOW_ID,
+    role: "dialog",
+    "aria-modal": "false",
+    "aria-labelledby": CHAT_WINDOW_LABEL_ID,
+  });
+  ELEMENTS.CHAT_WINDOW = chatWindow;
+
+  chatWindow.appendChild(createChatWindowHeader());
+  const content = createTag("div", { class: "chat-window-content" });
+  ELEMENTS.CHAT_WINDOW_CONTENT = content;
+  chatWindow.appendChild(content);
+  chatWindow.appendChild(createInputSection());
+
+  container.appendChild(createChatButton());
+  container.appendChild(chatWindow);
+
+  block.appendChild(container);
+
+  ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
+  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
+  ELEMENTS.CHAT_SEND_BUTTON.addEventListener("click", handleUserQuery);
+  ELEMENTS.CHAT_TEXTAREA.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleUserQuery();
+    }
+  });
+}
+// #endregion
