@@ -1223,7 +1223,7 @@ function updateRequestAccessLeftColumn(container, requestAccessConfig, edgeCaseK
  * Build Request Access page from config (title, paragraph, left card from RestrictedAccess or EdgeCase + RequestAccessSide).
  * Config is read from credential JSON: GetCredential.components.RequestAccess.
  */
-function createRequestAccessContent(config) {
+async function createRequestAccessContent(config) {
   const wrapper = createTag('div', { class: 'request-access-wrapper' });
   const contentWrapper = createTag('div', { class: 'request-access-content-wrapper' });
 
@@ -1243,7 +1243,12 @@ function createRequestAccessContent(config) {
   const columns = createTag('div', { class: 'request-access-columns' });
   const leftCol = createTag('div', { class: 'request-access-left' });
   const slot = createTag('div', { class: 'request-access-left-slot' });
-  const defaultCard = buildRequestAccessLeftCard(config, null);
+  let edgeCaseKey = null;
+  if(lastRequestAccessEntitlement == null) {
+    lastRequestAccessEntitlement = await fetchTemplateEntitlement();
+    edgeCaseKey = lastRequestAccessEntitlement.disEntitledReasons?.[0] || null;
+  }
+  const defaultCard = buildRequestAccessLeftCard(config, edgeCaseKey);
   if (defaultCard) slot.appendChild(defaultCard);
   leftCol.appendChild(slot);
   columns.appendChild(leftCol);
