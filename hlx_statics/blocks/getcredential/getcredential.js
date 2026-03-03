@@ -362,6 +362,7 @@ async function fetchTemplateEntitlement() {
  * @returns {string|null} EdgeCase key ('Type1User'|'NotSignUp'|'NoProduct'|'NotMember') or null for RestrictedAccess card
  */
 function getRequestAccessLeftCardKey(entitlement, selectedOrg, requestAccessConfig) {
+  console.log('getRequestAccessLeftCardKey--', entitlement, selectedOrg, requestAccessConfig);
   if (!entitlement) return null;
   const disEntitledReason = Array.isArray(entitlement.disEntitledReasons) ? entitlement.disEntitledReasons[0] : null;
   const hasType1User = requestAccessConfig?.components?.EdgeCase?.components?.Type1User;
@@ -1147,12 +1148,15 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
 }
 
 function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
-  console.log('buildEdgeCaseCard--', config, edgeCaseKey, options);
-  const { userEmail } = options;
+  const { userEmail, selectedOrganization } = options;
   const edgeCases = config.components?.EdgeCase?.components;
   const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
   if (!edgeCase) return null;
-  console.log('edgeCasefinale--', edgeCase);
+  const productsLabel = config.components?.RestrictedAccess?.components?.Products?.label || 'this service';
+  const accountLabel = userEmail || 'this account';
+  const orgLabel = selectedOrganization?.type === 'developer'
+    ? 'your personal developer organization'
+    : (selectedOrganization?.name || 'this organization');
   const card = createTag('div', { class: 'request-access-edge-case-card' });
   if (edgeCase.title) {
     const titleRow = createTag('div', { class: 'request-access-edge-case-title-row' });
@@ -1165,10 +1169,10 @@ function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
     card.appendChild(titleRow);
   }
   const defaultDescriptions = {
-    Type1User: `You are currently signed in with your personal account ${userEmail} and can not access ${productsLabel} APIs.`,
-    NotMember: `You are currently signed in with [${userEmail}] in ${selectedOrganization?.type === "developer" ? "your personal developer organization" : `organization [<span className="spectrum-Heading spectrum-Heading--sizeXXS">${selectedOrganization?.name}</span>]`} and can not access ${productsLabel} APIs.`,
-    NotSignUp: `You are currently signed in with your personal account ${userEmail} and can not access ${productsLabel} APIs.`,
-    NoProduct: `Your organization does not have access to this ${productsLabel} service. Contact your admin or change organization.`
+    Type1User: `You are currently signed in with ${accountLabel} and cannot access ${productsLabel} APIs.`,
+    NotMember: `You are currently signed in with ${accountLabel} in ${orgLabel} and cannot access ${productsLabel} APIs.`,
+    NotSignUp: `You are currently signed in with ${accountLabel} and cannot access ${productsLabel} APIs.`,
+    NoProduct: `Your organization does not have access to ${productsLabel}. Contact your admin or change organization.`
   };
   const showChangeOrg = edgeCase.showChangeOrgLink !== false && (['Type1User', 'NotMember', 'NotSignUp', 'NoProduct'].includes(edgeCaseKey) || edgeCase.showChangeOrgLink);
   const defaultDescription = defaultDescriptions[edgeCaseKey] || '';
@@ -1198,7 +1202,6 @@ function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
     }
     card.appendChild(link);
   }
-  console.log('cardfinale--', card);
   return card;
 }
 
@@ -1223,7 +1226,7 @@ function updateRequestAccessLeftColumn(container, requestAccessConfig, edgeCaseK
  * Build Request Access page from config (title, paragraph, left card from RestrictedAccess or EdgeCase + RequestAccessSide).
  * Config is read from credential JSON: GetCredential.components.RequestAccess.
  */
-async function createRequestAccessContent(config) {
+function createRequestAccessContent(config) {
   const wrapper = createTag('div', { class: 'request-access-wrapper' });
   const contentWrapper = createTag('div', { class: 'request-access-content-wrapper' });
 
@@ -1243,16 +1246,11 @@ async function createRequestAccessContent(config) {
   const columns = createTag('div', { class: 'request-access-columns' });
   const leftCol = createTag('div', { class: 'request-access-left' });
   const slot = createTag('div', { class: 'request-access-left-slot' });
-  let edgeCaseKey = null;
-  if(lastRequestAccessEntitlement == null) {
-    lastRequestAccessEntitlement = await fetchTemplateEntitlement();
-    edgeCaseKey = lastRequestAccessEntitlement.disEntitledReasons?.[0] || null;
-  }
-  const defaultCard = buildRequestAccessLeftCard(config, edgeCaseKey);
+ 
+  const defaultCard = buildRequestAccessLeftCard(config, null);
   if (defaultCard) slot.appendChild(defaultCard);
   leftCol.appendChild(slot);
   columns.appendChild(leftCol);
-
   const side = config.components?.RequestAccessSide;
   if (side?.content) {
     const divider = separator();
@@ -2059,6 +2057,7 @@ export default async function decorate(block) {
     navigateTo(sourceContainer, loadingContainer);
     if (requestAccessContainer) {
       fetchTemplateEntitlement().then(async (entitlement) => {
+        console.log('entitlement--', entitlement);
         if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
           lastRequestAccessEntitlement = entitlement;
           console.log('entitlement--', entitlement);
@@ -2286,6 +2285,7 @@ export default async function decorate(block) {
               const forceParams = getForceRequestAccessParams();
               if (forceParams && requestAccessContainer) {
                 const profile = await window.adobeIMS?.getProfile().catch(() => null);
+                console.log('forceParams--', forceParams);
                 updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
                 navigateTo(loadingContainer, requestAccessContainer);
                 return;
