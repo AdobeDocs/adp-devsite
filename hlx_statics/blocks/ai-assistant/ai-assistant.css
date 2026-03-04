@@ -135,6 +135,50 @@
   /* gap: 12px; */
 }
 
+/* MARK: Suggested Questions */
+.chat-window-content .chat-suggested-questions {
+  margin-top: 24px;
+}
+
+.chat-suggested-questions.animate-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.chat-suggested-questions .chat-suggested-questions-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #292929;
+}
+
+.chat-suggested-questions .chat-suggested-questions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chat-suggested-questions .chat-suggested-questions-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #e8e8e8;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #292929;
+  font-family: "adobe-clean", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
+  cursor: pointer;
+}
+
+.chat-suggested-questions .chat-suggested-questions-button:hover {
+  background: #dadada;
+}
+
+.chat-suggested-questions.hidden {
+  display: none;
+}
+
 /* MARK: Input Section */
 .chat-window .chat-window-input-section {
   display: grid;

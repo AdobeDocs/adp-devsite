@@ -18,7 +18,22 @@ const ELEMENTS = {
   CHAT_TEXTAREA: null,
   CHAT_WINDOW: null,
   CHAT_WINDOW_CONTENT: null,
+  CHAT_SUGGESTED_QUESTIONS: null,
 };
+const SUGGESTED_QUESTIONS = [
+  // {
+  //   label: "Firefly integration",
+  //   question: "How do I integrate Adobe Firefly into my application?",
+  // },
+  {
+    label: "Express Add-ons",
+    question: "What can I do with Express Add-ons?",
+  },
+  {
+    label: "App Builder application",
+    question: "How do I build an App Builder application?",
+  },
+];
 const GENERIC_ERROR_MESSAGE =
   "Sorry, I encountered an error. Please try again later.";
 // #endregion
@@ -670,6 +685,54 @@ const createChatButton = () => {
   ELEMENTS.CHAT_BUTTON = chatButton;
   return chatButton;
 };
+
+/**
+ * Creates the suggested questions section with topic buttons.
+ * @returns {HTMLElement} The suggested questions wrapper element
+ */
+const createSuggestedQuestionsSection = () => {
+  const wrapper = createTag("div", { class: "chat-suggested-questions" });
+  const title = createTag("p", { class: "chat-suggested-questions-title" });
+  title.textContent = "or choose from the following:";
+  const list = createTag("div", { class: "chat-suggested-questions-list" });
+
+  SUGGESTED_QUESTIONS.forEach(({ label, question }) => {
+    const button = createTag("button", {
+      type: "button",
+      class: "chat-suggested-questions-button",
+    });
+    button.textContent = label;
+    button.addEventListener("click", () => {
+      handleUserQuery(question);
+    });
+    list.appendChild(button);
+  });
+
+  wrapper.appendChild(title);
+  wrapper.appendChild(list);
+  ELEMENTS.CHAT_SUGGESTED_QUESTIONS = wrapper;
+  return wrapper;
+};
+
+const showSuggestedQuestions = () => {
+  const el = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
+  if (el) {
+    el.classList.remove("hidden");
+    el.classList.remove("animate-fade-in");
+    requestAnimationFrame(() => {
+      el.classList.add("animate-fade-in");
+    });
+  }
+};
+
+const hideSuggestedQuestions = () => {
+  const el = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
+  if (el) {
+    el.classList.remove("animate-fade-in");
+    el.classList.add("hidden");
+  }
+};
+
 // #endregion
 
 // #region Interaction fns
@@ -680,6 +743,7 @@ const openChatWindow = () => {
 
   // Initial messages
   if (chatHistory.isEmpty()) {
+    hideSuggestedQuestions();
     window.setTimeout(() => {
       sendMessage({
         content: "Hello, welcome to Adobe Developer Website!",
@@ -694,6 +758,7 @@ const openChatWindow = () => {
         isContinuingConversation: true,
       });
     }, 500);
+    window.setTimeout(showSuggestedQuestions, 750);
   }
 };
 
@@ -713,15 +778,23 @@ const toggleChatWindow = () => {
 
 /**
  * Gets the user's query, sends it to the AI, and displays the response.
+ * @param {string} [messageContentOverride] - Optional message content; when provided, used instead of the textarea value
  */
-const handleUserQuery = async () => {
-  // get user content and clear inpt
-  const messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
-  ELEMENTS.CHAT_TEXTAREA.value = "";
+const handleUserQuery = async (messageContentOverride) => {
+  let messageContent = messageContentOverride;
+
+  if (!messageContentOverride) {
+    messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
+    ELEMENTS.CHAT_TEXTAREA.value = "";
+  }
 
   if (!messageContent) {
     return;
   }
+
+  hideSuggestedQuestions();
+
+  const suggestedQuestionsDelayMs = 600;
 
   sendMessage({ content: messageContent, source: "user" });
 
@@ -793,11 +866,13 @@ const handleUserQuery = async () => {
         });
         targetBubble.showCopyButton();
         targetBubble.scrollIntoView();
+        window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
       },
       onError: (error) => {
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
+        window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
       },
     },
   });
@@ -841,9 +916,17 @@ const sendMessage = ({
     });
   }
 
-  ELEMENTS.CHAT_WINDOW_CONTENT.appendChild(bubble.element);
-  ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-    ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+  const contentContainer = ELEMENTS.CHAT_WINDOW_CONTENT;
+  const insertBefore = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
+
+  // Basically we have to insert the new messages before the suggestion question section
+  // but since this is used for initial messages and history restoration we need to check if the section exists
+  if (insertBefore) {
+    contentContainer.insertBefore(bubble.element, insertBefore);
+  } else {
+    contentContainer.appendChild(bubble.element);
+  }
+  contentContainer.scrollTop = contentContainer.scrollHeight;
 
   return bubble;
 };
@@ -872,6 +955,12 @@ const restoreChatHistory = () => {
     }
     ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
       ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+  }
+  const lastMessage = chatHistory.getAll().pop();
+  if (lastMessage?.source === "ai") {
+    showSuggestedQuestions();
+  } else {
+    hideSuggestedQuestions();
   }
 };
 // #endregion
@@ -918,6 +1007,7 @@ export default async function decorate(block) {
   chatWindow.appendChild(createChatWindowHeader());
   const content = createTag("div", { class: "chat-window-content" });
   ELEMENTS.CHAT_WINDOW_CONTENT = content;
+  content.appendChild(createSuggestedQuestionsSection());
   chatWindow.appendChild(content);
   chatWindow.appendChild(createInputSection());
 
