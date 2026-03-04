@@ -1134,13 +1134,57 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
     card.appendChild(list);
   }
   if (restricted.buttonLabel) {
+    const isRequestPending = Boolean(lastRequestAccessEntitlement?.template?.isRequestPending);
+    const btnWrap = createTag('div', { class: 'request-access-request-btn-wrap' });
     const btn = createTag('button', {
       type: 'button',
       class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM request-access-request-btn'
     });
     btn.innerHTML = `<span class="spectrum-Button-label">${restricted.buttonLabel}</span>`;
-    btn.setAttribute('data-request-access-trigger', 'true');
-    card.appendChild(btn);
+    btn.disabled = isRequestPending;
+    if (!isRequestPending) {
+      btn.setAttribute('aria-disabled', 'true');
+      btn.setAttribute('aria-label', 'Request access is pending, please wait for approval');
+
+      const pendingPopover = createTag('div', {
+        class: 'request-access-pending-popover hidden',
+        role: 'status',
+        'aria-live': 'polite'
+      });
+      const pendingTitle = createTag('p', { class: 'request-access-pending-title' });
+      pendingTitle.textContent = 'Your request is pending approval';
+      const pendingBody = createTag('p', { class: 'request-access-pending-body' });
+      pendingBody.textContent = "You'll hear back from your admin soon. If your request is approved, you'll get an email with instructions on how to start using your apps and services.";
+      const pendingLink = createTag('a', {
+        class: 'request-access-pending-link',
+        href: 'https://developer.adobe.com/developer-console/docs/guides/credentials/request-access/',
+        target: '_blank',
+        rel: 'noreferrer'
+      });
+      pendingLink.textContent = 'Learn more about requesting Adobe apps';
+      pendingPopover.appendChild(pendingTitle);
+      pendingPopover.appendChild(pendingBody);
+      pendingPopover.appendChild(pendingLink);
+
+      const showPendingPopover = () => pendingPopover.classList.remove('hidden');
+      const hidePendingPopover = () => pendingPopover.classList.add('hidden');
+      btnWrap.addEventListener('mouseenter', showPendingPopover);
+      btnWrap.addEventListener('mouseleave', hidePendingPopover);
+      btnWrap.addEventListener('focusin', showPendingPopover);
+      btnWrap.addEventListener('focusout', hidePendingPopover);
+      btnWrap.addEventListener('click', (e) => {
+        e.preventDefault();
+        pendingPopover.classList.toggle('hidden');
+      });
+      btnWrap.appendChild(btn);
+      btnWrap.appendChild(pendingPopover);
+    } else {
+      btn.setAttribute('aria-disabled', 'false');
+      btn.setAttribute('aria-label', 'Request access');
+      btn.setAttribute('data-request-access-trigger', 'true');
+      btnWrap.appendChild(btn);
+    }
+    card.appendChild(btnWrap);
   }
   return card;
 }
