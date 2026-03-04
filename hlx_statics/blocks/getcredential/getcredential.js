@@ -139,6 +139,7 @@ let credentialResponse = null;
 let templateData = null;
 let selectedOrganization = null;
 let organizationsData = null;
+let lastRequestAccessEntitlement = null;
 
 // Local storage key for organization
 const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
@@ -1888,7 +1889,7 @@ export default async function decorate(block) {
   let formContainer;
   let requestAccessContainer;
   /** When we show Request Access view, store entitlement (with template) for the modal's accessPlatformAppId and onClose refetch */
-  let lastRequestAccessEntitlement = null;
+  lastRequestAccessEntitlement = null;
   /** Re-render the page after org change: show loading, then form/return or request access. Set after containers exist. */
   let renderPageAfterOrgChange = null;
 
