@@ -1144,9 +1144,10 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
     btn.innerHTML = `<span class="spectrum-Button-label">${restricted.buttonLabel}</span>`;
     btn.disabled = isRequestPending;
     if (!isRequestPending) {
+      btn.classList.add('request-access-request-btn--disabled');
       btn.setAttribute('aria-disabled', 'true');
       btn.setAttribute('aria-label', 'Request access is pending, please wait for approval');
-
+      btn.removeAttribute('data-request-access-trigger');
       const pendingPopover = createTag('div', {
         class: 'request-access-pending-popover hidden',
         role: 'status',
@@ -1167,17 +1168,26 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
       pendingPopover.appendChild(pendingBody);
       pendingPopover.appendChild(pendingLink);
 
+      const pendingInfoTrigger = createTag('button', {
+        type: 'button',
+        class: 'request-access-pending-info-trigger',
+        'aria-label': 'Show pending request details'
+      });
+      pendingInfoTrigger.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+
       const showPendingPopover = () => pendingPopover.classList.remove('hidden');
       const hidePendingPopover = () => pendingPopover.classList.add('hidden');
-      btnWrap.addEventListener('mouseenter', showPendingPopover);
-      btnWrap.addEventListener('mouseleave', hidePendingPopover);
-      btnWrap.addEventListener('focusin', showPendingPopover);
-      btnWrap.addEventListener('focusout', hidePendingPopover);
-      btnWrap.addEventListener('click', (e) => {
+      pendingInfoTrigger.addEventListener('mouseenter', showPendingPopover);
+      pendingInfoTrigger.addEventListener('mouseleave', hidePendingPopover);
+      pendingInfoTrigger.addEventListener('focus', showPendingPopover);
+      pendingInfoTrigger.addEventListener('blur', hidePendingPopover);
+      pendingInfoTrigger.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         pendingPopover.classList.toggle('hidden');
       });
       btnWrap.appendChild(btn);
+      btnWrap.appendChild(pendingInfoTrigger);
       btnWrap.appendChild(pendingPopover);
     } else {
       btn.setAttribute('aria-disabled', 'false');
