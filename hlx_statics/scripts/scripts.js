@@ -850,7 +850,7 @@ function loadPrism(document) {
               const playgroundMode = pre?.getAttribute('data-playground-mode');
 
               const playgroundExecutionMode = pre?.getAttribute('data-playground-execution-mode');
-              const playgroundURL = isStageEnvironment(window.location.host)
+              const playgroundURL = isStageEnvironment(window.location.host) || isHlxPath(window.location.host)
                 ? (pre?.getAttribute('data-playground-url-stage') || pre?.getAttribute('data-playground-url'))
                 : pre?.getAttribute('data-playground-url');
               if (!sessionId || !playgroundMode || !playgroundExecutionMode || !playgroundURL) return null;
