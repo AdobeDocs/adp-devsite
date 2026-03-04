@@ -1143,11 +1143,12 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
     });
     btn.innerHTML = `<span class="spectrum-Button-label">${restricted.buttonLabel}</span>`;
     btn.disabled = isRequestPending;
-    if (!isRequestPending) {
+    if (isRequestPending) {
       btn.classList.add('request-access-request-btn--disabled');
       btn.setAttribute('aria-disabled', 'true');
       btn.setAttribute('aria-label', 'Request access is pending, please wait for approval');
       btn.removeAttribute('data-request-access-trigger');
+      btn.removeClassName('spectrum-Button--fill');
       const pendingPopover = createTag('div', {
         class: 'request-access-pending-popover hidden',
         role: 'status',
