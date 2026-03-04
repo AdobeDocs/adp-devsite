@@ -229,19 +229,23 @@
   --bubble-text-color: #292929;
   display: grid;
   grid-template-columns: 24px auto;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   grid-template-areas:
     "avatar content"
+    "avatar timestamp"
     "avatar sources";
   justify-items: start;
-  gap: 12px;
+  column-gap: 12px;
   width: 100%;
   animation: fadeIn 0.3s ease-in;
   font-size: 16px;
 
   &.chat-bubble-user {
     grid-template-columns: 1fr auto;
-    grid-template-areas: "spacer content";
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "spacer content"
+      "spacer timestamp";
     --bubble-background-color: #7A6AFD;
     --bubble-text-color: #ffffff;
   }
@@ -312,11 +316,31 @@
   flex-shrink: 0;
 }
 
+.chat-bubble .chat-bubble-timestamp {
+  grid-area: timestamp;
+  margin: 0;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #505050;
+  width: 100%;
+
+  &.chat-bubble-timestamp-ai {
+    text-align: left;
+  }
+
+  &.chat-bubble-timestamp-user {
+    text-align: right;
+  }
+}
+
 /* Sources section (AI response references) */
 .chat-bubble .chat-bubble-sources {
   grid-area: sources;
   width: auto;
   margin: 0;
+  margin-top: 16px;
   padding: 0;
 }
 

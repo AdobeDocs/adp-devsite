@@ -25,11 +25,27 @@ const GENERIC_ERROR_MESSAGE =
 
 // #region ChatBubble
 class ChatBubble {
-  constructor({ content, source, isContinuingConversation = false, id }) {
+  /**
+   * Creates a chat bubble for a single message.
+   * @param {Object} options - Constructor options
+   * @param {string} options.content - The message content (markdown-supported)
+   * @param {'user' | 'ai'} options.source - Who sent the message
+   * @param {boolean} [options.isContinuingConversation=false] - True if the previous message was from the same source
+   * @param {string} [options.id] - Optional message ID (used for AI messages and copy button)
+   * @param {number} [options.timestamp] - Optional Unix timestamp in ms; when nullish, no timestamp is shown
+   */
+  constructor({
+    content,
+    source,
+    isContinuingConversation = false,
+    id,
+    timestamp,
+  }) {
     this.content = content;
     this.source = source;
     this.isContinuingConversation = isContinuingConversation;
     this.id = id;
+    this.timestamp = timestamp;
     this.references = null;
     this._copyButton = null;
     /** @type {HTMLElement} */
@@ -51,7 +67,9 @@ class ChatBubble {
       bubble.classList.add("chat-bubble-user");
     }
 
-    if (!this.isContinuingConversation) {
+    if (this.isContinuingConversation) {
+      bubble.style.marginTop = "12px";
+    } else {
       bubble.style.marginTop = "24px";
     }
 
@@ -68,6 +86,20 @@ class ChatBubble {
         contentElement.appendChild(this._copyButton);
       }
       // Otherwise, button will be inserted when showCopyButton() is called
+    }
+
+    if (this.timestamp !== null) {
+      const timestampEl = createTag("p", {
+        class: `chat-bubble-timestamp chat-bubble-timestamp-${this.source}`,
+      });
+      timestampEl.textContent = new Date(this.timestamp)
+        .toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .toLowerCase();
+      bubble.appendChild(timestampEl);
     }
 
     return bubble;
@@ -396,11 +428,12 @@ class ChatHistory {
    * @private
    */
   _sanitizeMessages(messages) {
-    return messages.map(({ id, content, source, references }) => ({
+    return messages.map(({ id, content, source, references, timestamp }) => ({
       ...(id && { id }),
       content,
       source,
       ...(references?.length && { references }),
+      ...(timestamp && { timestamp }),
     }));
   }
 }
@@ -651,6 +684,7 @@ const openChatWindow = () => {
       sendMessage({
         content: "Hello, welcome to Adobe Developer Website!",
         source: "ai",
+        timestamp: null,
       });
     }, 250);
     window.setTimeout(() => {
@@ -773,12 +807,14 @@ const handleUserQuery = async () => {
 // #region Utility fns
 /**
  * Sends a message to the content area and scrolls to the bottom. Also adds the message to the chat history.
- * @param {Object} options - The options for the message
- * @param {string} [options.id] - The ID of the message
+ * @param {Object} [options] - The options for the message
+ * @param {string} [options.id] - The ID of the message (used for AI messages)
  * @param {string} options.content - The content of the message
- * @param {"user" | "ai"} options.source - The source of the
- * @param {boolean} [options.isContinuingConversation=false] - Set this to `true` if the previous message was from the same source
- * @returns {boolean | ChatBubble} - A ChatBubble instance if the message was sent successfully, false otherwise
+ * @param {'user' | 'ai'} options.source - Who sent the message
+ * @param {boolean} [options.isContinuingConversation=false] - Set to `true` if the previous message was from the same source
+ * @param {boolean} [options.shouldAppendToHistory=true] - Set to `false` when restoring history to avoid duplicating entries
+ * @param {number} [options.timestamp=Date.now()] - Unix timestamp in ms; when nullish, no timestamp is shown
+ * @returns {ChatBubble} - The created ChatBubble instance
  */
 const sendMessage = ({
   id,
@@ -786,12 +822,14 @@ const sendMessage = ({
   source,
   isContinuingConversation = false,
   shouldAppendToHistory = true,
+  timestamp = Date.now(),
 } = {}) => {
   const bubble = new ChatBubble({
     id,
     content,
     source,
     isContinuingConversation,
+    timestamp,
   });
 
   if (shouldAppendToHistory) {
@@ -799,6 +837,7 @@ const sendMessage = ({
       id,
       content,
       source,
+      timestamp,
     });
   }
 
@@ -814,12 +853,15 @@ const restoreChatHistory = () => {
   if (messages.length > 0) {
     for (const [
       index,
-      { id, content, source, references },
+      { id, content, source, references, timestamp },
     ] of messages.entries()) {
+      const isLastOfGroup =
+        index === messages.length - 1 || messages[index + 1]?.source !== source;
       const bubble = sendMessage({
         id,
         content,
         source,
+        timestamp: isLastOfGroup ? timestamp : null,
         isContinuingConversation:
           index > 0 && source === messages[index - 1]?.source,
         shouldAppendToHistory: false,
