@@ -862,7 +862,7 @@ export default async function decorate(block) {
     },
   );
 
-  const container = createTag("div", { class: "ai-assistant-container" });
+  const panel = createTag("div", { class: "ai-assistant-panel" });
 
   const chatWindow = createTag("div", {
     class: "chat-window",
@@ -879,10 +879,10 @@ export default async function decorate(block) {
   chatWindow.appendChild(content);
   chatWindow.appendChild(createInputSection());
 
-  container.appendChild(createChatButton());
-  container.appendChild(chatWindow);
+  panel.appendChild(createChatButton());
+  panel.appendChild(chatWindow);
 
-  block.appendChild(container);
+  block.appendChild(panel);
 
   ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);

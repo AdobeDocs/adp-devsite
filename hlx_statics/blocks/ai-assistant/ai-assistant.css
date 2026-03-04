@@ -11,7 +11,7 @@
   pointer-events: none;
 }
 
-.ai-assistant-container {
+.ai-assistant-panel {
   /* From https://github.com/adobe/react-spectrum/blob/1a2b8f860ef2cee6aa579aa6b5e7032ca3be1cb1/packages/%40react-spectrum/s2/src/Button.tsx#L278 */
   --ai-border-linear-gradient: linear-gradient(to bottom right, var(--red-900) 0%, var(--magenta-900) 33%, var(--indigo-900) 100%);
   --container-padding: 40px;
@@ -24,7 +24,7 @@
   height: calc(100vh - 64px);
 }
 
-.ai-assistant-container .chat-button {
+.ai-assistant-panel .chat-button {
   --background-color: #ffffff;
   --size: 48px;
 
@@ -45,7 +45,7 @@
   }
 }
 
-.ai-assistant-container .chat-window {
+.ai-assistant-panel .chat-window {
   flex: 1;
   width: 400px;
   background: #ffffff;
@@ -422,7 +422,7 @@
 
 /* TODO: Rethink/Retest this Responsive design */
 @media screen and (max-width: 768px) {
-  .ai-assistant-container {
+  .ai-assistant-panel {
     --container-padding: 16px;
     
     .chat-window {
