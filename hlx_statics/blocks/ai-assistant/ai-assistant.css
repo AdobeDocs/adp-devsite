@@ -125,7 +125,6 @@
 .chat-window .chat-window-header {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 16px 24px;
   border-bottom: 2px solid #E1E1E1;
   color: #292929;
@@ -135,9 +134,10 @@
     font-size: 18px;
     font-weight: 700;
     flex: 1;
+    margin-left: 12px;
   }
 
-  .chat-window-close {
+  .chat-window-close, .chat-window-minimize {
     background: none;
     border: none;
     padding: 0;
@@ -148,16 +148,16 @@
     overflow: hidden;
     align-self: flex-end;
 
-    img {
-      width: 140%;
-      height: 140%;
-      margin-top: -20%;
-      margin-left: -20%;
-    }
-
     &:hover {
       background: #e1e1e1;
     }
+  }
+
+  .chat-window-close img {
+    width: 140%;
+    height: 140%;
+    margin-top: -20%;
+    margin-left: -20%;
   }
 }
 

@@ -14,6 +14,7 @@ const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
 const ELEMENTS = {
   CHAT_BUTTON: null,
   CHAT_WINDOW_CLOSE_BUTTON: null,
+  CHAT_WINDOW_MINIMIZE_BUTTON: null,
   CHAT_SEND_BUTTON: null,
   CHAT_TEXTAREA: null,
   CHAT_WINDOW: null,
@@ -624,6 +625,18 @@ const createChatWindowHeader = () => {
     id: CHAT_WINDOW_LABEL_ID,
   });
   label.textContent = "Adobe Developer AI assistant";
+  const minimizeButton = createTag("button", {
+    class: "chat-window-minimize",
+    type: "button",
+    "aria-label": CHAT_BUTTON_LABEL_CLOSE,
+  });
+  const minimizeButtonIcon = createTag("img", {
+    src: "/hlx_statics/icons/chevron-down.svg",
+    alt: "",
+    "aria-hidden": true,
+  });
+  minimizeButton.appendChild(minimizeButtonIcon);
+
   const closeButton = createTag("button", {
     class: "chat-window-close",
     type: "button",
@@ -637,7 +650,9 @@ const createChatWindowHeader = () => {
   closeButton.appendChild(closeButtonIcon);
 
   chatWindowHeader.appendChild(label);
+  chatWindowHeader.appendChild(minimizeButton);
   chatWindowHeader.appendChild(closeButton);
+  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON = minimizeButton;
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON = closeButton;
   return chatWindowHeader;
 };
@@ -1021,6 +1036,10 @@ export default async function decorate(block) {
   block.appendChild(panel);
 
   ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
+  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON.addEventListener(
+    "click",
+    closeChatWindow,
+  );
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
   ELEMENTS.CHAT_SEND_BUTTON.addEventListener("click", handleUserQuery);
   ELEMENTS.CHAT_TEXTAREA.addEventListener("keydown", (e) => {
