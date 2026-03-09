@@ -19,10 +19,10 @@
   /* From https://github.com/adobe/react-spectrum/blob/1a2b8f860ef2cee6aa579aa6b5e7032ca3be1cb1/packages/%40react-spectrum/s2/src/Button.tsx#L278 */
   --ai-border-linear-gradient: linear-gradient(to bottom right, var(--red-900) 0%, var(--magenta-900) 33%, var(--indigo-900) 100%);
   --container-padding: 40px;
+  --button-size: 48px;
 
   display: flex;
   flex-direction: column-reverse;
-  gap: 12px;
   padding: var(--container-padding);
   padding-top: 24px;
   height: calc(100vh - 64px);
@@ -33,11 +33,10 @@
  */
 .ai-assistant-panel .chat-button {
   --background-color: #ffffff;
-  --size: 48px;
 
   position: relative;
-  width: var(--size);
-  height: var(--size);
+  width: var(--button-size);
+  height: var(--button-size);
   border-radius: 50%;
   border: 2px solid transparent;
   padding: 0;
@@ -50,37 +49,61 @@
   &:hover {
     --background-color: #f0f0f0;
   }
+
+  &.hidden {
+    visibility: hidden;
+  }
 }
 
 /*
  * MARK: Chat Window
  */
 .ai-assistant-panel .chat-window {
-  flex: 1;
-  width: 400px;
-  background: #ffffff;
-  border-radius: 8px;
+  --transition-duration: 0.25s;
+  width: var(--button-size);
+  height: var(--button-size);
+  border-radius: calc(var(--button-size) / 2);
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    var(--ai-border-linear-gradient) border-box;
   /* Drop shadow/elevated (pretty much copy pasta from Figma) */
   box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12), 0 2px 6px 0 rgba(0, 0, 0, 0.04), 0 4px 12px 0 rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
+  transform: translateY(var(--button-size));
   visibility: hidden;
-  transition: opacity 0.25s ease-out,
-    transform 0.25s ease-out,
-    visibility 0s linear 0.25s; /* Delay visibility change */
+  border: solid transparent;
+  border-width: 2px;
+
+  transition: width var(--transition-duration) ease-out var(--transition-duration),
+    height var(--transition-duration) ease-out var(--transition-duration),
+    border-radius var(--transition-duration) ease-out,
+    border-width var(--transition-duration) linear,
+    visibility 0s linear calc(var(--transition-duration) * 2);
+
+  .chat-window-header, .chat-window-content, .chat-window-input-section {
+    opacity: 0;
+    transition: opacity var(--transition-duration) ease-out 0s;
+  }
 
   &.show {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    width: 400px;
+    height: 100%;
+    border-radius: 8px;
     visibility: visible;
-    transition: opacity 0.25s ease-out,
-      transform 0.25s ease-out,
-      visibility 0s linear 0s; /* No delay when showing */
+    transition: width var(--transition-duration) ease-out,
+      height var(--transition-duration) ease-out,
+      border-radius var(--transition-duration) ease-out var(--transition-duration),
+      border-width var(--transition-duration) linear var(--transition-duration),
+      visibility 0s linear 0s;
     pointer-events: auto;
+    border-width: 0px;
+
+    .chat-window-header, .chat-window-content, .chat-window-input-section {
+      opacity: 1;
+      transition: opacity var(--transition-duration) ease-out calc(var(--transition-duration) * 2);
+    }
   }
 
   .chat-ai-avatar {

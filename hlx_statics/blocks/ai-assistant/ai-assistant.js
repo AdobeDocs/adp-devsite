@@ -740,6 +740,7 @@ const openChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_CLOSE;
   ELEMENTS.CHAT_WINDOW.classList.add("show");
+  ELEMENTS.CHAT_BUTTON.classList.add("hidden");
 
   // Initial messages
   if (chatHistory.isEmpty()) {
@@ -760,11 +761,14 @@ const openChatWindow = () => {
     }, 500);
     window.setTimeout(showSuggestedQuestions, 750);
   }
+
+  ELEMENTS.CHAT_TEXTAREA.focus();
 };
 
 const closeChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "false");
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
+  ELEMENTS.CHAT_BUTTON.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW.classList.remove("show");
 };
 
