@@ -8,7 +8,8 @@ import {
 const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
 const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
 const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
-const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
+const CHAT_BUTTON_LABEL_CLOSE = "Close and clear AI Assistant";
+const CHAT_BUTTON_LABEL_MINIMIZE = "Minimize AI Assistant";
 const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
 const ELEMENTS = {
@@ -628,7 +629,7 @@ const createChatWindowHeader = () => {
   const minimizeButton = createTag("button", {
     class: "chat-window-minimize",
     type: "button",
-    "aria-label": CHAT_BUTTON_LABEL_CLOSE,
+    "aria-label": CHAT_BUTTON_LABEL_MINIMIZE,
   });
   const minimizeButtonIcon = createTag("img", {
     src: "/hlx_statics/icons/chevron-down.svg",
@@ -753,7 +754,7 @@ const hideSuggestedQuestions = () => {
 // #region Interaction fns
 const openChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
-  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_CLOSE;
+  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_MINIMIZE;
   ELEMENTS.CHAT_WINDOW.classList.add("show");
   ELEMENTS.CHAT_BUTTON.classList.add("hidden");
 
@@ -780,16 +781,30 @@ const openChatWindow = () => {
   ELEMENTS.CHAT_TEXTAREA.focus();
 };
 
-const closeChatWindow = () => {
+const minimizeChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "false");
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
   ELEMENTS.CHAT_BUTTON.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW.classList.remove("show");
 };
 
+const closeChatWindow = () => {
+  minimizeChatWindow();
+  chatHistory.clear();
+  ELEMENTS.CHAT_WINDOW_CONTENT.addEventListener(
+    "transitionend",
+    () => {
+      ELEMENTS.CHAT_WINDOW_CONTENT.replaceChildren(
+        ELEMENTS.CHAT_SUGGESTED_QUESTIONS,
+      );
+    },
+    { once: true },
+  );
+};
+
 const toggleChatWindow = () => {
   if (ELEMENTS.CHAT_WINDOW.classList.contains("show")) {
-    closeChatWindow();
+    minimizeChatWindow();
   } else {
     openChatWindow();
   }
@@ -1038,7 +1053,7 @@ export default async function decorate(block) {
   ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
   ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON.addEventListener(
     "click",
-    closeChatWindow,
+    minimizeChatWindow,
   );
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
   ELEMENTS.CHAT_SEND_BUTTON.addEventListener("click", handleUserQuery);
