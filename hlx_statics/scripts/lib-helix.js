@@ -224,13 +224,21 @@ export async function fetchRedirectJson() {
   return redirectJSON;
 }
 
-export async function hasContributorsJson() {
+export async function getContributorsJsonPath() {
   const metadata = await fetchSiteMetadata();
-  if (metadata) {
-    return !!metadata.get('contributors');
-  }
+  const metadataPath = metadata?.get('contributors');
+  if (metadata && !metadataPath) return null;
 
-  return fetch(`${window.location.origin}/${getMetadata('pathprefix').replace(/^\/|\/$/g, '')}/contributors.json`)
+  const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
+  return metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/contributors.json`;
+}
+
+export async function hasContributorsJson() {
+  const path = await getContributorsJsonPath();
+  if (!path) return false;
+  return fetch(path)
     .then(r => r.ok)
     .catch(() => false);
 }
