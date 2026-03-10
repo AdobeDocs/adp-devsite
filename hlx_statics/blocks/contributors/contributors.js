@@ -1,4 +1,32 @@
+import { getMetadata, getContributorsJsonPath } from '../../scripts/lib-helix.js';
 import insertWrapperContainer from '../../components/wrapperContainer.js';
+
+async function fetchContributorsData() {
+  try {
+    const pathPrefix = getMetadata('pathprefix');
+    const pagePath = window.location.pathname;
+    if (!pathPrefix || !pagePath || !pagePath.startsWith(pathPrefix)) {
+      return null;
+    }
+    
+    const jsonPath = await getContributorsJsonPath();
+    if (!jsonPath) return null;
+
+    const response = await fetch(jsonPath);
+    if (!response.ok) {
+      console.warn('Network response was not ok:', jsonPath);
+      return null;
+    }
+
+    const json = await response.json();
+    const page = pagePath.slice(pathPrefix.length);
+    return json?.data?.find(item => item.page === page) ?? null;
+
+  } catch (e) {
+    console.error('Contributors fetch error:', e);
+    return null;
+  }
+}
 
 /**
  * Decorates the contributors block
@@ -38,13 +66,12 @@ export default async function decorate(block) {
   modal.innerHTML = modalHTML;
   document.body.appendChild(modal);
 
-  const github_user_profile_pic = [
-    "https://github.com/hollyschinsky.png",
-    "https://github.com/vamshich13.png",
-    "https://github.com/nimithajalal.png"
-  ];
+  const data = await fetchContributorsData();
+  const avatars = data?.avatars ?? [];
+  const lastUpdated = data?.lastUpdated ?? '';
 
-  const contribution_date = "2/21/2024";
+  const blobUrl = getMetadata('githubblobpath');
+  const commitsUrl = blobUrl?.replace('/blob/', '/commits/');
 
   const firstDiv = block.querySelector('div');
   firstDiv.classList.add("contributors-content");
@@ -57,14 +84,16 @@ export default async function decorate(block) {
 
   const lastUpdate = document.createElement("div");
   lastUpdate.classList.add("lastUpdateDetails");
-  const lastUpdateWrapper = document.createElement("a");
-  lastUpdateWrapper.href = "https://github.com/AdobeDocs/express-add-ons-docs/commits/main/src/pages/references/index.md";
-  lastUpdateWrapper.target = "_blank";
-  lastUpdate.appendChild(lastUpdateWrapper);
+  const lastUpdatedWrapper = document.createElement("a");
+  if (commitsUrl) {
+    lastUpdatedWrapper.href = commitsUrl;
+    lastUpdatedWrapper.target = "_blank";
+  }
+  lastUpdate.appendChild(lastUpdatedWrapper);
 
   const imageList = document.createElement("div");
   imageList.classList.add("imageList");
-  github_user_profile_pic.forEach(src => {
+  avatars.forEach(src => {
     const img = document.createElement('img');
     img.src = src;
     img.classList.add("image-contributor");
@@ -73,11 +102,12 @@ export default async function decorate(block) {
     span.appendChild(img);
     imageList.appendChild(span);
   });
-  lastUpdateWrapper.appendChild(imageList);
+  lastUpdatedWrapper.appendChild(imageList);
 
-  const imageTextWrapper = document.createElement("span");
-  imageTextWrapper.innerText = `Last updated ${contribution_date}`;
-  lastUpdateWrapper.appendChild(imageTextWrapper);
+  const lastUpdatedText = document.createElement("span");
+  lastUpdatedText.classList.add("lastUpdatedText");
+  lastUpdatedText.innerText = lastUpdated ? `Last updated ${lastUpdated}` : '';
+  lastUpdatedWrapper.appendChild(lastUpdatedText);
 
   const feedback = document.createElement("div");
   feedback.classList.add("feedback");
