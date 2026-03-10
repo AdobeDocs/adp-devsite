@@ -45,6 +45,11 @@ main div.contributors-wrapper .imageList {
     padding-left: 16px;
 }
 
+main div.contributors-wrapper .imageList:empty,
+main div.contributors-wrapper .lastUpdatedText:empty {
+    display: none;
+}
+
 .contributor-modal .model-comp-contributors {
     display: flex;
     justify-content: center;
