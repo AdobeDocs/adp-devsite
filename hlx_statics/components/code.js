@@ -97,7 +97,7 @@ function stripPlaygroundMetadataFromCodeContent(pre, code) {
  * sets the corresponding data attributes on both pre and code (e.g. data-playground-session-id).
  * Also cleans the class list to only keep the language class. Use so "Try in playground" works.
  */
-export function applyDataAttributesFromCodeClasses(pre, code) {
+function applyDataAttributesFromCodeClasses(pre, code) {
   if (!pre || !code) return;
   [...code.classList].forEach((cls) => {
     if (cls.includes('-data')) {
@@ -133,6 +133,7 @@ export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre');
   const code = block.querySelector('code');
 
+  applyDataAttributesFromCodeClasses(pre, code);
   stripPlaygroundMetadataFromCodeContent(pre, code);
 
   if(pre && IS_DEV_DOCS){

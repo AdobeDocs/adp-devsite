@@ -1,4 +1,4 @@
-import decoratePreformattedCode, { applyDataAttributesFromCodeClasses, applyLanguageDirectives, extractLanguageDirectives } from '../../components/code.js';
+import decoratePreformattedCode, { applyLanguageDirectives } from '../../components/code.js';
 
 export default function decorate(block) {
   const code = block.querySelector('code');
@@ -10,9 +10,9 @@ export default function decorate(block) {
     code.parentElement.replaceChild(pre, code);
     pre.appendChild(code);
   }
-  applyDataAttributesFromCodeClasses(pre, code);
 
-  const languageClass = [...pre.classList].find(cls => cls.startsWith('language-'));
+  const languageClass = [...pre.classList].find(cls => cls.startsWith('language-'))
+    || (code && [...code.classList].find(cls => cls.startsWith('language-')));
   let language = languageClass ? languageClass.replace('language-', '') : 'none';
 
   if (language) {
