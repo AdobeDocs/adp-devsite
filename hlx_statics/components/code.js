@@ -56,6 +56,43 @@ export function applyLanguageDirectives(pre, codeEl, languageText) {
   }
 }
 
+/**
+ * Parses code element classes like "language-js-data-playground-session-id=\"x\"" and
+ * sets the corresponding data attributes on both pre and code (e.g. data-playground-session-id).
+ * Also cleans the class list to only keep the language class. Use so "Try in playground" works.
+ */
+export function applyDataAttributesFromCodeClasses(pre, code) {
+  if (!pre || !code) return;
+  [...code.classList].forEach((cls) => {
+    if (cls.includes('-data')) {
+      const parts = cls.split('-data');
+      const languagePart = parts.find((item) => item.includes('language-'));
+
+      parts.forEach((item) => {
+        if (!item.includes('language-') && item.includes('=')) {
+          const match = item.match(/^-?([^=]+)="?([^"]*)"?$/);
+          if (match) {
+            const attrName = `data-${match[1]}`;
+            const attrValue = match[2];
+            pre.setAttribute(attrName, attrValue);
+            code.setAttribute(attrName, attrValue);
+          }
+        }
+      });
+
+      code.classList.remove(cls);
+      pre.classList.remove(cls);
+      if (languagePart) {
+        const cleanClass = languagePart.trim();
+        code.classList.add(cleanClass);
+        pre.classList.add(cleanClass);
+      }
+    } else {
+      pre.classList.add(cls);
+    }
+  });
+}
+
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre');
   const code = block.querySelector('code');
