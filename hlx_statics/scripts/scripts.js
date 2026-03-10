@@ -15,6 +15,7 @@ import {
   addFavIcon,
   getMetadata,
   IS_DEV_DOCS,
+  IS_AI_ASSISTANT_ENABLED,
   toCamelCase,
   toClassName,
   githubActionsBlock,
@@ -813,8 +814,10 @@ async function loadLazy(doc) {
     }
   }
 
-  buildAiAssistant(main);
-  loadAiAssistant(doc.querySelector('.ai-assistant-wrapper'));
+  if (IS_AI_ASSISTANT_ENABLED) {
+    buildAiAssistant(main);
+    loadAiAssistant(doc.querySelector('.ai-assistant-wrapper'));
+  }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   addFavIcon('/hlx_statics/icons/adobe.svg');
