@@ -6,6 +6,7 @@
 
 import { createTag, isLocalHostEnvironment, isStageEnvironment } from "../../scripts/lib-adobeio.js";
 import { getMetadata } from "../../scripts/scripts.js";
+import { fetchSiteMetadata } from "../../scripts/lib-helix.js";
 import {
   createFieldLabel,
   createSpectrumButton,
@@ -13,10 +14,14 @@ import {
   createDivider,
   createProjectHeader,
   createCredentialSection,
+  createAccessTokenSection,
   createOrgNotice,
   separator,
   showToast,
-  downloadZipViaApi
+  downloadZipViaApi,
+  createRequestAccessModal,
+  createRequestAccessIframeModal,
+  createOrganizationModal
 } from "./getcredential-components.js";
 
 // ============================================================================
@@ -134,9 +139,13 @@ let credentialResponse = null;
 let templateData = null;
 let selectedOrganization = null;
 let organizationsData = null;
+let lastRequestAccessEntitlement = null;
 
 // Local storage key for organization
 const LOCAL_STORAGE_ORG_KEY = 'adobe_selected_organization';
+
+// Form config: used so button state only requires fields that exist in the form
+let formHasAllowedOrigins = true;
 
 // ============================================================================
 // API FUNCTIONS
@@ -162,10 +171,6 @@ async function getOrgIdWithFallback(initialOrgId = null) {
         if (profile?.projectedProductContext && profile.projectedProductContext.length > 0) {
           orgId = profile.projectedProductContext[0].prodCtx.owningEntity;
         }
-      }
-      
-      if (orgId) {
-        console.log('[GET ORG ID] orgId fallback resolved:', orgId);
       }
     } catch (error) {
       console.error('[GET ORG ID] Failed to get default orgId:', error);
@@ -317,6 +322,58 @@ async function fetchExistingCredentials(orgCode) {
   return null;
 }
 
+/**
+ * Fetch template entitlement for current org (same API as React GetCredential).
+ * @returns {Promise<{ userEntitled: boolean, orgEntitled: boolean, disEntitledReasons?: string[], canRequestAccess?: boolean }|null>}
+ */
+async function fetchTemplateEntitlement() {
+  const token = window.adobeIMS?.getTokenFromStorage()?.token;
+  const templateId = templateData?.id;
+  const orgCode = selectedOrganization?.code || selectedOrganization?.id;
+  if (!token || !templateId) return null;
+  try {
+    const url = `/templates/${templateId}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
+    };
+    if (orgCode) headers['x-org-id'] = orgCode;
+    const response = await fetch(url, { method: 'GET', headers });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const userEntitled = data?.userEntitled !== false;
+    const orgEntitled = data?.orgEntitled !== false;
+    const disEntitledReasons = data?.disEntitledReasons;
+    const canRequestAccess = data?.canRequestAccess;
+    return { userEntitled, orgEntitled, disEntitledReasons, canRequestAccess, template: data };
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Derive which left-column card to show (same logic as React RestrictedAccess render()).
+ * 4 edge cases from config.RequestAccess.components.EdgeCase.components:
+ *   Type1User, NotSignUp, NoProduct, NotMember.
+ * When template.canRequestAccess === true we show the main RestrictedAccess card (products + Request access button).
+ * @param {Object} entitlement - Result from fetchTemplateEntitlement()
+ * @param {Object} selectedOrg - selectedOrganization
+ * @param {Object} requestAccessConfig - credentialData.RequestAccess
+ * @returns {string|null} EdgeCase key ('Type1User'|'NotSignUp'|'NoProduct'|'NotMember') or null for RestrictedAccess card
+ */
+function getRequestAccessLeftCardKey(entitlement, selectedOrg, requestAccessConfig) {
+  if (!entitlement) return null;
+  const disEntitledReason = Array.isArray(entitlement.disEntitledReasons) ? entitlement.disEntitledReasons[0] : null;
+  const hasType1User = requestAccessConfig?.components?.EdgeCase?.components?.Type1User;
+
+  if (selectedOrg?.type === 'developer' && hasType1User) return 'Type1User';
+  if (disEntitledReason === 'USER_MISSING_PUBLIC_BETA') return 'NotSignUp';
+  if (disEntitledReason === 'ORG_MISSING_FIS') return 'NoProduct';
+  if (entitlement.canRequestAccess === true) return null;
+  return 'NotMember';
+}
+
 function populateProjectsDropdown(returnContainer, projectsData) {
 
   const dropdown = returnContainer?.querySelector('.projects-picker');
@@ -334,20 +391,6 @@ function populateProjectsDropdown(returnContainer, projectsData) {
     projects = projectsData.projects;
   } else {
     projects = [];
-  }
-
-  // Log summary of all projects with their key data
-  projects.forEach((proj, idx) => {
-    const workspace = proj.workspaces?.[0];
-    const credential = workspace?.credentials?.[0];
-  });
-
-  // Log first project structure for debugging
-  if (projects.length > 0) {
-    if (projects[0].workspaces?.[0]) {
-      if (projects[0].workspaces[0].credentials?.[0]) {
-      }
-    }
   }
 
   // Clear existing options
@@ -373,22 +416,15 @@ function populateProjectsDropdown(returnContainer, projectsData) {
 
     if (selectedProject) {
       updateProjectCardDetails(returnContainer, selectedProject);
-    } else {
-      console.error('Project not found in array:', selectedProjectId);
     }
 
   });
 
-  // Set default selection to first project (by ID)
   if (projects[0]?.id) {
     dropdown.value = projects[0].id;
-
-    // Update card with project data (search API already includes workspaces/credentials)
     updateProjectCardDetails(returnContainer, projects[0]);
-  } else {
   }
-
-  return true; // Return true to indicate projects exist
+  return true;
 }
 
 function updateProjectCardDetails(returnContainer, project) {
@@ -419,9 +455,12 @@ function updateProjectCardDetails(returnContainer, project) {
     || 'Not set';
 
   const orgName = selectedOrganization?.name || 'Unknown';
+  const clientId = credential?.clientId || project.clientId || apiKey;
+  const clientSecret = credential?.clientSecret;
+  const scopes = credential?.scopes;
+  const imsOrgId = selectedOrganization?.code;
 
   // Update project title
-
   const projectTitle = returnContainer.querySelector('.project-title');
   if (projectTitle) {
     projectTitle.textContent = projectName;
@@ -440,35 +479,32 @@ function updateProjectCardDetails(returnContainer, project) {
     }
   }
 
-  // Update API Key
-  const apiKeyElement = returnContainer.querySelector('.return-project-card [data-field="apiKey"]')
-    || returnContainer.querySelector('[data-field="apiKey"]');
-  if (apiKeyElement) {
-    apiKeyElement.textContent = apiKey;
-    const copyButton = apiKeyElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && apiKey !== 'Not available') {
-      copyButton.setAttribute('data-copy', apiKey);
+  function setReturnField(fieldName, value, isCopyable = true) {
+    const el = returnContainer.querySelector(`.return-project-card [data-field="${fieldName}"]`) || returnContainer.querySelector(`[data-field="${fieldName}"]`);
+    if (!el || value == null || value === '') return;
+    el.textContent = value;
+    if (isCopyable && value !== 'Not available' && value !== 'Not set') {
+      const copyButton = el.closest('.credential-detail-field')?.querySelector('.copy-button');
+      if (copyButton) copyButton.setAttribute('data-copy', value);
     }
   }
 
-  // Update Allowed Origins
-  const originsElement = returnContainer.querySelector('.return-project-card [data-field="allowedOrigins"]')
-    || returnContainer.querySelector('[data-field="allowedOrigins"]');
-  if (originsElement) {
-    originsElement.textContent = allowedOrigins;
-    const copyButton = originsElement.closest('.credential-detail-field')?.querySelector('.copy-button');
-    if (copyButton && allowedOrigins !== 'Not set') {
-      copyButton.setAttribute('data-copy', allowedOrigins);
-    }
-  }
+  setReturnField('apiKey', apiKey);
+  setReturnField('allowedOrigins', allowedOrigins);
+  setReturnField('organization', orgName, false);
+  setReturnField('clientId', clientId);
+  setReturnField('clientSecret', clientSecret);
+  setReturnField('scopes', scopes, false);
+  setReturnField('imsOrgId', imsOrgId, false);
 
-  // Update Organization
-  const orgElement = returnContainer.querySelector('.return-project-card [data-field="organization"]')
-    || returnContainer.querySelector('[data-field="organization"]');
-  if (orgElement) {
-    orgElement.textContent = orgName;
+  // Set data for "Retrieve and copy client secret" API (secrets endpoint)
+  const card = returnContainer.querySelector('.return-project-card');
+  const credId = credential?.id ?? projectId;
+  const orgCode = selectedOrganization?.code ?? selectedOrganization?.id;
+  if (card && orgCode && credId) {
+    card.dataset.orgCode = orgCode;
+    card.dataset.integrationId = String(credId);
   }
-
 }
 
 async function fetchOrganizations() {
@@ -547,84 +583,6 @@ async function fetchOrganizations() {
   return null;
 }
 
-// async function getCredentialSecrets(response, orgCode) {
-
-//   const token = window.adobeIMS?.getTokenFromStorage()?.token;
-
-//   if (!token) {
-//     return null;
-//   }
-
-//   try {
-//     // Get project/credential ID from response
-//     const projectId = response?.workspaces
-//       ? response.workspaces[0]?.credentials[0]?.id
-//       : response?.id;
-
-//     const selectedOrgCode = orgCode || selectedOrganization?.code;
-
-//     if (!selectedOrgCode || !projectId) {
-//       return null;
-//     }
-
-//     const secretsUrl = `/console/api/organizations/${selectedOrgCode}/integrations/${projectId}/secrets`;
-
-//     const secretsResponse = await fetch(secretsUrl, {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Authorization': `Bearer ${token}`,
-//         'x-api-key': window?.adobeIMS?.adobeIdData?.client_id,
-//       },
-//     });
-
-//     if (secretsResponse.ok) {
-//       const secrets = await secretsResponse.json();
-
-//       const secret = secrets.client_secrets?.[0]?.client_secret;
-//       const result = {
-//         clientId: secrets?.client_id,
-//         clientSecret: secret
-//       };
-//       return result;
-//     }
-//   } catch (error) {
-//     // Error handled
-//   }
-
-//   return null;
-// }
-
-// async function generateToken(apiKey, secret, scopesDetails) {
-
-//   try {
-//     const options = {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/x-www-form-urlencoded',
-//       },
-//       body: new URLSearchParams({
-//         client_id: apiKey,
-//         client_secret: secret,
-//         grant_type: 'client_credentials',
-//         scope: scopesDetails?.scope || '',
-//       }),
-//     };
-
-//     const url = '/ims/token/v3';
-//     const tokenResponse = await fetch(url, options);
-
-//     if (tokenResponse.ok) {
-//       const tokenJson = await tokenResponse.json();
-//       return tokenJson.access_token;
-//     }
-//   } catch (error) {
-//     // Error handled
-//   }
-
-//   return null;
-// }
-
 async function switchOrganization(org) {
 
   const profile = await window.adobeIMS?.getProfile();
@@ -633,8 +591,6 @@ async function switchOrganization(org) {
   if (!org) {
     // This means it's initial load. Try reading from local storage
     const savedOrgString = localStorage.getItem(LOCAL_STORAGE_ORG_KEY);
-    if (!savedOrgString) {
-    }
     const orgInLocalStorage = savedOrgString ? JSON.parse(savedOrgString) : null;
 
     // Check if the user has access to the org
@@ -729,14 +685,27 @@ function updateCredentialCard(cardContainer, responseData) {
 
   if (!cardContainer || !responseData) return;
 
-  // Extract data based on actual API response structure
-  // API Response: { apiKey, projectId, id, orgId, workspaceId, subscriptionResult }
+  // Integration ID for secrets API: workspaces[0].credentials[0].id or projectId/id
+  const integrationId = responseData?.workspaces?.[0]?.credentials?.[0]?.id
+    ?? responseData.projectId
+    ?? responseData.id;
+  const orgCode = selectedOrganization?.code ?? selectedOrganization?.id;
+  const card = cardContainer?.querySelector?.('.project-card') || cardContainer;
+  if (card && orgCode && integrationId) {
+    card.dataset.orgCode = orgCode;
+    card.dataset.integrationId = String(integrationId);
+  }
 
-  const projectName = formData.CredentialName; // From form input
+  // Extract data: support both API Key (apiKey, allowedOrigins) and OAuth (clientId, clientSecret, scopes, imsOrgId) shapes
+  const projectName = formData.CredentialName;
   const projectId = responseData.projectId || responseData.id;
-  const apiKey = responseData.apiKey; // Direct from response
-  const allowedOrigins = formData.AllowedOrigins; // From form textarea
-  const orgName = selectedOrganization?.name; // From selected org
+  const apiKey = responseData.apiKey || responseData.clientId;
+  const allowedOrigins = formData.AllowedOrigins;
+  const orgName = selectedOrganization?.name;
+  const clientId = responseData.clientId || responseData.apiKey;
+  const clientSecret = responseData.clientSecret;
+  const scopes = responseData.scopes;
+  const imsOrgId = responseData.imsOrgId || responseData.orgId || selectedOrganization?.code;
 
   // Update project title
   const projectTitle = cardContainer.querySelector('.project-title');
@@ -744,72 +713,42 @@ function updateCredentialCard(cardContainer, responseData) {
     projectTitle.textContent = projectName;
   }
 
-  // Update API Key value (try multiple selectors)
-  let apiKeyValue = cardContainer.querySelector('[data-field="apiKey"]');
-  if (!apiKeyValue) {
-    apiKeyValue = cardContainer.querySelector('.credential-detail-field:nth-child(1) .credential-detail-value');
-  }
-
-  if (apiKeyValue && apiKey) {
-    apiKeyValue.textContent = apiKey;
-
-    // Update copy button data attribute
-    const copyButton = apiKeyValue.closest('.credential-detail-field')?.querySelector('.copy-button')
-      || apiKeyValue.parentElement?.querySelector('.copy-button');
-    if (copyButton) {
-      copyButton.setAttribute('data-copy', apiKey);
+  function setFieldValue(fieldName, value, isCopyable = true) {
+    const valueEl = cardContainer.querySelector(`[data-field="${fieldName}"]`);
+    if (!valueEl || value == null || value === '') return;
+    const isValue = valueEl.classList.contains('credential-detail-value');
+    valueEl.textContent = value;
+    if (isCopyable && value !== 'Not available' && value !== 'Not set') {
+      const copyButton = valueEl.closest('.credential-detail-field')?.querySelector('.copy-button')
+        || valueEl.parentElement?.querySelector('.copy-button');
+      if (copyButton) copyButton.setAttribute('data-copy', value);
     }
   }
 
-  // Update Allowed Origins value (try multiple selectors)
-  let originsValue = cardContainer.querySelector('[data-field="allowedOrigins"]');
-  if (!originsValue) {
-    originsValue = cardContainer.querySelector('.credential-detail-field:nth-child(2) .credential-detail-value');
-  }
-
-  if (originsValue && allowedOrigins) {
-    originsValue.textContent = allowedOrigins;
-    // Update copy button data attribute
-    const copyButton = originsValue.closest('.credential-detail-field')?.querySelector('.copy-button')
-      || originsValue.parentElement?.querySelector('.copy-button');
-    if (copyButton) {
-      copyButton.setAttribute('data-copy', allowedOrigins);
-    }
-  }
-
-  // Update Organization Name (try multiple selectors)
-  let orgNameValue = cardContainer.querySelector('[data-field="organization"]');
-  if (!orgNameValue) {
-    orgNameValue = cardContainer.querySelector('.credential-detail-field:nth-child(3) .credential-detail-text');
-  }
-
-  if (orgNameValue && orgName) {
-    orgNameValue.textContent = orgName;
-  }
+  setFieldValue('apiKey', apiKey);
+  setFieldValue('allowedOrigins', allowedOrigins);
+  setFieldValue('organization', orgName, false);
+  setFieldValue('clientId', clientId);
+  setFieldValue('clientSecret', clientSecret);
+  setFieldValue('scopes', scopes, false);
+  setFieldValue('imsOrgId', imsOrgId, false);
 
   // Update project link if available
   if (projectId && projectName) {
     const projectLink = cardContainer.querySelector('.project-link');
-
-    // Build complete console URL with org ID and workspace ID
     const orgId = selectedOrganization?.id || responseData.orgId;
-
     const consoleUrl = `/console/projects/${orgId}/${projectId}/overview`;
 
     if (projectLink) {
       projectLink.href = consoleUrl;
-
-      // Update the text inside the <p> tag with project NAME (not ID)
       const projectLinkText = projectLink.querySelector('p');
       if (projectLinkText) {
-        projectLinkText.textContent = projectName;  // Show project name from form
+        projectLinkText.textContent = projectName;
       } else {
-        projectLink.textContent = projectName;  // Show project name from form
+        projectLink.textContent = projectName;
       }
-
     }
   }
-
 }
 
 function handleInputChange(value, fieldName) {
@@ -876,7 +815,7 @@ function updateButtonState() {
   }
 
   const isCredentialNameValid = validationState.CredentialName.valid;
-  const isAllowedOriginsValid = validationState.AllowedOrigins.valid;
+  const isAllowedOriginsValid = !formHasAllowedOrigins || validationState.AllowedOrigins.valid;
   const isCredentialNameFilled = formData.CredentialName.trim() !== '';
   const isAgreementChecked = formData.AdobeDeveloperConsole;
 
@@ -1000,11 +939,8 @@ function createDownloadsField(config) {
 
   // Set default download based on number of options
   if (config.items && config.items.length > 0) {
-    // Always set the first item as default
     const firstDownload = config.items[0].Download;
     formData.Download = firstDownload;
-  } else {
-    console.warn('[DOWNLOAD FIELD] No download items in config');
   }
 
   if (config.items?.length > 1) {
@@ -1137,7 +1073,9 @@ function createAgreementField(config) {
 
 function createSideContent(config) {
   const sideContainer = createTag('div', { class: 'side-content' });
-
+  if (!config?.content?.elements) return sideContainer;
+  const style = config.content.style;
+  if (style) Object.assign(sideContainer.style, style);
   config.content.elements.forEach(element => {
     const el = createTag(element.type, { class: element.className || '' });
     if (element.style) Object.assign(el.style, element.style);
@@ -1145,8 +1083,241 @@ function createSideContent(config) {
     el.textContent = element.text;
     sideContainer.appendChild(el);
   });
-
   return sideContainer;
+}
+
+/**
+ * Build the left-column card for Request Access: either RestrictedAccess (products + Request access button)
+ * or an EdgeCase variant (title, optional description, optional "Change organization?" link, outline button).
+ * @param {Object} [options] - Optional: { selectedOrganization, userEmail } for org message and description placeholder
+ */
+function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
+  const edgeCases = config.components?.EdgeCase?.components;
+  const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
+  if (edgeCase) {
+    return buildEdgeCaseCard(config, edgeCaseKey, options);
+  }
+  const restricted = config.components?.RestrictedAccess;
+  if (!restricted) return null;
+  const card = createTag('div', { class: 'request-access-restricted-card' });
+  if (restricted.title) {
+    const titleRow = createTag('div', { class: 'request-access-restricted-title-row' });
+    const cardTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-restricted-title' });
+    cardTitle.textContent = restricted.title;
+    titleRow.appendChild(cardTitle);
+    const infoIcon = createTag('span', { class: 'request-access-restricted-info-icon', 'aria-label': 'Information' });
+    infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+    titleRow.appendChild(infoIcon);
+    card.appendChild(titleRow);
+  }
+  const orgName = selectedOrganization?.name || selectedOrganization?.code || 'this organization';
+  const introPara = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-restricted-intro' });
+  introPara.innerHTML = `You're creating this credential in <strong>[${orgName}]</strong> but you do not have a developer access in this organization and need admin approval to use this API. <a href="#" class="request-access-change-org-link">Change organization?</a>`;
+  card.appendChild(introPara);
+  const products = restricted.components?.Products;
+  if (products?.label) {
+    const productsLabel = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-products-label' });
+    productsLabel.textContent = products.label;
+    card.appendChild(productsLabel);
+  }
+  if (products?.items?.length) {
+    const list = createTag('div', { class: 'request-access-products-list' });
+    products.items.forEach((item) => {
+      const product = item?.Product || item;
+      const row = createTag('div', { class: 'request-access-product-item' });
+      if (product.icon) {
+        const img = createTag('img', { class: 'request-access-product-icon', src: product.icon, alt: '' });
+        row.appendChild(img);
+      }
+      const label = createTag('span', { class: 'request-access-product-label' });
+      label.textContent = product?.label || '';
+      row.appendChild(label);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+  }
+  if (restricted.buttonLabel) {
+    const isRequestPending = Boolean(lastRequestAccessEntitlement?.template?.isRequestPending);
+    const btnWrap = createTag('div', { class: 'request-access-request-btn-wrap' });
+    const btn = createTag('button', {
+      type: 'button',
+      class: 'spectrum-Button spectrum-Button--fill spectrum-Button--accent spectrum-Button--sizeM request-access-request-btn'
+    });
+    btn.innerHTML = `<span class="spectrum-Button-label">${restricted.buttonLabel}</span>`;
+    btn.disabled = isRequestPending;
+    if (isRequestPending) {
+      btn.classList.add('request-access-request-btn--disabled');
+      btn.setAttribute('aria-disabled', 'true');
+      btn.setAttribute('aria-label', 'Request access is pending, please wait for approval');
+      btn.removeAttribute('data-request-access-trigger');
+      btn.removeClassName('spectrum-Button--fill');
+      const pendingPopover = createTag('div', {
+        class: 'request-access-pending-popover hidden',
+        role: 'status',
+        'aria-live': 'polite'
+      });
+      const pendingTitle = createTag('p', { class: 'request-access-pending-title' });
+      pendingTitle.textContent = 'Your request is pending approval';
+      const pendingBody = createTag('p', { class: 'request-access-pending-body' });
+      pendingBody.textContent = "You'll hear back from your admin soon. If your request is approved, you'll get an email with instructions on how to start using your apps and services.";
+      const pendingLink = createTag('a', {
+        class: 'request-access-pending-link',
+        href: 'https://developer.adobe.com/developer-console/docs/guides/credentials/request-access/',
+        target: '_blank',
+        rel: 'noreferrer'
+      });
+      pendingLink.textContent = 'Learn more about requesting Adobe apps';
+      pendingPopover.appendChild(pendingTitle);
+      pendingPopover.appendChild(pendingBody);
+      pendingPopover.appendChild(pendingLink);
+
+      const pendingInfoTrigger = createTag('button', {
+        type: 'button',
+        class: 'request-access-pending-info-trigger',
+        'aria-label': 'Show pending request details'
+      });
+      pendingInfoTrigger.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+
+      const showPendingPopover = () => pendingPopover.classList.remove('hidden');
+      const hidePendingPopover = () => pendingPopover.classList.add('hidden');
+      pendingInfoTrigger.addEventListener('mouseenter', showPendingPopover);
+      pendingInfoTrigger.addEventListener('mouseleave', hidePendingPopover);
+      pendingInfoTrigger.addEventListener('focus', showPendingPopover);
+      pendingInfoTrigger.addEventListener('blur', hidePendingPopover);
+      pendingInfoTrigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        pendingPopover.classList.toggle('hidden');
+      });
+      btnWrap.appendChild(btn);
+      btnWrap.appendChild(pendingInfoTrigger);
+      btnWrap.appendChild(pendingPopover);
+    } else {
+      btn.setAttribute('aria-disabled', 'false');
+      btn.setAttribute('aria-label', 'Request access');
+      btn.setAttribute('data-request-access-trigger', 'true');
+      btnWrap.appendChild(btn);
+    }
+    card.appendChild(btnWrap);
+  }
+  return card;
+}
+
+function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
+  const { userEmail, selectedOrganization } = options;
+  const edgeCases = config.components?.EdgeCase?.components;
+  const edgeCase = edgeCaseKey && edgeCases?.[edgeCaseKey];
+  if (!edgeCase) return null;
+  const productsLabel = config.components?.RestrictedAccess?.components?.Products?.label || 'this service';
+  const accountLabel = userEmail || 'this account';
+  const orgLabel = selectedOrganization?.type === 'developer'
+    ? 'your personal developer organization'
+    : (selectedOrganization?.name || 'this organization');
+  const card = createTag('div', { class: 'request-access-edge-case-card' });
+  if (edgeCase.title) {
+    const titleRow = createTag('div', { class: 'request-access-edge-case-title-row' });
+    const titleEl = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-edge-case-title' });
+    titleEl.textContent = edgeCase.title;
+    titleRow.appendChild(titleEl);
+    const infoIcon = createTag('span', { class: 'request-access-edge-case-info-icon', 'aria-label': 'Information' });
+    infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+    titleRow.appendChild(infoIcon);
+    card.appendChild(titleRow);
+  }
+  const defaultDescriptions = {
+    Type1User: `You are currently signed in with ${accountLabel} and cannot access ${productsLabel} APIs.`,
+    NotMember: `You are currently signed in with ${accountLabel} in ${orgLabel} and cannot access ${productsLabel} APIs.`,
+    NotSignUp: `You are currently signed in with ${accountLabel} and cannot access ${productsLabel} APIs.`,
+    NoProduct: `Your organization does not have access to ${productsLabel}. Contact your admin or change organization.`
+  };
+  const showChangeOrg = edgeCase.showChangeOrgLink !== false && (['Type1User', 'NotMember', 'NotSignUp', 'NoProduct'].includes(edgeCaseKey) || edgeCase.showChangeOrgLink);
+  const defaultDescription = defaultDescriptions[edgeCaseKey] || '';
+  const descriptionText = edgeCase.description || defaultDescription;
+  if (descriptionText) {
+    const descEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-description' });
+    descEl.textContent = descriptionText;
+    if (showChangeOrg) {
+      descEl.appendChild(document.createTextNode(' '));
+      const changeOrgWrap = createTag('span', { class: 'request-access-edge-case-change-org-wrap' });
+      const changeOrgLink = createTag('a', { href: '#', class: 'request-access-change-org-link' });
+      changeOrgLink.textContent = 'Change organization?';
+      changeOrgWrap.appendChild(changeOrgLink);
+      descEl.appendChild(changeOrgWrap);
+    }
+    card.appendChild(descEl);
+  }
+  if (edgeCase.buttonLabel) {
+    const link = createTag('a', {
+      href: edgeCase.buttonLink || '#',
+      class: 'spectrum-Button spectrum-Button--outline spectrum-Button--secondary spectrum-Button--sizeM request-access-edge-case-btn'
+    });
+    link.innerHTML = `<span class="spectrum-Button-label">${edgeCase.buttonLabel}</span>`;
+    if (edgeCase.buttonLink) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noreferrer');
+    }
+    card.appendChild(link);
+  }
+  return card;
+}
+
+
+/**
+ * Update the Request Access left column to show RestrictedAccess or the given EdgeCase variant.
+ * @param {Object} [options] - Optional: { selectedOrganization } for restricted card org message
+ */
+function updateRequestAccessLeftColumn(container, requestAccessConfig, edgeCaseKey, options = {}) {
+  const leftCol = container?.querySelector('.request-access-left');
+  if (!leftCol || !requestAccessConfig) return;
+  const slot = leftCol.querySelector('.request-access-left-slot');
+  if (!slot) return;
+  const card = buildRequestAccessLeftCard(requestAccessConfig, edgeCaseKey, options);
+  if (card) {
+    slot.innerHTML = '';
+    slot.appendChild(card);
+  }
+}
+
+/**
+ * Build Request Access page from config (title, paragraph, left card from RestrictedAccess or EdgeCase + RequestAccessSide).
+ * Config is read from credential JSON: GetCredential.components.RequestAccess.
+ */
+function createRequestAccessContent(config) {
+  const wrapper = createTag('div', { class: 'request-access-wrapper' });
+  const contentWrapper = createTag('div', { class: 'request-access-content-wrapper' });
+
+  const header = createTag('div', { class: 'request-access-header' });
+  if (config.title) {
+    const titleEl = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeXL request-access-title' });
+    titleEl.textContent = config.title;
+    header.appendChild(titleEl);
+  }
+  if (config.paragraph) {
+    const para = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL request-access-paragraph' });
+    para.textContent = config.paragraph;
+    header.appendChild(para);
+  }
+  contentWrapper.appendChild(header);
+
+  const columns = createTag('div', { class: 'request-access-columns' });
+  const leftCol = createTag('div', { class: 'request-access-left' });
+  const slot = createTag('div', { class: 'request-access-left-slot' });
+ 
+  const defaultCard = buildRequestAccessLeftCard(config, null);
+  if (defaultCard) slot.appendChild(defaultCard);
+  leftCol.appendChild(slot);
+  columns.appendChild(leftCol);
+  const side = config.components?.RequestAccessSide;
+  if (side?.content) {
+    const divider = separator();
+    const rightCol = createTag('div', { class: 'request-access-right' });
+    columns.appendChild(divider);
+    rightCol.appendChild(createSideContent(side));
+    columns.appendChild(rightCol);
+  }
+  contentWrapper.appendChild(columns);
+  wrapper.appendChild(contentWrapper);
+  return wrapper;
 }
 
 // ============================================================================
@@ -1203,7 +1374,8 @@ function createReturnContent(config, handleReturnOrgChange) {
     'org-notice-return',
     organizationsData,
     selectedOrganization,
-    handleReturnOrgChange
+    handleReturnOrgChange,
+    () => selectedOrganization
   ));
 
   leftContent.appendChild(getCredHeader);
@@ -1302,22 +1474,24 @@ function createReturnContent(config, handleReturnOrgChange) {
   // Divider
   cardContent.appendChild(createDivider());
 
-  // Developer Console Project (will be updated dynamically)
-  if (config.components?.DevConsoleLink) {
-    const devConsoleSection = createTag('div', { class: 'dev-console-section' });
-    const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
-    devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
-    devConsoleSection.appendChild(devConsoleLabel);
-
-    const projectLink = createExternalLink('', '#');
-    devConsoleSection.appendChild(projectLink);
-    cardContent.appendChild(devConsoleSection);
-  }
-
-  // Credential Details
-  if (config.components?.CredentialDetails) {
-    cardContent.appendChild(createCredentialSection(config.components.CredentialDetails));
-  }
+  // Card sections driven by JSON config (only sections present in config are shown)
+  const cardSectionOrder = ['AccessToken', 'DevConsoleLink', 'CredentialDetails'];
+  cardSectionOrder.forEach((key) => {
+    if (!config.components?.[key]) return;
+    if (key === 'AccessToken') {
+      cardContent.appendChild(createAccessTokenSection(config.components.AccessToken));
+    } else if (key === 'DevConsoleLink') {
+      const devConsoleSection = createTag('div', { class: 'dev-console-section' });
+      const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
+      devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
+      devConsoleSection.appendChild(devConsoleLabel);
+      const projectLink = createExternalLink('', '#');
+      devConsoleSection.appendChild(projectLink);
+      cardContent.appendChild(devConsoleSection);
+    } else if (key === 'CredentialDetails') {
+      cardContent.appendChild(createCredentialSection(config.components.CredentialDetails));
+    }
+  });
 
   // Next steps button
   if (config.nextStepsLabel && config.nextStepsHref) {
@@ -1436,26 +1610,26 @@ function createCredentialCard(config) {
 
   cardCollapsibleContent.appendChild(createDivider());
 
-  // Developer Console Project section (will be updated dynamically)
-  if (config.components?.DevConsoleLink) {
-    const devConsoleSection = createTag('div', { class: 'dev-console-section' });
-    const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
-    devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
-    devConsoleSection.appendChild(devConsoleLabel);
-
-    const projectLink = createExternalLink('', '#');
-    projectLink.setAttribute('data-cy', 'credentialName-link');
-    devConsoleSection.appendChild(projectLink);
-
-    cardCollapsibleContent.appendChild(devConsoleSection);
-  }
-
-  // Credential Details section
-  if (config.components?.CredentialDetails) {
-    const credSection = createCredentialSection(config.components.CredentialDetails);
-    // Values will be populated dynamically after API call via updateCredentialCard()
-    cardCollapsibleContent.appendChild(credSection);
-  }
+  // Card sections driven by JSON config (only sections present in config are shown)
+  const cardSectionOrder = ['AccessToken', 'DevConsoleLink', 'CredentialDetails'];
+  cardSectionOrder.forEach((key) => {
+    if (!config.components?.[key]) return;
+    if (key === 'AccessToken') {
+      cardCollapsibleContent.appendChild(createAccessTokenSection(config.components.AccessToken));
+    } else if (key === 'DevConsoleLink') {
+      const devConsoleSection = createTag('div', { class: 'dev-console-section' });
+      const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
+      devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
+      devConsoleSection.appendChild(devConsoleLabel);
+      const projectLink = createExternalLink('', '#');
+      projectLink.setAttribute('data-cy', 'credentialName-link');
+      devConsoleSection.appendChild(projectLink);
+      cardCollapsibleContent.appendChild(devConsoleSection);
+    } else if (key === 'CredentialDetails') {
+      const credSection = createCredentialSection(config.components.CredentialDetails);
+      cardCollapsibleContent.appendChild(credSection);
+    }
+  });
 
   // Buttons section (inside project card)
   const buttonsSection = createTag('div', { class: 'card-buttons' });
@@ -1472,8 +1646,10 @@ function createCredentialCard(config) {
     buttonsSection.appendChild(nextStepsButton);
   }
 
-  // Manage on Developer console link
-  const manageLink = createExternalLink('Manage on Developer console', '/console/');
+  // Manage on Developer console link (use config when available)
+  const manageLabel = config.developerConsoleManage || config.components?.ManageDeveloperConsole?.label || 'Manage on Developer console';
+  const manageHref = config.components?.ManageDeveloperConsole?.direction || config.devConsoleDirection || '/console/';
+  const manageLink = createExternalLink(manageLabel, manageHref);
   manageLink.classList.remove('project-link');
   manageLink.classList.add('manage-link');
   buttonsSection.appendChild(manageLink);
@@ -1524,28 +1700,68 @@ function createCredentialCard(config) {
   return cardContainer;
 }
 
+/**
+ * Resolve template ID for this page/block so we can load the correct credential config.
+ * Different template IDs can have different configs (e.g. API Key vs OAuth).
+ * Priority: block data attribute > page metadata > undefined (then we match by first row).
+ */
+function resolveTemplateId(block) {
+  const fromBlock = block?.dataset?.templateId || block?.dataset?.templateid;
+  if (fromBlock) return fromBlock.trim();
+  const fromMeta = getMetadata('templateid') || getMetadata('template-id');
+  if (fromMeta) return String(fromMeta).trim();
+  return undefined;
+}
+
 export default async function decorate(block) {
 
+  const metadata = await fetchSiteMetadata();
+  const metadataPath = metadata?.get('get-credentials');
+  if (metadata && !metadataPath) return;
+
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
-  const navPath = `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
+  const navPath = metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/credential/getcredential.json`;
+
+  const pageTemplateId = resolveTemplateId(block);
+  const isStageOrLocalHost = isStageEnvironment(window.location.host)
+    || isLocalHostEnvironment(window.location.host);
 
   let credentialData;
+  let getCredConfig;
   try {
     const response = await fetch(navPath);
     if (!response.ok) throw new Error('Failed to load');
     const credentialJSON = await response.json();
-    credentialData = credentialJSON?.data?.[0]?.['GetCredential']?.components;
+    const dataRows = credentialJSON?.data;
+    if (!Array.isArray(dataRows) || dataRows.length === 0) {
+      block.innerHTML = '<p>No credential data available.</p>';
+      return;
+    }
+
+    // Select the row that matches this page's template ID (so different templates show different configs)
+    let selectedRow = dataRows[0];
+    if (pageTemplateId) {
+      const matched = dataRows.find((row) => {
+        const gc = row?.GetCredential;
+        if (!gc) return false;
+        const rowTemplateId = isStageOrLocalHost
+          ? (gc.stageTemplateId ?? gc.templateId)
+          : gc.templateId;
+        return String(rowTemplateId || '') === String(pageTemplateId);
+      });
+      if (matched) selectedRow = matched;
+    }
+
+    getCredConfig = selectedRow?.GetCredential;
+    credentialData = getCredConfig?.components;
     if (!credentialData) {
       block.innerHTML = '<p>No credential data available.</p>';
       return;
     }
 
-    // Extract template and organization data for API calls
-    const getCredConfig = credentialJSON?.data?.[0]?.['GetCredential'];
-
-    // Get template configuration from JSON - use templateId from config
-    const isStageOrLocalHost = isStageEnvironment(window.location.host)
-      || isLocalHostEnvironment(window.location.host);
+    // Template data for API calls (create credential, fetch projects, etc.)
     templateData = {
       id: isStageOrLocalHost
         ? (getCredConfig?.stageTemplateId ?? getCredConfig?.templateId)
@@ -1600,6 +1816,16 @@ export default async function decorate(block) {
   // Create loading page FIRST (used in multiple places below)
   const loadingContainer = createLoadingPage();
   block.appendChild(loadingContainer);
+
+  // Local/stage only: force show Request Access view via ?requestAccess=1 or ?showRequestAccess=true (optional ?edgeCase=NotMember|NoProduct|NotSignUp|Type1User)
+  const getForceRequestAccessParams = () => {
+    if (!isStageOrLocalHost || !credentialData.RequestAccess) return null;
+    const params = new URLSearchParams(window.location.search);
+    const on = params.get('requestAccess') === '1' || params.get('showRequestAccess') === 'true';
+    if (!on) return null;
+    const edgeCase = params.get('edgeCase') || null;
+    return { edgeCase };
+  };
 
   // Define navigateTo function FIRST (used in multiple places below)
   const navigateTo = (hideEl, showEl, scroll = false) => {
@@ -1674,6 +1900,75 @@ export default async function decorate(block) {
   // Declare containers at top level for handler access
   let returnContainer;
   let formContainer;
+  let requestAccessContainer;
+  /** When we show Request Access view, store entitlement (with template) for the modal's accessPlatformAppId and onClose refetch */
+  lastRequestAccessEntitlement = null;
+  /** Re-render the page after org change: show loading, then form/return or request access. Set after containers exist. */
+  let renderPageAfterOrgChange = null;
+
+  // Create Request Access container (shown after sign-in when user/org not entitled).
+  // Config comes from credential JSON: GetCredential.components.RequestAccess.
+  if (credentialData.RequestAccess) {
+    requestAccessContainer = createTag('div', { class: 'request-access-container hidden' });
+    requestAccessContainer.appendChild(createRequestAccessContent(credentialData.RequestAccess));
+    block.appendChild(requestAccessContainer);
+
+    const requestAccessConfig = credentialData.RequestAccess;
+    const restricted = requestAccessConfig.components?.RestrictedAccess;
+    const productsConfig = restricted?.components?.Products;
+    const products = (productsConfig?.items || []).map((item) => {
+      const p = item?.Product || item;
+      return { label: p?.label || '', icon: p?.icon || '' };
+    });
+
+    requestAccessContainer.addEventListener('click', (e) => {
+      const changeOrgLink = e.target.closest('.request-access-change-org-link');
+      if (changeOrgLink) {
+        e.preventDefault();
+        e.stopPropagation();
+        const orgs = organizationsData || [];
+        const overlay = createOrganizationModal(orgs, selectedOrganization, (newOrg) => {
+          switchOrganization(newOrg).then(() => {
+            showToast('Organization Changed', 'success', 3000);
+            if (renderPageAfterOrgChange) renderPageAfterOrgChange(requestAccessContainer);
+          });
+        });
+        document.body.appendChild(overlay);
+        return;
+      }
+      const trigger = e.target.closest('[data-request-access-trigger]');
+      if (!trigger) return;
+      e.preventDefault();
+      const accessPlatformAppId = lastRequestAccessEntitlement?.template?.accessPlatformAppId;
+      if (accessPlatformAppId) {
+        createRequestAccessIframeModal({
+          accessPlatformAppId,
+          onClose: async () => {
+            setLoadingText(loadingContainer, 'Loading...');
+            navigateTo(requestAccessContainer, loadingContainer);
+            const entitlement = await fetchTemplateEntitlement();
+            lastRequestAccessEntitlement = entitlement;
+            if (entitlement && entitlement.userEntitled && entitlement.orgEntitled) {
+              runFormOrReturnFlow();
+            } else {
+              if (requestAccessContainer && entitlement) {
+                const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+                updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization });
+              }
+              navigateTo(loadingContainer, requestAccessContainer);
+            }
+          }
+        });
+      } else {
+        createRequestAccessModal({
+          products,
+          onSendRequest() {
+            showToast('Request sent. Your admin will be notified.', 'success', 4000);
+          }
+        });
+      }
+    });
+  }
 
   // Create return container (previously created projects)
   if (credentialData.Return) {
@@ -1681,61 +1976,10 @@ export default async function decorate(block) {
     // Define handleReturnOrgChange handler with access to all containers
     const handleReturnOrgChange = async (newOrg) => {
       try {
-        // Use switchOrganization function
         await switchOrganization(newOrg);
-
-        // Show loading page while fetching
-        setLoadingText(loadingContainer, 'Loading...');
-        navigateTo(returnContainer, loadingContainer);
-
-        // Refresh credentials for new org
-        fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-
-          if (existingCreds) {
-            // Pass the data in consistent format (handle both array and object responses)
-            const dataToPass = Array.isArray(existingCreds)
-              ? { projects: existingCreds }
-              : existingCreds;
-
-            // Check if there are actually projects
-            const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-
-            if (!projectsArray || projectsArray.length === 0) {
-              // No projects found - immediately move to credential form
-              navigateTo(loadingContainer, formContainer);
-              updateFormOrgNotice(formContainer);
-              await updateCancelButtonVisibility(formContainer);
-              return;
-            }
-
-            // Populate dropdown with new org's projects (filter from cached data)
-            const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
-            if (!hasProjects) {
-              // No projects found - immediately move to credential form
-              navigateTo(loadingContainer, formContainer);
-
-              updateFormOrgNotice(formContainer);
-              await updateCancelButtonVisibility(formContainer);
-            } else {
-              // Has projects - show return page
-              navigateTo(loadingContainer, returnContainer);
-              updateReturnOrgNotice(returnContainer);
-            }
-          } else {
-            // No credentials found - immediately move to credential form
-            navigateTo(loadingContainer, formContainer);
-            updateFormOrgNotice(formContainer);
-            await updateCancelButtonVisibility(formContainer);
-          }
-        }).catch(error => {
-          // On error, move to credential form
-          navigateTo(loadingContainer, formContainer);
-          updateFormOrgNotice(formContainer);
-          updateCancelButtonVisibility(formContainer);
-        });
+        showToast('Organization Changed', 'success', 3000);
+        if (renderPageAfterOrgChange) renderPageAfterOrgChange(returnContainer);
       } catch (error) {
-        // Silently handle error and stay on current page
         console.error('[ORG SWITCH ERROR]', error);
       }
     };
@@ -1752,6 +1996,7 @@ export default async function decorate(block) {
   // Create form container
   if (credentialData.Form) {
     const { title, paragraph, components } = credentialData.Form;
+    formHasAllowedOrigins = !!components?.AllowedOrigins;
     formContainer = createTag('div', { class: 'getcredential-form hidden' });
     const formHeader = createTag('div', { class: 'form-header' });
 
@@ -1770,25 +2015,10 @@ export default async function decorate(block) {
     // Organization notice
     const handleOrgChange = async (newOrg) => {
       try {
-        // Use switchOrganization function
         await switchOrganization(newOrg);
-
-        // Update org notice text
-        updateFormOrgNotice(formContainer);
-
-        // Check and update cancel button visibility
-        await updateCancelButtonVisibility(formContainer);
-
-        // Reset form data if needed (e.g., agreement checkbox)
-        if (formData.Agree) {
-          formData.Agree = false;
-          const agreeCheckbox = formFields.querySelector('input[type="checkbox"]');
-          if (agreeCheckbox) {
-            agreeCheckbox.checked = false;
-          }
-        }
+        showToast('Organization Changed', 'success', 3000);
+        if (renderPageAfterOrgChange) renderPageAfterOrgChange(formContainer);
       } catch (error) {
-        // Silently handle error
         console.error('[ORG SWITCH ERROR]', error);
       }
     };
@@ -1798,7 +2028,8 @@ export default async function decorate(block) {
       'org-notice',
       organizationsData,
       selectedOrganization,
-      handleOrgChange
+      handleOrgChange,
+      () => selectedOrganization
     ));
 
     const formWrapper = createTag('div', { class: 'form-wrapper' });
@@ -1849,6 +2080,52 @@ export default async function decorate(block) {
       updateFormOrgNotice(formContainer);
     }
   }
+
+  const showFormFromLoading = () => {
+    navigateTo(loadingContainer, formContainer);
+    updateFormOrgNotice(formContainer);
+    updateCancelButtonVisibility(formContainer);
+  };
+
+  const runFormOrReturnFlow = () => {
+    if (!returnContainer) {
+      showFormFromLoading();
+      return;
+    }
+    fetchExistingCredentials(selectedOrganization?.code).then((existingCreds) => {
+      const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
+      if (projectsArray?.length > 0) {
+        const dataToPass = Array.isArray(existingCreds) ? { projects: existingCreds } : existingCreds;
+        const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
+        if (hasProjects) {
+          navigateTo(loadingContainer, returnContainer);
+          updateReturnOrgNotice(returnContainer);
+          return;
+        }
+      }
+      showFormFromLoading();
+    }).catch(showFormFromLoading);
+  };
+
+  // Re-render page after organization change: show loading, then entitlement check (if Request Access) and show correct view.
+  renderPageAfterOrgChange = (sourceContainer) => {
+    setLoadingText(loadingContainer, 'Loading...');
+    navigateTo(sourceContainer, loadingContainer);
+    if (requestAccessContainer) {
+      fetchTemplateEntitlement().then(async (entitlement) => {
+        if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+          const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+          const profile = await window.adobeIMS?.getProfile().catch(() => null);
+          updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
+          navigateTo(loadingContainer, requestAccessContainer);
+        } else {
+          runFormOrReturnFlow();
+        }
+      }).catch(() => runFormOrReturnFlow());
+    } else {
+      runFormOrReturnFlow();
+    }
+  };
 
   // Create success card container
   let cardContainer;
@@ -1981,54 +2258,16 @@ export default async function decorate(block) {
         navigateTo(loadingContainer, formContainer);
       }
     } catch (error) {
-      // API error - Show error message
-      // API error received - Hide loading and show form again
       navigateTo(loadingContainer, formContainer);
       showToast(`Error: ${error.message}`, 'error', 5000);
     }
   });
 
-  formContainer?.querySelector('.cancel-link')?.addEventListener('click', async (e) => {
+  formContainer?.querySelector('.cancel-link')?.addEventListener('click', (e) => {
     e.preventDefault();
-
-    // Show loading page
     setLoadingText(loadingContainer, 'Loading...');
     navigateTo(formContainer, loadingContainer, true);
-
-    try {
-      // Fetch organizations first
-      await fetchOrganizations();
-
-      // Then fetch existing credentials
-      const existingCreds = await fetchExistingCredentials(selectedOrganization?.code);
-
-      if (existingCreds) {
-        // Pass the data in consistent format (handle both array and object responses)
-        const dataToPass = Array.isArray(existingCreds)
-          ? { projects: existingCreds }
-          : existingCreds;
-
-        // Populate dropdown with fresh data
-        const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
-        if (hasProjects) {
-          navigateTo(loadingContainer, returnContainer);
-          updateReturnOrgNotice(returnContainer);
-        } else {
-          // No projects found, stay on form
-          navigateTo(loadingContainer, formContainer);
-          updateFormOrgNotice(formContainer);
-        }
-      } else {
-        // Error fetching, stay on form
-        navigateTo(loadingContainer, formContainer);
-        updateFormOrgNotice(formContainer);
-      }
-    } catch (error) {
-      // On error, stay on form
-      navigateTo(loadingContainer, formContainer);
-      updateFormOrgNotice(formContainer);
-    }
+    runFormOrReturnFlow();
   });
 
   cardContainer?.querySelector('.restart-link')?.addEventListener('click', (e) => {
@@ -2057,14 +2296,9 @@ export default async function decorate(block) {
           await downloadZipViaApi(downloadAPI, zipFileURL, fileName);
           showToast('Download started successfully', 'success', 2000);
         } catch (error) {
-          console.error('[RESTART DOWNLOAD ERROR]', error);
           showToast('Failed to download credential files', 'error', 3000);
         }
-      } else {
-        console.warn('[RESTART DOWNLOAD SKIPPED] Missing required parameters');
       }
-    } else {
-      console.warn('[RESTART DOWNLOAD SKIPPED] No credential response available');
     }
   });
 
@@ -2089,44 +2323,34 @@ export default async function decorate(block) {
           if (isSignedIn) {
             clearInterval(checkSignIn);
             // Fetch organizations first
-            fetchOrganizations().then(async orgs => {
+            fetchOrganizations().then(async (orgs) => {
               if (orgs && orgs.length > 0) {
                 organizationsData = orgs;
-                // Initialize organization (from localStorage or default)
                 try {
                   await switchOrganization(null);
-                } catch (error) {
-                }
+                } catch (error) {}
               }
-
-              // Fetch existing credentials
-
-              return fetchExistingCredentials(selectedOrganization?.code);
-            }).then(async (existingCreds) => {
-
-              if (existingCreds) {
-                // Pass the data in consistent format (handle both array and object responses)
-                const dataToPass = Array.isArray(existingCreds)
-                  ? { projects: existingCreds }
-                  : existingCreds;
-
-                // Populate dropdown and update card (filter from cached data)
-                const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
-                if (!hasProjects) {
-                  // No projects - navigate to form instead of return page
-                  navigateTo(loadingContainer, formContainer);
-                  updateCancelButtonVisibility(formContainer);
+              // Local/stage: ?requestAccess=1 forces Request Access view without calling entitlement API
+              const forceParams = getForceRequestAccessParams();
+              if (forceParams && requestAccessContainer) {
+                const profile = await window.adobeIMS?.getProfile().catch(() => null);
+                updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
+                navigateTo(loadingContainer, requestAccessContainer);
+                return;
+              }
+              // If Request Access config exists, check entitlement first (same as React: !template.userEntitled || !template.orgEntitled -> RequestAccess)
+              if (requestAccessContainer) {
+                const entitlement = await fetchTemplateEntitlement();
+                if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+                  lastRequestAccessEntitlement = entitlement;
+                  const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+                  const profile = await window.adobeIMS?.getProfile().catch(() => null);
+                  updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
+                  navigateTo(loadingContainer, requestAccessContainer);
                   return;
                 }
               }
-
-              // API response received - hide loading and show return page
-
-              navigateTo(loadingContainer, returnContainer);
-            }).catch(error => {
-              // On error, hide loading and still navigate to return page
-              navigateTo(loadingContainer, returnContainer);
+              runFormOrReturnFlow();
             });
           }
         }, 100);
@@ -2134,9 +2358,7 @@ export default async function decorate(block) {
         setTimeout(() => {
           clearInterval(checkSignIn);
         }, 5000);
-      } else {
       }
-    } else {
     }
   };
 
@@ -2156,38 +2378,32 @@ export default async function decorate(block) {
         setLoadingText(loadingContainer, 'Loading...');
         navigateTo(signInContainer, loadingContainer, true);
 
-        // Then fetch credentials and navigate to appropriate page
-        // This is handled by the existing logic in the Return container creation (lines 1687-1730)
-        // We just need to trigger it
-        if (returnContainer) {
-          fetchExistingCredentials(selectedOrganization?.code).then(async (existingCreds) => {
-            const projectsArray = Array.isArray(existingCreds) ? existingCreds : existingCreds?.projects;
-
-            if (projectsArray && projectsArray.length > 0) {
-              const dataToPass = Array.isArray(existingCreds)
-                ? { projects: existingCreds }
-                : existingCreds;
-
-              const hasProjects = populateProjectsDropdown(returnContainer, dataToPass);
-
-              if (!hasProjects) {
-                navigateTo(loadingContainer, formContainer);
-                updateFormOrgNotice(formContainer);
-                updateCancelButtonVisibility(formContainer);
-              } else {
-                navigateTo(loadingContainer, returnContainer);
-                updateReturnOrgNotice(returnContainer);
-              }
-            } else {
-              navigateTo(loadingContainer, formContainer);
-              updateFormOrgNotice(formContainer);
-              updateCancelButtonVisibility(formContainer);
-            }
-          }).catch(error => {
-            navigateTo(loadingContainer, formContainer);
-            updateFormOrgNotice(formContainer);
-            updateCancelButtonVisibility(formContainer);
+        const forceParams = getForceRequestAccessParams();
+        if (forceParams && requestAccessContainer) {
+          window.adobeIMS?.getProfile().then((profile) => {
+            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
+            navigateTo(loadingContainer, requestAccessContainer);
+          }).catch(() => {
+            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization });
+            navigateTo(loadingContainer, requestAccessContainer);
           });
+          return;
+        }
+        // Same as React: if !template.userEntitled || !template.orgEntitled -> show RequestAccess (RestrictedAccess or EdgeCase)
+        if (requestAccessContainer) {
+          fetchTemplateEntitlement().then(async (entitlement) => {
+            if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+              lastRequestAccessEntitlement = entitlement;
+              const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+              const profile = await window.adobeIMS?.getProfile().catch(() => null);
+              updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
+              navigateTo(loadingContainer, requestAccessContainer);
+              return;
+            }
+            runFormOrReturnFlow();
+          }).catch(() => runFormOrReturnFlow());
+        } else {
+          runFormOrReturnFlow();
         }
       }
     }

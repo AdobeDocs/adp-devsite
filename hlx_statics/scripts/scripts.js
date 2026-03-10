@@ -593,47 +593,7 @@ export async function loadAep() {
 }
 
 export function loadPrivacyStandalone() {
-  addExtraScriptWithLoad(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js', () => {
-    // Check for C0002 (Performance/Analytics) consent before loading AEP - part of new privacy library implementation
-    function checkConsent() {
-      // Check if adobePrivacy is available
-      if (!window.adobePrivacy || typeof window.adobePrivacy.activeCookieGroups !== 'function') {
-        console.error('Privacy library not loaded yet, waiting for consent events');
-        return;
-      }
-
-      const activeGroups = window.adobePrivacy.activeCookieGroups();
-
-      // Check if user gave permission for performance/analytics tracking (C0002)
-      if (activeGroups.indexOf('C0002') !== -1) {
-        loadAep();
-      } else {
-        console.log('Performance consent not granted - Adobe Experience Platform will not be loaded');
-      }
-    }
-    
-    // Listen for consent events from the privacy library
-    window.addEventListener('adobePrivacy:PrivacyConsent', () => {
-      // Event: User accepted all consent
-      checkConsent();
-    });
-
-    window.addEventListener('adobePrivacy:PrivacyCustom', () => {
-      // Event: User customized consent preferences
-      checkConsent();
-    });
-
-    window.addEventListener('adobePrivacy:PrivacyReject', () => {
-      // Event: User rejected optional consent
-      checkConsent();
-    });
-  });
-
-  // Check immediately if privacy library already loaded (return visitor)
-  if (window.adobePrivacy && typeof window.adobePrivacy.activeCookieGroups === 'function') {
-    // Privacy library already available, checking consent immediately
-    checkConsent();
-  }
+  addExtraScript(document.body, 'https://www.adobe.com/etc.clientlibs/globalnav/clientlibs/base/privacy-standalone.js');
 }
 
 export async function loadIms() {
@@ -660,7 +620,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'stage_adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api,read_client_secret,openid,service_principals.write';
           const environment = 'stg1';
           const logsEnabled = true;
 
@@ -676,7 +636,7 @@ export async function loadIms() {
           setIMSParams(client_id, scope, environment, logsEnabled, resolve, reject, timeout);
         } else {
           const client_id = 'adobe_io';
-          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api';
+          const scope = 'AdobeID,openid,unified_dev_portal,read_organizations,additional_info.projectedProductContext,additional_info.roles,gnav,read_pc.dma_bullseye,creative_sdk,adobeio_api,read_client_secret,openid,service_principals.write';
           const environment = 'prod';
           const logsEnabled = false;
 
@@ -854,6 +814,8 @@ function loadTitle() {
       let titleFromH1 = null;
 
       for (const h1 of h1Elements) {
+        // Skip H1 inside the nav profile dropdown popover
+        if (h1.closest('#nav-profile-dropdown-popover')) continue;
         // Check if this H1 contains an image
         const hasImage = h1.querySelector('img');
         if (!hasImage) {
@@ -899,8 +861,11 @@ function loadPrism(document) {
               const pre = env.element.closest('pre');
               const sessionId = pre?.getAttribute('data-playground-session-id');
               const playgroundMode = pre?.getAttribute('data-playground-mode');
+
               const playgroundExecutionMode = pre?.getAttribute('data-playground-execution-mode');
-              const playgroundURL = pre?.getAttribute('data-playground-url');
+              const playgroundURL = isStageEnvironment(window.location.host, true) || isLocalHostEnvironment(window.location.host)
+                ? (pre?.getAttribute('data-playground-url-stage') || pre?.getAttribute('data-playground-url'))
+                : pre?.getAttribute('data-playground-url');
               if (!sessionId || !playgroundMode || !playgroundExecutionMode || !playgroundURL) return null;
               const btn = createTag('button', { class: 'try-code-button' });
               btn.textContent = 'Try in playground';

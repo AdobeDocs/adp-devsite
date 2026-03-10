@@ -56,9 +56,85 @@ export function applyLanguageDirectives(pre, codeEl, languageText) {
   }
 }
 
+/**
+ * Strips leading lines in code text that contain data-playground-* attributes (e.g. on stage
+ * the first line can be "-data-playground-url=\"https://...\""). Extracts attributes, sets
+ * them on pre/code, and removes those lines from the displayed code.
+ */
+function stripPlaygroundMetadataFromCodeContent(pre, code) {
+  if (!pre || !code) return;
+  const text = code.textContent || '';
+  const lines = text.split(/\r?\n/);
+  const re = /(?:-?)data-playground-([a-z0-9-]+)="((?:[^"\\]|\\.)*)"/g;
+  const newLines = [];
+  let stripping = true;
+  for (const line of lines) {
+    if (!stripping) {
+      newLines.push(line);
+      continue;
+    }
+    let match;
+    let found = false;
+    re.lastIndex = 0;
+    while ((match = re.exec(line)) !== null) {
+      found = true;
+      const attrName = `data-playground-${match[1]}`;
+      const raw = match[2];
+      const value = raw.replace(/\\./g, (s) => s.slice(1));
+      pre.setAttribute(attrName, value);
+      code.setAttribute(attrName, value);
+    }
+    if (!found) stripping = false;
+    if (found) continue;
+    newLines.push(line);
+  }
+  const newText = newLines.join('\n');
+  if (newText !== text) code.textContent = newText;
+}
+
+/**
+ * Parses code element classes like "language-js-data-playground-session-id=\"x\"" and
+ * sets the corresponding data attributes on both pre and code (e.g. data-playground-session-id).
+ * Also cleans the class list to only keep the language class. Use so "Try in playground" works.
+ */
+function applyDataAttributesFromCodeClasses(pre, code) {
+  if (!pre || !code) return;
+  [...code.classList].forEach((cls) => {
+    if (cls.includes('-data')) {
+      const parts = cls.split('-data');
+      const languagePart = parts.find((item) => item.includes('language-'));
+
+      parts.forEach((item) => {
+        if (!item.includes('language-') && item.includes('=')) {
+          const match = item.match(/^-?([^=]+)="?([^"]*)"?$/);
+          if (match) {
+            const attrName = `data-${match[1]}`;
+            const attrValue = match[2];
+            pre.setAttribute(attrName, attrValue);
+            code.setAttribute(attrName, attrValue);
+          }
+        }
+      });
+
+      code.classList.remove(cls);
+      pre.classList.remove(cls);
+      if (languagePart) {
+        const cleanClass = languagePart.trim();
+        code.classList.add(cleanClass);
+        pre.classList.add(cleanClass);
+      }
+    } else {
+      pre.classList.add(cls);
+    }
+  });
+}
+
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre');
   const code = block.querySelector('code');
+
+  applyDataAttributesFromCodeClasses(pre, code);
+  stripPlaygroundMetadataFromCodeContent(pre, code);
 
   if(pre && IS_DEV_DOCS){
     const processClasses = (element) => {

@@ -35,6 +35,7 @@ export default async function decorate(block) {
 
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
+  navigationLinks.setAttribute("daa-lh", "side-nav");
 
   const navigationLinksContainer = createTag("div");
   navigationLinks.append(navigationLinksContainer);

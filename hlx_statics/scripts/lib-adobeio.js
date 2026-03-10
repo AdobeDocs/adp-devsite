@@ -275,7 +275,7 @@ export function decorateHR(container) {
  */
 export function buildEmbeds(container) {
   const embeds = [...container.querySelectorAll('div > p > a[href^="https://www.youtube.com"], div > p > a[href^="https://youtu.be"]')];
-  if(getMetadata('template') !== 'documentation'){
+  if(!IS_DEV_DOCS){
   embeds.forEach((embed) => {
     const block = buildBlock('embed', embed.outerHTML);
     embed.replaceWith(block);
@@ -660,9 +660,10 @@ export function isLocalHostEnvironment(host) {
  * @param {*} host The host
  * @returns True if the current URL is a stage environment, false otherwise
  */
-export function isStageEnvironment(host) {
+export function isStageEnvironment(host, includeAemHosts = false) {
   return host.indexOf('stage.adobe.io') >= 0
-    || host.indexOf('developer-stage') >= 0;
+    || host.indexOf('developer-stage') >= 0
+    || (includeAemHosts && host.indexOf('.page') >= 0 && host.indexOf('--adp-devsite-stage--') >= 0);
 }
 
 /**
@@ -670,8 +671,9 @@ export function isStageEnvironment(host) {
  * @param {*} host The host
  * @returns True if the current URL is a dev environment, false otherwise
  */
-export function isDevEnvironment(host) {
-  return host.indexOf('developer-dev') >= 0;
+export function isDevEnvironment(host, includeAemHosts = false) {
+  return host.indexOf('developer-dev') >= 0
+    || (includeAemHosts && host.indexOf('.page') >= 0 && host.indexOf('--adp-devsite--') >= 0);
 }
 
 /**
@@ -679,8 +681,9 @@ export function isDevEnvironment(host) {
  * @param {*} host The host
  * @returns True if the current URL is a prod environment, false otherwise
  */
-export function isProdEnvironment(host) {
-  return host.indexOf('developer.adobe.com') >= 0;
+export function isProdEnvironment(host, includeAemHosts = false) {
+  return host.indexOf('developer.adobe.com') >= 0
+    || (includeAemHosts && host.indexOf('.live') >= 0);
 }
 
 /**
@@ -871,7 +874,7 @@ export const getQueryString = () => {
 function globalNavProfileTemplate(profile) {
   return `
     <div class="nav-profile spectrum--lightest">
-      <button id="nav-profile-dropdown-button" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet  navigation-dropdown">
+      <button id="nav-profile-dropdown-button" class="spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet  navigation-dropdown" daa-ll="profile-dropdown-button">
         <svg class="spectrum-Icon spectrum-Icon--sizeM" focusable="false" aria-hidden="true" aria-label="Profile">
           <use xlink:href="#spectrum-icon-24-RealTimeCustomerProfile"></use>
         </svg>
@@ -889,10 +892,10 @@ function globalNavProfileTemplate(profile) {
             <div class="nav-profile-popover-divider">
               <hr />
             </div>
-            <a href="https://account.adobe.com/" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit">
+            <a href="https://account.adobe.com/" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit" daa-ll="profile-edit-button">
               Edit Profile
             </a>
-            <a href="#" id="signOut" data-prefetch=false class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out">
+            <a href="#" id="signOut" data-prefetch=false class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out" daa-ll="profile-sign-out-button">
               Sign out
             </a>
           </div>

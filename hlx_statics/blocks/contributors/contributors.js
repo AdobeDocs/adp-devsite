@@ -94,12 +94,12 @@ export default async function decorate(block) {
   feedbackWrapper.appendChild(buttonWrapper);
 
   const yesButton = document.createElement("button");
-  yesButton.classList.add("spectrum-Button", "spectrum-Button--sizeM", "spectrum-Button--outline", "spectrum-Button--primary");
+  yesButton.classList.add("spectrum-Button", "spectrum-Button--sizeM", "spectrum-Button--outline", "spectrum-Button--secondary");
   yesButton.setAttribute("daa-ll", "Feedback-Yes")
   yesButton.innerText = "Yes";
 
   const noButton = document.createElement("button");
-  noButton.classList.add("spectrum-Button", "spectrum-Button--sizeM", "spectrum-Button--outline", "spectrum-Button--primary");
+  noButton.classList.add("spectrum-Button", "spectrum-Button--sizeM", "spectrum-Button--outline", "spectrum-Button--secondary");
   noButton.setAttribute("daa-ll", "Feedback-No")
   noButton.innerText = "No";
 
