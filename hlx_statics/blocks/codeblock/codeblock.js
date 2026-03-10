@@ -1,5 +1,5 @@
 import { toClassName } from '../../scripts/lib-helix.js';
-import decoratePreformattedCode from '../../components/code.js';
+import decoratePreformattedCode, { applyDataAttributesFromCodeClasses } from '../../components/code.js';
 
 export default function decorate(block) {
   const handleSelectChange = () => {
@@ -110,6 +110,9 @@ export default function decorate(block) {
     panel.id = `tabpanel-${i}`;
     panel.setAttribute('aria-labelledby', `tab-${i} option-${i}`);
     panel.setAttribute('role', 'tabpanel');
+    const pre = panel.querySelector('pre');
+    const code = panel.querySelector('code');
+    if (pre && code) applyDataAttributesFromCodeClasses(pre, code);
     decoratePreformattedCode(panel);
   });
 
