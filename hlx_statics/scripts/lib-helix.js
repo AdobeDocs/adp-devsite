@@ -113,6 +113,19 @@ export function getMetadata(name) {
 export const IS_DEV_DOCS = Boolean(getMetadata('githubblobpath'));
 
 /**
+ * A set of utilities to enable and disable the ai assistant
+ */
+export const IS_AI_ASSISTANT_ENABLED = localStorage.getItem('ai-assistant-enabled') === 'true';
+window.ENABLE_AI_ASSISTANT = () => {
+  localStorage.setItem('ai-assistant-enabled', 'true');
+  window.location.reload();
+};
+window.DISABLE_AI_ASSISTANT = () => {
+  localStorage.setItem('ai-assistant-enabled', 'false');
+  window.location.reload();
+};
+
+/**
  * Retrieves the top nav from the config.
  * @returns {string} The top nav HTML
  */

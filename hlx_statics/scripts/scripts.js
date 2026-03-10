@@ -15,6 +15,7 @@ import {
   addFavIcon,
   getMetadata,
   IS_DEV_DOCS,
+  IS_AI_ASSISTANT_ENABLED,
   toCamelCase,
   toClassName,
   githubActionsBlock,
@@ -22,6 +23,7 @@ import {
 } from './lib-helix.js';
 
 import {
+  buildAiAssistant,
   buildBreadcrumbs,
   buildCodes,
   buildContributors,
@@ -155,6 +157,13 @@ function loadContributors(contributors) {
   contributors.append(contributorsBlock);
   decorateBlock(contributorsBlock);
   loadBlock(contributorsBlock);
+}
+
+function loadAiAssistant(aiAssitant) {
+  const aiAssistantBlock = buildBlock('ai-assistant', '');
+  aiAssitant.append(aiAssistantBlock);
+  decorateBlock(aiAssistantBlock);
+  loadBlock(aiAssistantBlock);
 }
 
 /**
@@ -764,6 +773,11 @@ async function loadLazy(doc) {
     if (hasResources) {
       buildResources(main);
     }
+  }
+
+  if (IS_AI_ASSISTANT_ENABLED) {
+    buildAiAssistant(main);
+    loadAiAssistant(doc.querySelector('.ai-assistant-wrapper'));
   }
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
