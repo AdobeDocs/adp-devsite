@@ -650,9 +650,10 @@ export function isLocalHostEnvironment(host) {
  * @param {*} host The host
  * @returns True if the current URL is a stage environment, false otherwise
  */
-export function isStageEnvironment(host) {
+export function isStageEnvironment(host, includeAemHosts = false) {
   return host.indexOf('stage.adobe.io') >= 0
-    || host.indexOf('developer-stage') >= 0;
+    || host.indexOf('developer-stage') >= 0
+    || (includeAemHosts && host.indexOf('.page') >= 0 && host.indexOf('--adp-devsite-stage--') >= 0);
 }
 
 /**
@@ -660,8 +661,9 @@ export function isStageEnvironment(host) {
  * @param {*} host The host
  * @returns True if the current URL is a dev environment, false otherwise
  */
-export function isDevEnvironment(host) {
-  return host.indexOf('developer-dev') >= 0;
+export function isDevEnvironment(host, includeAemHosts = false) {
+  return host.indexOf('developer-dev') >= 0
+    || (includeAemHosts && host.indexOf('.page') >= 0 && host.indexOf('--adp-devsite--') < 0);
 }
 
 /**
@@ -669,8 +671,9 @@ export function isDevEnvironment(host) {
  * @param {*} host The host
  * @returns True if the current URL is a prod environment, false otherwise
  */
-export function isProdEnvironment(host) {
-  return host.indexOf('developer.adobe.com') >= 0;
+export function isProdEnvironment(host, includeAemHosts = false) {
+  return host.indexOf('developer.adobe.com') >= 0
+    || (includeAemHosts && host.indexOf('.live') >= 0);
 }
 
 /**
