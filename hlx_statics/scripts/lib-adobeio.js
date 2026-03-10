@@ -663,7 +663,7 @@ export function isStageEnvironment(host, includeAemHosts = false) {
  */
 export function isDevEnvironment(host, includeAemHosts = false) {
   return host.indexOf('developer-dev') >= 0
-    || (includeAemHosts && host.indexOf('.page') >= 0 && host.indexOf('--adp-devsite--') < 0);
+    || (includeAemHosts && host.indexOf('.page') >= 0 && host.indexOf('--adp-devsite--') >= 0);
 }
 
 /**
