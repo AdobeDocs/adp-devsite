@@ -298,7 +298,9 @@
     padding: 0;
     border: none;
     border-radius: 16px;
-    background: #e8e8e8;
+    background: #e9e9e9;
+    font-family: "adobe-clean", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
+    font-weight: 700;
     color: #292929;
     display: flex;
     align-items: center;
@@ -316,6 +318,16 @@
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+
+    &.stop-mode {
+      width: auto;
+      padding: 0 12px;
+      gap: 6px;
+
+      span {
+        height: 20px;
+      }
     }
   }
 }
