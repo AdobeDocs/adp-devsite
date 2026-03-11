@@ -38,6 +38,8 @@ const SUGGESTED_QUESTIONS = [
 ];
 const GENERIC_ERROR_MESSAGE =
   "Sorry, I encountered an error. Please try again later.";
+const SEND_ICON_SRC = "/hlx_statics/icons/send-message.svg";
+const STOP_ICON_SRC = "/hlx_statics/icons/stop-response.svg";
 // #endregion
 
 // #region ChatBubble
@@ -470,6 +472,7 @@ class AiApiClient {
     }
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
+    this.abortController = null;
   }
 
   /**
@@ -493,6 +496,8 @@ class AiApiClient {
     onComplete = () => {},
     onError = () => {},
   }) {
+    this.abortController = new AbortController();
+    const { signal } = this.abortController;
     try {
       const response = await fetch(
         `${this.baseUrl}${AiApiClient.STREAMING_ENDPOINT}`,
@@ -503,6 +508,7 @@ class AiApiClient {
             "X-Api-Key": this.apiKey,
           },
           body: JSON.stringify(body),
+          signal,
         },
       );
 
@@ -566,8 +572,21 @@ class AiApiClient {
         }
       }
     } catch (error) {
+      if (error.name === "AbortError") {
+        onComplete();
+        return;
+      }
       console.error("[AiApiClient] Stream request error:", error);
       onError(error);
+    } finally {
+      this.abortController = null;
+    }
+  }
+
+  abort() {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
     }
   }
 
@@ -658,6 +677,24 @@ const createChatWindowHeader = () => {
   return chatWindowHeader;
 };
 
+const showStopButton = () => {
+  const btn = ELEMENTS.CHAT_SEND_BUTTON;
+  btn.querySelector("img").src = STOP_ICON_SRC;
+  btn.querySelector("span").textContent = "Stop response";
+  btn.classList.add("stop-mode");
+  btn.setAttribute("aria-label", "Stop response");
+  btn.disabled = false;
+};
+
+const hideStopButton = () => {
+  const btn = ELEMENTS.CHAT_SEND_BUTTON;
+  btn.querySelector("img").src = SEND_ICON_SRC;
+  btn.querySelector("span").textContent = "";
+  btn.classList.remove("stop-mode");
+  btn.setAttribute("aria-label", "Send message");
+  btn.disabled = ELEMENTS.CHAT_TEXTAREA.value.trim() === "";
+};
+
 /**
  * Creates the input section
  */
@@ -675,7 +712,16 @@ const createInputSection = () => {
     type: "button",
     "aria-label": "Send message",
   });
-  sendButton.innerHTML = `<svg width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="spectrum-Icon spectrum-Icon--sizeXL"><path d="M18.6485 9.97369C18.6482 9.67918 18.4769 9.41125 18.2059 9.29075L4.05752 2.93301C3.80133 2.81769 3.50129 2.85602 3.28171 3.03141C3.06178 3.20784 2.95889 3.49165 3.01516 3.76752L4.28678 10.0082L3.06488 16.2386C3.0162 16.4854 3.09492 16.7382 3.27031 16.9136C3.29068 16.9339 3.31278 16.9533 3.33522 16.9716C3.55619 17.1456 3.85519 17.1822 4.11069 17.0662L18.2086 10.658C18.4773 10.5358 18.6489 10.2682 18.6485 9.97369ZM14.406 9.22735L5.66439 9.25398L4.77705 4.90103L14.406 9.22735ZM4.81711 15.0974L5.6694 10.7531L14.4323 10.7265L4.81711 15.0974Z" fill="currentColor"/></svg>`;
+  const sendButtonIcon = createTag("img", {
+    src: SEND_ICON_SRC,
+    alt: "",
+    "aria-hidden": true,
+    width: "20",
+    height: "20",
+  });
+  const sendButtonLabel = createTag("span");
+  sendButton.appendChild(sendButtonIcon);
+  sendButton.appendChild(sendButtonLabel);
   sendButton.disabled = true;
 
   const textareaWrapper = createTag("div", { class: "chat-textarea-wrapper" });
@@ -687,7 +733,13 @@ const createInputSection = () => {
   ELEMENTS.CHAT_SEND_BUTTON = sendButton;
   ELEMENTS.CHAT_TEXTAREA = textarea;
 
-  sendButton.addEventListener("click", handleUserQuery);
+  sendButton.addEventListener("click", () => {
+    if (sendButton.classList.contains("stop-mode")) {
+      aiApiClient.abort();
+    } else {
+      handleUserQuery();
+    }
+  });
   textarea.addEventListener("input", () => {
     sendButton.disabled = textarea.value.trim() === "";
   });
@@ -753,6 +805,7 @@ const showSuggestedQuestions = () => {
     el.classList.remove("animate-fade-in");
     requestAnimationFrame(() => {
       el.classList.add("animate-fade-in");
+      el.scrollIntoView({ behavior: "smooth" });
     });
   }
 };
@@ -867,6 +920,8 @@ const handleUserQuery = async (messageContentOverride) => {
   let responseContent = "";
   let accumulatedReferences = [];
 
+  showStopButton();
+
   await aiApiClient.query({
     query: messageContent,
     context: queryContext,
@@ -911,15 +966,24 @@ const handleUserQuery = async (messageContentOverride) => {
         }
       },
       onComplete: () => {
+        hideStopButton();
+        if (!responseContent) {
+          targetBubble.hideThinking();
+          responseContent = "_Response stopped by user._";
+          targetBubble.updateContent(responseContent);
+        } else {
+          targetBubble.hideStreamingCursor();
+          targetBubble.showCopyButton();
+        }
         chatHistory.updateLast({
           content: responseContent,
           references: accumulatedReferences,
         });
-        targetBubble.showCopyButton();
         targetBubble.scrollIntoView();
         window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
       },
       onError: (error) => {
+        hideStopButton();
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
