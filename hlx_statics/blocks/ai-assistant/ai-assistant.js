@@ -675,13 +675,29 @@ const createInputSection = () => {
     type: "button",
     "aria-label": "Send message",
   });
-  sendButton.innerHTML = `<svg width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="spectrum-Icon spectrum-Icon--sizeXL"><path d="M18.6485 9.97369C18.6482 9.67918 18.4769 9.41125 18.2059 9.29075L4.05752 2.93301C3.80133 2.81769 3.50129 2.85602 3.28171 3.03141C3.06178 3.20784 2.95889 3.49165 3.01516 3.76752L4.28678 10.0082L3.06488 16.2386C3.0162 16.4854 3.09492 16.7382 3.27031 16.9136C3.29068 16.9339 3.31278 16.9533 3.33522 16.9716C3.55619 17.1456 3.85519 17.1822 4.11069 17.0662L18.2086 10.658C18.4773 10.5358 18.6489 10.2682 18.6485 9.97369ZM14.406 9.22735L5.66439 9.25398L4.77705 4.90103L14.406 9.22735ZM4.81711 15.0974L5.6694 10.7531L14.4323 10.7265L4.81711 15.0974Z" fill="#ffffff"/></svg>`;
+  sendButton.innerHTML = `<svg width="20" height="20" viewBox="0 0 20 20" focusable="false" aria-hidden="true" role="img" class="spectrum-Icon spectrum-Icon--sizeXL"><path d="M18.6485 9.97369C18.6482 9.67918 18.4769 9.41125 18.2059 9.29075L4.05752 2.93301C3.80133 2.81769 3.50129 2.85602 3.28171 3.03141C3.06178 3.20784 2.95889 3.49165 3.01516 3.76752L4.28678 10.0082L3.06488 16.2386C3.0162 16.4854 3.09492 16.7382 3.27031 16.9136C3.29068 16.9339 3.31278 16.9533 3.33522 16.9716C3.55619 17.1456 3.85519 17.1822 4.11069 17.0662L18.2086 10.658C18.4773 10.5358 18.6489 10.2682 18.6485 9.97369ZM14.406 9.22735L5.66439 9.25398L4.77705 4.90103L14.406 9.22735ZM4.81711 15.0974L5.6694 10.7531L14.4323 10.7265L4.81711 15.0974Z" fill="currentColor"/></svg>`;
+  sendButton.disabled = true;
 
-  inputSection.appendChild(textarea);
+  const textareaWrapper = createTag("div", { class: "chat-textarea-wrapper" });
+  textareaWrapper.appendChild(textarea);
+  textareaWrapper.appendChild(sendButton);
+
+  inputSection.appendChild(textareaWrapper);
   inputSection.appendChild(disclaimerText);
-  inputSection.appendChild(sendButton);
   ELEMENTS.CHAT_SEND_BUTTON = sendButton;
   ELEMENTS.CHAT_TEXTAREA = textarea;
+
+  sendButton.addEventListener("click", handleUserQuery);
+  textarea.addEventListener("input", () => {
+    sendButton.disabled = textarea.value.trim() === "";
+  });
+  textarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleUserQuery();
+    }
+  });
+
   return inputSection;
 };
 
@@ -820,6 +836,7 @@ const handleUserQuery = async (messageContentOverride) => {
   if (!messageContentOverride) {
     messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
     ELEMENTS.CHAT_TEXTAREA.value = "";
+    ELEMENTS.CHAT_TEXTAREA.dispatchEvent(new Event("input"));
   }
 
   if (!messageContent) {
@@ -1056,12 +1073,5 @@ export default async function decorate(block) {
     minimizeChatWindow,
   );
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
-  ELEMENTS.CHAT_SEND_BUTTON.addEventListener("click", handleUserQuery);
-  ELEMENTS.CHAT_TEXTAREA.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleUserQuery();
-    }
-  });
 }
 // #endregion

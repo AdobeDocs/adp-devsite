@@ -238,20 +238,20 @@
  * MARK: Input Section
  */
 .chat-window .chat-window-input-section {
-  display: grid;
-  grid-template-areas:
-    "textarea textarea"
-    "disclaimer-text send-button";
-  grid-template-columns: 1fr 72px;
-  grid-template-rows: auto auto;
-  gap: 4px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 0 24px 24px 24px;
 
+  .chat-textarea-wrapper {
+    position: relative;
+  }
+
   textarea {
-    grid-area: textarea;
+    width: 100%;
     min-height: 96px;
     max-height: 120px;
-    padding: 12px;
+    padding: 12px 12px 48px 12px;
     border: 2px solid #dadada;
     border-radius: 8px;
     font-family: "adobe-clean", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
@@ -261,6 +261,7 @@
     background: #ffffff;
     resize: none;
     overflow-y: auto;
+    box-sizing: border-box;
 
     &:focus {
       outline: none;
@@ -273,8 +274,6 @@
   }
 
   .chat-disclaimer-text {
-    grid-area: disclaimer-text;
-    align-self: center;
     font-size: 14px;
     line-height: 21px;
     color: #222222;
@@ -291,35 +290,32 @@
   }
 
   .chat-send-button {
-    grid-area: send-button;
-    align-self: center;
-    width: 100%;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 72px;
     height: 32px;
     padding: 0;
     border: none;
     border-radius: 16px;
-    background: #3b63fb;
+    background: #e8e8e8;
+    color: #292929;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 
-    &:hover {
-      background: #2952e0;
+    &:hover:not(:disabled) {
+      background: #d0d0d0;
     }
 
-    &:active {
-      background: #1f42c7;
+    &:active:not(:disabled) {
+      background: #b8b8b8;
     }
 
     &:disabled {
-      background: #e1e1e1;
+      opacity: 0.5;
       cursor: not-allowed;
-    }
-
-    img {
-      width: 20px;
-      height: 20px;
-      filter: brightness(0) invert(1);
     }
   }
 }
