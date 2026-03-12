@@ -868,7 +868,10 @@ function loadPrism(document) {
                 ? (pre?.getAttribute('data-playground-url-stage') || pre?.getAttribute('data-playground-url'))
                 : pre?.getAttribute('data-playground-url');
               if (!sessionId || !playgroundMode || !playgroundExecutionMode || !playgroundURL) return null;
-              const btn = createTag('button', { class: 'try-code-button' });
+              const btn = createTag('button', {
+                class: 'try-code-button',
+                'daa-ll': `Try in playground ${sessionId}`,
+              });
               btn.textContent = 'Try in playground';
               const url = `${playgroundURL}?mode=${playgroundMode}&session=new&sessionId=${sessionId}&executionMode=${playgroundExecutionMode}`;
               btn.onclick = () => {
