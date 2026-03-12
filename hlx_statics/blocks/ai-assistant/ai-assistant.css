@@ -216,6 +216,9 @@
     }
 
     .chat-suggested-questions-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       padding: 8px 12px;
       border: none;
       border-radius: 8px;
@@ -227,8 +230,26 @@
       font-family: "adobe-clean", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Trebuchet MS", "Lucida Grande", sans-serif;
       cursor: pointer;
 
+      img {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+
       &:hover {
         background: #dadada;
+      }
+    }
+
+    .chat-suggested-questions-loading {
+      font-size: 13px;
+      color: #888;
+      opacity: 0.8;
+      margin: 0;
+
+      &::after {
+        content: '';
+        animation: ellipsis 1.5s infinite;
       }
     }
   }
