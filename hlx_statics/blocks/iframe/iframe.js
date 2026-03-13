@@ -30,6 +30,20 @@ function penpalOnLoad() {
             window.location = url;
           }
         },
+        setHash(hash) {
+          if (window?.location) {
+            window.location.hash = hash;
+          }
+        },
+        setQueryParams(queryString) {
+          if (window?.history) {
+            const url = new URL(window.location.href);
+            new URLSearchParams(queryString).forEach((v, k) => {
+              url.searchParams.set(k, v);
+            });
+            window.history.replaceState(null, "", url.toString());
+          }
+        },
         setHeight(height) {
           penpalIframe.style.height = height;
         },
