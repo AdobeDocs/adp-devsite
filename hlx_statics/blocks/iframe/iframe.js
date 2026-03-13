@@ -1,89 +1,89 @@
 import {
-    createTag,
-    addExtraScriptWithReturn,
-  } from '../../scripts/lib-adobeio.js';
-import { IS_DEV_DOCS } from '../../scripts/lib-helix.js';
+  createTag,
+  addExtraScriptWithReturn,
+} from "../../scripts/lib-adobeio.js";
+import { IS_DEV_DOCS } from "../../scripts/lib-helix.js";
 
 function penpalOnLoad() {
-    const createConnection = () => {
-        const penpalIframe = document.querySelector('#penpalIframe');
-        const connection = window.Penpal.connectToChild({
-        // The iframe to which a connection should be made
-        iframe: penpalIframe,
-        // Manually set origin as auto-detection may fail, as the src of the iframe is set later
-        //childOrigin: isExternalLink(src) ? new URL(src).origin : window.origin,
-        // Methods the parent is exposing to the child
-        methods: {
-            setOverflow(overflow) {
-                document.body.style.overflow = overflow;
-            },
-            scrollTop(position = 0) {
-            if (document?.scrollingElement) {
-                document.scrollingElement.scrollTop = position;
-            }
-            },
-            getURL() {
-            return window?.location?.href;
-            },
-            setURL(url) {
-            if (window?.location) {
-                window.location = url;
-            }
-            },
-            setHeight(height) {
-                penpalIframe.style.height = height;
-            },
-            getIMSAccessToken() {
-            if (window.adobeIMS?.isSignedInUser()) {
-                return window.adobeIMS.getAccessToken();
-            }
+  const createConnection = () => {
+    const penpalIframe = document.querySelector("#penpalIframe");
+    const connection = window.Penpal.connectToChild({
+      // The iframe to which a connection should be made
+      iframe: penpalIframe,
+      // Manually set origin as auto-detection may fail, as the src of the iframe is set later
+      //childOrigin: isExternalLink(src) ? new URL(src).origin : window.origin,
+      // Methods the parent is exposing to the child
+      methods: {
+        setOverflow(overflow) {
+          document.body.style.overflow = overflow;
+        },
+        scrollTop(position = 0) {
+          if (document?.scrollingElement) {
+            document.scrollingElement.scrollTop = position;
+          }
+        },
+        getURL() {
+          return window?.location?.href;
+        },
+        setURL(url) {
+          if (window?.location) {
+            window.location = url;
+          }
+        },
+        setHeight(height) {
+          penpalIframe.style.height = height;
+        },
+        getIMSAccessToken() {
+          if (window.adobeIMS?.isSignedInUser()) {
+            return window.adobeIMS.getAccessToken();
+          }
 
+          return null;
+        },
+        getIMSProfile() {
+          if (window.adobeIMS?.isSignedInUser()) {
+            return window.adobeIMS.getProfile();
+          }
+
+          return null;
+        },
+        signIn() {
+          if (window.adobeIMS && !window.adobeIMS.isSignedInUser()) {
+            window.adobeIMS.signIn();
+          }
+        },
+        signOut() {
+          if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
+            window.adobeIMS.signOut();
+          }
+        },
+        getIMSClientId() {
+          if (window.adobeIMS) {
+            return window.adobeIMS.adobeIdData.client_id;
+          } else {
             return null;
-            },
-            getIMSProfile() {
-            if (window.adobeIMS?.isSignedInUser()) {
-                return window.adobeIMS.getProfile();
-            }
+          }
+        },
+        onSignIn(signinCallback) {
+          window.addEventListener("imsSignIn", signinCallback);
+        },
+      },
+    });
 
-            return null;
-            },
-            signIn() {
-            if (window.adobeIMS && !window.adobeIMS.isSignedInUser()) {
-                window.adobeIMS.signIn();
-            }
-            },
-            signOut() {
-            if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
-                window.adobeIMS.signOut();
-            }
-            },
-            getIMSClientId() {
-            if (window.adobeIMS) {
-                return window.adobeIMS.adobeIdData.client_id;
-            } else {
-                return null;
-            }
-            },
-            onSignIn(signinCallback) {
-                window.addEventListener('imsSignIn', signinCallback);
-            }
-        }
-        });
+    connection.promise.then((child) => {
+      if (penpalIframe.clientHeight === 0) {
+        child.onHide();
+      } else {
+        child.onShow();
+      }
+    });
 
-        connection.promise.then((child) => {
-            if (penpalIframe.clientHeight === 0) {
-              child.onHide();
-            } else {
-              child.onShow();
-            }
-          });
+    return connection;
+  };
 
-        return connection;
-    };
-
-    if (window.Penpal) {
-        const connection = createConnection();
-    }
+  if (window.Penpal) {
+    const connection = createConnection();
+  }
 }
 
 /**
@@ -91,29 +91,55 @@ function penpalOnLoad() {
  * @param {Element} block The hero block element
  */
 export default async function decorate(block) {
-    const penpalScript = addExtraScriptWithReturn(document.body, 'https://unpkg.com/penpal@^6/dist/penpal.min.js');
-    const iframeSrc = block.querySelector('a');
-    const iframeContainer = block.parentElement;
-    const title = block?.parentElement?.parentElement?.attributes.getNamedItem('data-title')?.value;
+  const penpalScript = addExtraScriptWithReturn(
+    document.body,
+    "https://unpkg.com/penpal@^6/dist/penpal.min.js",
+  );
+  const iframeSrc = block.querySelector("a");
+  const iframeContainer = block.parentElement;
+  const title =
+    block?.parentElement?.parentElement?.attributes.getNamedItem(
+      "data-title",
+    )?.value;
 
-    // get all the block options and add them to the iframe class list
-    const classListArray = [...block.classList];
-    const classesToExclude = ["iframe", "block"];
+  // get all the block options and add them to the iframe class list
+  const classListArray = [...block.classList];
+  const classesToExclude = ["iframe", "block"];
 
-    let filteredClassList = classListArray.filter(theClass => {
-        return !classesToExclude.some(excludedClass => theClass.includes(excludedClass))
-    });
-    filteredClassList.push('iframe-container');
+  let filteredClassList = classListArray.filter((theClass) => {
+    return !classesToExclude.some((excludedClass) =>
+      theClass.includes(excludedClass),
+    );
+  });
+  filteredClassList.push("iframe-container");
 
-    const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
 
-    // filteredClassList is an array so make it a string separated by a space
-    const iframe = createTag('iframe', { 'title': title, class: filteredClassList.join(' '), 'src': IS_DEV_DOCS ? block.getAttribute('data-src') : iframeSrc.href+'?'+params.toString(), 'id': 'penpalIframe' });
+  const currentHash = window.location.hash; // e.g. "#section" or ""
 
-    penpalScript.onload = () => {
-        iframeContainer.append(iframe);
-        penpalOnLoad();
-    }
-    block.remove();
+  // Build iframe src using URL constructor to safely handle any pre-existing
+  // hash or query params in the authored src value.
+  let iframeSrcUrl;
+  if (IS_DEV_DOCS) {
+    iframeSrcUrl = new URL(block.getAttribute("data-src"));
+  } else {
+    iframeSrcUrl = new URL(iframeSrc.href);
+    params.forEach((value, key) => iframeSrcUrl.searchParams.set(key, value));
+  }
+  if (currentHash) {
+    iframeSrcUrl.hash = currentHash;
+  }
+
+  const iframe = createTag("iframe", {
+    title: title,
+    class: filteredClassList.join(" "),
+    src: iframeSrcUrl.toString(),
+    id: "penpalIframe",
+  });
+
+  penpalScript.onload = () => {
+    iframeContainer.append(iframe);
+    penpalOnLoad();
+  };
+  block.remove();
 }
-
