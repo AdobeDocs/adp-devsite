@@ -90,6 +90,12 @@ function penpalOnLoad() {
       } else {
         child.onShow();
       }
+
+      // Notify child when user navigates Back/Forward and the hash changes.
+      // Uses optional chaining — safe for iframes that don't implement onHashChange.
+      window.addEventListener("hashchange", () => {
+        child.onHashChange?.(window.location.hash);
+      });
     });
 
     return connection;
