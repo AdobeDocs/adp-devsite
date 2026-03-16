@@ -30,17 +30,23 @@ function penpalOnLoad() {
             window.location = url;
           }
         },
+        /**
+         * @param {string} hash - The hash to set WITH the leading #
+         */
         setHash(hash) {
-          if (window?.location) {
-            window.location.hash = hash;
+          const url = new URL(window.location.href);
+          if (url.hash !== hash) {
+            url.hash = hash;
+            window.history.pushState(null, "", url.toString());
           }
         },
+        /**
+         * @param {string} queryString - The query parameters to set WITHOUT the leading ?
+         */
         setQueryParams(queryString) {
-          if (window?.history) {
-            const url = new URL(window.location.href);
-            new URLSearchParams(queryString).forEach((v, k) => {
-              url.searchParams.set(k, v);
-            });
+          const url = new URL(window.location.href);
+          if (queryString !== url.search.replace("?", "")) {
+            url.search = queryString.length > 0 ? `?${queryString}` : "";
             window.history.replaceState(null, "", url.toString());
           }
         },
@@ -91,10 +97,14 @@ function penpalOnLoad() {
         child.onShow();
       }
 
-      // Notify child when user navigates Back/Forward and the hash changes.
-      // Uses optional chaining — safe for iframes that don't implement onHashChange.
-      window.addEventListener("hashchange", () => {
-        child.onHashChange?.(window.location.hash);
+      // Notify child when user navigates Back/Forward.
+      // Passes both hash and search so the child has
+      // full URL state to restore.
+      window.addEventListener("popstate", () => {
+        child.onPopState?.({
+          hash: window.location.hash,
+          search: window.location.search,
+        });
       });
     });
 
