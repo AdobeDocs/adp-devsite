@@ -52,8 +52,8 @@ export default async function decorate(block) {
   navigationLinksUl.setAttribute("aria-label", "Table of contents");
 
   if(IS_DEV_DOCS) {
-    // Create subpages section (only for documentation template)
-    const subPagesSection = createNavSection("side-nav-subpages-section", "Table of Contents");
+    // Create subpages section (only for documentation template) without visible heading text
+    const subPagesSection = createTag("div", { class: "side-nav-subpages-section" });
     navigationLinksContainer.append(subPagesSection);
     subPagesSection.append(navigationLinksUl);
   }
