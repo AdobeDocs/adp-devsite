@@ -22,6 +22,18 @@ main div.contributors-wrapper div.feedbackWrapper {
     align-items: center;
 }
 
+main div.contributors-wrapper div.feedbackWrapper.feedback-submitted {
+    pointer-events: none;
+    opacity: 0.65;
+}
+
+main div.contributors-wrapper div.feedbackWrapper.feedback-submitted button.selected {
+    background-color: rgb(110, 110, 110);
+    border-color: rgb(110, 110, 110);
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+}
+
 main div.contributors-wrapper div.buttonWrapper {
     display: flex;
     gap: 10px;

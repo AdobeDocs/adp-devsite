@@ -135,6 +135,14 @@ export default async function decorate(block) {
 
   buttonWrapper.append(yesButton, noButton);
 
+  const feedbackKey = `feedback:${window.location.pathname}`;
+  const saved = localStorage.getItem(feedbackKey);
+  if (saved) {
+    feedbackWrapper.classList.add('feedback-submitted');
+    const btn = saved === 'Yes' ? yesButton : noButton;
+    btn.classList.add('selected');
+  }
+
   firstDiv.append(lastUpdate, feedback);
 
   const showModal = () => {
@@ -153,8 +161,15 @@ export default async function decorate(block) {
     }, 10);
   }
 
-  yesButton.addEventListener('click', showModal);
-  noButton.addEventListener('click', showModal);
+  const handleFeedback = (selectedButton, value) => {
+    feedbackWrapper.classList.add('feedback-submitted');
+    selectedButton.classList.add('selected');
+    localStorage.setItem(feedbackKey, value);
+    showModal();
+  };
+
+  yesButton.addEventListener('click', () => handleFeedback(yesButton, 'Yes'));
+  noButton.addEventListener('click', () => handleFeedback(noButton, 'No'));
   modal.querySelector('.close-button').addEventListener('click', closeModal);
   window.addEventListener('click', (event) => {
     if (event.target === document.querySelector('.model-comp-contributors')) closeModal();
