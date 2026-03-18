@@ -673,7 +673,7 @@ class AiApiClient {
    * @param {Object} options.callbacks - Event callbacks (onMetadata, onContent, etc.)
    * @returns {Promise<void>}
    */
-  async query({ query, context = "", systemPrompt = "", callbacks = {} }) {
+  async query({ query, context = "", systemPrompt = "", collectionId = null, callbacks = {} }) {
     const defaultSystemPrompt = `
       Use markdown formatting for the response.
     `;
@@ -689,6 +689,9 @@ class AiApiClient {
         </question>
       `,
     };
+    if (collectionId) {
+      body.collectionId = collectionId;
+    }
 
     return this.streamRequest({
       body,
@@ -888,7 +891,7 @@ const updateSuggestedQuestions = (questions) => {
     return;
   }
 
-  questions.forEach(({ label, question }) => {
+  questions.forEach(({ id, label, question }) => {
     const button = createTag("button", {
       type: "button",
       class: "chat-suggested-questions-button",
@@ -901,7 +904,7 @@ const updateSuggestedQuestions = (questions) => {
     button.appendChild(icon);
     button.appendChild(document.createTextNode(label));
     button.addEventListener("click", () => {
-      handleUserQuery(question);
+      handleUserQuery(question, id ?? null);
     });
     list.appendChild(button);
   });
@@ -1043,7 +1046,7 @@ const fetchAiSuggestedQuestions = async () => {
  * Gets the user's query, sends it to the AI, and displays the response.
  * @param {string} [messageContentOverride] - Optional message content; when provided, used instead of the textarea value
  */
-const handleUserQuery = async (messageContentOverride) => {
+const handleUserQuery = async (messageContentOverride, collectionId = null) => {
   let messageContent = messageContentOverride;
 
   if (!messageContentOverride) {
@@ -1085,6 +1088,7 @@ const handleUserQuery = async (messageContentOverride) => {
   await aiApiClient.query({
     query: messageContent,
     context: queryContext,
+    collectionId,
     callbacks: {
       onMetadata: (data) => {
         if (data.sessionId) {
