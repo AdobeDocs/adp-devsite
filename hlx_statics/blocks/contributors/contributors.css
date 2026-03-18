@@ -82,6 +82,8 @@ main div.contributors-wrapper .lastUpdatedText:empty {
     padding: 40px;
     display: flex;
     justify-content: center;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .contributor-modal .wrapper-model {
