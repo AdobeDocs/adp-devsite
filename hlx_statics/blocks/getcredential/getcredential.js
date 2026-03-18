@@ -495,7 +495,7 @@ function updateProjectCardDetails(returnContainer, project) {
   setReturnField('clientId', clientId);
   setReturnField('clientSecret', clientSecret);
   setReturnField('scopes', scopes, false);
-  setReturnField('imsOrgId', imsOrgId, false);
+  setReturnField('imsOrgId', imsOrgId, true);
 
   // Set data for "Retrieve and copy client secret" API (secrets endpoint)
   const card = returnContainer.querySelector('.return-project-card');
@@ -729,7 +729,7 @@ function updateCredentialCard(cardContainer, responseData) {
   setFieldValue('clientId', clientId);
   setFieldValue('clientSecret', clientSecret);
   setFieldValue('scopes', scopes, false);
-  setFieldValue('imsOrgId', imsOrgId, false);
+  setFieldValue('imsOrgId', imsOrgId, true);
 
   // Update project link if available
   if (projectId && projectName) {

@@ -953,10 +953,31 @@ function buildCredentialDetailFromComponent(components, key) {
   return createCredentialDetailField(label, value, showCopy, fieldName);
 }
 
+function setHeadingContent(target, value) {
+  if (!target) return;
+  if (typeof value !== 'string') {
+    target.textContent = value ?? '';
+    return;
+  }
+
+  // Support authored rich text and normalize copied fragment wrappers like <>...</>) from JSON content.
+  const normalized = value
+    .replace(/^\s*<>\s*/, '')
+    .replace(/\s*<\/>\)?\s*$/, '')
+    .trim();
+
+  const hasHtmlMarkup = /<[^>]+>/.test(normalized);
+  if (hasHtmlMarkup) {
+    target.innerHTML = normalized;
+  } else {
+    target.textContent = normalized;
+  }
+}
+
 export function createCredentialSection(config) {
   const credentialSection = createTag('div', { class: 'credential-section' });
   const credentialTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
-  credentialTitle.textContent = config.heading;
+  setHeadingContent(credentialTitle, config.heading);
   credentialSection.appendChild(credentialTitle);
 
   const components = config.components;
