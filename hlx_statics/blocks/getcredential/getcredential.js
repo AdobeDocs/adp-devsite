@@ -21,7 +21,8 @@ import {
   downloadZipViaApi,
   createRequestAccessModal,
   createRequestAccessIframeModal,
-  createOrganizationModal
+  createOrganizationModal,
+  setRichTextContent
 } from "./getcredential-components.js";
 
 // ============================================================================
@@ -1024,7 +1025,7 @@ function createProductsField(config) {
 
   if (config.label) {
     const label = createTag('label', { class: 'spectrum-Body spectrum-Body--sizeS field-label' });
-    label.textContent = config.label;
+    setRichTextContent(label, config.label);
     fieldContainer.appendChild(label);
   }
 
@@ -1039,7 +1040,7 @@ function createProductsField(config) {
     }
 
     const productLabel = createTag('span', { class: 'product-label' });
-    productLabel.textContent = product.label;
+    setRichTextContent(productLabel, product.label);
     productItem.appendChild(productLabel);
     productsList.appendChild(productItem);
   });
@@ -1056,10 +1057,10 @@ function createAgreementField(config) {
   checkbox.addEventListener('change', (e) => handleInputChange(e.target.checked, 'AdobeDeveloperConsole'));
 
   const labelText = createTag('span', { class: 'agreement-text' });
-  labelText.textContent = config.label + ' ';
+  setRichTextContent(labelText, (config.label || '') + ' ');
 
   const link = createTag('a', { href: config.href, target: '_blank', class: 'agreement-link' });
-  link.textContent = config.linkText;
+  setRichTextContent(link, config.linkText);
   labelText.appendChild(link);
 
   checkboxWrapper.appendChild(checkbox);
@@ -1078,7 +1079,7 @@ function createSideContent(config) {
     const el = createTag(element.type, { class: element.className || '' });
     if (element.style) Object.assign(el.style, element.style);
     if (element.href) el.href = element.href;
-    el.textContent = element.text;
+    setRichTextContent(el, element.text);
     sideContainer.appendChild(el);
   });
   return sideContainer;
@@ -1101,7 +1102,7 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
   if (restricted.title) {
     const titleRow = createTag('div', { class: 'request-access-restricted-title-row' });
     const cardTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-restricted-title' });
-    cardTitle.textContent = restricted.title;
+    setRichTextContent(cardTitle, restricted.title);
     titleRow.appendChild(cardTitle);
     const infoIcon = createTag('span', { class: 'request-access-restricted-info-icon', 'aria-label': 'Information' });
     infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
@@ -1115,7 +1116,7 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
   const products = restricted.components?.Products;
   if (products?.label) {
     const productsLabel = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-products-label' });
-    productsLabel.textContent = products.label;
+    setRichTextContent(productsLabel, products.label);
     card.appendChild(productsLabel);
   }
   if (products?.items?.length) {
@@ -1128,7 +1129,7 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
         row.appendChild(img);
       }
       const label = createTag('span', { class: 'request-access-product-label' });
-      label.textContent = product?.label || '';
+      setRichTextContent(label, product?.label || '');
       row.appendChild(label);
       list.appendChild(row);
     });
@@ -1155,9 +1156,9 @@ function buildRequestAccessLeftCard(config, edgeCaseKey, options = {}) {
         'aria-live': 'polite'
       });
       const pendingTitle = createTag('p', { class: 'request-access-pending-title' });
-      pendingTitle.textContent = 'Your request is pending approval';
+      setRichTextContent(pendingTitle, 'Your request is pending approval');
       const pendingBody = createTag('p', { class: 'request-access-pending-body' });
-      pendingBody.textContent = "You'll hear back from your admin soon. If your request is approved, you'll get an email with instructions on how to start using your apps and services.";
+      setRichTextContent(pendingBody, "You'll hear back from your admin soon. If your request is approved, you'll get an email with instructions on how to start using your apps and services.");
       const pendingLink = createTag('a', {
         class: 'request-access-pending-link',
         href: 'https://developer.adobe.com/developer-console/docs/guides/credentials/request-access/',
@@ -1215,7 +1216,7 @@ function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
   if (edgeCase.title) {
     const titleRow = createTag('div', { class: 'request-access-edge-case-title-row' });
     const titleEl = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS request-access-edge-case-title' });
-    titleEl.textContent = edgeCase.title;
+    setRichTextContent(titleEl, edgeCase.title);
     titleRow.appendChild(titleEl);
     const infoIcon = createTag('span', { class: 'request-access-edge-case-info-icon', 'aria-label': 'Information' });
     infoIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" stroke="currentColor" stroke-width="1"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
@@ -1233,7 +1234,7 @@ function buildEdgeCaseCard(config, edgeCaseKey, options = {}) {
   const descriptionText = edgeCase.description || defaultDescription;
   if (descriptionText) {
     const descEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeS request-access-edge-case-description' });
-    descEl.textContent = descriptionText;
+    setRichTextContent(descEl, descriptionText);
     if (showChangeOrg) {
       descEl.appendChild(document.createTextNode(' '));
       const changeOrgWrap = createTag('span', { class: 'request-access-edge-case-change-org-wrap' });
@@ -1287,12 +1288,12 @@ function createRequestAccessContent(config) {
   const header = createTag('div', { class: 'request-access-header' });
   if (config.title) {
     const titleEl = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeXL request-access-title' });
-    titleEl.textContent = config.title;
+    setRichTextContent(titleEl, config.title);
     header.appendChild(titleEl);
   }
   if (config.paragraph) {
     const para = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL request-access-paragraph' });
-    para.textContent = config.paragraph;
+    setRichTextContent(para, config.paragraph);
     header.appendChild(para);
   }
   contentWrapper.appendChild(header);
@@ -1327,13 +1328,13 @@ function createSignInContent(config) {
 
   if (config.title) {
     const title = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeXL sign-in-title' });
-    title.textContent = config.title;
+    setRichTextContent(title, config.title);
     signInWrapper.appendChild(title);
   }
 
   if (config.paragraph) {
     const paragraph = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL sign-in-description' });
-    paragraph.textContent = config.paragraph;
+    setRichTextContent(paragraph, config.paragraph);
     signInWrapper.appendChild(paragraph);
   }
 
@@ -1387,7 +1388,7 @@ function createReturnContent(config, handleReturnOrgChange) {
 
       customContent.elements?.forEach(element => {
         const el = createTag(element.type, { class: element.className || '' });
-        el.textContent = element.text;
+        setRichTextContent(el, element.text);
         customWrapper.appendChild(el);
       });
 
@@ -1397,7 +1398,7 @@ function createReturnContent(config, handleReturnOrgChange) {
     if (config.components.Side.components?.NewCredential) {
       const newCredSection = createTag('div', { class: 'new-credential-section' });
       const heading = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
-      heading.textContent = config.components.Side.components.NewCredential.heading;
+      setRichTextContent(heading, config.components.Side.components.NewCredential.heading);
       newCredSection.appendChild(heading);
 
       const button = createSpectrumButton(config.components.Side.components.NewCredential.buttonLabel, 'accent', 'M');
@@ -1419,13 +1420,13 @@ function createReturnContent(config, handleReturnOrgChange) {
   // Title and paragraph
   if (config.title) {
     const title = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeXL return-title' });
-    title.textContent = config.title;
+    setRichTextContent(title, config.title);
     rightContent.appendChild(title);
   }
 
   if (config.paragraph) {
     const paragraph = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL return-description' });
-    paragraph.textContent = config.paragraph;
+    setRichTextContent(paragraph, config.paragraph);
     rightContent.appendChild(paragraph);
   }
 
@@ -1444,7 +1445,7 @@ function createReturnContent(config, handleReturnOrgChange) {
   if (config.components?.ProjectsDropdown) {
     const dropdownSection = createTag('div', { class: 'projects-dropdown-section' });
     const dropdownLabel = createTag('label', { class: 'spectrum-Body spectrum-Body--sizeS' });
-    dropdownLabel.textContent = config.components.ProjectsDropdown.label;
+    setRichTextContent(dropdownLabel, config.components.ProjectsDropdown.label);
     dropdownSection.appendChild(dropdownLabel);
 
     // Create empty dropdown - will be populated by populateProjectsDropdown()
@@ -1453,7 +1454,7 @@ function createReturnContent(config, handleReturnOrgChange) {
 
     if (config.components.ProjectsDropdown.subHeading) {
       const subHeading = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeXS dropdown-subheading' });
-      subHeading.textContent = config.components.ProjectsDropdown.subHeading;
+      setRichTextContent(subHeading, config.components.ProjectsDropdown.subHeading);
       dropdownSection.appendChild(subHeading);
     }
 
@@ -1481,7 +1482,7 @@ function createReturnContent(config, handleReturnOrgChange) {
     } else if (key === 'DevConsoleLink') {
       const devConsoleSection = createTag('div', { class: 'dev-console-section' });
       const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
-      devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
+      setRichTextContent(devConsoleLabel, config.components.DevConsoleLink.heading);
       devConsoleSection.appendChild(devConsoleLabel);
       const projectLink = createExternalLink('', '#');
       devConsoleSection.appendChild(projectLink);
@@ -1573,14 +1574,14 @@ function createCredentialCard(config) {
   // Card title
   if (config.title) {
     const title = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeL card-title' });
-    title.textContent = config.title;
+    setRichTextContent(title, config.title);
     cardTitleWrapper.appendChild(title);
   }
 
   // Card paragraph
   if (config.paragraph) {
     const paragraph = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL  card-paragraph' });
-    paragraph.textContent = config.paragraph;
+    setRichTextContent(paragraph, config.paragraph);
     cardTitleWrapper.appendChild(paragraph);
   }
 
@@ -1617,7 +1618,7 @@ function createCredentialCard(config) {
     } else if (key === 'DevConsoleLink') {
       const devConsoleSection = createTag('div', { class: 'dev-console-section' });
       const devConsoleLabel = createTag('h3', { class: 'section-label spectrum-Heading spectrum-Heading--sizeS' });
-      devConsoleLabel.textContent = config.components.DevConsoleLink.heading;
+      setRichTextContent(devConsoleLabel, config.components.DevConsoleLink.heading);
       devConsoleSection.appendChild(devConsoleLabel);
       const projectLink = createExternalLink('', '#');
       projectLink.setAttribute('data-cy', 'credentialName-link');
@@ -1639,7 +1640,7 @@ function createCredentialCard(config) {
       href: config.nextStepsHref
     });
     const buttonLabel = createTag('span', { class: 'spectrum-Button-label' });
-    buttonLabel.textContent = config.nextStepsLabel;
+    setRichTextContent(buttonLabel, config.nextStepsLabel);
     nextStepsButton.appendChild(buttonLabel);
     buttonsSection.appendChild(nextStepsButton);
   }
@@ -2000,13 +2001,13 @@ export default async function decorate(block) {
 
     if (title) {
       const titleEl = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeL form-title' });
-      titleEl.textContent = title;
+      setRichTextContent(titleEl, title);
       formHeader.appendChild(titleEl);
     }
 
     if (paragraph) {
       const paragraphEl = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL form-description' });
-      paragraphEl.textContent = paragraph;
+      setRichTextContent(paragraphEl, paragraph);
       formHeader.appendChild(paragraphEl);
     }
 
