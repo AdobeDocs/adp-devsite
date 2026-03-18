@@ -198,13 +198,13 @@ function createHelpIcon(config) {
 
   if (config.contextHelpHeading) {
     const heading = createTag('h4', { class: 'context-help-heading spectrum-Heading spectrum-Heading--sizeXXS' });
-    heading.textContent = config.contextHelpHeading;
+    setRichTextContent(heading, config.contextHelpHeading);
     popover.appendChild(heading);
   }
 
   if (config.contextHelpText) {
     const text = createTag('p', { class: 'context-help-text spectrum-Body spectrum-Body--sizeXS' });
-    text.textContent = config.contextHelpText;
+    setRichTextContent(text, config.contextHelpText);
     popover.appendChild(text);
   }
 
@@ -242,7 +242,7 @@ export function createFieldLabel(config, fieldName, isCheckbox = false) {
     class: `spectrum-Body spectrum-Body--sizeS ${isCheckbox ? 'checkbox-label' : 'field-label'}`,
     ...(fieldName && { for: isCheckbox ? fieldName : `textfield-${fieldName}` })
   });
-  label.textContent = config.label;
+  setRichTextContent(label, config.label);
 
   if (config.required) {
     const asterisk = createTag('span', { class: 'required-asterisk' });
@@ -684,7 +684,7 @@ export const generateToken = async (apikey, secret, scopesDetails) => {
 export function createAccessTokenSection(accessTokenConfig = {}) {
   const section = createTag('div', { class: 'access-token-section' });
   const heading = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
-  heading.textContent = accessTokenConfig?.heading ?? 'Access Token';
+  setRichTextContent(heading, accessTokenConfig?.heading ?? 'Access Token');
   section.appendChild(heading);
 
   const buttonLabel = accessTokenConfig?.buttonLabel ?? 'Generate and copy token';
@@ -767,7 +767,7 @@ export function createAccessTokenSection(accessTokenConfig = {}) {
 export function createCredentialDetailField(label, value, showCopy = false, fieldName = null) {
   const field = createTag('div', { class: 'credential-detail-field' });
   const fieldLabel = createTag('label', { class: 'credential-detail-label spectrum-Body spectrum-Body--sizeS' });
-  fieldLabel.textContent = label;
+  setRichTextContent(fieldLabel, label);
   field.appendChild(fieldLabel);
 
   if (showCopy) {
@@ -847,7 +847,7 @@ export function createProjectHeader(projectTitle, products, isCollapsable = fals
 function createClientSecretField(heading, buttonLabel = 'Retrieve and copy client secret') {
   const field = createTag('div', { class: 'credential-detail-field' });
   const fieldLabel = createTag('label', { class: 'credential-detail-label spectrum-Body spectrum-Body--sizeS' });
-  fieldLabel.textContent = heading;
+  setRichTextContent(fieldLabel, heading);
   field.appendChild(fieldLabel);
 
   const valueHolder = createTag('div', { class: 'credential-detail-value credential-detail-secret-value', 'data-field': 'clientSecret' });
@@ -953,7 +953,7 @@ function buildCredentialDetailFromComponent(components, key) {
   return createCredentialDetailField(label, value, showCopy, fieldName);
 }
 
-function setHeadingContent(target, value) {
+export function setRichTextContent(target, value) {
   if (!target) return;
   if (typeof value !== 'string') {
     target.textContent = value ?? '';
@@ -977,7 +977,7 @@ function setHeadingContent(target, value) {
 export function createCredentialSection(config) {
   const credentialSection = createTag('div', { class: 'credential-section' });
   const credentialTitle = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS' });
-  setHeadingContent(credentialTitle, config.heading);
+  setRichTextContent(credentialTitle, config.heading);
   credentialSection.appendChild(credentialTitle);
 
   const components = config.components;
