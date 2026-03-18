@@ -911,6 +911,23 @@ const updateSuggestedQuestions = (questions) => {
 };
 
 /**
+ * Fetches collections and returns them as suggestion question objects.
+ * Falls back to SUGGESTED_QUESTIONS if the API returns no results.
+ * @returns {Promise<Array<{id: string|null, label: string, question: string}>>}
+ */
+const getCollectionsQuestions = async () => {
+  const rawCollections = await aiApiClient.getCollections();
+  const questions = rawCollections
+    .filter((c) => c.id !== "__all-collections__")
+    .map((c) => ({
+      id: c.id,
+      label: c.name,
+      question: `What can I learn from ${c.name}?`,
+    }));
+  return questions.length > 0 ? questions : SUGGESTED_QUESTIONS;
+};
+
+/**
  * Creates the suggested questions section with topic buttons.
  * @returns {HTMLElement} The suggested questions wrapper element
  */
@@ -924,7 +941,7 @@ const createSuggestedQuestionsSection = () => {
   wrapper.appendChild(list);
   ELEMENTS.CHAT_SUGGESTED_QUESTIONS = wrapper;
 
-  updateSuggestedQuestions(SUGGESTED_QUESTIONS);
+  getCollectionsQuestions().then(updateSuggestedQuestions);
 
   return wrapper;
 };
@@ -1032,13 +1049,17 @@ const fetchAiSuggestedQuestions = async () => {
       context,
     });
     const parsed = parseAiSuggestedQuestions(rawResponse);
-    updateSuggestedQuestions(parsed.length > 0 ? parsed : SUGGESTED_QUESTIONS);
+    if (parsed.length > 0) {
+      updateSuggestedQuestions(parsed);
+    } else {
+      updateSuggestedQuestions(await getCollectionsQuestions());
+    }
   } catch (error) {
     console.warn(
       "[AI Assistant] Failed to fetch AI suggested questions:",
       error,
     );
-    updateSuggestedQuestions(SUGGESTED_QUESTIONS);
+    updateSuggestedQuestions(await getCollectionsQuestions());
   }
 };
 
@@ -1135,7 +1156,7 @@ const handleUserQuery = async (messageContentOverride, collectionId = null) => {
           targetBubble.hideThinking();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-          updateSuggestedQuestions(SUGGESTED_QUESTIONS);
+          updateSuggestedQuestions(await getCollectionsQuestions());
           window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
           return;
         }
@@ -1156,7 +1177,7 @@ const handleUserQuery = async (messageContentOverride, collectionId = null) => {
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
-        updateSuggestedQuestions(SUGGESTED_QUESTIONS);
+        getCollectionsQuestions().then(updateSuggestedQuestions);
         window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
       },
     },
