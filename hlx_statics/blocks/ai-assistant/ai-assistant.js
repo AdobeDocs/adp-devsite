@@ -464,6 +464,7 @@ class ChatHistory {
 class AiApiClient {
   static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
   static NON_STREAMING_ENDPOINT = "/v1/inference/retrieve/generate";
+  static COLLECTIONS_ENDPOINT = "/v1/inference/collections";
   /**
    * @param {Object} config
    * @param {string} config.baseUrl
@@ -476,6 +477,34 @@ class AiApiClient {
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
     this.abortController = null;
+    this._collectionsPromise = null;
+  }
+
+  /**
+   * Fetches available collections from the RAG API.
+   * Result is memoized on this instance — at most one network call is made per page load.
+   * @returns {Promise<Array<{id: string, name: string, description: string}>>}
+   */
+  getCollections() {
+    if (this._collectionsPromise) return this._collectionsPromise;
+
+    this._collectionsPromise = fetch(`${this.baseUrl}${AiApiClient.COLLECTIONS_ENDPOINT}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": this.apiKey,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Collections fetch failed: ${res.status}`);
+        return res.json();
+      })
+      .catch((err) => {
+        console.warn("[AI Assistant] Failed to fetch collections:", err);
+        // Do NOT reset _collectionsPromise — one call per page load, even on error.
+        return [];
+      });
+
+    return this._collectionsPromise;
   }
 
   /**
