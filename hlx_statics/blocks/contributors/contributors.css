@@ -131,7 +131,7 @@ main div.contributors-wrapper .span-Image-contributor {
 .contributor-modal {
     display: none;
     position: fixed;
-    z-index: 2000;
+    z-index: 1000001;
     left: 0;
     top: 0;
     width: 100%;
