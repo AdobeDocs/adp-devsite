@@ -1286,6 +1286,9 @@ const aiApiClient = new AiApiClient({
  * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
+  // Prefetch collections to warm cache — resolves before user opens chat
+  aiApiClient.getCollections();
+
   addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@^17/lib/marked.umd.js",
