@@ -47,6 +47,22 @@ main div.iframe-wrapper div.iframe iframe {
   border: 0;
 }
 
+main div.iframe-wrapper iframe.iframe-container.youtube-iframe {
+  width: 560px !important;
+  height: 315px !important;
+  max-width: 100%;
+}
+main div.iframe-wrapper:has(iframe.youtube-iframe) {
+  background: transparent;
+}
+@media screen and (max-width: 600px) {
+  main div.iframe-wrapper iframe.iframe-container.youtube-iframe {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+  }
+}
+
 @media screen and (max-width: 1280px) {
   main div.iframe-wrapper {
     padding: 0;

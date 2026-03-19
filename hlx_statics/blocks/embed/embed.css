@@ -2,6 +2,21 @@ main div.embed-wrapper:has(.embed.background-color-white) {
   background-color: white;
 }
 
+main div.embed-wrapper .ytShort {
+  position: relative;
+  width: 315px;
+  height: 560px;
+  aspect-ratio: 9 / 16;
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 700px) {
+  main div.embed-wrapper .ytShort {
+    width: 100%;
+    max-width: 315px;
+  }
+}
+
 main div.embed-wrapper {
   align-items: center;
   justify-content: center;
