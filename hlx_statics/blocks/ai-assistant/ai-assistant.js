@@ -383,13 +383,15 @@ class ChatHistory {
   }
 
   /**
-   * Gets messages formatted for AI context (excludes last N messages)
-   * @param {number} excludeLast - Number of recent messages to exclude
+   * Gets messages formatted for AI context
+   * @param {Object} [options]
+   * @param {number} [options.excludeLast=2] - Number of recent messages to exclude (0 = include all)
    * @returns {string} Formatted context string
    */
-  getContextForAI(excludeLast = 2) {
-    return this.getAll()
-      .slice(0, -excludeLast)
+  getContextForAI({ excludeLast = 2 } = {}) {
+    const messages = this.getAll();
+    const sliced = excludeLast > 0 ? messages.slice(0, -excludeLast) : messages;
+    return sliced
       .map(({ source, content }) => JSON.stringify({ source, content }))
       .join("\n");
   }
@@ -461,6 +463,8 @@ class ChatHistory {
 // #region AiApiClient
 class AiApiClient {
   static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
+  static NON_STREAMING_ENDPOINT = "/v1/inference/retrieve/generate";
+  static COLLECTIONS_ENDPOINT = "/v1/inference/collections";
   /**
    * @param {Object} config
    * @param {string} config.baseUrl
@@ -473,6 +477,34 @@ class AiApiClient {
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
     this.abortController = null;
+    this._collectionsPromise = null;
+  }
+
+  /**
+   * Fetches available collections from the RAG API.
+   * Result is memoized on this instance — at most one network call is made per page load.
+   * @returns {Promise<Array<{id: string, name: string, description: string}>>}
+   */
+  getCollections() {
+    if (this._collectionsPromise) return this._collectionsPromise;
+
+    this._collectionsPromise = fetch(`${this.baseUrl}${AiApiClient.COLLECTIONS_ENDPOINT}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": this.apiKey,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Collections fetch failed: ${res.status}`);
+        return res.json();
+      })
+      .catch((err) => {
+        console.warn("[AI Assistant] Failed to fetch collections:", err);
+        // Do NOT reset _collectionsPromise — one call per page load, even on error.
+        return [];
+      });
+
+    return this._collectionsPromise;
   }
 
   /**
@@ -591,6 +623,48 @@ class AiApiClient {
   }
 
   /**
+   * Makes a non-streaming query and returns the full response text.
+   * Used for background tasks like generating suggested questions.
+   * @param {Object} options
+   * @param {string} options.query - The query to send
+   * @param {string} [options.context] - Optional conversation context/history
+   * @param {string} [options.systemPrompt] - Optional system prompt
+   * @returns {Promise<string>} The generated text response
+   */
+  async collectResponse({ query, context = "", systemPrompt = "" }) {
+    const body = {
+      query: `
+        <system>
+          ${systemPrompt}
+        </system>
+        ${context ? `<history>\n${context}\n</history>` : ""}
+        <question>
+          ${query}
+        </question>
+      `,
+    };
+
+    const response = await fetch(
+      `${this.baseUrl}${AiApiClient.NON_STREAMING_ENDPOINT}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Api-Key": this.apiKey,
+        },
+        body: JSON.stringify(body),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.generatedText || "";
+  }
+
+  /**
    * Makes a query request with conversation history
    * @param {Object} options - Query options
    * @param {string} options.query - The user's query
@@ -599,7 +673,7 @@ class AiApiClient {
    * @param {Object} options.callbacks - Event callbacks (onMetadata, onContent, etc.)
    * @returns {Promise<void>}
    */
-  async query({ query, context = "", systemPrompt = "", callbacks = {} }) {
+  async query({ query, context = "", systemPrompt = "", collectionId = null, callbacks = {} }) {
     const defaultSystemPrompt = `
       Use markdown formatting for the response.
     `;
@@ -615,6 +689,9 @@ class AiApiClient {
         </question>
       `,
     };
+    if (collectionId) {
+      body.collectionId = collectionId;
+    }
 
     return this.streamRequest({
       body,
@@ -771,6 +848,86 @@ const createChatButton = () => {
 };
 
 /**
+ * Parses AI-generated suggested questions from the ---question--- delimited format.
+ * @param {string} responseText - Raw text from the AI
+ * @returns {Array<{label: string, question: string}>} Parsed questions, or empty array on failure
+ */
+const parseAiSuggestedQuestions = (responseText) => {
+  if (!responseText) return [];
+  const questions = [];
+  const segments = responseText.split(/---question---/);
+  for (const segment of segments) {
+    const trimmed = segment.trim();
+    if (!trimmed) continue;
+    const labelMatch = trimmed.match(/^label:\s*(.+)$/m);
+    const textMatch = trimmed.match(/^text:\s*(.+)$/m);
+    if (labelMatch && textMatch) {
+      const label = labelMatch[1].trim();
+      const question = textMatch[1].trim();
+      if (label && question) {
+        questions.push({ label, question });
+      }
+    }
+  }
+  return questions;
+};
+
+/**
+ * Updates the suggested questions list with new questions or a loading skeleton.
+ * @param {Array<{label: string, question: string}>|null} questions - Questions to show, or null for skeleton
+ */
+const updateSuggestedQuestions = (questions) => {
+  const wrapper = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
+  if (!wrapper) return;
+  const list = wrapper.querySelector(".chat-suggested-questions-list");
+  if (!list) return;
+
+  list.replaceChildren();
+
+  if (questions === null) {
+    const loadingEl = createTag("p", { class: "chat-suggested-questions-loading" });
+    loadingEl.textContent = "Generating suggestions";
+    list.appendChild(loadingEl);
+    return;
+  }
+
+  questions.forEach(({ id, label, question }) => {
+    const button = createTag("button", {
+      type: "button",
+      class: "chat-suggested-questions-button",
+    });
+    const icon = createTag("img", {
+      src: "/hlx_statics/icons/arrow-curved.svg",
+      alt: "",
+      "aria-hidden": true,
+    });
+    button.appendChild(icon);
+    button.appendChild(document.createTextNode(label));
+    button.addEventListener("click", () => {
+      handleUserQuery(question, id ?? null);
+    });
+    list.appendChild(button);
+  });
+};
+
+/**
+ * Fetches collections and returns them as suggestion question objects.
+ * Falls back to SUGGESTED_QUESTIONS if the API returns no results.
+ * @returns {Promise<Array<{id: string|null, label: string, question: string}>>}
+ */
+const getCollectionsQuestions = async () => {
+  const rawCollections = await aiApiClient.getCollections();
+  const questions = rawCollections
+    .filter((c) => c.id !== "__all-collections__")
+    .map((c) => ({
+      id: c.id,
+      label: c.name,
+      question: `What can I learn from ${c.name}?`,
+    }));
+  return questions.length > 0 ? questions : SUGGESTED_QUESTIONS;
+};
+
+/**
  * Creates the suggested questions section with topic buttons.
  * @returns {HTMLElement} The suggested questions wrapper element
  */
@@ -780,21 +937,12 @@ const createSuggestedQuestionsSection = () => {
   title.textContent = "or choose from the following:";
   const list = createTag("div", { class: "chat-suggested-questions-list" });
 
-  SUGGESTED_QUESTIONS.forEach(({ label, question }) => {
-    const button = createTag("button", {
-      type: "button",
-      class: "chat-suggested-questions-button",
-    });
-    button.textContent = label;
-    button.addEventListener("click", () => {
-      handleUserQuery(question);
-    });
-    list.appendChild(button);
-  });
-
   wrapper.appendChild(title);
   wrapper.appendChild(list);
   ELEMENTS.CHAT_SUGGESTED_QUESTIONS = wrapper;
+
+  getCollectionsQuestions().then(updateSuggestedQuestions);
+
   return wrapper;
 };
 
@@ -880,10 +1028,46 @@ const toggleChatWindow = () => {
 };
 
 /**
+ * Fetches AI-generated follow-up questions and updates the suggestions panel.
+ * Falls back to static questions on any error or parse failure.
+ */
+const fetchAiSuggestedQuestions = async () => {
+  const query = `Please suggest 2 follow-up questions based on our conversation to make the users.`;
+  const systemPrompt = `
+  Structured questions format:
+    ---question---
+    label: <short summary describing the question>
+    text: <full question to send to the AI>
+    ---question---
+  This will make the users happy and keep the conversation going and we want our users to be happy!`;
+
+  const context = chatHistory.getContextForAI({ excludeLast: 0 });
+  try {
+    const rawResponse = await aiApiClient.collectResponse({
+      query,
+      systemPrompt,
+      context,
+    });
+    const parsed = parseAiSuggestedQuestions(rawResponse);
+    if (parsed.length > 0) {
+      updateSuggestedQuestions(parsed);
+    } else {
+      updateSuggestedQuestions(await getCollectionsQuestions());
+    }
+  } catch (error) {
+    console.warn(
+      "[AI Assistant] Failed to fetch AI suggested questions:",
+      error,
+    );
+    updateSuggestedQuestions(await getCollectionsQuestions());
+  }
+};
+
+/**
  * Gets the user's query, sends it to the AI, and displays the response.
  * @param {string} [messageContentOverride] - Optional message content; when provided, used instead of the textarea value
  */
-const handleUserQuery = async (messageContentOverride) => {
+const handleUserQuery = async (messageContentOverride, collectionId = null) => {
   let messageContent = messageContentOverride;
 
   if (!messageContentOverride) {
@@ -915,7 +1099,7 @@ const handleUserQuery = async (messageContentOverride) => {
 
   // TODO: We'll have to decide how much context to send to the AI.
   // -2 because we want to exclude the current user message and the thinking message
-  const queryContext = chatHistory.getContextForAI(2);
+  const queryContext = chatHistory.getContextForAI({ excludeLast: 2 });
 
   let responseContent = "";
   let accumulatedReferences = [];
@@ -925,6 +1109,7 @@ const handleUserQuery = async (messageContentOverride) => {
   await aiApiClient.query({
     query: messageContent,
     context: queryContext,
+    collectionId,
     callbacks: {
       onMetadata: (data) => {
         if (data.sessionId) {
@@ -965,28 +1150,34 @@ const handleUserQuery = async (messageContentOverride) => {
           }
         }
       },
-      onComplete: () => {
+      onComplete: async () => {
         hideStopButton();
         if (!responseContent) {
           targetBubble.hideThinking();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-        } else {
-          targetBubble.hideStreamingCursor();
-          targetBubble.showCopyButton();
+          updateSuggestedQuestions(await getCollectionsQuestions());
+          window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
+          return;
         }
+        targetBubble.hideStreamingCursor();
+        targetBubble.showCopyButton();
         chatHistory.updateLast({
           content: responseContent,
           references: accumulatedReferences,
         });
         targetBubble.scrollIntoView();
+
+        updateSuggestedQuestions(null);
         window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
+        await fetchAiSuggestedQuestions();
       },
       onError: (error) => {
         hideStopButton();
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
+        getCollectionsQuestions().then(updateSuggestedQuestions);
         window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
       },
     },
@@ -1073,6 +1264,7 @@ const restoreChatHistory = () => {
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {
+    updateSuggestedQuestions(SUGGESTED_QUESTIONS);
     showSuggestedQuestions();
   } else {
     hideSuggestedQuestions();
@@ -1094,6 +1286,9 @@ const aiApiClient = new AiApiClient({
  * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
+  // Prefetch collections to warm cache — resolves before user opens chat
+  aiApiClient.getCollections();
+
   addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@^17/lib/marked.umd.js",
