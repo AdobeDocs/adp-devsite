@@ -155,7 +155,7 @@ let formHasAllowedOrigins = true;
 
 async function getOrgIdWithFallback(initialOrgId = null) {
   let orgId = initialOrgId || selectedOrganization?.code || selectedOrganization?.id || templateData?.orgId;
-  
+
   if (!orgId) {
     try {
       if (organizationsData && organizationsData.length > 0) {
@@ -165,7 +165,7 @@ async function getOrgIdWithFallback(initialOrgId = null) {
         const defaultOrg = currentAccountOrgs.filter(o => o.default)[0] ?? currentAccountOrgs[0];
         orgId = defaultOrg?.code || defaultOrg?.id;
       }
-      
+
       // If still no orgId, try to get from IMS profile projectedProductContext
       if (!orgId) {
         const profile = await window.adobeIMS?.getProfile();
@@ -177,7 +177,7 @@ async function getOrgIdWithFallback(initialOrgId = null) {
       console.error('[GET ORG ID] Failed to get default orgId:', error);
     }
   }
-  
+
   return orgId || null;
 }
 
@@ -209,7 +209,7 @@ async function createCredential() {
     console.error('[CREATE CREDENTIAL] orgId is still undefined after all fallback attempts');
     throw new Error('Please select an organization to create credentials. If you don\'t see any organizations, please contact your administrator to ensure you have access to an organization.');
   }
-  
+
   const data = {
     projectName: formData.CredentialName,
     description: 'created for get credential',
@@ -256,9 +256,9 @@ async function createCredential() {
           errorMessage = 'Your session has expired. Please sign in again and try creating the credential.';
         } else {
           errorMessage = rawMessage.replace(/Expected a string\. Received: undefined/gi, 'Please select an organization')
-                                   .replace(/at: orgId/gi, '')
-                                   .replace(/Invalid value/gi, 'Invalid organization')
-                                   .trim();
+            .replace(/at: orgId/gi, '')
+            .replace(/Invalid value/gi, 'Invalid organization')
+            .trim();
         }
       } else {
         const lowerText = errorText.toLowerCase();
@@ -603,7 +603,7 @@ async function switchOrganization(org) {
     if (!org) {
       if (orgInLocalStorage) {
         localStorage.removeItem(LOCAL_STORAGE_ORG_KEY);
-      } 
+      }
 
       if (organizationsData && organizationsData.length > 0) {
         const currentAccountOrgs = organizationsData.filter(o => o.accountId === accountId);
@@ -635,7 +635,7 @@ function clearForm(formContainer) {
   formData.AllowedOrigins = '';
   formData.AdobeDeveloperConsole = false;
   formData.Downloads = false;
-  
+
   // Clear form inputs
   const credentialNameInput = formContainer?.querySelector('[data-cy="add-credential-name"]');
   if (credentialNameInput) {
@@ -1301,7 +1301,7 @@ function createRequestAccessContent(config) {
   const columns = createTag('div', { class: 'request-access-columns' });
   const leftCol = createTag('div', { class: 'request-access-left' });
   const slot = createTag('div', { class: 'request-access-left-slot' });
- 
+
   const defaultCard = buildRequestAccessLeftCard(config, null);
   if (defaultCard) slot.appendChild(defaultCard);
   leftCol.appendChild(slot);
@@ -2231,7 +2231,7 @@ export default async function decorate(block) {
 
         if (downloadsCheckbox?.checked && formData.Downloads && credentialResponse) {
           const orgId = await getOrgIdWithFallback(selectedOrganization?.id);
-          
+
           const projectId = credentialResponse.projectId;
           const workspaceId = credentialResponse.workspaceId;
           const fileName = formData.CredentialName || 'credential';

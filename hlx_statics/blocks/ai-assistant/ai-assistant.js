@@ -54,12 +54,12 @@ class ChatBubble {
    * @param {number} [options.timestamp] - Optional Unix timestamp in ms; when nullish, no timestamp is shown
    */
   constructor({
-    content,
-    source,
-    isContinuingConversation = false,
-    id,
-    timestamp,
-  }) {
+                content,
+                source,
+                isContinuingConversation = false,
+                id,
+                timestamp,
+              }) {
     this.content = content;
     this.source = source;
     this.isContinuingConversation = isContinuingConversation;
@@ -488,14 +488,14 @@ class AiApiClient {
    * @returns {Promise<void>}
    */
   async streamRequest({
-    body,
-    onMetadata = () => {},
-    onContent = () => {},
-    onCitation = () => {},
-    onTiming = () => {},
-    onComplete = () => {},
-    onError = () => {},
-  }) {
+                        body,
+                        onMetadata = () => {},
+                        onContent = () => {},
+                        onCitation = () => {},
+                        onTiming = () => {},
+                        onComplete = () => {},
+                        onError = () => {},
+                      }) {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
     try {
@@ -1007,13 +1007,13 @@ const handleUserQuery = async (messageContentOverride) => {
  * @returns {ChatBubble} - The created ChatBubble instance
  */
 const sendMessage = ({
-  id,
-  content,
-  source,
-  isContinuingConversation = false,
-  shouldAppendToHistory = true,
-  timestamp = Date.now(),
-} = {}) => {
+                       id,
+                       content,
+                       source,
+                       isContinuingConversation = false,
+                       shouldAppendToHistory = true,
+                       timestamp = Date.now(),
+                     } = {}) => {
   const bubble = new ChatBubble({
     id,
     content,
