@@ -117,18 +117,12 @@ const embedYoutube = (url, loop, controls, vidTitle, isShort) => {
 
   if (vid) {
     return `
-      <div style="display: flex; justify-content: center;">
+      <div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
         <iframe 
-          width="560"
-          height="315"
-          src="https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
-          data-src="https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
-          title="${vidTitle ? vidTitle : 'YouTube video player'}"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allowfullscreen
-          loading="lazy">
+          src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
+          data-src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
+          allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
+          scrolling="no" ${vidTitle ? `title="${vidTitle}"` : `title="Content from YouTube"`} loading="lazy">
         </iframe>
       </div>
     `;
