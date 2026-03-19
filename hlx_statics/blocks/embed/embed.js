@@ -82,7 +82,8 @@ const embedTikTok = (url, loop, controls, vidTitle) => {
   </div>`;
 }
 
-const embedYoutube = (url, loop, controls, vidTitle) => {
+const embedYoutube = (url, loop, controls, vidTitle, isShort) => {
+  console.log("isShort 1", isShort);  
   let vid;
   const embed = url.pathname;
 
@@ -100,15 +101,34 @@ const embedYoutube = (url, loop, controls, vidTitle) => {
   if (embed.includes('playlist')) {
     return embedYTPlaylist(url, loop, controls, vidTitle);
   }
+  if (isShort && vid) { 
+
+    return `<div class="ytShort">
+      <iframe 
+        src="https://www.youtube.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
+        style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute; border-radius: 10px;"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        ${vidTitle ? `title="${vidTitle}"` : `title="Content from YouTube"`}
+        loading="lazy">
+      </iframe>
+    </div>`;
+  }
 
   if (vid) {
     return `
-      <div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
+      <div style="display: flex; justify-content: center;">
         <iframe 
-          src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
-          data-src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
-          allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
-          scrolling="no" ${vidTitle ? `title="${vidTitle}"` : `title="Content from YouTube"`} loading="lazy">
+          width="560"
+          height="315"
+          src="https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
+          data-src="https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
+          title="${vidTitle ? vidTitle : 'YouTube video player'}"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+          loading="lazy">
         </iframe>
       </div>
     `;
@@ -173,7 +193,8 @@ const loadEmbed = (block, link) => {
   let controls = 1;
   const attrs = block?.parentElement?.parentElement?.attributes;
   const vidTitle = attrs?.getNamedItem('data-videotitle')?.value;
-  // changes the values of these attributes based on section metadata
+  const isShort = block.getAttribute('data-short')?.toLowerCase() == 'true';
+  // changes the values of these attributes based on section metadata 
   if (attrs?.getNamedItem('data-loop'))
   {
     loop = (attrs.getNamedItem('data-loop').value.toLowerCase()  === 'true') ? 1: 0;
@@ -184,7 +205,7 @@ const loadEmbed = (block, link) => {
   }
   const url = new URL(link);
   if (config) {
-    block.innerHTML = config.embed(url, loop, controls, vidTitle);
+    block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort);
     block.classList.add('block', 'embed', `embed-${config.match[0]}`);
   } else {
     block.innerHTML = getDefaultEmbed(url);
