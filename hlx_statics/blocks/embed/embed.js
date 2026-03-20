@@ -40,15 +40,15 @@ return embedHTML;
 
 const embedYTShort = (url, loop, controls, vidTitle) => {
   const [, videoCode] = url.pathname.split('/shorts/');
- return  `
- <div style="width: 75vw; height: 40vh; position: relative; padding-bottom: 56.25%;">
+  return `<div class="ytShort">
   <iframe 
-    src="https://www.youtube.com/embed/${videoCode}/?playlist=${videoCode}&loop=${loop}&controls=${controls}"
-    ${vidTitle ? `title=${vidTitle}` : `title="Content from" ${url.hostname}`}
-    frameborder="0"
-    loading="lazy"
+    src="https://www.youtube.com/embed/${videoCode}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
+    style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute; border-radius: 10px;"
     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen></iframe>
+    allowfullscreen
+    ${vidTitle ? `title="${vidTitle}"` : `title="Content from YouTube"`}
+    loading="lazy">
+  </iframe>
 </div>`;
 };
 
