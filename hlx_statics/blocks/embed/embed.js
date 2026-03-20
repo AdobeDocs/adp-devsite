@@ -83,7 +83,6 @@ const embedTikTok = (url, loop, controls, vidTitle) => {
 }
 
 const embedYoutube = (url, loop, controls, vidTitle, isShort) => {
-  console.log("isShort 1", isShort);  
   let vid;
   const embed = url.pathname;
 
