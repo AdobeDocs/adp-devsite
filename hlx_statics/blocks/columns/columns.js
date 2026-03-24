@@ -33,6 +33,8 @@ function processImages(block) {
 export default async function decorate(block) {
   const container = getBlockSectionContainer(block);
   const variant = block.getAttribute('data-variant')
+  const isReversed = block.getAttribute('data-isreversed') === 'true';
+  isReversed && block.classList.add('isReversed');
   const isDocs = IS_DEV_DOCS;
 
   isDocs && block.classList.add('isDocs')
