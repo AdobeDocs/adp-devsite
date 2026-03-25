@@ -350,6 +350,31 @@ header.global-nav-header ul.nav-sub-menu {
   max-width: max-content;
 }
 
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item {
+  position: relative;
+  padding-left: 28px !important;
+}
+
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item.is-selected a {
+  margin-left: 0px;
+}
+
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item a:hover {
+  background-color: rgba(0, 0, 0, .001);
+}
+
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item.is-selected .spectrum-Menu-checkmark {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: block;
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--spectrum-global-color-blue-500, #1473e6);
+  fill: currentColor;
+}
+
 header.global-nav-header li .nav-dropdown-item{
   display: flex;
   flex-direction: column;
