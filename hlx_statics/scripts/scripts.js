@@ -20,7 +20,8 @@ import {
   toClassName,
   githubActionsBlock,
   hasContributorsJson,
-  fetchSiteMetadata
+  hasCodePlaygroundJson,
+  getCodePlaygroundJsonPath
 } from './lib-helix.js';
 
 import {
@@ -837,9 +838,27 @@ function loadTitle() {
 
 async function loadPrism(document) {
 
-  const metadata = await fetchSiteMetadata();
-  const codePlaygroundStagingURL = metadata?.get('code-playground-staging-url');
-  const codePlaygroundProductionURL = metadata?.get('code-playground-production-url');
+  const hasCodePlayground = await hasCodePlaygroundJson();
+  const codePlaygroundData = {};
+  if (!hasCodePlayground) return;
+  else {
+    const jsonPath = await getCodePlaygroundJsonPath();
+    if (!jsonPath) return null;
+
+    const response = await fetch(jsonPath);
+    if (!response.ok) {
+      console.warn('Network response was not ok:', jsonPath);
+      return null;
+    }
+
+    const json = await response.json();
+    json.data.forEach((item) => {
+      codePlaygroundData[item.key] = item.value;
+    });
+  }
+
+  const codePlaygroundStagingURL = codePlaygroundData['code-playground-staging-url'];
+  const codePlaygroundProductionURL = codePlaygroundData['code-playground-production-url'];
 
   const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
   if (!codeBlocks.length) return;
