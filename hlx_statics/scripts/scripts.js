@@ -19,7 +19,8 @@ import {
   toCamelCase,
   toClassName,
   githubActionsBlock,
-  hasContributorsJson
+  hasContributorsJson,
+  fetchSiteMetadata
 } from './lib-helix.js';
 
 import {
@@ -834,7 +835,12 @@ function loadTitle() {
     }
 }
 
-function loadPrism(document) {
+async function loadPrism(document) {
+
+  const metadata = await fetchSiteMetadata();
+  const codePlaygroundStagingURL = metadata?.get('code-playground-staging-url');
+  const codePlaygroundProductionURL = metadata?.get('code-playground-production-url');
+
   const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
   if (!codeBlocks.length) return;
 
@@ -865,8 +871,8 @@ function loadPrism(document) {
 
               const playgroundExecutionMode = pre?.getAttribute('data-playground-execution-mode');
               const playgroundURL = isStageEnvironment(window.location.host, true) || isLocalHostEnvironment(window.location.host)
-                ? (pre?.getAttribute('data-playground-url-stage') || pre?.getAttribute('data-playground-url'))
-                : pre?.getAttribute('data-playground-url');
+                ? (codePlaygroundStagingURL || codePlaygroundProductionURL)
+                : (codePlaygroundProductionURL);
               if (!sessionId || !playgroundMode || !playgroundExecutionMode || !playgroundURL) return null;
               const btn = createTag('button', {
                 class: 'try-code-button',
