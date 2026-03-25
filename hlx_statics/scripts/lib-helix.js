@@ -256,6 +256,26 @@ export async function hasContributorsJson() {
     .catch(() => false);
 }
 
+export async function getCodePlaygroundJsonPath() {
+  const metadata = await fetchSiteMetadata();
+  const metadataPath = metadata?.get('code-playground');
+  if (metadata && !metadataPath) return null;
+
+  const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
+  return metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/code-playground.json`;
+
+}
+
+export async function hasCodePlaygroundJson() {
+  const path = await getCodePlaygroundJsonPath();
+  if (!path) return false;
+  return fetch(path)
+    .then(r => r.ok)
+    .catch(() => false);
+}
+
 /**
  * Retrieves the nav with the specified name from the config.
  * @param {string} name The nav name
