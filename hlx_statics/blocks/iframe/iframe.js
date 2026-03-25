@@ -183,10 +183,10 @@ export default async function decorate(block) {
   }
 
   if (width) {
-    iframe.style.width = width;
+    iframe.style.setProperty('width', width, 'important');
   }
   if (height) {
-    iframe.style.height = height;
+    iframe.style.setProperty('height', height, 'important');
   }
 
   penpalScript.onload = () => {

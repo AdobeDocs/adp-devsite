@@ -87,3 +87,8 @@ main div.iframe-wrapper .iframe-custom-width{
   align-items: center;
   justify-content: center;
 }
+
+main div.iframe-wrapper iframe.iframe-container:not(.youtube-iframe) {
+  height: auto !important;
+  aspect-ratio: 16 / 9;
+}
