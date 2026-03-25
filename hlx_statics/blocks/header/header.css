@@ -325,6 +325,7 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
     margin-top: -6px;
     margin-left: -1px;
     max-height: 75vh;
+    overflow-x: hidden;
     overflow-y: auto;
   }
 
@@ -346,7 +347,7 @@ header.global-nav-header > ul#navigation-links > li {
 }
 
 header.global-nav-header ul.nav-sub-menu {
-  max-width: 230px;
+  max-width: max-content;
 }
 
 header.global-nav-header li .nav-dropdown-item{
