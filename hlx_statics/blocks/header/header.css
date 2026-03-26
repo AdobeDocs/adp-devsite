@@ -347,12 +347,12 @@ header.global-nav-header > ul#navigation-links > li {
 }
 
 header.global-nav-header ul.nav-sub-menu {
-  max-width: max-content;
+  width: max-content;
 }
 
 header.global-nav-header .nav-sub-menu .spectrum-Menu-item {
   position: relative;
-  padding-left: 28px !important;
+  padding-left: 24px !important;
 }
 
 header.global-nav-header .nav-sub-menu .spectrum-Menu-item.is-selected a {
@@ -365,7 +365,7 @@ header.global-nav-header .nav-sub-menu .spectrum-Menu-item a:hover {
 
 header.global-nav-header .nav-sub-menu .spectrum-Menu-item.is-selected .spectrum-Menu-checkmark {
   position: absolute;
-  left: 4px;
+  left: 0px;
   top: 50%;
   transform: translateY(-50%);
   display: block;
@@ -375,14 +375,20 @@ header.global-nav-header .nav-sub-menu .spectrum-Menu-item.is-selected .spectrum
   fill: currentColor;
 }
 
-header.global-nav-header li .nav-dropdown-item{
+header.global-nav-header li .nav-dropdown-item {
   display: flex;
   flex-direction: column;
 }
 
+header.global-nav-header li .nav-dropdown-item .nav-dropdown-name {
+  white-space: nowrap;
+}
+
 header.global-nav-header li .nav-dropdown-item .nav-dropdown-description {
   font-size: 12px;
+  max-width: 200px;
   text-wrap: initial;
+
 }
 
 header.global-nav-header a.nav-dropdown-links {
