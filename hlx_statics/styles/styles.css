@@ -290,9 +290,10 @@ main.dev-docs .aside-wrapper .aside {
   top: 128px;
   bottom: 0;
   left: 0;
-  margin: 32px 32px 0 32px;
+  margin: 32px 16px 0 16px;
   max-height: calc(100vh - 128px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
   padding-bottom: 16px;
 }
