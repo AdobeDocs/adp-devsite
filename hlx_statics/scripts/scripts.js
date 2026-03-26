@@ -837,28 +837,29 @@ function loadTitle() {
 }
 
 async function loadPrism(document) {
-
-  const hasCodePlayground = await hasCodePlaygroundJson();
   const codePlaygroundData = {};
-  if (!hasCodePlayground) return;
-  else {
-    const jsonPath = await getCodePlaygroundJsonPath();
-    if (!jsonPath) return null;
 
-    const response = await fetch(jsonPath);
-    if (!response.ok) {
-      console.warn('Network response was not ok:', jsonPath);
+  if (await hasCodePlaygroundJson()) {
+    const jsonPath = await getCodePlaygroundJsonPath();
+    if (jsonPath) {
+      const response = await fetch(jsonPath);
+      if (!response.ok) {
+        console.warn('Network response was not ok:', jsonPath);
+        return null;
+      } else {
+        const json = await response.json();
+        json.data.forEach((item) => {
+          codePlaygroundData[item.key] = item.value;
+        });
+      }
+    }
+    else {
       return null;
     }
-
-    const json = await response.json();
-    json.data.forEach((item) => {
-      codePlaygroundData[item.key] = item.value;
-    });
   }
 
-  const codePlaygroundStagingURL = codePlaygroundData['code-playground-staging-url'];
-  const codePlaygroundProductionURL = codePlaygroundData['code-playground-production-url'];
+  const defaultPlaygroundStagingURL = codePlaygroundData['code-playground-staging-url'];
+  const defaultPlaygroundProductionURL = codePlaygroundData['code-playground-production-url'];
 
   const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
   if (!codeBlocks.length) return;
@@ -889,6 +890,10 @@ async function loadPrism(document) {
               const playgroundMode = pre?.getAttribute('data-playground-mode');
 
               const playgroundExecutionMode = pre?.getAttribute('data-playground-execution-mode');
+              const stagingFromPre = pre?.getAttribute('data-playground-url-stage');
+              const productionFromPre = pre?.getAttribute('data-playground-url');
+              const codePlaygroundStagingURL = stagingFromPre || defaultPlaygroundStagingURL;
+              const codePlaygroundProductionURL = productionFromPre || defaultPlaygroundProductionURL;
               const playgroundURL = isStageEnvironment(window.location.host, true) || isLocalHostEnvironment(window.location.host)
                 ? (codePlaygroundStagingURL || codePlaygroundProductionURL)
                 : (codePlaygroundProductionURL);
