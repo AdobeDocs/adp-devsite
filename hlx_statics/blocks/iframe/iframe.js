@@ -186,7 +186,9 @@ export default async function decorate(block) {
     iframe.style.setProperty('width', width, 'important');
   }
   if (height) {
+    iframe.classList.add('iframe-has-explicit-height');
     iframe.style.setProperty('height', height, 'important');
+    iframe.classList.add('iframe-has-explicit-height');
   }
 
   penpalScript.onload = () => {

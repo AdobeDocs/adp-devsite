@@ -88,7 +88,9 @@ main div.iframe-wrapper .iframe-custom-width{
   justify-content: center;
 }
 
-main div.iframe-wrapper iframe.iframe-container:not(.youtube-iframe) {
+/* 16:9 only for iframe blocks authored with the aspect-video variant;
+   skip when data-height is set (.iframe-has-explicit-height) or YouTube (.youtube-iframe). */
+main div.iframe-wrapper iframe.iframe-container.aspect-video:not(.youtube-iframe):not(.iframe-has-explicit-height) {
   height: auto !important;
   aspect-ratio: 16 / 9;
 }
