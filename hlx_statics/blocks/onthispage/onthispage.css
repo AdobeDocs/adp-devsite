@@ -2,6 +2,8 @@ main .onthispage-wrapper a {
   text-decoration: none;
   font-size: 16px;
   color: rgb(0, 84, 182);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 main .onthispage-wrapper a:hover {
