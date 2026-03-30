@@ -325,6 +325,7 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
     margin-top: -6px;
     margin-left: -1px;
     max-height: 75vh;
+    overflow-x: hidden;
     overflow-y: auto;
   }
 
@@ -346,17 +347,48 @@ header.global-nav-header > ul#navigation-links > li {
 }
 
 header.global-nav-header ul.nav-sub-menu {
-  max-width: 230px;
+  width: max-content;
 }
 
-header.global-nav-header li .nav-dropdown-item{
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item {
+  position: relative;
+  padding-left: 24px !important;
+}
+
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item.is-selected a {
+  margin-left: 0px;
+}
+
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item a:hover {
+  background-color: rgba(0, 0, 0, .001);
+}
+
+header.global-nav-header .nav-sub-menu .spectrum-Menu-item.is-selected .spectrum-Menu-checkmark {
+  position: absolute;
+  left: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: block;
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--spectrum-global-color-blue-500, #1473e6);
+  fill: currentColor;
+}
+
+header.global-nav-header li .nav-dropdown-item {
   display: flex;
   flex-direction: column;
 }
 
+header.global-nav-header li .nav-dropdown-item .nav-dropdown-name {
+  white-space: nowrap;
+}
+
 header.global-nav-header li .nav-dropdown-item .nav-dropdown-description {
   font-size: 12px;
+  max-width: 200px;
   text-wrap: initial;
+
 }
 
 header.global-nav-header a.nav-dropdown-links {

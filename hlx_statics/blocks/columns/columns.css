@@ -28,6 +28,14 @@ main div.columns-wrapper  div.columns > div:nth-child(even) {
     flex-direction: row-reverse;
 }
 
+main div.columns-wrapper  div.columns.isReversed > div:nth-child(odd) {
+    flex-direction: row-reverse;
+}
+
+main div.columns-wrapper  div.columns.isReversed > div:nth-child(even) {
+    flex-direction: row;
+}
+
 main div.columns-wrapper .checkmark ul {
     list-style: none;
     font-size: 16px;

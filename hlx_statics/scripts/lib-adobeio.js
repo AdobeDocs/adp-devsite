@@ -555,6 +555,14 @@ function activateTab(tabItem, isMainPage) {
   if (tabItem.closest('.nav-dropdown-popover')){
     // if the item is within a dropdown, it needs to find the parent item to be underlined.
     underlineItem = tabItem.closest('.nav-dropdown-popover');
+    const menuItem = tabItem.closest('.spectrum-Menu-item');
+    if (menuItem) {
+      menuItem.classList.add('is-selected');
+      const checkmark = `<svg role="img" class="spectrum-Icon spectrum-UIIcon-Checkmark100 spectrum-Menu-checkmark" aria-hidden="true">
+        <path d="M3.5 9.5a.999.999 0 01-.774-.368l-2.45-3a1 1 0 111.548-1.264l1.657 2.028 4.68-6.01A1 1 0 019.74 2.114l-5.45 7a1 1 0 01-.777.386z" class="spectrum-UIIcon--medium"></path>
+      </svg>`;
+      menuItem.insertAdjacentHTML('afterbegin', checkmark);
+    }
   }
   underlineItem.parentElement.classList.add("activeTab");
 }

@@ -19,7 +19,9 @@ import {
   toCamelCase,
   toClassName,
   githubActionsBlock,
-  hasContributorsJson
+  hasContributorsJson,
+  hasCodePlaygroundJson,
+  getCodePlaygroundJsonPath
 } from './lib-helix.js';
 
 import {
@@ -834,7 +836,31 @@ function loadTitle() {
     }
 }
 
-function loadPrism(document) {
+async function loadPrism(document) {
+  const codePlaygroundData = {};
+
+  if (await hasCodePlaygroundJson()) {
+    const jsonPath = await getCodePlaygroundJsonPath();
+    if (jsonPath) {
+      const response = await fetch(jsonPath);
+      if (!response.ok) {
+        console.warn('Network response was not ok:', jsonPath);
+        return null;
+      } else {
+        const json = await response.json();
+        json.data.forEach((item) => {
+          codePlaygroundData[item.key] = item.value;
+        });
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
+  const defaultPlaygroundStagingURL = codePlaygroundData['code-playground-staging-url'];
+  const defaultPlaygroundProductionURL = codePlaygroundData['code-playground-production-url'];
+
   const codeBlocks = document.querySelectorAll('code[class*="language-"], [class*="language-"] code');
   if (!codeBlocks.length) return;
 
@@ -864,9 +890,13 @@ function loadPrism(document) {
               const playgroundMode = pre?.getAttribute('data-playground-mode');
 
               const playgroundExecutionMode = pre?.getAttribute('data-playground-execution-mode');
+              const stagingFromPre = pre?.getAttribute('data-playground-url-stage');
+              const productionFromPre = pre?.getAttribute('data-playground-url');
+              const codePlaygroundStagingURL = stagingFromPre || defaultPlaygroundStagingURL;
+              const codePlaygroundProductionURL = productionFromPre || defaultPlaygroundProductionURL;
               const playgroundURL = isStageEnvironment(window.location.host, true) || isLocalHostEnvironment(window.location.host)
-                ? (pre?.getAttribute('data-playground-url-stage') || pre?.getAttribute('data-playground-url'))
-                : pre?.getAttribute('data-playground-url');
+                ? (codePlaygroundStagingURL || codePlaygroundProductionURL)
+                : (codePlaygroundProductionURL);
               if (!sessionId || !playgroundMode || !playgroundExecutionMode || !playgroundURL) return null;
               const btn = createTag('button', {
                 class: 'try-code-button',

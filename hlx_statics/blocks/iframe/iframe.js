@@ -167,6 +167,28 @@ export default async function decorate(block) {
     id: "penpalIframe",
   });
 
+
+  const width = block.getAttribute("data-width");
+  const height = block.getAttribute("data-height");
+
+  const isYouTube = iframeSrcUrl.hostname.includes('youtube.com') ||
+    iframeSrcUrl.hostname.includes('youtu.be');
+  if (isYouTube) {
+    if (!width) iframe.style.width = '560px';
+    if (!height) iframe.style.height = '315px';
+    iframe.style.border = '0';
+    iframeContainer.style.display = 'flex';
+    iframeContainer.style.justifyContent = 'center';
+    iframe.classList.add('youtube-iframe');
+  }
+
+  if (width) {
+    iframe.style.setProperty('width', width, 'important');
+  }
+  if (height) {
+    iframe.style.setProperty('height', height, 'important');
+  }
+
   penpalScript.onload = () => {
     iframeContainer.append(iframe);
     penpalOnLoad();

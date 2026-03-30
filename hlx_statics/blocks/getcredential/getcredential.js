@@ -193,13 +193,13 @@ async function createCredential() {
     throw new Error('Template configuration missing');
   }
 
-  // Prepare APIs data
+  // Prepare APIs data with licenseConfigs from the template response
   const apis = templateData.apis?.map(api => ({
     code: api.code,
     credentialType: api.credentialType,
     flowType: api.flowType,
     licenseConfigs: Array.isArray(api.licenseConfigs) && api.licenseConfigs.length > 0
-      ? [{ ...api.licenseConfigs[0], op: 'add' }]
+      ? [{ id: api.licenseConfigs[0].id, productId: api.licenseConfigs[0].productId, op: 'add' }]
       : [],
   })) || [];
 
@@ -343,6 +343,9 @@ async function fetchTemplateEntitlement() {
     const response = await fetch(url, { method: 'GET', headers });
     if (!response.ok) return null;
     const data = await response.json();
+    if (templateData && Array.isArray(data?.apis)) {
+      templateData.apis = data.apis;
+    }
     const userEntitled = data?.userEntitled !== false;
     const orgEntitled = data?.orgEntitled !== false;
     const disEntitledReasons = data?.disEntitledReasons;
@@ -1346,6 +1349,20 @@ function createSignInContent(config) {
   return signInWrapper;
 }
 
+const ensureSignedInContextAndOrganizations = async () => {
+  if (!window.adobeIMS?.isSignedInUser?.()) return;
+  if (organizationsData && organizationsData.length > 0 && selectedOrganization) return;
+  try {
+    const orgs = await fetchOrganizations();
+    if (orgs && orgs.length > 0) {
+      organizationsData = orgs;
+      await switchOrganization(null);
+    }
+  } catch (e) {
+    // Keep existing fallback org selection when org fetch fails.
+  }
+};
+
 // ============================================================================
 // RETURN PAGE (Previously Created Projects)
 // ============================================================================
@@ -2106,24 +2123,33 @@ export default async function decorate(block) {
     }).catch(showFormFromLoading);
   };
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const fetchTemplateEntitlementWithRetry = async (attempts = 4, delayMs = 300) => {
+    for (let i = 0; i < attempts; i += 1) {
+      const entitlement = await fetchTemplateEntitlement();
+      if (entitlement) return entitlement;
+      if (i < attempts - 1) {
+        await sleep(delayMs);
+      }
+    }
+    return null;
+  };
+
   // Re-render page after organization change: show loading, then entitlement check (if Request Access) and show correct view.
   renderPageAfterOrgChange = (sourceContainer) => {
     setLoadingText(loadingContainer, 'Loading...');
     navigateTo(sourceContainer, loadingContainer);
-    if (requestAccessContainer) {
-      fetchTemplateEntitlement().then(async (entitlement) => {
-        if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
-          const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
-          const profile = await window.adobeIMS?.getProfile().catch(() => null);
-          updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
-          navigateTo(loadingContainer, requestAccessContainer);
-        } else {
-          runFormOrReturnFlow();
-        }
-      }).catch(() => runFormOrReturnFlow());
-    } else {
-      runFormOrReturnFlow();
-    }
+    fetchTemplateEntitlementWithRetry().then(async (entitlement) => {
+      if (requestAccessContainer && entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+        const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+        const profile = await window.adobeIMS?.getProfile().catch(() => null);
+        updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
+        navigateTo(loadingContainer, requestAccessContainer);
+      } else {
+        runFormOrReturnFlow();
+      }
+    }).catch(() => runFormOrReturnFlow());
   };
 
   // Create success card container
@@ -2337,17 +2363,16 @@ export default async function decorate(block) {
                 navigateTo(loadingContainer, requestAccessContainer);
                 return;
               }
-              // If Request Access config exists, check entitlement first (same as React: !template.userEntitled || !template.orgEntitled -> RequestAccess)
-              if (requestAccessContainer) {
-                const entitlement = await fetchTemplateEntitlement();
-                if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
-                  lastRequestAccessEntitlement = entitlement;
-                  const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
-                  const profile = await window.adobeIMS?.getProfile().catch(() => null);
-                  updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
-                  navigateTo(loadingContainer, requestAccessContainer);
-                  return;
-                }
+              // Fetch template data (populates templateData.apis for credential creation)
+              // and check entitlement (same as React: !template.userEntitled || !template.orgEntitled -> RequestAccess)
+              const entitlement = await fetchTemplateEntitlement();
+              if (requestAccessContainer && entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+                lastRequestAccessEntitlement = entitlement;
+                const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+                const profile = await window.adobeIMS?.getProfile().catch(() => null);
+                updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
+                navigateTo(loadingContainer, requestAccessContainer);
+                return;
               }
               runFormOrReturnFlow();
             });
@@ -2361,8 +2386,40 @@ export default async function decorate(block) {
     }
   };
 
+  let signInStateWatcherInterval = null;
+  let signInStateWatcherTimeout = null;
+  let isResolvingSignedInState = false;
+  const stopSignInStateWatcher = () => {
+    if (signInStateWatcherInterval) {
+      clearInterval(signInStateWatcherInterval);
+      signInStateWatcherInterval = null;
+    }
+    if (signInStateWatcherTimeout) {
+      clearTimeout(signInStateWatcherTimeout);
+      signInStateWatcherTimeout = null;
+    }
+  };
+  const startSignInStateWatcher = () => {
+    stopSignInStateWatcher();
+    const trySyncSignedInState = () => {
+      if (signInContainer?.classList.contains('hidden')) {
+        stopSignInStateWatcher();
+        return;
+      }
+      if (window.adobeIMS?.isSignedInUser?.()) {
+        void checkAlreadySignedIn();
+        stopSignInStateWatcher();
+      }
+    };
+    trySyncSignedInState();
+    signInStateWatcherInterval = setInterval(trySyncSignedInState, 250);
+    signInStateWatcherTimeout = setTimeout(() => {
+      stopSignInStateWatcher();
+    }, 10000);
+  };
+
   // Check if user is already signed in when page loads
-  const checkAlreadySignedIn = () => {
+  const checkAlreadySignedIn = async () => {
     // Don't check if we're handling an OAuth callback
     const hash = window.location.hash;
     if (hash && hash.includes('access_token=')) {
@@ -2371,40 +2428,49 @@ export default async function decorate(block) {
 
     // Check if user is already signed in
     if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
+      if (!signInContainer || signInContainer.classList.contains('hidden')) {
+        return;
+      }
+      if (isResolvingSignedInState) {
+        return;
+      }
+      isResolvingSignedInState = true;
+
       // User is already signed in - hide sign-in page and show appropriate content
       if (signInContainer && !signInContainer.classList.contains('hidden')) {
+        try {
         // Navigate from sign-in to loading
         setLoadingText(loadingContainer, 'Loading...');
         navigateTo(signInContainer, loadingContainer, true);
 
         const forceParams = getForceRequestAccessParams();
         if (forceParams && requestAccessContainer) {
-          window.adobeIMS?.getProfile().then((profile) => {
-            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
-            navigateTo(loadingContainer, requestAccessContainer);
-          }).catch(() => {
-            updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization });
-            navigateTo(loadingContainer, requestAccessContainer);
-          });
+          const profile = await window.adobeIMS?.getProfile().catch(() => null);
+          updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, forceParams.edgeCase, { selectedOrganization, userEmail: profile?.email });
+          navigateTo(loadingContainer, requestAccessContainer);
           return;
         }
-        // Same as React: if !template.userEntitled || !template.orgEntitled -> show RequestAccess (RestrictedAccess or EdgeCase)
-        if (requestAccessContainer) {
-          fetchTemplateEntitlement().then(async (entitlement) => {
-            if (entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
-              lastRequestAccessEntitlement = entitlement;
-              const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
-              const profile = await window.adobeIMS?.getProfile().catch(() => null);
-              updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
-              navigateTo(loadingContainer, requestAccessContainer);
-              return;
-            }
-            runFormOrReturnFlow();
-          }).catch(() => runFormOrReturnFlow());
-        } else {
-          runFormOrReturnFlow();
+
+        await ensureSignedInContextAndOrganizations();
+
+        // Fetch template data (populates templateData.apis for credential creation)
+        // and check entitlement (same as React: !template.userEntitled || !template.orgEntitled -> RequestAccess)
+        const entitlement = await fetchTemplateEntitlementWithRetry();
+        if (requestAccessContainer && entitlement && (entitlement.userEntitled === false || entitlement.orgEntitled === false)) {
+          lastRequestAccessEntitlement = entitlement;
+          const leftCardKey = getRequestAccessLeftCardKey(entitlement, selectedOrganization, credentialData.RequestAccess);
+          const profile = await window.adobeIMS?.getProfile().catch(() => null);
+          updateRequestAccessLeftColumn(requestAccessContainer, credentialData.RequestAccess, leftCardKey, { selectedOrganization, userEmail: profile?.email });
+          navigateTo(loadingContainer, requestAccessContainer);
+          return;
         }
+        runFormOrReturnFlow();
+      } catch (error) {
+        runFormOrReturnFlow();
+      } finally {
+        isResolvingSignedInState = false;
       }
+    }
     }
   };
 
@@ -2414,12 +2480,20 @@ export default async function decorate(block) {
   // Check when IMS loads if user is already signed in
   window.addEventListener('adobeIMS:loaded', () => {
     handleIMSCallback();
-    checkAlreadySignedIn();
+    void checkAlreadySignedIn();
+    startSignInStateWatcher();
   });
 
-  // Also check immediately in case IMS is already loaded
+  window.addEventListener('imsReady', () => {
+    handleIMSCallback();
+    void checkAlreadySignedIn();
+    startSignInStateWatcher();
+  });
+
   if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
-    checkAlreadySignedIn();
+    void checkAlreadySignedIn();
+  } else {
+    startSignInStateWatcher();
   }
 
   // Copy button functionality for API key
