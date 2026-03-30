@@ -2359,6 +2359,37 @@ export default async function decorate(block) {
     }
   };
 
+  let signInStateWatcherInterval = null;
+  let signInStateWatcherTimeout = null;
+  const stopSignInStateWatcher = () => {
+    if (signInStateWatcherInterval) {
+      clearInterval(signInStateWatcherInterval);
+      signInStateWatcherInterval = null;
+    }
+    if (signInStateWatcherTimeout) {
+      clearTimeout(signInStateWatcherTimeout);
+      signInStateWatcherTimeout = null;
+    }
+  };
+  const startSignInStateWatcher = () => {
+    stopSignInStateWatcher();
+    const trySyncSignedInState = () => {
+      if (signInContainer?.classList.contains('hidden')) {
+        stopSignInStateWatcher();
+        return;
+      }
+      if (window.adobeIMS?.isSignedInUser?.()) {
+        checkAlreadySignedIn();
+        stopSignInStateWatcher();
+      }
+    };
+    trySyncSignedInState();
+    signInStateWatcherInterval = setInterval(trySyncSignedInState, 250);
+    signInStateWatcherTimeout = setTimeout(() => {
+      stopSignInStateWatcher();
+    }, 10000);
+  };
+
   // Check if user is already signed in when page loads
   const checkAlreadySignedIn = () => {
     // Don't check if we're handling an OAuth callback
@@ -2410,11 +2441,19 @@ export default async function decorate(block) {
   window.addEventListener('adobeIMS:loaded', () => {
     handleIMSCallback();
     checkAlreadySignedIn();
+    startSignInStateWatcher();
   });
 
-  // Also check immediately in case IMS is already loaded
+  window.addEventListener('imsReady', () => {
+    handleIMSCallback();
+    checkAlreadySignedIn();
+    startSignInStateWatcher();
+  });
+
   if (window.adobeIMS && window.adobeIMS.isSignedInUser()) {
     checkAlreadySignedIn();
+  } else {
+    startSignInStateWatcher();
   }
 
   // Copy button functionality for API key
