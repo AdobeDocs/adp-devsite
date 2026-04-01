@@ -129,6 +129,13 @@ function applyDataAttributesFromCodeClasses(pre, code) {
   });
 }
 
+/** Same idea as Prism’s /\n(?!$)/: at least one line break that is not only a trailing newline. */
+function codeTextIsMultiLine(text) {
+  const s = text ?? '';
+  const i = s.indexOf('\n');
+  return i !== -1 && i < s.length - 1;
+}
+
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre') || (block.tagName === 'PRE' && block) || null
   const code = block.querySelector('code');
@@ -161,7 +168,9 @@ export default function decoratePreformattedCode(block) {
     code && processClasses(code);
   }
 
-  if (pre?.classList.contains('disableLineNumbers')) {
+  // Match Gatsby/production: gutter only when there is more than one line.
+  const isMultiLine = code && codeTextIsMultiLine(code.textContent);
+  if (pre?.classList.contains('disableLineNumbers') || !isMultiLine) {
     pre?.classList.add('no-line-numbers');
   }
   else {

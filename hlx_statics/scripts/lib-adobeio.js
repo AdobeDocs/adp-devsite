@@ -216,6 +216,9 @@ export function decorateInlineCodes(element) {
     if (up.tagName !== 'PRE') {
       code.classList.add('inline-code');
     }
+    else {
+      decoratePreformattedCode(up);
+    }
   });
 }
 
