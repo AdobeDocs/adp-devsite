@@ -1,4 +1,3 @@
-import decoratePreformattedCode from '../../components/code.js';
 import {
     createTag,
   } from '../../scripts/lib-adobeio.js';
@@ -43,7 +42,7 @@ export function getVariant(classList) {
 export default async function decorate(block) {
 
         block.classList.add('spectrum-InLineAlert');
-        const slots = block?.getAttribute('data-slots')?.split(',').map(slot => slot.trim());
+        const slots = block?.getAttribute('data-slots')?.split(',');
         const classVariant = getVariant(block.classList);
 
         block.classList.add(classVariant.class);
@@ -52,10 +51,6 @@ export default async function decorate(block) {
         // need to wrap content into p
         block.querySelectorAll(':scope > div > div').forEach((div, i) =>{
             const className = slots?.[i] === 'heading' ? 'spectrum-InLineAlert-header' : 'spectrum-InLineAlert-content';
-            const isCodeSlot = slots?.[i] === 'code';
-            if (isCodeSlot) {
-                decoratePreformattedCode(div);  
-            }
             const inlineP = createTag('p', { class: className });
             inlineP.innerHTML = div.innerHTML;
             block.appendChild(inlineP);
