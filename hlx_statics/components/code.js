@@ -130,7 +130,7 @@ function applyDataAttributesFromCodeClasses(pre, code) {
 }
 
 export default function decoratePreformattedCode(block) {
-  const pre = block.querySelector('pre') || (block.tagName === 'PRE' && block) || null
+  const pre = block.querySelector('pre') || (block.tagName === 'PRE' && block) || null;
   const code = block.querySelector('code');
 
   applyDataAttributesFromCodeClasses(pre, code);
