@@ -130,7 +130,7 @@ function applyDataAttributesFromCodeClasses(pre, code) {
 }
 
 export default function decoratePreformattedCode(block) {
-  const pre = block.querySelector('pre');
+  const pre = block.querySelector('pre') || (block.tagName === 'PRE' && block) || null;
   const code = block.querySelector('code');
 
   applyDataAttributesFromCodeClasses(pre, code);
@@ -161,7 +161,7 @@ export default function decoratePreformattedCode(block) {
     code && processClasses(code);
   }
 
-  if (pre?.classList.contains("disableLineNumbers")) {
+  if (pre?.classList.contains('disableLineNumbers')) {
     pre?.classList.add('no-line-numbers');
   }
   else {
