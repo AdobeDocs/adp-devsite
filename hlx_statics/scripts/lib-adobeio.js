@@ -45,7 +45,7 @@ export function checkExternalLink(main) {
     if (url) {
       const [_, queryString] = url.split('?');
       const searchParams = new URLSearchParams(queryString);
-      const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live', 'aem.page', 'aem.live'];
+      const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live', 'aem.page', 'aem.live', 'localhost', '127.0.0.1'];
       const isExternal = !internalDomains.some(domain => url.includes(domain)) || searchParams.has('aio_external');
       if (isExternal) {
         a.target = '_blank';
