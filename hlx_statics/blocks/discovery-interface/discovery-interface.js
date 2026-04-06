@@ -1,78 +1,58 @@
 import { createTag } from '../../scripts/lib-adobeio.js';
 import { fetchDiscoveryInterface } from '../../scripts/lib-helix.js';
 
-function resolveCompaniesUrl(cfg) {
-  const url = cfg.actions?.apiEndpoint;
-  return String(url || '').trim();
+const ClassNames = {
+  hidden: 'discovery-interface-hidden',
+  ok: 'discovery-interface-banner--success',
+  err: 'discovery-interface-banner--error',
+  loading: 'discovery-interface-button-primary--loading',
+};
+
+function apiUrl(config) {
+  return String(config.actions?.apiEndpoint || '').trim();
 }
 
-/** Copy from optional sheet `messages` column group, else `fallback`. */
-function configMessage(cfg, key, fallback) {
-  const v = cfg.messages?.[key];
-  return v != null && String(v).length > 0 ? v : fallback;
+function substitute(template, values) {
+  return Object.entries(values).reduce(
+    (out, [key, val]) => out.replaceAll(`{${key}}`, String(val)),
+    template || '',
+  );
 }
 
-/**
- * Unwraps Franklin sheet `{ data: [...] }` or a JSON string cell; returns plain config object.
- */
-function parseDiscoveryConfig(raw) {
-  if (!raw || typeof raw !== 'object') return null;
-  let base = raw;
-  if (Array.isArray(raw.data) && raw.data[0]) {
-    base = raw.data[0];
-    if (typeof base.DiscoveryInterface === 'string') {
-      try {
-        base = JSON.parse(base.DiscoveryInterface);
-      } catch {
-        return null;
+function companiesList(payload) {
+  const fromAdobe = [];
+  if (payload?.imsOrgs) {
+    for (const org of payload.imsOrgs) {
+      for (const co of org.companies || []) {
+        fromAdobe.push({ ...co, imsOrgId: org.imsOrgId });
       }
     }
   }
-  return base && typeof base === 'object' ? base : null;
-}
-
-function formatMessage(template, vars) {
-  let s = template || '';
-  Object.entries(vars).forEach(([k, v]) => {
-    s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
-  });
-  return s;
-}
-
-/** Adobe Analytics Discovery API: flatten imsOrgs[].companies with imsOrgId. */
-function extractCompaniesFromDiscoveryMe(data) {
-  if (!data || !Array.isArray(data.imsOrgs)) return [];
-  const all = [];
-  data.imsOrgs.forEach((org) => {
-    if (org.companies && Array.isArray(org.companies)) {
-      org.companies.forEach((company) => {
-        all.push({ ...company, imsOrgId: org.imsOrgId });
-      });
-    }
-  });
-  return all;
-}
-
-function extractCompaniesListGeneric(payload) {
-  if (!payload) return [];
+  if (fromAdobe.length) return fromAdobe;
+  if (!payload || typeof payload !== 'object') return [];
   if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload.companies)) return payload.companies;
-  if (Array.isArray(payload.content)) return payload.content;
-  if (Array.isArray(payload.data)) return payload.data;
+  for (const key of ['companies', 'content', 'data']) {
+    if (Array.isArray(payload[key])) return payload[key];
+  }
   return [];
 }
 
-function buildCompanySelectOption(row) {
-  const id = row.globalCompanyId ?? row.global_company_id ?? row.id ?? row.companyId ?? '';
-  const name = row.companyName ?? row.name ?? row.friendlyName ?? row.displayName ?? '';
-  const label = name && id ? `${name} (${id})` : String(name || id || 'Company');
-  return { id: String(id), label };
+function optionFromCompanyRow(row) {
+  const id = row.globalCompanyId;
+  const name = row.companyName;
+  const label = name && id ? `${name} (${id})` : String(name || id);
+  return { value: String(id), label };
 }
 
-function buildFetchHeaders(token, cfg) {
+function optionEl(value, label) {
+  const opt = createTag('option', { value });
+  opt.textContent = label;
+  return opt;
+}
+
+function authHeaders(token, config) {
   const headers = { accept: 'application/json' };
-  const mode = cfg.api?.authMode || 'x-user-auth';
-  if (mode === 'bearer') {
+  if (config.api?.authMode === 'bearer') {
     headers.Authorization = `Bearer ${token}`;
   } else {
     headers['x-user-auth'] = token;
@@ -85,262 +65,266 @@ export default async function decorate(block) {
   block.classList.add('discovery-interface');
   block.setAttribute('daa-lh', 'discovery-interface');
 
-  const instanceId = `discovery-interface-${Math.random().toString(36).slice(2, 10)}`;
-
-  const raw = await fetchDiscoveryInterface();
-  const cfg = parseDiscoveryConfig(raw);
-
-  if (!cfg) {
+  const idPrefix = `discovery-interface-${Math.random().toString(36).slice(2, 10)}`;
+  const config = (await fetchDiscoveryInterface())?.data[0];
+  if (!config) {
     block.innerHTML = '<p>Discovery interface configuration could not be loaded.</p>';
     return;
   }
 
-  const companiesUrl = resolveCompaniesUrl(cfg);
-  const method = (cfg.api?.method || 'GET').toUpperCase();
+  const endpoint = apiUrl(config);
+  const httpMethod = (config.api?.method || 'GET').toUpperCase();
+  const actions = config.actions ?? {};
+  const companiesUi = config.availableCompanies ?? {};
+  const dropdown = companiesUi.dropdown ?? {};
+  const companyActions = companiesUi.actions ?? {};
 
-  const card = createTag('div', { class: 'card_developer_console' });
-  const root = createTag('div', { class: 'discovery-interface__content' });
+  const strings = {
+    tokenMissing: config.accessToken?.error ?? 'Please enter your access token',
+    endpointMissing:
+      actions.apiEndpointError ??
+      'Configure actions.apiEndpoint in the discovery interface sheet.',
+    fetchOk: actions.success ?? 'Successfully retrieved {count} companies',
+    loading: actions.loading ?? 'Loading...',
+    selectPlaceholder: dropdown.placeholder?.trim() || '-- Select a company --',
+    pickCompany: companyActions.selectFirstError ?? 'Please select a company first',
+    companyMissing: companyActions.notFoundError ?? 'Selected company not found',
+    copied: companyActions.copied ?? 'Copied "{value}" to clipboard',
+    copyFailed: companyActions.copyFailedError ?? 'Failed to copy to clipboard',
+  };
 
-  if (cfg.header && String(cfg.header).trim()) {
-    const pageTitle = createTag('h2', { class: 'discovery-interface__title' });
-    pageTitle.textContent = cfg.header;
-    root.append(pageTitle);
+  const shell = createTag('div', { class: 'card_developer_console' });
+  const layout = createTag('div', { class: 'discovery-interface-content' });
+
+  if (config.header && String(config.header).trim()) {
+    const title = createTag('h2', {
+      class: 'spectrum-Heading spectrum-Heading--sizeM',
+    });
+    title.textContent = config.header;
+    layout.append(title);
   }
 
-  const introStack = createTag('div', { class: 'discovery-interface__stack' });
+  const intro = createTag('div', { class: 'discovery-interface-stack' });
   const description = createTag('p', {
-    class: 'discovery-interface__description spectrum-Body spectrum-Body--sizeM',
-    id: `${instanceId}-description`,
+    class: 'discovery-interface-description spectrum-Body spectrum-Body--sizeM',
+    id: `${idPrefix}-description`,
   });
-  description.textContent = cfg.description ?? '';
-  introStack.append(description);
 
-  const fieldStack = createTag('div', { class: 'discovery-interface__stack' });
-  const field = createTag('div', { class: 'discovery-interface__field' });
+  if (config.description) {
+    description.textContent = config.description;
+  }
+  intro.append(description);
+
+  const formColumn = createTag('div', { class: 'discovery-interface-stack' });
+  const tokenField = createTag('div', { class: 'discovery-interface-field' });
   const tokenLabel = createTag('label', {
-    class: 'discovery-interface__label',
-    for: `${instanceId}-access-token`,
+    class: 'discovery-interface-label',
+    for: `${idPrefix}-access-token`,
   });
-  tokenLabel.textContent = cfg.accessToken?.label ?? '';
+  if (config.accessToken?.label) {
+    tokenLabel.textContent = config.accessToken?.label ?? '';
+  }
   const tokenInput = createTag('input', {
-    class: 'discovery-interface__input',
-    id: `${instanceId}-access-token`,
+    class: 'discovery-interface-input',
+    id: `${idPrefix}-access-token`,
     type: 'text',
     name: 'access-token',
     autocomplete: 'off',
     spellcheck: 'false',
-    'aria-describedby': `${instanceId}-description`,
-    placeholder: cfg.accessToken?.placeholder ?? '',
+    'aria-describedby': `${idPrefix}-description`,
+    placeholder: config.accessToken?.placeholder ?? '',
   });
+  tokenField.append(tokenLabel, tokenInput);
 
-  field.append(tokenLabel, tokenInput);
-  fieldStack.append(field);
-
-  const getCompaniesButton = createTag('button', {
+  const primaryButton = createTag('button', {
     type: 'button',
-    class: 'discovery-interface__button-primary',
+    class: 'discovery-interface-button-primary',
     disabled: '',
   });
-  const getCompaniesSpinner = createTag('span', {
-    class: 'discovery-interface__button-spinner discovery-interface__hidden',
+  const buttonSpinner = createTag('span', {
+    class: `discovery-interface-button-spinner ${ClassNames.hidden}`,
     'aria-hidden': 'true',
   });
-  const getCompaniesLabel = createTag('span', { class: 'discovery-interface__button-label' });
-  getCompaniesLabel.textContent = cfg.actions?.getCompaniesButton ?? '';
-  getCompaniesButton.append(getCompaniesSpinner, getCompaniesLabel);
+  const buttonLabel = createTag('span', { class: 'discovery-interface-button-label' });
+  if (actions.getCompaniesButton) {
+    buttonLabel.textContent = actions.getCompaniesButton;
+  }
+  primaryButton.append(buttonSpinner, buttonLabel);
+  formColumn.append(tokenField, primaryButton);
 
-  fieldStack.append(getCompaniesButton);
-
-  const statusRegion = createTag('div', {
-    class: 'discovery-interface__banner discovery-interface__hidden',
+  const statusBanner = createTag('div', {
+    class: `discovery-interface-banner ${ClassNames.hidden}`,
     role: 'status',
     'aria-live': 'polite',
   });
 
-  const companiesSection = createTag('section', {
-    class: 'discovery-interface__companies discovery-interface__hidden',
+  const companySection = createTag('section', {
+    class: `discovery-interface-companies ${ClassNames.hidden}`,
   });
-  const companiesHeading = createTag('h4', {
-    class: 'discovery-interface__companies-heading spectrum-Heading spectrum-Heading--sizeS side-header',
+  const companyHeading = createTag('h4', {
+    class: 'discovery-interface-companies-heading spectrum-Heading spectrum-Heading--sizeS side-header',
   });
-  companiesHeading.textContent = cfg.availableCompanies?.title ?? '';
-  const companiesDescription = createTag('p', {
-    class: 'discovery-interface__companies-description spectrum-Body spectrum-Body--sizeM',
+  if (companiesUi.title) {
+    companyHeading.textContent = companiesUi.title;
+  }
+  const companyIntro = createTag('p', {
+    class: 'discovery-interface-companies-description spectrum-Body spectrum-Body--sizeM',
   });
-  companiesDescription.textContent = cfg.availableCompanies?.description ?? '';
+  if (companiesUi.description) {
+    companyIntro.textContent = companiesUi.description;
+  }
 
-  const companySelectLabel = createTag('label', {
-    class: 'discovery-interface__select-label',
-    for: `${instanceId}-company-select`,
+  const selectLabel = createTag('label', {
+    class: 'discovery-interface-select-label',
+    for: `${idPrefix}-company-select`,
   });
-  companySelectLabel.textContent = cfg.availableCompanies?.dropdown?.label ?? '';
+  if (dropdown.label) {
+    selectLabel.textContent = dropdown.label;
+  }
 
-  const companySelectWrap = createTag('div', { class: 'discovery-interface__select-wrap' });
+  const selectWrap = createTag('div', { class: 'discovery-interface-select-wrap' });
   const companySelect = createTag('select', {
-    class: 'discovery-interface__select',
-    id: `${instanceId}-company-select`,
+    class: 'discovery-interface-select',
+    id: `${idPrefix}-company-select`,
   });
-  companySelectWrap.append(companySelectLabel, companySelect);
+  selectWrap.append(selectLabel, companySelect);
 
-  const copyCompanyIdButton = createTag('button', {
+  const copyButton = createTag('button', {
     type: 'button',
-    class: 'discovery-interface__button-copy',
+    class: 'discovery-interface-button-copy',
     disabled: '',
   });
-  copyCompanyIdButton.textContent = cfg.availableCompanies?.actions?.copyIdButton ?? '';
+  if (companyActions.copyIdButton) {
+    copyButton.textContent = companyActions.copyIdButton;
+  }
 
-  const companyControlsRow = createTag('div', {
-    class: 'discovery-interface__row discovery-interface__row--align-end',
+  const companyRow = createTag('div', {
+    class: 'discovery-interface-row discovery-interface-row--align-end',
   });
-  companyControlsRow.append(companySelectWrap, copyCompanyIdButton);
+  companyRow.append(selectWrap, copyButton);
 
   const tip = createTag('p', {
-    class: 'discovery-interface__tip spectrum-Body spectrum-Body--sizeM',
+    class: 'discovery-interface-tip spectrum-Body spectrum-Body--sizeM',
   });
-  const tipText = cfg.tip ?? '';
-  tip.textContent = tipText;
+  if (config.tip) {
+    tip.textContent = config.tip;
+  }
 
-  companiesSection.append(companiesHeading, companiesDescription, companyControlsRow, tip);
-
-  root.append(introStack, fieldStack, statusRegion, companiesSection);
-  card.append(root);
-  block.append(card);
+  companySection.append(companyHeading, companyIntro, companyRow, tip);
+  layout.append(intro, formColumn, statusBanner, companySection);
+  shell.append(layout);
+  block.append(shell);
 
   let loading = false;
-  let companiesRows = [];
+  let companiesLoaded = [];
 
-  function setLoading(isLoading) {
-    loading = isLoading;
-    getCompaniesButton.classList.toggle('discovery-interface__button-primary--loading', isLoading);
-    getCompaniesSpinner.classList.toggle('discovery-interface__hidden', !isLoading);
-    getCompaniesLabel.textContent = isLoading
-      ? (cfg.actions?.loading || configMessage(cfg, 'loading', 'Loading...'))
-      : (cfg.actions?.getCompaniesButton ?? '');
-    syncGetCompaniesButtonDisabled();
-  }
-
-  function syncGetCompaniesButtonDisabled() {
-    const hasToken = tokenInput.value.trim().length > 0;
-    getCompaniesButton.disabled = loading || !hasToken;
-  }
-
-  function showStatus(kind, message) {
-    statusRegion.textContent = message;
-    statusRegion.classList.remove(
-      'discovery-interface__hidden',
-      'discovery-interface__banner--success',
-      'discovery-interface__banner--error',
-    );
-    statusRegion.classList.add(
-      kind === 'error' ? 'discovery-interface__banner--error' : 'discovery-interface__banner--success',
-    );
+  function showStatus(kind, text) {
+    statusBanner.textContent = text;
+    statusBanner.classList.remove(ClassNames.hidden, ClassNames.ok, ClassNames.err);
+    statusBanner.classList.add(kind === 'error' ? ClassNames.err : ClassNames.ok);
   }
 
   function hideStatus() {
-    statusRegion.classList.add('discovery-interface__hidden');
-    statusRegion.textContent = '';
+    statusBanner.classList.add(ClassNames.hidden);
+    statusBanner.textContent = '';
   }
 
-  tokenInput.addEventListener('input', syncGetCompaniesButtonDisabled);
-  syncGetCompaniesButtonDisabled();
+  function updatePrimaryButton() {
+    const hasToken = tokenInput.value.trim().length > 0;
+    primaryButton.disabled = loading || !hasToken;
+  }
 
-  function fillCompanies(rows) {
-    companiesRows = rows;
-    companySelect.innerHTML = '';
-    const placeholderText = cfg.availableCompanies?.dropdown?.selected ?? '';
-    const placeholderOption = createTag('option', { value: '' });
-    placeholderOption.textContent = placeholderText;
-    companySelect.append(placeholderOption);
+  function setLoading(on) {
+    loading = on;
+    primaryButton.classList.toggle(ClassNames.loading, on);
+    buttonSpinner.classList.toggle(ClassNames.hidden, !on);
+    if (actions.getCompaniesButton) {
+      buttonLabel.textContent = on ? strings.loading : actions.getCompaniesButton;
+    }
+    updatePrimaryButton();
+  }
 
-    rows.forEach((r) => {
-      const { id, label } = buildCompanySelectOption(r);
-      if (!id) return;
-      const opt = createTag('option', { value: id });
-      opt.textContent = label;
-      companySelect.append(opt);
-    });
+  tokenInput.addEventListener('input', updatePrimaryButton);
+  updatePrimaryButton();
 
-    if (rows.length > 0) {
+  function refreshCompanySelect(rows) {
+    companiesLoaded = rows;
+    companySelect.replaceChildren();
+    companySelect.append(optionEl('', strings.selectPlaceholder));
+    for (const row of rows) {
+      const { value, label } = optionFromCompanyRow(row);
+      if (!value) continue;
+      companySelect.append(optionEl(value, label));
+    }
+    if (rows.length) {
       companySelect.selectedIndex = 1;
-      copyCompanyIdButton.disabled = false;
+      copyButton.disabled = false;
     } else {
       companySelect.selectedIndex = 0;
-      copyCompanyIdButton.disabled = true;
+      copyButton.disabled = true;
     }
-
-    companiesSection.classList.remove('discovery-interface__hidden');
+    companySection.classList.remove(ClassNames.hidden);
   }
 
-  getCompaniesButton.addEventListener('click', async () => {
+  primaryButton.addEventListener('click', async () => {
     hideStatus();
-    companiesSection.classList.add('discovery-interface__hidden');
-    copyCompanyIdButton.disabled = true;
-    companySelect.innerHTML = '';
-    companiesRows = [];
+    companySection.classList.add(ClassNames.hidden);
+    copyButton.disabled = true;
+    companySelect.replaceChildren();
+    companiesLoaded = [];
 
     const token = tokenInput.value.trim();
     if (!token) {
-      showStatus('error', configMessage(cfg, 'noToken', 'Please enter your access token'));
+      showStatus('error', strings.tokenMissing);
       return;
     }
-    if (!companiesUrl) {
-      showStatus(
-        'error',
-        configMessage(cfg, 'noUrl', 'Configure actions.apiEndpoint in the discovery interface sheet.'),
-      );
+    if (!endpoint) {
+      showStatus('error', strings.endpointMissing);
       return;
     }
 
     setLoading(true);
     try {
-      const res = await fetch(companiesUrl, {
-        method,
-        headers: buildFetchHeaders(token, cfg),
+      const response = await fetch(endpoint, {
+        method: httpMethod,
+        headers: authHeaders(token, config),
       });
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const json = await res.json();
-      let list = extractCompaniesFromDiscoveryMe(json);
-      if (list.length === 0) {
-        list = extractCompaniesListGeneric(json).map((item) => (typeof item === 'object' && item ? item : {}));
-      }
-      const withIds = list.map(buildCompanySelectOption).filter((o) => o.id);
-
-      const successTemplate = configMessage(
-        cfg,
-        'success',
-        'Successfully retrieved {count} companies',
+      const data = await response.json();
+      const rows = companiesList(data).map((item) =>
+        typeof item === 'object' && item ? item : {},
       );
-      showStatus('success', formatMessage(successTemplate, { count: withIds.length }));
-      fillCompanies(list);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      showStatus('error', `Error: ${errorMessage}`);
+      const withIds = rows.map(optionFromCompanyRow).filter((o) => o.value);
+      showStatus('success', substitute(strings.fetchOk, { count: withIds.length }));
+      refreshCompanySelect(rows);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      showStatus('error', `Error: ${message}`);
     } finally {
       setLoading(false);
     }
   });
 
-  copyCompanyIdButton.addEventListener('click', async () => {
-    const selectedId = companySelect.value;
-    if (!selectedId) {
-      showStatus('error', configMessage(cfg, 'selectFirst', 'Please select a company first'));
+  copyButton.addEventListener('click', async () => {
+    const selected = companySelect.value;
+    if (!selected) {
+      showStatus('error', strings.pickCompany);
       return;
     }
-    const selectedRow = companiesRows.find((c) => String(c.globalCompanyId ?? '') === selectedId);
-    if (!selectedRow || !selectedRow.globalCompanyId) {
-      showStatus('error', configMessage(cfg, 'notFound', 'Selected company not found'));
+    const match = companiesLoaded.find((r) => String(r.globalCompanyId ?? '') === selected);
+    if (!match?.globalCompanyId) {
+      showStatus('error', strings.companyMissing);
       return;
     }
-    const globalCompanyId = String(selectedRow.globalCompanyId);
+    const id = String(match.globalCompanyId);
     try {
-      await navigator.clipboard.writeText(globalCompanyId);
-      const copiedTemplate = configMessage(cfg, 'copied', 'Copied "{value}" to clipboard');
-      showStatus('success', formatMessage(copiedTemplate, { value: globalCompanyId }));
+      await navigator.clipboard.writeText(id);
+      showStatus('success', substitute(strings.copied, { value: id }));
       window.setTimeout(() => hideStatus(), 3000);
     } catch {
-      showStatus('error', configMessage(cfg, 'copyFailed', 'Failed to copy to clipboard'));
+      showStatus('error', strings.copyFailed);
     }
   });
 }
