@@ -1,6 +1,7 @@
 import {
   createTag,
   decorateButtons,
+  setFixedTopOffset,
 } from "../../scripts/lib-adobeio.js";
 import {
   fetchSiteWideBanner,
@@ -51,6 +52,7 @@ export default async function decorate(block) {
 
   if (banner && Object.keys(banner).length !== 0) {
     siteParent.style.display = null;
+    setFixedTopOffset();
 
     const { text, icon, buttonLink, button, isClose, bgColor = "notice" } = banner;
     const padding = `${siteParent.getBoundingClientRect().height + (isMobile ? 180 : 16)}px`;
@@ -90,6 +92,7 @@ export default async function decorate(block) {
       block.classList.add("closable");
       closeBtn.addEventListener("click", () => {
         siteParent.style.display = "none";
+        setFixedTopOffset();
         paddingTargets.forEach(el => el && (el.style.paddingTop = "0px"));
         if (isMobile) {
           const sibling = siteParent.nextElementSibling;

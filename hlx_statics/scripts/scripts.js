@@ -60,6 +60,7 @@ import {
   imsGetProfileSuccess,
   imsGetProfileError,
   scrollWithLayoutAdjustment,
+  setFixedTopOffset,
   whenFirstVisible
 } from './lib-adobeio.js';
 
@@ -788,6 +789,7 @@ async function loadLazy(doc) {
   sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
   sampleRUM.observe(main.querySelectorAll('picture > img'));
 
+  setFixedTopOffset();
   scrollToHash(doc);
 
   if (window.location.hostname.endsWith('aem.page') || window.location.hostname === ('localhost')) {

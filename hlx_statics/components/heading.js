@@ -10,7 +10,7 @@ function Anchor({ id }) {
   div.setAttribute('aria-hidden', 'true');
   div.setAttribute('id', id);
   div.style.setProperty('position', 'relative');
-  div.style.setProperty('top', 'calc(-1 * var(--spectrum-global-dimension-size-800)');
+  div.style.setProperty('top', 'calc(-1 * var(--fixed-top-offset, 64px))');
   return div;
 }
 
