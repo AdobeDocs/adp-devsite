@@ -1034,6 +1034,22 @@ export function decorateAnchorLink(header) {
   // });
 }
 
+export function setFixedTopOffset() {
+  let maxBottom = 0;
+  document.querySelectorAll('body > header, main > *').forEach((el) => {
+    const style = window.getComputedStyle(el);
+    if (style.position === 'fixed' && style.display !== 'none') {
+      const rect = el.getBoundingClientRect();
+      if (rect.height > 0) {
+        maxBottom = Math.max(maxBottom, rect.bottom);
+      }
+    }
+  });
+  const offset = maxBottom || 64;
+  document.documentElement.style.setProperty('--fixed-top-offset', `${offset}px`);
+  return offset;
+}
+
 /**
  * Scrolls element into view with adjustment for lazy-loaded decorations.
  * @param {Element} element The element to scroll to

@@ -34,7 +34,7 @@ body.appear {
 }
 
 html {
-  scroll-padding-top: 60px;
+  scroll-padding-top: 0;
 }
 
 @font-face {
