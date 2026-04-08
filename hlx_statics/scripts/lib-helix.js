@@ -200,21 +200,13 @@ export async function fetchSiteWideBanner() {
 }
 
 /**
- * Retrieves the discovery-get-credential json file
- * @returns {string} The discovery-get-credential json file
+ * Retrieves the discovery-interface json file
+ * @returns {string} The discovery-interface json file
  */
 export async function fetchDiscoveryInterface() {
-  const metadata = await fetchSiteMetadata();
-  console.log("metadata", metadata);
-  const metadataPath = metadata?.get('discovery-interface');
-  console.log("metadataPath", metadataPath);
-  if (metadata && !metadataPath) return undefined;
 
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  let discoveryInterface = metadataPath
-    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
-    : `${window.location.origin}/${pathPrefix}/discovery-interface.json`;
-  console.log("discoveryInterface", discoveryInterface);
+  let discoveryInterface = `${window.location.origin}/${pathPrefix}/discovery-interface.json`;
   let discoveryInterfaceJSON = await fetch(discoveryInterface)
     .then(response => {
       if (response.ok) {
@@ -227,7 +219,6 @@ export async function fetchDiscoveryInterface() {
     .catch(error => {
       console.error('There was a problem with the fetch operation:', error);
     });
-    console.log("discoveryInterfaceJSON", discoveryInterfaceJSON);
   return discoveryInterfaceJSON;
 }
 
