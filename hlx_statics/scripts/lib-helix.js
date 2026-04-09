@@ -177,8 +177,10 @@ export function fetchSiteMetadata() {
  */
 export async function fetchSiteWideBanner() {
   const metadata = await fetchSiteMetadata();
-  const metadataPath = metadata?.get('site-wide-banner');
-  if (metadata && !metadataPath) return undefined;
+  if (!metadata) return undefined;
+
+  if (!metadata.has('site-wide-banner')) return undefined;
+  const metadataPath = metadata.get('site-wide-banner');
 
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
   let siteWideBannerFile = metadataPath
@@ -197,6 +199,40 @@ export async function fetchSiteWideBanner() {
       console.error('There was a problem with the fetch operation:', error);
     });
   return siteWideBannerJSON;
+}
+
+/**
+ * Retrieves the discovery-get-credential json file
+ * @returns {string} The discovery-get-credential json file
+ */
+export async function fetchDiscoveryInterface() {
+  const metadata = await fetchSiteMetadata();
+  console.log("metadata", metadata);
+  if (!metadata) return undefined;
+
+  if (!metadata.has('discovery-interface')) return undefined;
+  const metadataPath = metadata.get('discovery-interface');
+  console.log("metadataPath", metadataPath);
+
+  let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+  let discoveryInterface = metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/discovery-interface.json`;
+  console.log("discoveryInterface", discoveryInterface);
+  let discoveryInterfaceJSON = await fetch(discoveryInterface)
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.warn('Network response was not ok');
+      }
+    })
+    .then(data => data)
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+    console.log("discoveryInterfaceJSON", discoveryInterfaceJSON);
+  return discoveryInterfaceJSON;
 }
 
 /**
@@ -239,8 +275,10 @@ export async function fetchRedirectJson() {
 
 export async function getContributorsJsonPath() {
   const metadata = await fetchSiteMetadata();
-  const metadataPath = metadata?.get('contributors');
-  if (metadata && !metadataPath) return null;
+  if (!metadata) return null;
+
+  if (!metadata.has('contributors')) return null;
+  const metadataPath = metadata.get('contributors');
 
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   return metadataPath
@@ -258,8 +296,10 @@ export async function hasContributorsJson() {
 
 export async function getCodePlaygroundJsonPath() {
   const metadata = await fetchSiteMetadata();
-  const metadataPath = metadata?.get('code-playground');
-  if (metadata && !metadataPath) return null;
+  if (!metadata) return null;
+
+  if (!metadata.has('code-playground')) return null;
+  const metadataPath = metadata.get('code-playground');
 
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   return metadataPath

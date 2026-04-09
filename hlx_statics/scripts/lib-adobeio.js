@@ -45,7 +45,7 @@ export function checkExternalLink(main) {
     if (url) {
       const [_, queryString] = url.split('?');
       const searchParams = new URLSearchParams(queryString);
-      const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live', 'aem.page', 'aem.live'];
+      const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live', 'aem.page', 'aem.live', 'localhost', '127.0.0.1'];
       const isExternal = !internalDomains.some(domain => url.includes(domain)) || searchParams.has('aio_external');
       if (isExternal) {
         a.target = '_blank';
@@ -720,6 +720,7 @@ export function getResourceUrl(path) {
 
   const blobPath = getMetadata('githubblobpath');
   const pathPrefix = getMetadata('pathprefix');
+  const isPrivateOrg = blobPath && blobPath.includes('AdobeDocsPrivate');
   const githubPath ='https://github.com';
   const blobStr = '/blob/';
   const srcPagesStr = '/src/pages/';
@@ -752,6 +753,31 @@ export function getResourceUrl(path) {
   if(!isValidRelativePath) {
     // eslint-disable-next-line no-console
     console.error(`Invalid relative path "${resolvedPath}" for "${blobPath}"`);
+  }
+
+  // Private repos serve files from Azure rather than raw.githubusercontent.com
+  if (isPrivateOrg) {
+    let finalPath;
+    if (path.startsWith(pathPrefix)) {
+      // if the path starts with the pathPrefix, use static folder.
+      const relativePath = path.replace(pathPrefix, '');
+      finalPath = `${window.location.origin}${pathPrefix}/static${relativePath}`;
+    } else if (pathPrefix && resolvedPath.startsWith(pathPrefix)) {
+      // if the resolvedPath starts with the pathPrefix, look in src/pages folder.
+      const relativePath = resolvedPath.replace(pathPrefix, '');
+      finalPath = `${window.location.origin}${pathPrefix}${relativePath}`;
+    } else if (resolvedPath.startsWith('/')) {
+      // absolute path, use the pathPrefix and resolvedPath.
+      finalPath = `${window.location.origin}${pathPrefix}${resolvedPath}`;
+    }
+    if (!finalPath) {
+      console.error(`[getResourceUrl] Could not resolve path "${path}" for private org.`);
+      return path;
+    }
+    if (!finalPath.startsWith(window.location.origin)) {
+      console.error(`[getResourceUrl] Resolved URL "${finalPath}" does not match expected origin "${window.location.origin}". Input path: "${path}".`);
+    }
+    return finalPath;
   }
 
   // build raw git URL
@@ -1032,6 +1058,22 @@ export function decorateAnchorLink(header) {
   const anchorLink = createAnchorLink(header.id);
   header.appendChild(anchorLink);
   // });
+}
+
+export function setFixedTopOffset() {
+  let maxBottom = 0;
+  document.querySelectorAll('body > header, main > *').forEach((el) => {
+    const style = window.getComputedStyle(el);
+    if (style.position === 'fixed' && style.display !== 'none') {
+      const rect = el.getBoundingClientRect();
+      if (rect.height > 0) {
+        maxBottom = Math.max(maxBottom, rect.bottom);
+      }
+    }
+  });
+  const offset = maxBottom || 64;
+  document.documentElement.style.setProperty('--fixed-top-offset', `${offset}px`);
+  return offset;
 }
 
 /**

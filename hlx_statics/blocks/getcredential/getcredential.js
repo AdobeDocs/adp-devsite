@@ -1732,8 +1732,10 @@ function resolveTemplateId(block) {
 export default async function decorate(block) {
 
   const metadata = await fetchSiteMetadata();
-  const metadataPath = metadata?.get('get-credentials');
-  if (metadata && !metadataPath) return;
+  if (!metadata) return;
+
+  if (!metadata.has('get-credentials')) return;
+  const metadataPath = metadata.get('get-credentials');
 
   const pathPrefix = getMetadata('pathprefix').replace(/^\/|\/$/g, '');
   const navPath = metadataPath
