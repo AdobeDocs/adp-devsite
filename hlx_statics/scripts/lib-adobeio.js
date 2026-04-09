@@ -770,6 +770,10 @@ export function getResourceUrl(path) {
       // absolute path, use the pathPrefix and resolvedPath.
       finalPath = `${window.location.origin}${pathPrefix}${resolvedPath}`;
     }
+    if (!finalPath) {
+      console.error(`[getResourceUrl] Could not resolve path "${path}" for private org.`);
+      return path;
+    }
     if (!finalPath.startsWith(window.location.origin)) {
       console.error(`[getResourceUrl] Resolved URL "${finalPath}" does not match expected origin "${window.location.origin}". Input path: "${path}".`);
     }
