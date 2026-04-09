@@ -765,7 +765,7 @@ export function getResourceUrl(path) {
     } else if (pathPrefix && resolvedPath.startsWith(pathPrefix)) {
       // if the resolvedPath starts with the pathPrefix, look in src/pages folder.
       const relativePath = resolvedPath.replace(pathPrefix, '');
-      finalPath = `${window.location.origin}${pathPrefix}/${relativePath}`;
+      finalPath = `${window.location.origin}${pathPrefix}${relativePath}`;
     } else if (resolvedPath.startsWith('/')) {
       // absolute path, use the pathPrefix and resolvedPath.
       finalPath = `${window.location.origin}${pathPrefix}${resolvedPath}`;
