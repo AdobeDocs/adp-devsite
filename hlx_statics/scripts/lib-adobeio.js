@@ -720,6 +720,7 @@ export function getResourceUrl(path) {
 
   const blobPath = getMetadata('githubblobpath');
   const pathPrefix = getMetadata('pathprefix');
+  const isPrivateOrg = blobPath && blobPath.includes('AdobeDocsPrivate');
   const githubPath ='https://github.com';
   const blobStr = '/blob/';
   const srcPagesStr = '/src/pages/';
@@ -752,6 +753,27 @@ export function getResourceUrl(path) {
   if(!isValidRelativePath) {
     // eslint-disable-next-line no-console
     console.error(`Invalid relative path "${resolvedPath}" for "${blobPath}"`);
+  }
+
+  // Private repos serve files from Azure rather than raw.githubusercontent.com
+  if (isPrivateOrg) {
+    let finalPath;
+    if (path.startsWith(pathPrefix)) {
+      // if the path starts with the pathPrefix, use static folder.
+      const relativePath = path.replace(pathPrefix, '');
+      finalPath = `${window.location.origin}${pathPrefix}/static${relativePath}`;
+    } else if (pathPrefix && resolvedPath.startsWith(pathPrefix)) {
+      // if the resolvedPath starts with the pathPrefix, look in src/pages folder.
+      const relativePath = resolvedPath.replace(pathPrefix, '');
+      finalPath = `${window.location.origin}${pathPrefix}/${relativePath}`;
+    } else if (resolvedPath.startsWith('/')) {
+      // absolute path, use the pathPrefix and resolvedPath.
+      finalPath = `${window.location.origin}${pathPrefix}${resolvedPath}`;
+    }
+    if (!finalPath.startsWith(window.location.origin)) {
+      console.error(`[getResourceUrl] Resolved URL "${finalPath}" does not match expected origin "${window.location.origin}". Input path: "${path}".`);
+    }
+    return finalPath;
   }
 
   // build raw git URL
