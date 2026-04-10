@@ -8,6 +8,7 @@ import {
  * @param {Element} block The info-card block element
  */
 export default async function decorate(block) {
+  console.log('info-card', block);
   block.setAttribute('daa-lh', 'info-card');
   removeEmptyPTags(block);
   let containerParent;
