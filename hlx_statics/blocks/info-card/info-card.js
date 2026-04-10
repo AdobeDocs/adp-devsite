@@ -17,20 +17,26 @@ export default async function decorate(block) {
     for (const row of rows) {
       const link = row.querySelector('a[href]');
       if (!link) continue;
-      const url = link.href;
+      let articleUrl;
       try {
-        const resp = await fetch(url);
+        articleUrl = new URL(link.href, window.location.href);
+      } catch {
+        continue;
+      }
+      if (articleUrl.origin !== window.location.origin) {
+        continue;
+      }
+      try {
+        const resp = await fetch(articleUrl.href);
         if (!resp?.ok) continue;
         const html = await resp.text();
-        console.log('html', html);
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        console.log('doc', doc);
-      } catch (error) {
-        console.error('Error fetching article:', error);
+        void doc;
+      } catch {
+        /* same-origin fetch failed (network, etc.) */
       }
     }
-    return;
   }
 
   let containerParent;
