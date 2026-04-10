@@ -13,22 +13,24 @@ export default async function decorate(block) {
   removeEmptyPTags(block);
 
   if (block.classList.contains('articles')) {
-    console.log('articles', block);
-
-    const path = "https://blog.developer.adobe.com/en/publish/2026/03/build-faster-with-the-adobe-express-developer-mcp-server";
-    const resp = await fetch(path);
-    if (!resp || !resp.ok) {
-      a.remove();
-      // eslint-disable-next-line no-console
-      console.log(`Could not retrieve metadata for ${path}`);
-      return;
+    const rows = [...block.children];
+    for (const row of rows) {
+      const link = row.querySelector('a[href]');
+      if (!link) continue;
+      const url = link.href;
+      try {
+        const resp = await fetch(url);
+        if (!resp?.ok) continue;
+        const html = await resp.text();
+        console.log('html', html);
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        console.log('doc', doc);
+      } catch (error) {
+        console.error('Error fetching article:', error);
+      }
     }
-
-    const html = await resp.text();
-    console.log('html', html);
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    console.log('doc', doc);
+    return;
   }
 
   let containerParent;
