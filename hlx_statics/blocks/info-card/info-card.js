@@ -12,34 +12,22 @@ export default async function decorate(block) {
   block.setAttribute('daa-lh', 'info-card');
   removeEmptyPTags(block);
 
-  if (block.classList.contains('articles')) {
-    const path = "https://blog.developer.adobe.com/en/publish/2026/03/build-faster-with-the-adobe-express-developer-mcp-server";
-    const resp = await fetch(path);
-    if (!resp || !resp.ok) {
-      a.remove();
-      // eslint-disable-next-line no-console
-      console.log(`Could not retrieve metadata for ${path}`);
-      return;
+  if (block.classList.contains('articles')) { 
+    const rows = [...block.children];
+    for (const row of rows) {
+      const link = row.querySelector('a[href]');
+      if (!link) continue;
+      const url = link.href;
+      try {
+        const resp = await fetch(url);
+        if (!resp?.ok) continue;
+        const html = await resp.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        console.log('doc--->', doc);
+      } catch {
+      }
     }
-    const html = await resp.text();
-    console.log('html', html);  
-    // const rows = [...block.children];
-    // for (const row of rows) {
-    //   const link = row.querySelector('a[href]');
-    //   if (!link) continue;
-    //   const url = link.href;
-    //   try {
-    //     const resp = await fetch(url);
-    //     if (!resp?.ok) continue;
-    //     const html = await resp.text();
-    //     const parser = new DOMParser();
-    //     const doc = parser.parseFromString(html, 'text/html');
-    //     // Same-origin paths work; cross-origin pages throw (CORS) — cards still use authored row content.
-    //     void doc;
-    //   } catch {
-    //     /* Remote article HTML is not readable from the browser without CORS or a same-origin proxy. */
-    //   }
-    // }
   }
 
   let containerParent;
