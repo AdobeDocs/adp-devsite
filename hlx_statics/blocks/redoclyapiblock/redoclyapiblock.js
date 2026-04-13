@@ -41,6 +41,7 @@ export default function decorate(block) {
       disableSidebar,
       disableSearch,
       hideTryItPanel,
+      scrollYOffset,
       sortOperationsAlphabetically,
       sortTagsAlphabetically,
       jsonSampleExpandLevel,
