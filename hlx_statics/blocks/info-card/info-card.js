@@ -3,46 +3,27 @@ import {
   createOptimizedPicture,
 } from '../../scripts/lib-helix.js';
 
-/**
- * Reads Open Graph / document meta from a parsed HTML document.
- * @param {Document} doc
- * @returns {{ title: string, image: string, description: string }}
- */
+/** @param {Document} doc */
 function getOpenGraphMeta(doc) {
-  const ogTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content');
-  const title = (ogTitle || doc.querySelector('title')?.textContent || '').trim();
-  const ogImage =
-    doc.querySelector('meta[property="og:image"]')?.getAttribute('content')
-    || doc.querySelector('meta[property="og:image:secure_url"]')?.getAttribute('content')
-    || '';
-  const ogDesc = doc.querySelector('meta[property="og:description"]')?.getAttribute('content');
-  const description =
-    (ogDesc || doc.querySelector('meta[name="description"]')?.getAttribute('content') || '').trim();
-  return { title, image: ogImage.trim(), description };
+  const m = (p) => doc.querySelector(`meta[property="${p}"]`)?.getAttribute('content')?.trim() || '';
+  return {
+    title: m('og:title') || doc.querySelector('title')?.textContent?.trim() || '',
+    image: m('og:image') || m('og:image:secure_url'),
+    description: m('og:description') || doc.querySelector('meta[name="description"]')?.getAttribute('content')?.trim() || '',
+  };
 }
 
-/**
- * Helix often puts several article links in one row. This moves each link into its own row
- * so we fetch OG data and build one card per URL.
- * @param {Element} block
- */
+/** One block row per http(s) link so each URL gets a card. */
 function splitArticleRowsOneLinkEach(block) {
-  const rows = [...block.children];
-  for (const row of rows) {
+  for (const row of [...block.children]) {
     const links = [...row.querySelectorAll(':scope a[href]')].filter((a) => {
-      try {
-        const u = new URL(a.href);
-        return u.protocol === 'http:' || u.protocol === 'https:';
-      } catch {
-        return false;
-      }
+      try { return ['http:', 'https:'].includes(new URL(a.href).protocol); } catch { return false; }
     });
-    if (links.length <= 1) continue;
-    const parent = row.parentNode;
+    if (links.length < 2) continue;
     links.forEach((link) => {
-      const newRow = document.createElement('div');
-      newRow.appendChild(link);
-      parent.insertBefore(newRow, row);
+      const wrap = document.createElement('div');
+      wrap.appendChild(link);
+      row.parentNode.insertBefore(wrap, row);
     });
     row.remove();
   }
@@ -59,40 +40,23 @@ export default async function decorate(block) {
 
   if (block.classList.contains('articles')) {
     splitArticleRowsOneLinkEach(block);
-    const rows = [...block.children];
-    await Promise.all(rows.map(async (row) => {
+    await Promise.all([...block.children].map(async (row) => {
       const link = row.querySelector('a[href]');
       if (!link) return;
       const url = link.href;
-      const fallbackTitle = link.textContent.trim();
+      const fb = link.textContent.trim();
       try {
-        const resp = await fetch(url, { credentials: 'omit' });
-        if (!resp?.ok) return;
-        const html = await resp.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const meta = getOpenGraphMeta(doc);
-        const title = meta.title || fallbackTitle;
-        const rowImage = document.createElement('img');
-        rowImage.setAttribute('src', meta.image);
-        rowImage.setAttribute('alt', title);
-        row.innerHTML = '';
-        if (meta.image) {
-          row.appendChild(rowImage);
-        }
+        const r = await fetch(url, { credentials: 'omit' });
+        if (!r?.ok) return;
+        const { title, image, description } = getOpenGraphMeta(new DOMParser().parseFromString(await r.text(), 'text/html'));
+        const t = title || fb;
+        row.replaceChildren();
+        if (image) row.appendChild(Object.assign(new Image(), { src: image, alt: t }));
         const h3 = document.createElement('h3');
-        const anchor = createTag('a', { href: url });
-        anchor.textContent = title;
-        h3.appendChild(anchor);
+        h3.appendChild(Object.assign(createTag('a', { href: url }), { textContent: t }));
         row.appendChild(h3);
-        if (meta.description) {
-          const p = document.createElement('p');
-          p.textContent = meta.description;
-          row.appendChild(p);
-        }
-      } catch {
-        // CORS or network failure: leave author-authored row markup
-      }
+        if (description) row.appendChild(Object.assign(document.createElement('p'), { textContent: description }));
+      } catch { /* CORS / network: keep row */ }
     }));
   }
 
