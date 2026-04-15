@@ -218,9 +218,10 @@ pre[class*=language-].no-line-numbers {
   position: absolute;
   left: 0;
   right: 0;
+  width: auto !important;
   padding: inherit 0;
   margin-top: 2em;
-  background: hsla(24, 20%, 50%, .35);
+  background: rgba(99, 154, 255, 0.18);
   pointer-events: none;
   line-height: inherit;
   white-space: pre
