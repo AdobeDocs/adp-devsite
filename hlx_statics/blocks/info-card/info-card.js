@@ -4,6 +4,24 @@ import {
 } from '../../scripts/lib-helix.js';
 
 /**
+ * Reads Open Graph / document meta from a parsed HTML document.
+ * @param {Document} doc
+ * @returns {{ title: string, image: string, description: string }}
+ */
+function getOpenGraphMeta(doc) {
+  const ogTitle = doc.querySelector('meta[property="og:title"]')?.getAttribute('content');
+  const title = (ogTitle || doc.querySelector('title')?.textContent || '').trim();
+  const ogImage =
+    doc.querySelector('meta[property="og:image"]')?.getAttribute('content')
+    || doc.querySelector('meta[property="og:image:secure_url"]')?.getAttribute('content')
+    || '';
+  const ogDesc = doc.querySelector('meta[property="og:description"]')?.getAttribute('content');
+  const description =
+    (ogDesc || doc.querySelector('meta[name="description"]')?.getAttribute('content') || '').trim();
+  return { title, image: ogImage.trim(), description };
+}
+
+/**
  * decorates the info-card
  * @param {Element} block The info-card block element
  */
@@ -12,22 +30,42 @@ export default async function decorate(block) {
   block.setAttribute('daa-lh', 'info-card');
   removeEmptyPTags(block);
 
-  if (block.classList.contains('articles')) { 
+  if (block.classList.contains('articles')) {
     const rows = [...block.children];
-    for (const row of rows) {
+    await Promise.all(rows.map(async (row) => {
       const link = row.querySelector('a[href]');
-      if (!link) continue;
+      if (!link) return;
       const url = link.href;
+      const fallbackTitle = link.textContent.trim();
       try {
-        const resp = await fetch(url);
-        if (!resp?.ok) continue;
+        const resp = await fetch(url, { credentials: 'omit' });
+        if (!resp?.ok) return;
         const html = await resp.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        console.log('doc--->', doc);
+        const meta = getOpenGraphMeta(doc);
+        const title = meta.title || fallbackTitle;
+        const rowImage = document.createElement('img');
+        rowImage.setAttribute('src', meta.image);
+        rowImage.setAttribute('alt', title);
+        row.innerHTML = '';
+        if (meta.image) {
+          row.appendChild(rowImage);
+        }
+        const h3 = document.createElement('h3');
+        const anchor = createTag('a', { href: url });
+        anchor.textContent = title;
+        h3.appendChild(anchor);
+        row.appendChild(h3);
+        if (meta.description) {
+          const p = document.createElement('p');
+          p.textContent = meta.description;
+          row.appendChild(p);
+        }
       } catch {
+        // CORS or network failure: leave author-authored row markup
       }
-    }
+    }));
   }
 
   let containerParent;
