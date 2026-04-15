@@ -85,7 +85,7 @@ import {
               if (!resp.ok) return;
 
               const currentLm = resp.headers.get('last-modified');
-              const storedLm = sssionStorage.getItem(fragmentLmKey);
+              const storedLm = sessionStorage.getItem(fragmentLmKey);
               const storedHtml = sessionStorage.getItem(fragmentHash);
 
               if (currentLm && storedLm === currentLm && storedHtml) {
