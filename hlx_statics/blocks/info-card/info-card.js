@@ -22,6 +22,33 @@ function getOpenGraphMeta(doc) {
 }
 
 /**
+ * Helix often puts several article links in one row. This moves each link into its own row
+ * so we fetch OG data and build one card per URL.
+ * @param {Element} block
+ */
+function splitArticleRowsOneLinkEach(block) {
+  const rows = [...block.children];
+  for (const row of rows) {
+    const links = [...row.querySelectorAll(':scope a[href]')].filter((a) => {
+      try {
+        const u = new URL(a.href);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    });
+    if (links.length <= 1) continue;
+    const parent = row.parentNode;
+    links.forEach((link) => {
+      const newRow = document.createElement('div');
+      newRow.appendChild(link);
+      parent.insertBefore(newRow, row);
+    });
+    row.remove();
+  }
+}
+
+/**
  * decorates the info-card
  * @param {Element} block The info-card block element
  */
@@ -31,6 +58,7 @@ export default async function decorate(block) {
   removeEmptyPTags(block);
 
   if (block.classList.contains('articles')) {
+    splitArticleRowsOneLinkEach(block);
     const rows = [...block.children];
     await Promise.all(rows.map(async (row) => {
       const link = row.querySelector('a[href]');
@@ -92,8 +120,9 @@ export default async function decorate(block) {
     const image = row.querySelector('img') || row.querySelector('picture img');
     if (image) {
       const imageDiv = createTag('div', { class: 'cards-card-image' });
+      const picWidth = image.naturalWidth > 0 ? String(image.naturalWidth) : '1200';
       imageDiv.appendChild(
-        createOptimizedPicture(image.src, image.alt, false, [{ width: `${image.naturalWidth}` }])
+        createOptimizedPicture(image.src, image.alt, false, [{ width: picWidth }])
       );
       a.appendChild(imageDiv);
     }
