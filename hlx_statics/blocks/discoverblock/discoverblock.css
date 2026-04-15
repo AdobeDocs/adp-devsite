@@ -49,6 +49,8 @@ main div.discoverblock-container div.heading2-wrapper h2 {
 
 main div.discoverblock-container h2 {
   border-bottom: 1px solid #e1e1e1;
+  margin-top: 40px;
+  padding-top: 20px;
   padding-bottom: 8px;
   margin-bottom: 0px;
 }

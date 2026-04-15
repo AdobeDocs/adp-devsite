@@ -15,6 +15,12 @@ import {
   import {
     isLocalHostEnvironment
   } from '../../scripts/lib-adobeio.js';
+
+  // Dedup concurrent config validation fetches within the same page load.
+  // Multiple callers (top-nav, buttons, side-nav) all loadFragment the same
+  // config URL — this ensures only ONE network request is made.
+  const configValidationCache = new Map();
+
   /**
    * Loads a fragment.
    * @param {string} path The path to the fragment
@@ -62,30 +68,77 @@ import {
 
       const hashCode = (s) => s.split('').reduce((a, b) => (((a << 5) - a) + b.charCodeAt(0)) | 0, 0);
       const fragmentHash = `${hashCode(fetchPathUrl)}`;
+      const fragmentLmKey = `${fragmentHash}_lm`;
       let main;
 
-    if (sessionStorage.getItem(fragmentHash)) {
-      main = document.createElement('main');
-      main.innerHTML = sessionStorage.getItem(fragmentHash);
-    } else {
-      const resp = await fetch(fetchPathUrl);
-      if (resp.ok) {
-        const htmlText = await resp.text();
-        main = document.createElement('main');
-        if (isLocalHostForDocs ) {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(htmlText, 'text/html');
-          const mainContent = doc.querySelector('main');
-          if (mainContent) {
-            main.innerHTML = mainContent.innerHTML;
-          }
-        } else {
-          main.innerHTML = htmlText;
+      const isConfig = lastPrefix === 'config';
+      const cachedHtml = sessionStorage.getItem(fragmentHash);
+
+      if (isConfig) {
+        // Config validation: one fetch per page load, shared across all callers.
+        // Uses If-Modified-Since revalidation (cache: 'no-cache') so the browser
+        // leverages its HTTP cache for 304 responses while always checking freshness.
+        if (!configValidationCache.has(fragmentHash)) {
+          configValidationCache.set(fragmentHash, (async () => {
+            try {
+              const resp = await fetch(fetchPathUrl, { cache: 'no-cache' });
+              if (!resp.ok) return;
+
+              const currentLm = resp.headers.get('last-modified');
+              const storedLm = sessionStorage.getItem(fragmentLmKey);
+              const storedHtml = sessionStorage.getItem(fragmentHash);
+
+              if (currentLm && storedLm === currentLm && storedHtml) {
+                console.log(`[fragment] config valid (last-modified: ${currentLm})`);
+                return;
+              }
+
+              console.log(`[fragment] config ${storedHtml ? 'stale' : 'miss'} (${storedLm} → ${currentLm})`);
+              const htmlText = await resp.text();
+              const temp = document.createElement('main');
+              if (isLocalHostForDocs) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                const mainContent = doc.querySelector('main');
+                if (mainContent) temp.innerHTML = mainContent.innerHTML;
+              } else {
+                temp.innerHTML = htmlText;
+              }
+              sessionStorage.setItem(fragmentHash, temp.innerHTML);
+              if (currentLm) sessionStorage.setItem(fragmentLmKey, currentLm);
+            } catch (e) {
+              console.warn('[fragment] config validation failed', e);
+            }
+          })());
         }
 
-        sessionStorage.setItem(fragmentHash, main.innerHTML);
+        await configValidationCache.get(fragmentHash);
+        const content = sessionStorage.getItem(fragmentHash);
+        if (content) {
+          main = document.createElement('main');
+          main.innerHTML = content;
+        }
+      } else if (cachedHtml) {
+        main = document.createElement('main');
+        main.innerHTML = cachedHtml;
+      } else {
+        const resp = await fetch(fetchPathUrl);
+        if (resp.ok) {
+          const htmlText = await resp.text();
+          main = document.createElement('main');
+          if (isLocalHostForDocs) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const mainContent = doc.querySelector('main');
+            if (mainContent) {
+              main.innerHTML = mainContent.innerHTML;
+            }
+          } else {
+            main.innerHTML = htmlText;
+          }
+          sessionStorage.setItem(fragmentHash, main.innerHTML);
+        }
       }
-    }
 
     // Always run initialization for both cached and fresh fragments
     if (main) {
