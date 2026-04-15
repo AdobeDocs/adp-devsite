@@ -152,6 +152,14 @@ app.use(async (req, res) => {
 
   res.status(resp.status);
 
+  // Doc responses from the runtime connector lack Cache-Control, causing
+  // browsers to apply heuristic caching (RFC 7234) and silently serve stale
+  // content. Setting no-cache ensures the browser always revalidates via
+  // If-Modified-Since / If-None-Match while still caching for 304 efficiency.
+  if (source === 'docs' && !headers.has('cache-control')) {
+    headers.set('cache-control', 'no-cache');
+  }
+
   // Set headers properly for Express
   headers.forEach((value, key) => {
     res.set(key, value);
