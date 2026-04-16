@@ -143,7 +143,13 @@ export default async function decorate(block) {
     btn.classList.add('selected');
   }
 
-  firstDiv.append(lastUpdate, feedback);
+  const dismissButton = document.createElement('button');
+  dismissButton.classList.add('contributors-dismiss');
+  dismissButton.setAttribute('aria-label', 'Dismiss');
+  dismissButton.innerHTML = '&#x2715;';
+  dismissButton.addEventListener('click', () => { block.style.display = 'none'; });
+
+  firstDiv.append(lastUpdate, feedback, dismissButton);
 
   const showModal = () => {
     const modal = document.querySelector('.contributor-modal');
@@ -158,6 +164,7 @@ export default async function decorate(block) {
     modal.classList.remove('show');
     setTimeout(() => {
       modal.style.display = 'none';
+      block.style.display = 'none';
     }, 10);
   }
 
