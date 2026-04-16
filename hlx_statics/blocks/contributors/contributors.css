@@ -1,4 +1,5 @@
 main div.contributors-wrapper div.contributors-content {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -9,6 +10,23 @@ main div.contributors-wrapper div.contributors-content {
     background: white;
     border: 1px solid lightgray;
     border-radius: 4px;
+}
+
+main div.contributors-wrapper button.contributors-dismiss {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: none;
+    border: none !important;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    color: rgb(110, 110, 110);
+    padding: 2px 4px;
+}
+
+main div.contributors-wrapper button.contributors-dismiss:hover {
+    color: rgb(0, 0, 0);
 }
 
 main div.contributors-wrapper div.contributors-content > div.lastUpdateDetails,
