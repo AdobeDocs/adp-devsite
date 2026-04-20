@@ -4,6 +4,47 @@ import { getdevsitePathFile, fetchSitemapXml } from '../../scripts/lib-adobeio.j
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 
 /**
+ * On HLX/AEM preview hosts, `origin/sitemap.xml` is not the full public Developer catalog.
+ * Use the matching public site so pathPrefix grouping matches devsitepaths.
+ */
+function getPreferredSitemapBaseUrl() {
+  const h = window.location.hostname;
+  if (h.endsWith('.aem.page') || h.endsWith('.hlx.page')) {
+    if (/stage/i.test(h)) {
+      return 'https://developer-stage.adobe.com';
+    }
+    return 'https://www.developer.adobe.com';
+  }
+  return window.location.origin;
+}
+
+/**
+ * @returns {Promise<{ bundle: { document: Document, text: string }, baseUrl: string }|null>}
+ */
+async function loadSitemapForAdmin() {
+  const preferred = getPreferredSitemapBaseUrl();
+  let bundle = null;
+  try {
+    bundle = await fetchSitemapXml(preferred);
+  } catch {
+    bundle = null;
+  }
+  let baseUrl = preferred;
+  if (!bundle && preferred !== window.location.origin) {
+    try {
+      bundle = await fetchSitemapXml(window.location.origin);
+    } catch {
+      bundle = null;
+    }
+    baseUrl = window.location.origin;
+  }
+  if (!bundle) {
+    return null;
+  }
+  return { bundle, baseUrl };
+}
+
+/**
  * @param {string} pathPrefix devsitepaths `pathPrefix` value
  * @returns {string} Leading slash, no trailing slash (except root `/`)
  */
@@ -259,6 +300,7 @@ function renderTreeNodeToList(node, ul) {
 
     if (hasSubtree) {
       const details = document.createElement('details');
+      details.className = 'admin-site-tree__node';
       const summary = document.createElement('summary');
       summary.className = 'admin-site-tree__segment';
       summary.textContent = key;
