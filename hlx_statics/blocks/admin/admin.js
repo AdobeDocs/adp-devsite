@@ -1,46 +1,21 @@
 
-import { getdevsitePathFile, fetchSitemapXml } from '../../scripts/lib-adobeio.js';
+import { getdevsitePathFile, fetchSitemapXml, getSitemapFetchOrigin } from '../../scripts/lib-adobeio.js';
 
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
-
-/**
- * On HLX/AEM preview hosts, `origin/sitemap.xml` is usually not the full public catalog.
- */
-function getPreferredSitemapBaseUrl() {
-  const h = window.location.hostname;
-  if (h.endsWith('.aem.page') || h.endsWith('.hlx.page')) {
-    if (/stage/i.test(h)) {
-      return 'https://developer-stage.adobe.com';
-    }
-    return 'https://www.developer.adobe.com';
-  }
-  return window.location.origin;
-}
 
 /**
  * @returns {Promise<{ bundle: { document: Document, text: string }, baseUrl: string }|null>}
  */
 async function loadSitemapForAdmin() {
-  const preferred = getPreferredSitemapBaseUrl();
-  let bundle = null;
   try {
-    bundle = await fetchSitemapXml(preferred);
-  } catch {
-    bundle = null;
-  }
-  let baseUrl = preferred;
-  if (!bundle && preferred !== window.location.origin) {
-    try {
-      bundle = await fetchSitemapXml(window.location.origin);
-    } catch {
-      bundle = null;
+    const bundle = await fetchSitemapXml();
+    if (!bundle) {
+      return null;
     }
-    baseUrl = window.location.origin;
-  }
-  if (!bundle) {
+    return { bundle, baseUrl: getSitemapFetchOrigin() };
+  } catch {
     return null;
   }
-  return { bundle, baseUrl };
 }
 
 /**

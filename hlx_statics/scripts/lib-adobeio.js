@@ -1181,12 +1181,24 @@ export async function getdevsitePathFile() {
 };
 
 /**
- * Fetches and parses the site-wide sitemap at `{baseUrl}/sitemap.xml`.
- * @param {string} [baseUrl] Origin only (e.g. `https://developer-stage.adobe.com`). Defaults to `window.location.origin`.
+ * Picks the public Developer sitemap host from the current page URL: if `stage` appears in the
+ * hostname or full href, uses `https://developer-stage.adobe.com`; otherwise `https://developer.adobe.com`.
+ * @returns {string} Origin URL with no trailing slash
+ */
+export function getSitemapFetchOrigin() {
+  const { hostname, href } = window.location;
+  if (/stage/i.test(hostname) || /stage/i.test(href)) {
+    return 'https://developer-stage.adobe.com';
+  }
+  return 'https://developer.adobe.com';
+}
+
+/**
+ * Fetches and parses the site-wide sitemap from the origin returned by {@link getSitemapFetchOrigin}.
  * @returns {Promise<{ document: Document, text: string }|null>} Parsed XML plus raw text for fallback parsing, or null if the request fails or XML is invalid.
  */
-export async function fetchSitemapXml(baseUrl = window.location.origin) {
-  const origin = String(baseUrl || window.location.origin).replace(/\/$/, '');
+export async function fetchSitemapXml() {
+  const origin = getSitemapFetchOrigin();
   const resp = await fetch(`${origin}/sitemap.xml`);
   if (!resp.ok) {
     return null;
