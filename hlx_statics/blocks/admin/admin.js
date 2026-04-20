@@ -4,17 +4,73 @@ import { getdevsitePathFile, fetchSitemapXml } from '../../scripts/lib-adobeio.j
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 
 /**
- * @param {Document} sitemapDoc
+ * @param {string} pathPrefix devsitepaths `pathPrefix` value
+ * @returns {string} Leading slash, no trailing slash (except root `/`)
+ */
+function canonicalPrefixPath(pathPrefix) {
+  if (pathPrefix === '/') return '/';
+  let p = String(pathPrefix).trim();
+  if (!p.startsWith('/')) {
+    p = `/${p}`;
+  }
+  if (p.length > 1 && p.endsWith('/')) {
+    p = p.slice(0, -1);
+  }
+  return p;
+}
+
+/**
+ * @param {string} text
  * @returns {string[]}
  */
-function extractSitemapLocUrls(sitemapDoc) {
+function extractLocUrlsFromXmlText(text) {
+  const urls = [];
+  const re = /<loc[^>]*>([\s\S]*?)<\/loc>/gi;
+  let m = re.exec(text);
+  while (m !== null) {
+    const raw = m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, '$1').trim();
+    if (raw) {
+      try {
+        urls.push(new URL(raw).href);
+      } catch {
+        /* skip */
+      }
+    }
+    m = re.exec(text);
+  }
+  return urls;
+}
+
+/**
+ * @param {Document} sitemapDoc
+ * @param {string} [rawXmlText] fallback when DOM lookups return no loc elements
+ * @returns {string[]}
+ */
+function extractSitemapLocUrls(sitemapDoc, rawXmlText) {
+  /** @type {Element[]} */
+  const locElements = [];
   let locs = sitemapDoc.getElementsByTagNameNS(SITEMAP_NS, 'loc');
-  if (!locs.length) {
+  for (let i = 0; i < locs.length; i += 1) {
+    locElements.push(locs[i]);
+  }
+  if (!locElements.length) {
     locs = sitemapDoc.getElementsByTagName('loc');
+    for (let i = 0; i < locs.length; i += 1) {
+      locElements.push(locs[i]);
+    }
+  }
+  if (!locElements.length) {
+    const star = sitemapDoc.getElementsByTagName('*');
+    for (let i = 0; i < star.length; i += 1) {
+      const el = star[i];
+      if (el.localName === 'loc') {
+        locElements.push(el);
+      }
+    }
   }
   const urls = [];
-  for (let i = 0; i < locs.length; i += 1) {
-    const text = locs[i].textContent?.trim();
+  for (let i = 0; i < locElements.length; i += 1) {
+    const text = locElements[i].textContent?.trim();
     if (text) {
       try {
         urls.push(new URL(text).href);
@@ -23,15 +79,42 @@ function extractSitemapLocUrls(sitemapDoc) {
       }
     }
   }
+  if (!urls.length && rawXmlText) {
+    return extractLocUrlsFromXmlText(rawXmlText);
+  }
   return urls;
 }
 
 /**
- * @param {string} prefix
+ * Flat urlset: collect page URLs from the document. Sitemap index: fetch each child sitemap and merge page URLs.
+ * @param {Document} doc
+ * @param {string} text raw XML of the root sitemap response
+ * @returns {Promise<string[]>}
  */
-function normalizePrefix(prefix) {
-  if (prefix === '/') return '';
-  return prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+async function resolveAllPageUrlsFromSitemap(doc, text) {
+  const root = doc.documentElement;
+  if (!root || root.localName !== 'sitemapindex') {
+    return extractSitemapLocUrls(doc, text);
+  }
+  const childSitemaps = extractLocUrlsFromXmlText(text);
+  if (!childSitemaps.length) {
+    return [];
+  }
+  const nested = await Promise.all(
+    childSitemaps.map(async (smUrl) => {
+      try {
+        const r = await fetch(smUrl);
+        if (!r.ok) return [];
+        const t = await r.text();
+        const d = new DOMParser().parseFromString(t, 'application/xml');
+        if (d.querySelector('parsererror')) return [];
+        return extractSitemapLocUrls(d, t);
+      } catch {
+        return [];
+      }
+    }),
+  );
+  return nested.flat();
 }
 
 /**
@@ -44,7 +127,8 @@ function findBestMatchingPathRow(pathname, rows) {
   let bestLen = -1;
   for (const row of rows) {
     if (row.pathPrefix === '/') continue;
-    const np = normalizePrefix(row.pathPrefix);
+    const np = canonicalPrefixPath(row.pathPrefix);
+    if (np === '/') continue;
     if (pathname === np || pathname === `${np}/` || pathname.startsWith(`${np}/`)) {
       if (np.length > bestLen) {
         bestLen = np.length;
@@ -78,7 +162,10 @@ function suffixAfterPrefix(pathname, pathPrefix) {
   if (pathPrefix === '/') {
     return pathname.replace(/^\/+/, '');
   }
-  const np = normalizePrefix(pathPrefix);
+  const np = canonicalPrefixPath(pathPrefix);
+  if (np === '/') {
+    return pathname.replace(/^\/+/, '');
+  }
   if (pathname === np || pathname === `${np}/`) {
     return '';
   }
@@ -314,7 +401,7 @@ export default async function decorate(block) {
   }
 
   const pathRows = dedupePathPrefixRows(devsitePathsJson.data);
-  const urls = extractSitemapLocUrls(sitemapXml);
+  const urls = await resolveAllPageUrlsFromSitemap(sitemapXml.document, sitemapXml.text);
   const groups = groupUrlsByPathPrefix(urls, pathRows);
 
   const heading = document.createElement('h2');

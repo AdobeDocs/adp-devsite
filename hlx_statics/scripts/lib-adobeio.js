@@ -1181,9 +1181,9 @@ export async function getdevsitePathFile() {
 };
 
 /**
- * Fetches and parses the site-wide sitemap at `{origin}/sitemap.xml`
+ * Fetches and parses the site-wide sitemap at `{window.location.origin}/sitemap.xml`
  * (e.g. https://developer-stage.adobe.com/sitemap.xml: `urlset` with `url`/`loc` entries).
- * @returns {Promise<Document|null>} Parsed sitemap XML, or null if the request fails or XML is invalid.
+ * @returns {Promise<{ document: Document, text: string }|null>} Parsed XML plus raw text for fallback parsing, or null if the request fails or XML is invalid.
  */
 export async function fetchSitemapXml() {
   const resp = await fetch(`${window.location.origin}/sitemap.xml`);
@@ -1195,7 +1195,7 @@ export async function fetchSitemapXml() {
   if (doc.querySelector('parsererror')) {
     return null;
   }
-  return doc;
+  return { document: doc, text };
 }
 
 /**
