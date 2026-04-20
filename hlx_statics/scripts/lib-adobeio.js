@@ -1165,7 +1165,9 @@ export async function applyAnalytic(domObj = document) {
 }
 
 /**
- * @returns Fetches the devsitePath.json file
+ * Fetches devsite path routing metadata from `{origin}/franklin_assets/devsitepaths.json`
+ * (same `data` / `pathPrefix` sheet as https://main--adp-devsite--adobedocs.aem.page/franklin_assets/devsitepaths.json on preview).
+ * @returns {Promise<object|null>} Parsed JSON or null if the request fails.
  */
 export async function getdevsitePathFile() {
   let devsitePath = `${window.location.origin}/franklin_assets/devsitepaths.json`;
@@ -1177,6 +1179,24 @@ export async function getdevsitePathFile() {
     return null;
   }
 };
+
+/**
+ * Fetches and parses the site-wide sitemap at `{origin}/sitemap.xml`
+ * (e.g. https://developer-stage.adobe.com/sitemap.xml: `urlset` with `url`/`loc` entries).
+ * @returns {Promise<Document|null>} Parsed sitemap XML, or null if the request fails or XML is invalid.
+ */
+export async function fetchSitemapXml() {
+  const resp = await fetch(`${window.location.origin}/sitemap.xml`);
+  if (!resp.ok) {
+    return null;
+  }
+  const text = await resp.text();
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.querySelector('parsererror')) {
+    return null;
+  }
+  return doc;
+}
 
 /**
  * @returns Fetches and redirects page based on redirects.json

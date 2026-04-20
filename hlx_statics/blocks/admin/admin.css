@@ -1,0 +1,121 @@
+.admin-site-tree {
+  --admin-tree-border: rgb(225, 225, 225);
+  --admin-tree-muted: rgb(110, 110, 110);
+  font-size: 14px;
+  line-height: 1.45;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.admin-site-tree__heading {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.admin-site-tree__intro {
+  color: var(--admin-tree-muted);
+  margin: 0 0 1rem;
+  font-size: 13px;
+}
+
+.admin-site-tree__empty {
+  margin: 0;
+  color: var(--admin-tree-muted);
+}
+
+.admin-site-tree__section {
+  border: 1px solid var(--admin-tree-border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: rgb(252, 252, 252);
+}
+
+.admin-site-tree__summary {
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  padding: 0.35rem 0;
+  list-style: none;
+}
+
+.admin-site-tree__summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-site-tree__title {
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+}
+
+.admin-site-tree__badge {
+  font-size: 12px;
+  color: var(--admin-tree-muted);
+}
+
+.admin-site-tree__count {
+  font-size: 12px;
+  color: var(--admin-tree-muted);
+  margin-left: auto;
+}
+
+.admin-site-tree__branch {
+  margin: 0.25rem 0 0.5rem 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--admin-tree-border);
+  list-style: none;
+}
+
+.admin-site-tree__branch--root {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+}
+
+.admin-site-tree__branch .admin-site-tree__branch {
+  margin-top: 0.15rem;
+}
+
+.admin-site-tree__segment {
+  user-select: none;
+}
+
+.admin-site-tree__segment--leaf {
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
+.admin-site-tree__leaf {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.admin-site-tree__urls {
+  margin: 0.15rem 0 0.35rem;
+  padding-left: 1rem;
+  list-style: disc;
+}
+
+.admin-site-tree__urls-row .admin-site-tree__urls {
+  list-style: none;
+  padding-left: 0;
+}
+
+.admin-site-tree__urls-row .admin-site-tree__link {
+  word-break: break-all;
+}
+
+.admin-site-tree__link {
+  color: rgb(20, 115, 230);
+  text-decoration: none;
+}
+
+.admin-site-tree__link:hover {
+  text-decoration: underline;
+}
