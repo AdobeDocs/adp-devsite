@@ -159,6 +159,19 @@ function buildPathTreeFromSitemapUrls(urls) {
 }
 
 /**
+ * Total sitemap URLs under this tree node (this level’s `_urls` plus all descendant nodes).
+ * @param {PathNode} node
+ */
+function countUrlsUnderNode(node) {
+  let n = node._urls?.length ?? 0;
+  for (const k of Object.keys(node)) {
+    if (k === '_urls') continue;
+    n += countUrlsUnderNode(node[k]);
+  }
+  return n;
+}
+
+/**
  * @param {string[]} urlList
  * @returns {HTMLUListElement}
  */
@@ -187,7 +200,14 @@ function renderPathNodeToList(node, ul) {
   if (node._urls?.length) {
     const li = document.createElement('li');
     li.className = 'admin-site-tree__urls-row';
-    li.append(buildUrlList(node._urls));
+    const header = document.createElement('div');
+    header.className = 'admin-site-tree__urls-header';
+    const countEl = document.createElement('span');
+    countEl.className = 'admin-site-tree__count';
+    const n = node._urls.length;
+    countEl.textContent = `${n} URL${n === 1 ? '' : 's'} at this path`;
+    header.append(countEl);
+    li.append(header, buildUrlList(node._urls));
     ul.append(li);
   }
 
@@ -202,7 +222,14 @@ function renderPathNodeToList(node, ul) {
       details.className = 'admin-site-tree__node';
       const summary = document.createElement('summary');
       summary.className = 'admin-site-tree__segment';
-      summary.textContent = key;
+      const label = document.createElement('span');
+      label.className = 'admin-site-tree__segment-label';
+      label.textContent = key;
+      const countEl = document.createElement('span');
+      countEl.className = 'admin-site-tree__count';
+      const under = countUrlsUnderNode(child);
+      countEl.textContent = `${under} URL${under === 1 ? '' : 's'}`;
+      summary.append(label, countEl);
       details.append(summary);
       const nestedUl = document.createElement('ul');
       nestedUl.className = 'admin-site-tree__branch';
@@ -212,10 +239,20 @@ function renderPathNodeToList(node, ul) {
     } else {
       const wrap = document.createElement('div');
       wrap.className = 'admin-site-tree__leaf';
+      const row = document.createElement('div');
+      row.className = 'admin-site-tree__leaf-row';
       const span = document.createElement('span');
       span.className = 'admin-site-tree__segment admin-site-tree__segment--leaf';
       span.textContent = key;
-      wrap.append(span);
+      row.append(span);
+      const underLeaf = countUrlsUnderNode(child);
+      if (underLeaf > 0) {
+        const countEl = document.createElement('span');
+        countEl.className = 'admin-site-tree__count';
+        countEl.textContent = `${underLeaf} URL${underLeaf === 1 ? '' : 's'}`;
+        row.append(countEl);
+      }
+      wrap.append(row);
       if (child._urls?.length) {
         wrap.append(buildUrlList(child._urls));
       }

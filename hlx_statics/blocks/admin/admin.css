@@ -78,6 +78,40 @@
   position: relative;
   user-select: none;
   font-weight: 500;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+}
+
+.admin-site-tree__segment-label {
+  min-width: 0;
+  word-break: break-word;
+}
+
+.admin-site-tree__count {
+  font-size: 12px;
+  color: var(--admin-tree-muted);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.admin-site-tree__leaf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  width: 100%;
+}
+
+.admin-site-tree__urls-header {
+  margin-bottom: 0.2rem;
+}
+
+.admin-site-tree__urls-header .admin-site-tree__count {
+  margin-left: 0;
 }
 
 .admin-site-tree__node > summary::marker,
