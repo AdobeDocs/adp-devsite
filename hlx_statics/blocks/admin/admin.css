@@ -24,6 +24,10 @@
   line-height: 1.5;
   max-width: 100%;
   overflow-x: auto;
+  border: 1px solid var(--admin-tree-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem 1rem;
+  background: var(--admin-tree-bg);
 }
 
 .admin-site-tree__heading {
@@ -43,69 +47,6 @@
 .admin-site-tree__empty {
   margin: 0;
   color: var(--admin-tree-muted);
-}
-
-/* Top-level pathPrefix sections */
-.admin-site-tree__section {
-  border: 1px solid var(--admin-tree-border);
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-  padding: 0.35rem 0.65rem 0.5rem;
-  background: var(--admin-tree-bg);
-}
-
-.admin-site-tree__summary {
-  cursor: pointer;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 0.75rem;
-  padding: 0.4rem 0 0.35rem 1.35rem;
-  list-style: none;
-  position: relative;
-  user-select: none;
-}
-
-.admin-site-tree__summary::marker,
-.admin-site-tree__summary::-webkit-details-marker {
-  display: none;
-}
-
-/* Disclosure caret (Firefox hides marker when list-style: none) */
-.admin-site-tree__section > .admin-site-tree__summary::before {
-  content: '';
-  position: absolute;
-  left: 0.15rem;
-  top: 0.55em;
-  width: 0.45rem;
-  height: 0.45rem;
-  border-right: 2px solid var(--admin-tree-muted);
-  border-bottom: 2px solid var(--admin-tree-muted);
-  transform: rotate(-45deg);
-  transition: transform 0.15s ease;
-}
-
-.admin-site-tree__section[open] > .admin-site-tree__summary::before {
-  transform: rotate(45deg);
-  top: 0.65em;
-}
-
-.admin-site-tree__title {
-  font-weight: 600;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 13px;
-  color: inherit;
-}
-
-.admin-site-tree__badge {
-  font-size: 12px;
-  color: var(--admin-tree-muted);
-}
-
-.admin-site-tree__count {
-  font-size: 12px;
-  color: var(--admin-tree-muted);
-  margin-left: auto;
 }
 
 .admin-site-tree__branch {

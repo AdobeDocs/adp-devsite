@@ -1181,12 +1181,13 @@ export async function getdevsitePathFile() {
 };
 
 /**
- * Fetches and parses the site-wide sitemap at `{window.location.origin}/sitemap.xml`
- * (e.g. https://developer-stage.adobe.com/sitemap.xml: `urlset` with `url`/`loc` entries).
+ * Fetches and parses the site-wide sitemap at `{baseUrl}/sitemap.xml`.
+ * @param {string} [baseUrl] Origin only (e.g. `https://developer-stage.adobe.com`). Defaults to `window.location.origin`.
  * @returns {Promise<{ document: Document, text: string }|null>} Parsed XML plus raw text for fallback parsing, or null if the request fails or XML is invalid.
  */
-export async function fetchSitemapXml() {
-  const resp = await fetch(`${window.location.origin}/sitemap.xml`);
+export async function fetchSitemapXml(baseUrl = window.location.origin) {
+  const origin = String(baseUrl || window.location.origin).replace(/\/$/, '');
+  const resp = await fetch(`${origin}/sitemap.xml`);
   if (!resp.ok) {
     return null;
   }

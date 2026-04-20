@@ -4,8 +4,7 @@ import { getdevsitePathFile, fetchSitemapXml } from '../../scripts/lib-adobeio.j
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 
 /**
- * On HLX/AEM preview hosts, `origin/sitemap.xml` is not the full public Developer catalog.
- * Use the matching public site so pathPrefix grouping matches devsitepaths.
+ * On HLX/AEM preview hosts, `origin/sitemap.xml` is usually not the full public catalog.
  */
 function getPreferredSitemapBaseUrl() {
   const h = window.location.hostname;
@@ -45,22 +44,6 @@ async function loadSitemapForAdmin() {
 }
 
 /**
- * @param {string} pathPrefix devsitepaths `pathPrefix` value
- * @returns {string} Leading slash, no trailing slash (except root `/`)
- */
-function canonicalPrefixPath(pathPrefix) {
-  if (pathPrefix === '/') return '/';
-  let p = String(pathPrefix).trim();
-  if (!p.startsWith('/')) {
-    p = `/${p}`;
-  }
-  if (p.length > 1 && p.endsWith('/')) {
-    p = p.slice(0, -1);
-  }
-  return p;
-}
-
-/**
  * @param {string} text
  * @returns {string[]}
  */
@@ -84,7 +67,7 @@ function extractLocUrlsFromXmlText(text) {
 
 /**
  * @param {Document} sitemapDoc
- * @param {string} [rawXmlText] fallback when DOM lookups return no loc elements
+ * @param {string} [rawXmlText]
  * @returns {string[]}
  */
 function extractSitemapLocUrls(sitemapDoc, rawXmlText) {
@@ -127,9 +110,8 @@ function extractSitemapLocUrls(sitemapDoc, rawXmlText) {
 }
 
 /**
- * Flat urlset: collect page URLs from the document. Sitemap index: fetch each child sitemap and merge page URLs.
  * @param {Document} doc
- * @param {string} text raw XML of the root sitemap response
+ * @param {string} text
  * @returns {Promise<string[]>}
  */
 async function resolveAllPageUrlsFromSitemap(doc, text) {
@@ -159,74 +141,16 @@ async function resolveAllPageUrlsFromSitemap(doc, text) {
 }
 
 /**
- * @param {string} pathname
- * @param {{ pathPrefix: string }[]} rows
- * @returns {{ pathPrefix: string } | null}
- */
-function findBestMatchingPathRow(pathname, rows) {
-  let best = null;
-  let bestLen = -1;
-  for (const row of rows) {
-    if (row.pathPrefix === '/') continue;
-    const np = canonicalPrefixPath(row.pathPrefix);
-    if (np === '/') continue;
-    if (pathname === np || pathname === `${np}/` || pathname.startsWith(`${np}/`)) {
-      if (np.length > bestLen) {
-        bestLen = np.length;
-        best = row;
-      }
-    }
-  }
-  if (best) return best;
-  return rows.find((r) => r.pathPrefix === '/') || null;
-}
-
-/**
- * Deduplicate by pathPrefix (first row wins).
- * @param {object[]} data
- */
-function dedupePathPrefixRows(data) {
-  const seen = new Map();
-  for (const row of data) {
-    if (row && typeof row.pathPrefix === 'string' && !seen.has(row.pathPrefix)) {
-      seen.set(row.pathPrefix, row);
-    }
-  }
-  return [...seen.values()];
-}
-
-/**
- * @param {string} pathname
- * @param {string} pathPrefix
- */
-function suffixAfterPrefix(pathname, pathPrefix) {
-  if (pathPrefix === '/') {
-    return pathname.replace(/^\/+/, '');
-  }
-  const np = canonicalPrefixPath(pathPrefix);
-  if (np === '/') {
-    return pathname.replace(/^\/+/, '');
-  }
-  if (pathname === np || pathname === `${np}/`) {
-    return '';
-  }
-  if (pathname.startsWith(`${np}/`)) {
-    return pathname.slice(np.length + 1);
-  }
-  return '';
-}
-
-/**
- * @typedef {Object<string, TreeNode>} TreeNode
- * @property {string[]} [TreeNode._urls]
+ * @typedef {Object<string, PathNode>} PathNode
+ * @property {string[]} [PathNode._urls]
  */
 
 /**
- * @param {TreeNode} node
+ * @param {PathNode} node
  * @param {string[]} segments
  * @param {string} fullUrl
  */
-function insertUrlIntoTree(node, segments, fullUrl) {
+function insertPathSegment(node, segments, fullUrl) {
   if (segments.length === 0 || (segments.length === 1 && segments[0] === '')) {
     if (!node._urls) node._urls = [];
     node._urls.push(fullUrl);
@@ -234,16 +158,16 @@ function insertUrlIntoTree(node, segments, fullUrl) {
   }
   const [head, ...rest] = segments;
   if (!node[head]) node[head] = {};
-  insertUrlIntoTree(node[head], rest, fullUrl);
+  insertPathSegment(node[head], rest, fullUrl);
 }
 
 /**
+ * Builds a single path tree from sitemap URLs (pathname segments from site root).
  * @param {string[]} urls
- * @param {string} pathPrefix
- * @returns {TreeNode}
+ * @returns {PathNode}
  */
-function buildSegmentTreeForPrefix(urls, pathPrefix) {
-  /** @type {TreeNode} */
+function buildPathTreeFromSitemapUrls(urls) {
+  /** @type {PathNode} */
   const root = {};
   for (const href of urls) {
     let pathname;
@@ -252,9 +176,9 @@ function buildSegmentTreeForPrefix(urls, pathPrefix) {
     } catch {
       continue;
     }
-    const suffix = suffixAfterPrefix(pathname, pathPrefix);
+    const suffix = pathname.replace(/^\/+/, '');
     const segments = suffix.split('/').filter((s) => s.length > 0);
-    insertUrlIntoTree(root, segments, href);
+    insertPathSegment(root, segments, href);
   }
   return root;
 }
@@ -279,10 +203,10 @@ function buildUrlList(urlList) {
 }
 
 /**
- * @param {TreeNode} node
+ * @param {PathNode} node
  * @param {HTMLUListElement} ul
  */
-function renderTreeNodeToList(node, ul) {
+function renderPathNodeToList(node, ul) {
   const childKeys = Object.keys(node).filter((k) => k !== '_urls').sort((a, b) => a.localeCompare(b));
 
   if (node._urls?.length) {
@@ -307,7 +231,7 @@ function renderTreeNodeToList(node, ul) {
       details.append(summary);
       const nestedUl = document.createElement('ul');
       nestedUl.className = 'admin-site-tree__branch';
-      renderTreeNodeToList(child, nestedUl);
+      renderPathNodeToList(child, nestedUl);
       details.append(nestedUl);
       li.append(details);
     } else {
@@ -327,93 +251,14 @@ function renderTreeNodeToList(node, ul) {
 }
 
 /**
- * @param {TreeNode} root
+ * @param {PathNode} root
  * @returns {HTMLUListElement}
  */
-function renderFullTree(root) {
+function renderPathTree(root) {
   const ul = document.createElement('ul');
   ul.className = 'admin-site-tree__branch admin-site-tree__branch--root';
-  renderTreeNodeToList(root, ul);
+  renderPathNodeToList(root, ul);
   return ul;
-}
-
-/**
- * @param {Map<string, { row: object, urls: string[] }>} groups
- * @returns {HTMLElement}
- */
-function buildSiteTreeUi(groups) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'admin-site-tree';
-
-  const sortedKeys = [...groups.keys()].sort((a, b) => {
-    if (a === '/') return 1;
-    if (b === '/') return -1;
-    return a.localeCompare(b);
-  });
-
-  for (const key of sortedKeys) {
-    const { row, urls } = groups.get(key);
-    const details = document.createElement('details');
-    details.className = 'admin-site-tree__section';
-    details.open = false;
-
-    const summary = document.createElement('summary');
-    summary.className = 'admin-site-tree__summary';
-
-    const title = document.createElement('span');
-    title.className = 'admin-site-tree__title';
-    title.textContent = row.pathPrefix || '/';
-
-    const badge = document.createElement('span');
-    badge.className = 'admin-site-tree__badge';
-    badge.textContent = row.repo ? `${row.owner}/${row.repo}` : '';
-
-    const count = document.createElement('span');
-    count.className = 'admin-site-tree__count';
-    count.textContent = `${urls.length} URL${urls.length === 1 ? '' : 's'}`;
-
-    summary.append(title);
-    if (badge.textContent) summary.append(badge);
-    summary.append(count);
-
-    details.append(summary);
-
-    const treeRoot = buildSegmentTreeForPrefix(urls, row.pathPrefix);
-    const treeEl = renderFullTree(treeRoot);
-    details.append(treeEl);
-
-    wrapper.append(details);
-  }
-
-  return wrapper;
-}
-
-/**
- * @param {string[]} urls
- * @param {object[]} pathRows
- * @returns {Map<string, { row: object, urls: string[] }>}
- */
-function groupUrlsByPathPrefix(urls, pathRows) {
-  /** @type {Map<string, { row: object, urls: string[] }>} */
-  const groups = new Map();
-  for (const row of pathRows) {
-    groups.set(row.pathPrefix, { row, urls: [] });
-  }
-
-  for (const href of urls) {
-    let pathname;
-    try {
-      pathname = new URL(href).pathname;
-    } catch {
-      continue;
-    }
-    const match = findBestMatchingPathRow(pathname, pathRows);
-    if (!match) continue;
-    const entry = groups.get(match.pathPrefix);
-    if (entry) entry.urls.push(href);
-  }
-
-  return groups;
 }
 
 /**
@@ -423,18 +268,16 @@ export default async function decorate(block) {
   block.textContent = '';
   block.classList.add('block', 'admin');
 
-  const devsitePathsJson = await getdevsitePathFile();
-  const sitemapXml = await fetchSitemapXml();
+  const [devsitePathsJson, sitemapResult] = await Promise.all([
+    getdevsitePathFile(),
+    loadSitemapForAdmin(),
+  ]);
 
-  if (!devsitePathsJson?.data?.length) {
-    const p = document.createElement('p');
-    p.className = 'admin-site-tree__empty';
-    p.textContent = 'Could not load devsitepaths.json or it has no path entries.';
-    block.append(p);
-    return;
-  }
+  const devsiteNote = devsitePathsJson?.data?.length
+    ? `${devsitePathsJson.data.length} devsitepaths row(s) loaded.`
+    : 'devsitepaths.json not available.';
 
-  if (!sitemapXml) {
+  if (!sitemapResult) {
     const p = document.createElement('p');
     p.className = 'admin-site-tree__empty';
     p.textContent = 'Could not load or parse sitemap.xml.';
@@ -442,17 +285,21 @@ export default async function decorate(block) {
     return;
   }
 
-  const pathRows = dedupePathPrefixRows(devsitePathsJson.data);
-  const urls = await resolveAllPageUrlsFromSitemap(sitemapXml.document, sitemapXml.text);
-  const groups = groupUrlsByPathPrefix(urls, pathRows);
+  const { bundle, baseUrl } = sitemapResult;
+  const urls = await resolveAllPageUrlsFromSitemap(bundle.document, bundle.text);
+  const pathTree = buildPathTreeFromSitemapUrls(urls);
 
   const heading = document.createElement('h2');
   heading.className = 'admin-site-tree__heading';
-  heading.textContent = 'Site tree';
+  heading.textContent = 'Sitemap';
 
   const meta = document.createElement('p');
   meta.className = 'admin-site-tree__intro';
-  meta.textContent = `Grouped by pathPrefix (${pathRows.length} roots, ${urls.length} sitemap URLs).`;
+  meta.textContent = `${devsiteNote} Showing ${urls.length} URL(s) from ${baseUrl}/sitemap.xml as a path tree.`;
 
-  block.append(heading, meta, buildSiteTreeUi(groups));
+  const panel = document.createElement('div');
+  panel.className = 'admin-site-tree';
+  panel.append(renderPathTree(pathTree));
+
+  block.append(heading, meta, panel);
 }
