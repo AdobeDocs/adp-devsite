@@ -259,11 +259,13 @@ function renderPathNodeToList(node, ul) {
       span.textContent = key;
       row.append(span);
       const underLeaf = countUrlsUnderNode(child);
-      if (underLeaf > 0) {
+      if (underLeaf > 1) {
         const countEl = document.createElement('span');
         countEl.className = 'admin-site-tree__count';
-        countEl.textContent = `${underLeaf} URL${underLeaf === 1 ? '' : 's'}`;
+        countEl.textContent = `${underLeaf} URLs`;
         row.append(countEl);
+      } else if (underLeaf === 1) {
+        row.append(document.createTextNode(':'));
       }
       wrap.append(row);
       if (child._urls?.length) {
