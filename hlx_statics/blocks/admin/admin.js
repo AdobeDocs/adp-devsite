@@ -208,14 +208,19 @@ function renderPathNodeToList(node, ul) {
   if (node._urls?.length) {
     const li = document.createElement('li');
     li.className = 'admin-site-tree__urls-row';
-    const header = document.createElement('div');
-    header.className = 'admin-site-tree__urls-header';
-    const countEl = document.createElement('span');
-    countEl.className = 'admin-site-tree__count';
     const n = node._urls.length;
-    countEl.textContent = `${n} URL${n === 1 ? '' : 's'} at this path`;
-    header.append(countEl);
-    li.append(header, buildUrlList(node._urls));
+    const links = buildUrlList(node._urls);
+    if (n > 1) {
+      const header = document.createElement('div');
+      header.className = 'admin-site-tree__urls-header';
+      const countEl = document.createElement('span');
+      countEl.className = 'admin-site-tree__count';
+      countEl.textContent = `${n} URLs at this path`;
+      header.append(countEl);
+      li.append(header, links);
+    } else {
+      li.append(links);
+    }
     ul.append(li);
   }
 
