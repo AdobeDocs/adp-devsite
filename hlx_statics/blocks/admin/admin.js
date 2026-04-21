@@ -4,6 +4,98 @@ import { getdevsitePathFile, fetchSitemapXml, getSitemapFetchOrigin } from '../.
 const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 
 /**
+ * Normalizes a path or pathPrefix for comparison (leading `/`, no trailing slash except `/`).
+ * @param {string} p
+ */
+function normalizePathForMatch(p) {
+  if (p == null || p === '') return '/';
+  let s = String(p).trim();
+  if (!s.startsWith('/')) {
+    s = `/${s}`;
+  }
+  if (s.length > 1 && s.endsWith('/')) {
+    s = s.slice(0, -1);
+  }
+  return s;
+}
+
+/**
+ * Full path for a tree segment: `parentPath` is `''` at the site root.
+ * @param {string} parentPath
+ * @param {string} segment
+ */
+function segmentPath(parentPath, segment) {
+  if (!parentPath) {
+    return `/${segment}`;
+  }
+  return `${parentPath.replace(/\/$/, '')}/${segment}`;
+}
+
+/**
+ * True if some sitemap URL pathname matches this prefix (exact or nested under it).
+ * @param {string} normalizedPrefix
+ * @param {string[]} sitemapUrls
+ */
+function pathPrefixMatchesSitemap(normalizedPrefix, sitemapUrls) {
+  if (normalizedPrefix === '/') {
+    return sitemapUrls.length > 0;
+  }
+  for (const href of sitemapUrls) {
+    let pn;
+    try {
+      pn = normalizePathForMatch(new URL(href).pathname);
+    } catch {
+      continue;
+    }
+    if (pn === normalizedPrefix || pn.startsWith(`${normalizedPrefix}/`)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Maps normalized pathPrefix → first row; `crossRefSet` = prefixes that also appear in the sitemap.
+ * @param {object[]|undefined} data devsitepaths `data` array
+ * @param {string[]} sitemapUrls
+ */
+function buildCrossReferencedDevsitePaths(data, sitemapUrls) {
+  /** @type {Map<string, object>} */
+  const lookup = new Map();
+  if (data?.length) {
+    for (const row of data) {
+      if (!row || typeof row.pathPrefix !== 'string') continue;
+      const n = normalizePathForMatch(row.pathPrefix);
+      if (!lookup.has(n)) {
+        lookup.set(n, row);
+      }
+    }
+  }
+  const crossRefSet = new Set();
+  for (const n of lookup.keys()) {
+    if (pathPrefixMatchesSitemap(n, sitemapUrls)) {
+      crossRefSet.add(n);
+    }
+  }
+  return { crossRefSet, lookup };
+}
+
+/**
+ * @param {HTMLElement} parent
+ * @param {object} row devsitepaths row
+ */
+function appendDevsitepathsMatchNote(parent, row) {
+  const note = document.createElement('span');
+  note.className = 'admin-site-tree__devsitepaths-match';
+  note.textContent = 'devsitepaths';
+  const repo = row.repo ? `${row.owner}/${row.repo}` : '';
+  note.title = repo
+    ? `Matches devsitepaths.json: ${repo} · pathPrefix ${row.pathPrefix}`
+    : `Matches devsitepaths.json · pathPrefix ${row.pathPrefix}`;
+  parent.append(note);
+}
+
+/**
  * @returns {Promise<{ bundle: { document: Document, text: string }, baseUrl: string }|null>}
  */
 async function loadSitemapForAdmin() {
@@ -201,8 +293,11 @@ function buildUrlList(urlList) {
 /**
  * @param {PathNode} node
  * @param {HTMLUListElement} ul
+ * @param {string} parentPath path above this node (`''` at site root)
+ * @param {Set<string>} crossRefSet normalized pathPrefixes present in devsitepaths and sitemap
+ * @param {Map<string, object>} devsiteLookup normalized pathPrefix → row
  */
-function renderPathNodeToList(node, ul) {
+function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup) {
   const childKeys = Object.keys(node).filter((k) => k !== '_urls').sort((a, b) => a.localeCompare(b));
 
   if (node._urls?.length) {
@@ -217,6 +312,10 @@ function renderPathNodeToList(node, ul) {
       countEl.className = 'admin-site-tree__count';
       countEl.textContent = `${n} URLs at this path`;
       header.append(countEl);
+      const pathHere = normalizePathForMatch(parentPath || '/');
+      if (crossRefSet.has(pathHere) && devsiteLookup.has(pathHere)) {
+        appendDevsitepathsMatchNote(header, devsiteLookup.get(pathHere));
+      }
       li.append(header, links);
     } else {
       li.append(links);
@@ -229,6 +328,10 @@ function renderPathNodeToList(node, ul) {
     const child = node[key];
     const subKeys = Object.keys(child).filter((k) => k !== '_urls');
     const hasSubtree = subKeys.length > 0;
+    const fullPath = segmentPath(parentPath, key);
+    const normPath = normalizePathForMatch(fullPath);
+    const devsiteRow = devsiteLookup.get(normPath);
+    const showDevsiteNote = crossRefSet.has(normPath) && devsiteRow;
 
     if (hasSubtree) {
       const details = document.createElement('details');
@@ -238,15 +341,19 @@ function renderPathNodeToList(node, ul) {
       const label = document.createElement('span');
       label.className = 'admin-site-tree__segment-label';
       label.textContent = key;
+      summary.append(label);
+      if (showDevsiteNote) {
+        appendDevsitepathsMatchNote(summary, devsiteRow);
+      }
       const countEl = document.createElement('span');
       countEl.className = 'admin-site-tree__count';
       const under = countUrlsUnderNode(child);
       countEl.textContent = `${under} URL${under === 1 ? '' : 's'}`;
-      summary.append(label, countEl);
+      summary.append(countEl);
       details.append(summary);
       const nestedUl = document.createElement('ul');
       nestedUl.className = 'admin-site-tree__branch';
-      renderPathNodeToList(child, nestedUl);
+      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup);
       details.append(nestedUl);
       li.append(details);
     } else {
@@ -258,6 +365,9 @@ function renderPathNodeToList(node, ul) {
       span.className = 'admin-site-tree__segment admin-site-tree__segment--leaf';
       span.textContent = key;
       row.append(span);
+      if (showDevsiteNote) {
+        appendDevsitepathsMatchNote(row, devsiteRow);
+      }
       const underLeaf = countUrlsUnderNode(child);
       if (underLeaf > 1) {
         const countEl = document.createElement('span');
@@ -279,12 +389,14 @@ function renderPathNodeToList(node, ul) {
 
 /**
  * @param {PathNode} root
+ * @param {Set<string>} crossRefSet
+ * @param {Map<string, object>} devsiteLookup
  * @returns {HTMLUListElement}
  */
-function renderPathTree(root) {
+function renderPathTree(root, crossRefSet, devsiteLookup) {
   const ul = document.createElement('ul');
   ul.className = 'admin-site-tree__branch admin-site-tree__branch--root';
-  renderPathNodeToList(root, ul);
+  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup);
   return ul;
 }
 
@@ -315,6 +427,10 @@ export default async function decorate(block) {
   const { bundle, baseUrl } = sitemapResult;
   const urls = await resolveAllPageUrlsFromSitemap(bundle.document, bundle.text);
   const pathTree = buildPathTreeFromSitemapUrls(urls);
+  const { crossRefSet, lookup: devsiteLookup } = buildCrossReferencedDevsitePaths(
+    devsitePathsJson?.data,
+    urls,
+  );
 
   const heading = document.createElement('h2');
   heading.className = 'admin-site-tree__heading';
@@ -326,7 +442,7 @@ export default async function decorate(block) {
 
   const panel = document.createElement('div');
   panel.className = 'admin-site-tree';
-  panel.append(renderPathTree(pathTree));
+  panel.append(renderPathTree(pathTree, crossRefSet, devsiteLookup));
 
   block.append(heading, meta, panel);
 }
