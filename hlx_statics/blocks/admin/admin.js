@@ -87,7 +87,7 @@ function buildCrossReferencedDevsitePaths(data, sitemapUrls) {
 function appendDevsitepathsMatchNote(parent, row) {
   const note = document.createElement('span');
   note.className = 'admin-site-tree__devsitepaths-match';
-  note.textContent = 'devsitepaths';
+  note.textContent = 'devdocs';
   const repo = row.repo ? `${row.owner}/${row.repo}` : '';
   note.title = repo
     ? `Matches devsitepaths.json: ${repo} · pathPrefix ${row.pathPrefix}`
