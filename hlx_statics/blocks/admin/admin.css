@@ -98,6 +98,11 @@
   font-size: 14px;
 }
 
+/* Limits layout/paint work to this subtree when the tree is replaced */
+.admin-site-tree__tree-mount {
+  contain: content;
+}
+
 .admin-site-tree__empty {
   margin: 0;
   color: var(--admin-tree-muted);

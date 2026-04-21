@@ -324,33 +324,58 @@ function buildPathTreeFromSitemapEntries(entries) {
   return root;
 }
 
+const FILTER_DEBOUNCE_MS = 280;
+
 /**
- * @param {SitemapPageEntry} entry
- * @param {string} query trimmed lower-case needle (empty = match all)
+ * Precomputes lowercased strings once so each filter pass only runs substring checks (no URL parsing).
+ * @param {SitemapPageEntry[]} entries
  */
-function entryMatchesFilter(entry, query) {
-  if (!query) return true;
-  const needle = query.toLowerCase();
-  if (entry.href.toLowerCase().includes(needle)) return true;
-  try {
-    const path = new URL(entry.href).pathname.toLowerCase();
-    if (path.includes(needle)) return true;
-  } catch {
-    /* ignore */
+function buildSitemapFilterIndex(entries) {
+  const index = new Array(entries.length);
+  for (let i = 0; i < entries.length; i += 1) {
+    const entry = entries[i];
+    let pathLc = '';
+    try {
+      pathLc = new URL(entry.href).pathname.toLowerCase();
+    } catch {
+      /* ignore */
+    }
+    index[i] = {
+      entry,
+      hrefLc: entry.href.toLowerCase(),
+      pathLc,
+      lastmodLc: entry.lastmod ? entry.lastmod.toLowerCase() : '',
+    };
   }
-  if (entry.lastmod && entry.lastmod.toLowerCase().includes(needle)) return true;
-  return false;
+  return index;
 }
 
 /**
- * @param {SitemapPageEntry[]} entries
+ * @param {ReturnType<typeof buildSitemapFilterIndex>} index
  * @param {string} rawQuery
  * @returns {SitemapPageEntry[]}
  */
-function filterSitemapEntries(entries, rawQuery) {
-  const q = rawQuery.trim();
-  if (!q) return entries;
-  return entries.filter((e) => entryMatchesFilter(e, q));
+function filterSitemapEntriesFromIndex(index, rawQuery) {
+  const q = rawQuery.trim().toLowerCase();
+  if (!q) {
+    const out = new Array(index.length);
+    for (let i = 0; i < index.length; i += 1) {
+      out[i] = index[i].entry;
+    }
+    return out;
+  }
+  const out = [];
+  for (let i = 0; i < index.length; i += 1) {
+    const row = index[i];
+    if (
+      row.hrefLc.includes(q)
+      || row.pathLc.includes(q)
+      || (row.lastmodLc && row.lastmodLc.includes(q))
+    ) {
+      out.push(row.entry);
+    }
+  }
+  return out;
 }
 
 /**
@@ -599,8 +624,12 @@ export default async function decorate(block) {
   const treeMount = document.createElement('div');
   treeMount.className = 'admin-site-tree__tree-mount';
 
+  const filterIndex = buildSitemapFilterIndex(entries);
+  let filterDebounceId = null;
+  let filterRafId = 0;
+
   function renderTreeForEntries(list) {
-    treeMount.textContent = '';
+    treeMount.replaceChildren();
     if (!list.length) {
       const empty = document.createElement('p');
       empty.className = 'admin-site-tree__filter-empty';
@@ -612,18 +641,28 @@ export default async function decorate(block) {
     treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup));
   }
 
-  function applyFilter() {
+  function applyFilterFromInput() {
     const q = filterInput.value;
-    const filtered = filterSitemapEntries(entries, q);
-    renderTreeForEntries(filtered);
-    if (q.trim()) {
-      filterMeta.textContent = `Showing ${filtered.length} of ${entries.length} page(s) matching “${q.trim()}”.`;
-    } else {
-      filterMeta.textContent = '';
-    }
+    const filtered = filterSitemapEntriesFromIndex(filterIndex, q);
+    const metaText = q.trim()
+      ? `Showing ${filtered.length} of ${entries.length} page(s) matching “${q.trim()}”.`
+      : '';
+    cancelAnimationFrame(filterRafId);
+    filterRafId = requestAnimationFrame(() => {
+      filterRafId = 0;
+      renderTreeForEntries(filtered);
+      filterMeta.textContent = metaText;
+    });
   }
 
-  filterInput.addEventListener('input', applyFilter);
+  filterInput.addEventListener('input', () => {
+    clearTimeout(filterDebounceId);
+    filterDebounceId = setTimeout(() => {
+      filterDebounceId = null;
+      applyFilterFromInput();
+    }, FILTER_DEBOUNCE_MS);
+  });
+
   renderTreeForEntries(entries);
 
   panel.append(filterRow, filterMeta, treeMount);
