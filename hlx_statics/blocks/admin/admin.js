@@ -325,6 +325,35 @@ function buildPathTreeFromSitemapEntries(entries) {
 }
 
 /**
+ * @param {SitemapPageEntry} entry
+ * @param {string} query trimmed lower-case needle (empty = match all)
+ */
+function entryMatchesFilter(entry, query) {
+  if (!query) return true;
+  const needle = query.toLowerCase();
+  if (entry.href.toLowerCase().includes(needle)) return true;
+  try {
+    const path = new URL(entry.href).pathname.toLowerCase();
+    if (path.includes(needle)) return true;
+  } catch {
+    /* ignore */
+  }
+  if (entry.lastmod && entry.lastmod.toLowerCase().includes(needle)) return true;
+  return false;
+}
+
+/**
+ * @param {SitemapPageEntry[]} entries
+ * @param {string} rawQuery
+ * @returns {SitemapPageEntry[]}
+ */
+function filterSitemapEntries(entries, rawQuery) {
+  const q = rawQuery.trim();
+  if (!q) return entries;
+  return entries.filter((e) => entryMatchesFilter(e, q));
+}
+
+/**
  * Total sitemap URLs under this tree node (this level’s `_urls` plus all descendant nodes).
  * @param {PathNode} node
  */
@@ -533,7 +562,6 @@ export default async function decorate(block) {
   const { bundle, baseUrl } = sitemapResult;
   const entries = await resolveAllPageUrlsFromSitemap(bundle.document, bundle.text);
   const urls = entries.map((e) => e.href);
-  const pathTree = buildPathTreeFromSitemapEntries(entries);
   const { crossRefSet, lookup: devsiteLookup } = buildCrossReferencedDevsitePaths(
     devsitePathsJson?.data,
     urls,
@@ -549,7 +577,55 @@ export default async function decorate(block) {
 
   const panel = document.createElement('div');
   panel.className = 'admin-site-tree';
-  panel.append(renderPathTree(pathTree, crossRefSet, devsiteLookup));
 
+  const filterRow = document.createElement('div');
+  filterRow.className = 'admin-site-tree__filter-row';
+  const filterLabel = document.createElement('label');
+  filterLabel.className = 'admin-site-tree__filter-label';
+  const filterLabelText = document.createElement('span');
+  filterLabelText.className = 'admin-site-tree__filter-label-text';
+  filterLabelText.textContent = 'Filter';
+  const filterInput = document.createElement('input');
+  filterInput.type = 'search';
+  filterInput.className = 'admin-site-tree__filter-input';
+  filterInput.placeholder = 'Filter by URL, path, or last modified…';
+  filterInput.setAttribute('autocomplete', 'off');
+  filterLabel.append(filterLabelText, filterInput);
+  const filterMeta = document.createElement('p');
+  filterMeta.className = 'admin-site-tree__filter-meta';
+  filterMeta.setAttribute('aria-live', 'polite');
+  filterRow.append(filterLabel);
+
+  const treeMount = document.createElement('div');
+  treeMount.className = 'admin-site-tree__tree-mount';
+
+  function renderTreeForEntries(list) {
+    treeMount.textContent = '';
+    if (!list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'admin-site-tree__filter-empty';
+      empty.textContent = 'No pages match this filter.';
+      treeMount.append(empty);
+      return;
+    }
+    const tree = buildPathTreeFromSitemapEntries(list);
+    treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup));
+  }
+
+  function applyFilter() {
+    const q = filterInput.value;
+    const filtered = filterSitemapEntries(entries, q);
+    renderTreeForEntries(filtered);
+    if (q.trim()) {
+      filterMeta.textContent = `Showing ${filtered.length} of ${entries.length} page(s) matching “${q.trim()}”.`;
+    } else {
+      filterMeta.textContent = '';
+    }
+  }
+
+  filterInput.addEventListener('input', applyFilter);
+  renderTreeForEntries(entries);
+
+  panel.append(filterRow, filterMeta, treeMount);
   block.append(heading, meta, panel);
 }
