@@ -404,24 +404,63 @@ function formatLastmodDisplay(iso) {
 }
 
 /**
+ * Appends `text` to `parent`, wrapping case-insensitive matches of `rawQuery` in `mark.admin-site-tree__highlight`.
+ * @param {HTMLElement} parent
+ * @param {string} text
+ * @param {string} rawQuery
+ */
+function appendHighlightedText(parent, text, rawQuery) {
+  const q = rawQuery.trim();
+  if (!q || !text) {
+    parent.append(document.createTextNode(text ?? ''));
+    return;
+  }
+  const lower = text.toLowerCase();
+  const needle = q.toLowerCase();
+  let start = 0;
+  let idx = lower.indexOf(needle, start);
+  if (idx === -1) {
+    parent.append(document.createTextNode(text));
+    return;
+  }
+  while (idx !== -1) {
+    if (idx > start) {
+      parent.append(document.createTextNode(text.slice(start, idx)));
+    }
+    const mark = document.createElement('mark');
+    mark.className = 'admin-site-tree__highlight';
+    mark.textContent = text.slice(idx, idx + needle.length);
+    parent.append(mark);
+    start = idx + needle.length;
+    idx = lower.indexOf(needle, start);
+  }
+  if (start < text.length) {
+    parent.append(document.createTextNode(text.slice(start)));
+  }
+}
+
+/**
  * @param {SitemapPageEntry[]} urlEntries
+ * @param {string} highlightQuery same as filter query (substrings highlighted in URL / date labels)
  * @returns {HTMLElement}
  */
-function buildUrlList(urlEntries) {
+function buildUrlList(urlEntries, highlightQuery) {
+  const hq = highlightQuery ?? '';
   if (urlEntries.length === 1) {
     const { href, lastmod } = urlEntries[0];
     const line = document.createElement('span');
     line.className = 'admin-site-tree__link-line';
     const a = document.createElement('a');
     a.href = href;
-    a.textContent = href;
     a.className = 'admin-site-tree__link admin-site-tree__link--solo';
+    appendHighlightedText(a, href, hq);
     line.append(a);
     if (lastmod) {
       const t = document.createElement('time');
       t.className = 'admin-site-tree__lastmod';
       t.dateTime = lastmod;
-      t.textContent = formatLastmodDisplay(lastmod);
+      const shown = formatLastmodDisplay(lastmod);
+      appendHighlightedText(t, shown, hq);
       t.title = `Last modified: ${lastmod}`;
       line.append(t);
     }
@@ -434,14 +473,15 @@ function buildUrlList(urlEntries) {
     urlLi.className = 'admin-site-tree__url-item';
     const a = document.createElement('a');
     a.href = href;
-    a.textContent = href;
     a.className = 'admin-site-tree__link';
+    appendHighlightedText(a, href, hq);
     urlLi.append(a);
     if (lastmod) {
       const t = document.createElement('time');
       t.className = 'admin-site-tree__lastmod';
       t.dateTime = lastmod;
-      t.textContent = formatLastmodDisplay(lastmod);
+      const shown = formatLastmodDisplay(lastmod);
+      appendHighlightedText(t, shown, hq);
       t.title = `Last modified: ${lastmod}`;
       urlLi.append(t);
     }
@@ -456,15 +496,17 @@ function buildUrlList(urlEntries) {
  * @param {string} parentPath path above this node (`''` at site root)
  * @param {Set<string>} crossRefSet normalized pathPrefixes present in devsitepaths and sitemap
  * @param {Map<string, object>} devsiteLookup normalized pathPrefix → row
+ * @param {string} highlightQuery filter text for <mark> highlights
  */
-function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup) {
+function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, highlightQuery) {
+  const hq = highlightQuery ?? '';
   const childKeys = Object.keys(node).filter((k) => k !== '_urls').sort((a, b) => a.localeCompare(b));
 
   if (node._urls?.length) {
     const li = document.createElement('li');
     li.className = 'admin-site-tree__urls-row';
     const n = node._urls.length;
-    const links = buildUrlList(node._urls);
+    const links = buildUrlList(node._urls, hq);
     if (n > 1) {
       const header = document.createElement('div');
       header.className = 'admin-site-tree__urls-header';
@@ -500,7 +542,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup) 
       summary.className = 'admin-site-tree__segment';
       const label = document.createElement('span');
       label.className = 'admin-site-tree__segment-label';
-      label.textContent = key;
+      appendHighlightedText(label, key, hq);
       summary.append(label);
       if (showDevsiteNote) {
         appendDevsitepathsMatchNote(summary, devsiteRow);
@@ -513,7 +555,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup) 
       details.append(summary);
       const nestedUl = document.createElement('ul');
       nestedUl.className = 'admin-site-tree__branch';
-      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup);
+      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup, hq);
       details.append(nestedUl);
       li.append(details);
     } else {
@@ -523,7 +565,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup) 
       row.className = 'admin-site-tree__leaf-row';
       const span = document.createElement('span');
       span.className = 'admin-site-tree__segment admin-site-tree__segment--leaf';
-      span.textContent = key;
+      appendHighlightedText(span, key, hq);
       row.append(span);
       if (showDevsiteNote) {
         appendDevsitepathsMatchNote(row, devsiteRow);
@@ -539,7 +581,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup) 
       }
       wrap.append(row);
       if (child._urls?.length) {
-        wrap.append(buildUrlList(child._urls));
+        wrap.append(buildUrlList(child._urls, hq));
       }
       li.append(wrap);
     }
@@ -551,12 +593,13 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup) 
  * @param {PathNode} root
  * @param {Set<string>} crossRefSet
  * @param {Map<string, object>} devsiteLookup
+ * @param {string} highlightQuery
  * @returns {HTMLUListElement}
  */
-function renderPathTree(root, crossRefSet, devsiteLookup) {
+function renderPathTree(root, crossRefSet, devsiteLookup, highlightQuery) {
   const ul = document.createElement('ul');
   ul.className = 'admin-site-tree__branch admin-site-tree__branch--root';
-  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup);
+  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup, highlightQuery);
   return ul;
 }
 
@@ -628,7 +671,7 @@ export default async function decorate(block) {
   let filterDebounceId = null;
   let filterRafId = 0;
 
-  function renderTreeForEntries(list) {
+  function renderTreeForEntries(list, highlightQuery) {
     treeMount.replaceChildren();
     if (!list.length) {
       const empty = document.createElement('p');
@@ -638,7 +681,13 @@ export default async function decorate(block) {
       return;
     }
     const tree = buildPathTreeFromSitemapEntries(list);
-    treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup));
+    treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery));
+    const q = (highlightQuery || '').trim();
+    if (q) {
+      treeMount.querySelectorAll('details.admin-site-tree__node').forEach((d) => {
+        d.open = true;
+      });
+    }
   }
 
   function applyFilterFromInput() {
@@ -650,7 +699,7 @@ export default async function decorate(block) {
     cancelAnimationFrame(filterRafId);
     filterRafId = requestAnimationFrame(() => {
       filterRafId = 0;
-      renderTreeForEntries(filtered);
+      renderTreeForEntries(filtered, q);
       filterMeta.textContent = metaText;
     });
   }
@@ -663,7 +712,7 @@ export default async function decorate(block) {
     }, FILTER_DEBOUNCE_MS);
   });
 
-  renderTreeForEntries(entries);
+  renderTreeForEntries(entries, '');
 
   panel.append(filterRow, filterMeta, treeMount);
   block.append(heading, meta, panel);

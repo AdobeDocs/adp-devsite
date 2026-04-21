@@ -285,6 +285,17 @@
   white-space: nowrap;
 }
 
+.admin-site-tree__highlight {
+  background: var(--spectrum-global-color-yellow-400, rgb(255, 216, 120));
+  color: inherit;
+  padding: 0 0.06em;
+  border-radius: 2px;
+}
+
+a.admin-site-tree__link mark.admin-site-tree__highlight {
+  color: inherit;
+}
+
 .admin-site-tree__urls {
   margin: 0.15rem 0 0.35rem;
   padding-left: 1.1rem;
