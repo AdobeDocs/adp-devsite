@@ -157,13 +157,17 @@
 }
 
 /* Leaf segment label + URL list on one row (links use remaining width) */
-.admin-site-tree__leaf > .admin-site-tree__urls {
+.admin-site-tree__leaf > .admin-site-tree__urls,
+.admin-site-tree__leaf > .admin-site-tree__link--solo {
   flex: 1 1 12rem;
   min-width: 0;
   margin: 0;
   padding-left: 0.5rem;
-  list-style: disc;
   color: inherit;
+}
+
+.admin-site-tree__leaf > .admin-site-tree__urls {
+  list-style: disc;
 }
 
 .admin-site-tree__urls {
@@ -183,6 +187,10 @@
 }
 
 .admin-site-tree__urls-row .admin-site-tree__link {
+  word-break: break-all;
+}
+
+.admin-site-tree__link--solo {
   word-break: break-all;
 }
 

@@ -173,9 +173,17 @@ function countUrlsUnderNode(node) {
 
 /**
  * @param {string[]} urlList
- * @returns {HTMLUListElement}
+ * @returns {HTMLElement} A `<ul>` of links, or a single `<a>` when there is exactly one URL.
  */
 function buildUrlList(urlList) {
+  if (urlList.length === 1) {
+    const url = urlList[0];
+    const a = document.createElement('a');
+    a.href = url;
+    a.textContent = url;
+    a.className = 'admin-site-tree__link admin-site-tree__link--solo';
+    return a;
+  }
   const linkUl = document.createElement('ul');
   linkUl.className = 'admin-site-tree__urls';
   for (const url of urlList) {
