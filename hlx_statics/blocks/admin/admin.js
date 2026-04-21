@@ -85,14 +85,36 @@ function buildCrossReferencedDevsitePaths(data, sitemapUrls) {
  * @param {object} row devsitepaths row
  */
 function appendDevsitepathsMatchNote(parent, row) {
+  const wrap = document.createElement('span');
+  wrap.className = 'admin-site-tree__devsitepaths-wrap';
+
   const note = document.createElement('span');
   note.className = 'admin-site-tree__devsitepaths-match';
   note.textContent = 'devdocs';
-  const repo = row.repo ? `${row.owner}/${row.repo}` : '';
-  note.title = repo
-    ? `Matches devsitepaths.json: ${repo} · pathPrefix ${row.pathPrefix}`
+
+  const owner = typeof row.owner === 'string' ? row.owner.trim() : '';
+  const repoName = typeof row.repo === 'string' ? row.repo.trim() : '';
+  const slug = owner && repoName ? `${owner}/${repoName}` : '';
+  const githubUrl = owner && repoName ? `https://github.com/${owner}/${repoName}` : '';
+
+  note.title = slug
+    ? `Matches devsitepaths.json: ${slug} · pathPrefix ${row.pathPrefix}${githubUrl ? `\ngithub url: ${githubUrl}` : ''}`
     : `Matches devsitepaths.json · pathPrefix ${row.pathPrefix}`;
-  parent.append(note);
+
+  wrap.append(note);
+
+  if (githubUrl) {
+    const gh = document.createElement('a');
+    gh.className = 'admin-site-tree__github-ref';
+    gh.href = githubUrl;
+    gh.target = '_blank';
+    gh.rel = 'noopener noreferrer';
+    gh.textContent = `github url: ${githubUrl}`;
+    gh.title = githubUrl;
+    wrap.append(gh);
+  }
+
+  parent.append(wrap);
 }
 
 /**

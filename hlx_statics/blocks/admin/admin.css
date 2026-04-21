@@ -90,6 +90,14 @@
   word-break: break-word;
 }
 
+.admin-site-tree__devsitepaths-wrap {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  max-width: 100%;
+}
+
 .admin-site-tree__devsitepaths-match {
   font-size: 11px;
   font-weight: 600;
@@ -102,7 +110,19 @@
   flex-shrink: 0;
 }
 
-.admin-site-tree__urls-header .admin-site-tree__devsitepaths-match {
+.admin-site-tree__github-ref {
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--admin-tree-link);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.admin-site-tree__github-ref:hover {
+  text-decoration: underline;
+}
+
+.admin-site-tree__urls-header .admin-site-tree__devsitepaths-wrap {
   margin-left: 0.35rem;
 }
 
