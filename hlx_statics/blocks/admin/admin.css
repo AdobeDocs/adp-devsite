@@ -103,7 +103,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 0.35rem 0.75rem;
-  width: 100%;
+  flex: 0 0 auto;
+  max-width: 100%;
 }
 
 .admin-site-tree__urls-header {
@@ -147,10 +148,22 @@
 
 .admin-site-tree__leaf {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
   padding: 0.15rem 0;
+  width: 100%;
+}
+
+/* Leaf segment label + URL list on one row (links use remaining width) */
+.admin-site-tree__leaf > .admin-site-tree__urls {
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin: 0;
+  padding-left: 0.5rem;
+  list-style: disc;
+  color: inherit;
 }
 
 .admin-site-tree__urls {
