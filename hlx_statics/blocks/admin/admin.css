@@ -123,7 +123,7 @@
   content: '';
   position: absolute;
   left: 0;
-  top: 0.45em;
+  top: 0.9em;
   width: 0.35rem;
   height: 0.35rem;
   border-right: 2px solid var(--admin-tree-muted);
