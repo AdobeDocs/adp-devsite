@@ -54,12 +54,12 @@ class ChatBubble {
    * @param {number} [options.timestamp] - Optional Unix timestamp in ms; when nullish, no timestamp is shown
    */
   constructor({
-                content,
-                source,
-                isContinuingConversation = false,
-                id,
-                timestamp,
-              }) {
+    content,
+    source,
+    isContinuingConversation = false,
+    id,
+    timestamp,
+  }) {
     this.content = content;
     this.source = source;
     this.isContinuingConversation = isContinuingConversation;
@@ -483,17 +483,20 @@ class AiApiClient {
   /**
    * Fetches available collections from the RAG API.
    * Result is memoized on this instance — at most one network call is made per page load.
-   * @returns {Promise<Array<{id: string, name: string, description: string}>>}
+   * @returns {Promise<Array<{id: string, name: string, description: string, referencedCollectionIds?: string[]}>>}
    */
   getCollections() {
     if (this._collectionsPromise) return this._collectionsPromise;
 
-    this._collectionsPromise = fetch(`${this.baseUrl}${AiApiClient.COLLECTIONS_ENDPOINT}`, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-Api-Key": this.apiKey,
+    this._collectionsPromise = fetch(
+      `${this.baseUrl}${AiApiClient.COLLECTIONS_ENDPOINT}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-Api-Key": this.apiKey,
+        },
       },
-    })
+    )
       .then((res) => {
         if (!res.ok) throw new Error(`Collections fetch failed: ${res.status}`);
         return res.json();
@@ -520,14 +523,14 @@ class AiApiClient {
    * @returns {Promise<void>}
    */
   async streamRequest({
-                        body,
-                        onMetadata = () => {},
-                        onContent = () => {},
-                        onCitation = () => {},
-                        onTiming = () => {},
-                        onComplete = () => {},
-                        onError = () => {},
-                      }) {
+    body,
+    onMetadata = () => {},
+    onContent = () => {},
+    onCitation = () => {},
+    onTiming = () => {},
+    onComplete = () => {},
+    onError = () => {},
+  }) {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
     try {
@@ -673,7 +676,13 @@ class AiApiClient {
    * @param {Object} options.callbacks - Event callbacks (onMetadata, onContent, etc.)
    * @returns {Promise<void>}
    */
-  async query({ query, context = "", systemPrompt = "", collectionId = null, callbacks = {} }) {
+  async query({
+    query,
+    context = "",
+    systemPrompt = "",
+    collectionId = null,
+    callbacks = {},
+  }) {
     const defaultSystemPrompt = `
       Use markdown formatting for the response.
     `;
@@ -885,7 +894,9 @@ const updateSuggestedQuestions = (questions) => {
   list.replaceChildren();
 
   if (questions === null) {
-    const loadingEl = createTag("p", { class: "chat-suggested-questions-loading" });
+    const loadingEl = createTag("p", {
+      class: "chat-suggested-questions-loading",
+    });
     loadingEl.textContent = "Generating suggestions";
     list.appendChild(loadingEl);
     return;
@@ -918,11 +929,11 @@ const updateSuggestedQuestions = (questions) => {
 const getCollectionsQuestions = async () => {
   const rawCollections = await aiApiClient.getCollections();
   const questions = rawCollections
-    .filter((c) => c.id !== "__all-collections__")
+    .filter((c) => c.id !== "__all-collections__" && !c.referencedCollectionIds)
     .map((c) => ({
       id: c.id,
       label: c.name,
-      question: `What can I learn from ${c.name}?`,
+      question: `What can I learn about ${c.name}?`,
     }));
   return questions.length > 0 ? questions : SUGGESTED_QUESTIONS;
 };
@@ -1198,13 +1209,13 @@ const handleUserQuery = async (messageContentOverride, collectionId = null) => {
  * @returns {ChatBubble} - The created ChatBubble instance
  */
 const sendMessage = ({
-                       id,
-                       content,
-                       source,
-                       isContinuingConversation = false,
-                       shouldAppendToHistory = true,
-                       timestamp = Date.now(),
-                     } = {}) => {
+  id,
+  content,
+  source,
+  isContinuingConversation = false,
+  shouldAppendToHistory = true,
+  timestamp = Date.now(),
+} = {}) => {
   const bubble = new ChatBubble({
     id,
     content,
