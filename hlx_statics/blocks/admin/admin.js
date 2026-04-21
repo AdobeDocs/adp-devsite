@@ -199,14 +199,62 @@ function extractSitemapLocUrls(sitemapDoc, rawXmlText) {
 }
 
 /**
+ * @param {Element} parent
+ * @param {string} localName
+ * @returns {Element|null}
+ */
+function getSitemapChildElement(parent, localName) {
+  let el = parent.getElementsByTagNameNS(SITEMAP_NS, localName)[0];
+  if (!el) {
+    const list = parent.getElementsByTagName(localName);
+    el = list[0];
+  }
+  return el || null;
+}
+
+/**
+ * Parses `<url><loc>…</loc><lastmod>…</lastmod></url>` entries; falls back to loc-only (no lastmod).
+ * @param {Document} sitemapDoc
+ * @param {string} [rawXmlText]
+ * @returns {{ href: string, lastmod: string | null }[]}
+ */
+function extractSitemapUrlEntries(sitemapDoc, rawXmlText) {
+  /** @type {{ href: string, lastmod: string | null }[]} */
+  const entries = [];
+  let urlEls = sitemapDoc.getElementsByTagNameNS(SITEMAP_NS, 'url');
+  if (!urlEls.length) {
+    urlEls = sitemapDoc.getElementsByTagName('url');
+  }
+  if (urlEls.length) {
+    for (let i = 0; i < urlEls.length; i += 1) {
+      const u = urlEls[i];
+      const locEl = getSitemapChildElement(u, 'loc');
+      const lmEl = getSitemapChildElement(u, 'lastmod');
+      const text = locEl?.textContent?.trim();
+      if (!text) continue;
+      try {
+        const href = new URL(text).href;
+        const lastmod = lmEl?.textContent?.trim() || null;
+        entries.push({ href, lastmod });
+      } catch {
+        /* skip */
+      }
+    }
+    return entries;
+  }
+  const hrefs = extractSitemapLocUrls(sitemapDoc, rawXmlText);
+  return hrefs.map((href) => ({ href, lastmod: null }));
+}
+
+/**
  * @param {Document} doc
  * @param {string} text
- * @returns {Promise<string[]>}
+ * @returns {Promise<{ href: string, lastmod: string | null }[]>}
  */
 async function resolveAllPageUrlsFromSitemap(doc, text) {
   const root = doc.documentElement;
   if (!root || root.localName !== 'sitemapindex') {
-    return extractSitemapLocUrls(doc, text);
+    return extractSitemapUrlEntries(doc, text);
   }
   const childSitemaps = extractLocUrlsFromXmlText(text);
   if (!childSitemaps.length) {
@@ -220,7 +268,7 @@ async function resolveAllPageUrlsFromSitemap(doc, text) {
         const t = await r.text();
         const d = new DOMParser().parseFromString(t, 'application/xml');
         if (d.querySelector('parsererror')) return [];
-        return extractSitemapLocUrls(d, t);
+        return extractSitemapUrlEntries(d, t);
       } catch {
         return [];
       }
@@ -230,44 +278,48 @@ async function resolveAllPageUrlsFromSitemap(doc, text) {
 }
 
 /**
+ * @typedef {{ href: string, lastmod: string | null }} SitemapPageEntry
+ */
+
+/**
  * @typedef {Object<string, PathNode>} PathNode
- * @property {string[]} [PathNode._urls]
+ * @property {SitemapPageEntry[]} [PathNode._urls]
  */
 
 /**
  * @param {PathNode} node
  * @param {string[]} segments
- * @param {string} fullUrl
+ * @param {SitemapPageEntry} entry
  */
-function insertPathSegment(node, segments, fullUrl) {
+function insertPathSegment(node, segments, entry) {
   if (segments.length === 0 || (segments.length === 1 && segments[0] === '')) {
     if (!node._urls) node._urls = [];
-    node._urls.push(fullUrl);
+    node._urls.push(entry);
     return;
   }
   const [head, ...rest] = segments;
   if (!node[head]) node[head] = {};
-  insertPathSegment(node[head], rest, fullUrl);
+  insertPathSegment(node[head], rest, entry);
 }
 
 /**
- * Builds a single path tree from sitemap URLs (pathname segments from site root).
- * @param {string[]} urls
+ * Builds a single path tree from sitemap entries (pathname segments from site root).
+ * @param {SitemapPageEntry[]} entries
  * @returns {PathNode}
  */
-function buildPathTreeFromSitemapUrls(urls) {
+function buildPathTreeFromSitemapEntries(entries) {
   /** @type {PathNode} */
   const root = {};
-  for (const href of urls) {
+  for (const entry of entries) {
     let pathname;
     try {
-      pathname = new URL(href).pathname;
+      pathname = new URL(entry.href).pathname;
     } catch {
       continue;
     }
     const suffix = pathname.replace(/^\/+/, '');
     const segments = suffix.split('/').filter((s) => s.length > 0);
-    insertPathSegment(root, segments, href);
+    insertPathSegment(root, segments, entry);
   }
   return root;
 }
@@ -286,27 +338,59 @@ function countUrlsUnderNode(node) {
 }
 
 /**
- * @param {string[]} urlList
- * @returns {HTMLElement} A `<ul>` of links, or a single `<a>` when there is exactly one URL.
+ * @param {string} iso lastmod value from sitemap
  */
-function buildUrlList(urlList) {
-  if (urlList.length === 1) {
-    const url = urlList[0];
+function formatLastmodDisplay(iso) {
+  if (!iso) return '';
+  const d = Date.parse(iso);
+  if (!Number.isNaN(d)) {
+    return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+  return iso;
+}
+
+/**
+ * @param {SitemapPageEntry[]} urlEntries
+ * @returns {HTMLElement}
+ */
+function buildUrlList(urlEntries) {
+  if (urlEntries.length === 1) {
+    const { href, lastmod } = urlEntries[0];
+    const line = document.createElement('span');
+    line.className = 'admin-site-tree__link-line';
     const a = document.createElement('a');
-    a.href = url;
-    a.textContent = url;
+    a.href = href;
+    a.textContent = href;
     a.className = 'admin-site-tree__link admin-site-tree__link--solo';
-    return a;
+    line.append(a);
+    if (lastmod) {
+      const t = document.createElement('time');
+      t.className = 'admin-site-tree__lastmod';
+      t.dateTime = lastmod;
+      t.textContent = formatLastmodDisplay(lastmod);
+      t.title = `Last modified: ${lastmod}`;
+      line.append(t);
+    }
+    return line;
   }
   const linkUl = document.createElement('ul');
   linkUl.className = 'admin-site-tree__urls';
-  for (const url of urlList) {
+  for (const { href, lastmod } of urlEntries) {
     const urlLi = document.createElement('li');
+    urlLi.className = 'admin-site-tree__url-item';
     const a = document.createElement('a');
-    a.href = url;
-    a.textContent = url;
+    a.href = href;
+    a.textContent = href;
     a.className = 'admin-site-tree__link';
     urlLi.append(a);
+    if (lastmod) {
+      const t = document.createElement('time');
+      t.className = 'admin-site-tree__lastmod';
+      t.dateTime = lastmod;
+      t.textContent = formatLastmodDisplay(lastmod);
+      t.title = `Last modified: ${lastmod}`;
+      urlLi.append(t);
+    }
     linkUl.append(urlLi);
   }
   return linkUl;
@@ -447,8 +531,9 @@ export default async function decorate(block) {
   }
 
   const { bundle, baseUrl } = sitemapResult;
-  const urls = await resolveAllPageUrlsFromSitemap(bundle.document, bundle.text);
-  const pathTree = buildPathTreeFromSitemapUrls(urls);
+  const entries = await resolveAllPageUrlsFromSitemap(bundle.document, bundle.text);
+  const urls = entries.map((e) => e.href);
+  const pathTree = buildPathTreeFromSitemapEntries(entries);
   const { crossRefSet, lookup: devsiteLookup } = buildCrossReferencedDevsitePaths(
     devsitePathsJson?.data,
     urls,

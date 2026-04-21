@@ -194,15 +194,36 @@
 
 /* Leaf segment label + URL list on one row (links use remaining width) */
 .admin-site-tree__leaf > .admin-site-tree__urls,
-.admin-site-tree__leaf > .admin-site-tree__link--solo {
+.admin-site-tree__leaf > .admin-site-tree__link-line {
   flex: 1 1 12rem;
   min-width: 0;
   margin: 0;
   padding-left: 0.5rem;
 }
 
+.admin-site-tree__link-line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+}
+
 .admin-site-tree__leaf > .admin-site-tree__urls {
   list-style: disc;
+}
+
+.admin-site-tree__url-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+}
+
+.admin-site-tree__lastmod {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--admin-tree-muted);
+  white-space: nowrap;
 }
 
 .admin-site-tree__urls {
@@ -221,7 +242,8 @@
   padding-left: 0;
 }
 
-.admin-site-tree__urls-row .admin-site-tree__link {
+.admin-site-tree__urls-row .admin-site-tree__link,
+.admin-site-tree__urls-row .admin-site-tree__link-line .admin-site-tree__link {
   word-break: break-all;
 }
 
