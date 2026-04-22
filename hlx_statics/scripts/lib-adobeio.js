@@ -1152,8 +1152,10 @@ export async function loadCustomAnalytic(domObj, path) {
  */
 export async function applyAnalytic(domObj = document) {
   domObj.querySelectorAll('a').forEach((a) => {
-    if (a.innerText.length > 0) {
-      a.setAttribute('daa-ll', a.innerText);
+    if (a.closest('.block.admin')) return;
+    const label = typeof a.textContent === 'string' ? a.textContent.trim() : '';
+    if (label.length > 0) {
+      a.setAttribute('daa-ll', label);
     }
   });
 
