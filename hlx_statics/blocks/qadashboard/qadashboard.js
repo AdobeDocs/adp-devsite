@@ -60,10 +60,10 @@ function renderResults(container, results) {
 
   header.append(meta, badge);
 
-  if (results.run_url) {
+  if (results.report_url) {
     const reportLink = document.createElement('a');
     reportLink.className = 'qadashboard__btn qadashboard__btn--secondary';
-    reportLink.href = results.run_url;
+    reportLink.href = results.report_url;
     reportLink.target = '_blank';
     reportLink.rel = 'noopener noreferrer';
     reportLink.textContent = '↗ View Full Report';
