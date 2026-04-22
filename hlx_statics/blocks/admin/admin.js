@@ -43,7 +43,31 @@ function treeFragmentIdFromPath(fullPath) {
 }
 
 /**
- * Opens every ancestor `details` of `el` inside `mount`, then scrolls `el` into view.
+ * Pixels to leave clear below fixed/sticky headers (matches `--fixed-top-offset` from lib-adobeio).
+ */
+function getFixedHeaderOffsetPx() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--fixed-top-offset').trim();
+  const n = parseFloat(raw);
+  if (Number.isFinite(n) && n > 0) return n;
+  return 100;
+}
+
+/**
+ * Scrolls so `el` sits below the site header; uses layout after `details` opens (double rAF).
+ * @param {HTMLElement} el
+ */
+function scrollAdminTreeTargetBelowHeader(el) {
+  const gap = 12;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const top = el.getBoundingClientRect().top + window.scrollY - getFixedHeaderOffsetPx() - gap;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+  });
+}
+
+/**
+ * Opens every ancestor `details` of `el` inside `mount`, then scrolls `el` into view below the top nav.
  * @param {HTMLElement} mount
  * @param {string} [fragmentId] defaults to `location.hash` without `#`
  */
@@ -59,9 +83,7 @@ function syncHashToTree(mount, fragmentId) {
     }
     p = p.parentElement;
   }
-  requestAnimationFrame(() => {
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  });
+  scrollAdminTreeTargetBelowHeader(el);
 }
 
 /**

@@ -134,11 +134,24 @@
   contain: content;
 }
 
-/* Bottom-most row when filter expands the tree (draws the eye to the last visible match path) */
+/* Bottom-most row when filter expands the tree (last visible match path) */
 .admin-site-tree__li--last-expanded {
-  outline: 2px solid var(--admin-tree-link);
-  outline-offset: 3px;
-  border-radius: 4px;
+  background: var(--spectrum-global-color-blue-100, rgb(224, 242, 255));
+  box-shadow: inset 3px 0 0 0 var(--admin-tree-link);
+  border-radius: 6px;
+  padding: 0.25rem 0.45rem 0.3rem;
+  margin: 0.15rem -0.25rem;
+}
+
+.admin-site-tree__li--last-expanded .admin-site-tree__path-anchor,
+.admin-site-tree__li--last-expanded .admin-site-tree__segment-label .admin-site-tree__path-anchor,
+.admin-site-tree__li--last-expanded .admin-site-tree__link,
+.admin-site-tree__li--last-expanded .admin-site-tree__segment--leaf {
+  font-weight: 400;
+}
+
+.admin-site-tree__li--last-expanded .admin-site-tree__row-permalink {
+  font-weight: 400;
 }
 
 .admin-site-tree__empty {
