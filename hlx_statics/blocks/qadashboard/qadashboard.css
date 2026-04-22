@@ -21,106 +21,44 @@
   letter-spacing: -0.01em;
 }
 
-/* Settings */
-.qadashboard__settings {
-  border: 1px solid var(--spectrum-global-color-gray-300, #ccc);
-  border-radius: 8px;
-  margin-bottom: 1.25rem;
-  background: var(--spectrum-global-color-gray-50, #fcfcfc);
-}
-
-.qadashboard__settings-summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 0.65rem 1rem;
-  font-weight: 600;
-  font-size: 14px;
-  user-select: none;
-}
-
-.qadashboard__settings-summary::-webkit-details-marker { display: none; }
-.qadashboard__settings-summary::marker { display: none; }
-
-.qadashboard__settings-body {
-  padding: 0 1rem 1rem;
+/* Toolbar */
+.qadashboard__toolbar {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.qadashboard__settings-hint {
-  font-size: 12px;
-  color: var(--spectrum-global-color-gray-700, #555);
-  margin: 0;
-}
-
-/* Fields */
-.qadashboard__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.qadashboard__field--inline {
-  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.qadashboard__branch {
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--spectrum-global-color-gray-700, #555);
+  background: var(--spectrum-global-color-gray-100, #f5f5f5);
+  border: 1px solid var(--spectrum-global-color-gray-300, #ccc);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+}
+
+.qadashboard__actions {
+  display: flex;
   gap: 0.5rem;
-}
-
-.qadashboard__label-text {
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.qadashboard__input {
-  padding: 0.45rem 0.65rem;
-  font-size: 14px;
-  line-height: 1.35;
-  border: 1px solid var(--spectrum-global-color-gray-300, #ccc);
-  border-radius: 6px;
-  font-family: inherit;
-  color: inherit;
-  background: #fff;
-  width: 100%;
-}
-
-.qadashboard__input:focus {
-  outline: 2px solid var(--spectrum-global-color-blue-600, #1473e6);
-  outline-offset: 1px;
-}
-
-.qadashboard__input--number {
-  width: 72px;
-}
-
-.qadashboard__select {
-  padding: 0.45rem 0.5rem;
-  font-size: 14px;
-  border: 1px solid var(--spectrum-global-color-gray-300, #ccc);
-  border-radius: 6px;
-  font-family: inherit;
-  color: inherit;
-  background: #fff;
-  cursor: pointer;
-}
-
-.qadashboard__select:focus {
-  outline: 2px solid var(--spectrum-global-color-blue-600, #1473e6);
-  outline-offset: 1px;
 }
 
 /* Buttons */
 .qadashboard__btn {
-  padding: 0.55rem 1.25rem;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 13px;
   font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
   font-family: inherit;
   border: none;
+  text-decoration: none;
   transition: background 0.15s;
-  align-self: flex-start;
 }
 
 .qadashboard__btn--primary {
@@ -128,8 +66,7 @@
   color: #fff;
 }
 
-.qadashboard__btn--primary:hover { background: #d40d00; }
-.qadashboard__btn--primary:disabled { background: #ccc; cursor: not-allowed; }
+.qadashboard__btn--primary:hover { background: #d40d00; color: #fff; }
 
 .qadashboard__btn--secondary {
   background: var(--spectrum-global-color-gray-200, #e8e8e8);
@@ -140,37 +77,22 @@
   background: var(--spectrum-global-color-gray-300, #d0d0d0);
 }
 
-/* Run section */
-.qadashboard__run-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.qadashboard__config-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-  align-items: center;
+.qadashboard__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Status */
 .qadashboard__status {
   font-size: 13px;
-  min-height: 1.4em;
-  margin: 0;
+  min-height: 1.2em;
+  margin: 0 0 0.75rem;
   color: var(--spectrum-global-color-gray-700, #555);
 }
 
+.qadashboard__status:empty { display: none; }
 .qadashboard__status--running { color: #0070f3; }
-.qadashboard__status--done    { color: #16a34a; }
 .qadashboard__status--error   { color: #dc2626; }
-
-.qadashboard__status a {
-  color: inherit;
-  text-decoration: underline;
-}
 
 /* Results */
 .qadashboard__results {
@@ -178,10 +100,7 @@
   border-radius: 8px;
   padding: 0.75rem 1rem 1rem;
   background: var(--spectrum-global-color-gray-50, #fcfcfc);
-  min-height: 2rem;
 }
-
-.qadashboard__results:empty { display: none; }
 
 .qadashboard__results-header {
   display: flex;

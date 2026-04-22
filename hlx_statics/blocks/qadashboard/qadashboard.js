@@ -1,77 +1,12 @@
 const REPO = 'AdobeDocs/adp-devsite';
-const WORKFLOW = 'qa-run.yml';
-const RESULTS_FILE = 'tools/qa/results/latest.json';
-const LS_KEY = 'qadashboard-settings';
+const RESULTS_PATH = 'tools/qa/results/latest.json';
+const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/qa-run.yml`;
 
-function loadSettings() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
-}
-
-function saveSettings(patch) {
-  const s = { ...loadSettings(), ...patch };
-  localStorage.setItem(LS_KEY, JSON.stringify(s));
-  return s;
-}
-
-async function ghFetch(path, token, opts = {}) {
-  return fetch(`https://api.github.com${path}`, {
-    ...opts,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...(opts.headers || {}),
-    },
-  });
-}
-
-async function triggerRun(token, branch, inputs) {
-  const res = await ghFetch(
-    `/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
-    token,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ref: branch, inputs }),
-    },
-  );
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`GitHub API ${res.status}: ${body.slice(0, 200)}`);
-  }
-}
-
-async function pollRun(token, branch, startedAfter, onProgress) {
-  const deadline = Date.now() + 35 * 60 * 1000;
-  await new Promise((r) => setTimeout(r, 8000));
-  while (Date.now() < deadline) {
-    const res = await ghFetch(
-      `/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?branch=${encodeURIComponent(branch)}&per_page=5`,
-      token,
-    );
-    if (res.ok) {
-      const { workflow_runs: runs } = await res.json();
-      const run = (runs || []).find((r) => new Date(r.created_at) >= startedAfter);
-      if (run) {
-        onProgress(run);
-        if (run.status === 'completed') return run;
-      } else {
-        onProgress(null);
-      }
-    }
-    await new Promise((r) => setTimeout(r, 12000));
-  }
-  throw new Error('Timed out (35 min) waiting for workflow to complete');
-}
-
-async function loadResults(token, branch) {
-  const res = await ghFetch(
-    `/repos/${REPO}/contents/${RESULTS_FILE}?ref=${encodeURIComponent(branch)}&_=${Date.now()}`,
-    token,
-  );
+async function loadResults(branch) {
+  const url = `https://raw.githubusercontent.com/${REPO}/${encodeURIComponent(branch)}/${RESULTS_PATH}?_=${Date.now()}`;
+  const res = await fetch(url);
   if (!res.ok) return null;
-  const { content } = await res.json();
-  return JSON.parse(atob(content.replace(/\n/g, '')));
+  return res.json();
 }
 
 const SUITE_LABELS = {
@@ -88,7 +23,7 @@ function renderResults(container, results) {
   if (!results || !results.timestamp) {
     const p = document.createElement('p');
     p.className = 'qadashboard__empty';
-    p.textContent = results?.message || 'No results yet.';
+    p.textContent = results?.message || 'No results yet. Trigger a run on GitHub Actions.';
     container.append(p);
     return;
   }
@@ -98,12 +33,15 @@ function renderResults(container, results) {
 
   const header = document.createElement('div');
   header.className = 'qadashboard__results-header';
+
   const meta = document.createElement('span');
   meta.className = 'qadashboard__results-meta';
-  meta.textContent = `${ts} · ${results.path_prefix} · ${results.suite}`;
+  meta.textContent = `${ts} · ${results.path_prefix} · suite: ${results.suite}`;
+
   const badge = document.createElement('span');
   badge.className = `qadashboard__badge ${passed ? 'qadashboard__badge--pass' : 'qadashboard__badge--fail'}`;
   badge.textContent = passed ? '✓ All Passed' : '✗ Issues Found';
+
   header.append(meta, badge);
   container.append(header);
 
@@ -156,200 +94,68 @@ function renderResults(container, results) {
 }
 
 export default async function decorate(block) {
+  const branch = block.querySelector('div > div')?.textContent?.trim() || 'main';
   block.textContent = '';
   block.classList.add('block', 'qadashboard');
-
-  const settings = loadSettings();
 
   const heading = document.createElement('h2');
   heading.className = 'qadashboard__heading';
   heading.textContent = 'QA Dashboard — Prod vs Stage';
   block.append(heading);
 
-  // --- Settings (collapsed once saved) ---
-  const settingsDetails = document.createElement('details');
-  settingsDetails.className = 'qadashboard__settings';
-  settingsDetails.open = !settings.token;
+  const toolbar = document.createElement('div');
+  toolbar.className = 'qadashboard__toolbar';
 
-  const settingsSummary = document.createElement('summary');
-  settingsSummary.className = 'qadashboard__settings-summary';
-  settingsSummary.textContent = 'GitHub Settings';
-  settingsDetails.append(settingsSummary);
+  const branchTag = document.createElement('span');
+  branchTag.className = 'qadashboard__branch';
+  branchTag.textContent = `branch: ${branch}`;
+  toolbar.append(branchTag);
 
-  const settingsBody = document.createElement('div');
-  settingsBody.className = 'qadashboard__settings-body';
+  const actions = document.createElement('div');
+  actions.className = 'qadashboard__actions';
 
-  const hint = document.createElement('p');
-  hint.className = 'qadashboard__settings-hint';
-  hint.textContent = 'Requires a GitHub PAT with repo and workflow scopes. Saved to localStorage.';
-  settingsBody.append(hint);
+  const runLink = document.createElement('a');
+  runLink.className = 'qadashboard__btn qadashboard__btn--primary';
+  runLink.href = WORKFLOW_URL;
+  runLink.target = '_blank';
+  runLink.rel = 'noopener noreferrer';
+  runLink.textContent = '▶ Run on GitHub';
+  actions.append(runLink);
 
-  const patLabel = document.createElement('label');
-  patLabel.className = 'qadashboard__field';
-  patLabel.innerHTML = '<span class="qadashboard__label-text">GitHub Token (PAT)</span>';
-  const patInput = document.createElement('input');
-  patInput.type = 'password';
-  patInput.className = 'qadashboard__input';
-  patInput.placeholder = 'ghp_…';
-  patInput.value = settings.token || '';
-  patLabel.append(patInput);
+  const refreshBtn = document.createElement('button');
+  refreshBtn.className = 'qadashboard__btn qadashboard__btn--secondary';
+  refreshBtn.textContent = '↻ Refresh';
+  actions.append(refreshBtn);
 
-  const branchLabel = document.createElement('label');
-  branchLabel.className = 'qadashboard__field';
-  branchLabel.innerHTML = '<span class="qadashboard__label-text">Branch</span>';
-  const branchInput = document.createElement('input');
-  branchInput.type = 'text';
-  branchInput.className = 'qadashboard__input';
-  branchInput.placeholder = 'devsite-2359';
-  branchInput.value = settings.branch || '';
-  branchLabel.append(branchInput);
-
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'qadashboard__btn qadashboard__btn--secondary';
-  saveBtn.textContent = 'Save Settings';
-  saveBtn.addEventListener('click', () => {
-    saveSettings({ token: patInput.value.trim(), branch: branchInput.value.trim() });
-    settingsDetails.open = false;
-  });
-
-  settingsBody.append(patLabel, branchLabel, saveBtn);
-  settingsDetails.append(settingsBody);
-  block.append(settingsDetails);
-
-  // --- Run config ---
-  const runSection = document.createElement('div');
-  runSection.className = 'qadashboard__run-section';
-
-  const prefixLabel = document.createElement('label');
-  prefixLabel.className = 'qadashboard__field';
-  prefixLabel.innerHTML = '<span class="qadashboard__label-text">Path Prefix</span>';
-  const prefixInput = document.createElement('input');
-  prefixInput.type = 'text';
-  prefixInput.className = 'qadashboard__input';
-  prefixInput.placeholder = '/experience-cloud/cloud-manager';
-  prefixInput.value = settings.lastPrefix || '';
-  prefixLabel.append(prefixInput);
-
-  const configRow = document.createElement('div');
-  configRow.className = 'qadashboard__config-row';
-
-  const suiteLabel = document.createElement('label');
-  suiteLabel.className = 'qadashboard__field qadashboard__field--inline';
-  suiteLabel.innerHTML = '<span class="qadashboard__label-text">Suite</span>';
-  const suiteSelect = document.createElement('select');
-  suiteSelect.className = 'qadashboard__select';
-  for (const [val, txt] of [
-    ['all', 'All Checks'],
-    ['visual', 'Visual Diff'],
-    ['links', 'Broken Links'],
-    ['nav', 'Nav Links'],
-    ['images', 'Missing Images'],
-    ['content', 'Content QA'],
-  ]) {
-    const opt = document.createElement('option');
-    opt.value = val;
-    opt.textContent = txt;
-    if (val === (settings.lastSuite || 'all')) opt.selected = true;
-    suiteSelect.append(opt);
-  }
-  suiteLabel.append(suiteSelect);
-
-  const threshLabel = document.createElement('label');
-  threshLabel.className = 'qadashboard__field qadashboard__field--inline';
-  threshLabel.innerHTML = '<span class="qadashboard__label-text">Threshold %</span>';
-  const threshInput = document.createElement('input');
-  threshInput.type = 'number';
-  threshInput.className = 'qadashboard__input qadashboard__input--number';
-  threshInput.min = '0';
-  threshInput.max = '100';
-  threshInput.step = '0.5';
-  threshInput.value = settings.lastThreshold || '5';
-  threshLabel.append(threshInput);
-
-  function updateThreshVisibility() {
-    threshLabel.style.display = ['all', 'visual'].includes(suiteSelect.value) ? '' : 'none';
-  }
-  suiteSelect.addEventListener('change', updateThreshVisibility);
-  updateThreshVisibility();
-
-  configRow.append(suiteLabel, threshLabel);
-
-  const runBtn = document.createElement('button');
-  runBtn.className = 'qadashboard__btn qadashboard__btn--primary';
-  runBtn.textContent = '▶ Run Tests';
+  toolbar.append(actions);
+  block.append(toolbar);
 
   const statusEl = document.createElement('p');
   statusEl.className = 'qadashboard__status';
   statusEl.setAttribute('aria-live', 'polite');
+  block.append(statusEl);
 
-  runSection.append(prefixLabel, configRow, runBtn, statusEl);
-  block.append(runSection);
-
-  // --- Results ---
   const resultsContainer = document.createElement('div');
   resultsContainer.className = 'qadashboard__results';
   block.append(resultsContainer);
 
-  // Load last results on mount
-  if (settings.token && settings.branch) {
-    loadResults(settings.token, settings.branch)
-      .then((r) => { if (r) renderResults(resultsContainer, r); })
-      .catch(() => {});
+  async function refresh() {
+    refreshBtn.disabled = true;
+    statusEl.className = 'qadashboard__status qadashboard__status--running';
+    statusEl.textContent = 'Loading results…';
+    try {
+      const results = await loadResults(branch);
+      renderResults(resultsContainer, results);
+      statusEl.textContent = '';
+      statusEl.className = 'qadashboard__status';
+    } catch {
+      statusEl.className = 'qadashboard__status qadashboard__status--error';
+      statusEl.textContent = 'Could not load results.';
+    } finally {
+      refreshBtn.disabled = false;
+    }
   }
 
-  // --- Run handler ---
-  runBtn.addEventListener('click', async () => {
-    const { token, branch } = loadSettings();
-    if (!token || !branch) {
-      statusEl.className = 'qadashboard__status qadashboard__status--error';
-      statusEl.textContent = 'Set your GitHub token and branch in settings first.';
-      settingsDetails.open = true;
-      return;
-    }
-    const prefix = prefixInput.value.trim();
-    if (!prefix) {
-      statusEl.className = 'qadashboard__status qadashboard__status--error';
-      statusEl.textContent = 'Enter a path prefix.';
-      return;
-    }
-
-    saveSettings({ lastPrefix: prefix, lastSuite: suiteSelect.value, lastThreshold: threshInput.value });
-    runBtn.disabled = true;
-
-    statusEl.className = 'qadashboard__status qadashboard__status--running';
-    statusEl.textContent = 'Triggering workflow…';
-
-    const startedAfter = new Date();
-
-    try {
-      await triggerRun(token, branch, {
-        path_prefix: prefix,
-        suite: suiteSelect.value,
-        threshold: threshInput.value,
-      });
-
-      statusEl.textContent = 'Workflow triggered. Waiting for run to start…';
-
-      const run = await pollRun(token, branch, startedAfter, (r) => {
-        if (!r) {
-          statusEl.textContent = 'Waiting for run to appear on GitHub…';
-        } else {
-          statusEl.innerHTML = `Run <a href="${r.html_url}" target="_blank" rel="noopener noreferrer">#${r.run_number}</a> is ${r.status}…`;
-        }
-      });
-
-      const ok = run.conclusion === 'success';
-      statusEl.className = `qadashboard__status ${ok ? 'qadashboard__status--done' : 'qadashboard__status--error'}`;
-      statusEl.innerHTML = `Run <a href="${run.html_url}" target="_blank" rel="noopener noreferrer">#${run.run_number}</a> completed: ${run.conclusion}.`;
-
-      await new Promise((r) => setTimeout(r, 4000));
-      const results = await loadResults(token, branch);
-      if (results) renderResults(resultsContainer, results);
-    } catch (err) {
-      statusEl.className = 'qadashboard__status qadashboard__status--error';
-      statusEl.textContent = `Error: ${err.message}`;
-    } finally {
-      runBtn.disabled = false;
-    }
-  });
+  refreshBtn.addEventListener('click', refresh);
+  refresh();
 }
