@@ -93,8 +93,16 @@ function renderResults(container, results) {
   }
 }
 
+function getBranch(block) {
+  // AEM EDS URLs follow the pattern: {branch}--{repo}--{org}.aem.page
+  const parts = window.location.hostname.split('--');
+  if (parts.length >= 3) return parts[0];
+  // fallback: read from block table cell, then hardcoded default
+  return block.querySelector('div > div')?.textContent?.trim() || 'devsite-2359';
+}
+
 export default async function decorate(block) {
-  const branch = block.querySelector('div > div')?.textContent?.trim() || 'main';
+  const branch = getBranch(block);
   block.textContent = '';
   block.classList.add('block', 'qadashboard');
 
