@@ -374,6 +374,36 @@ function buildPathTreeFromSitemapEntries(entries) {
 
 const FILTER_DEBOUNCE_MS = 280;
 
+/** @returns {Promise<void>} */
+function waitForNextPaint() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve);
+    });
+  });
+}
+
+/**
+ * @param {HTMLElement} block
+ * @returns {HTMLDivElement}
+ */
+function appendAdminLoadingState(block) {
+  const wrap = document.createElement('div');
+  wrap.className = 'admin__loading';
+  wrap.setAttribute('role', 'status');
+  wrap.setAttribute('aria-live', 'polite');
+  wrap.setAttribute('aria-busy', 'true');
+  const spinner = document.createElement('span');
+  spinner.className = 'admin__loading-spinner';
+  spinner.setAttribute('aria-hidden', 'true');
+  const label = document.createElement('span');
+  label.className = 'admin__loading-text';
+  label.textContent = 'Loading devsitepaths and sitemap…';
+  wrap.append(spinner, label);
+  block.append(wrap);
+  return wrap;
+}
+
 /**
  * Precomputes lowercased strings once so each filter pass only runs substring checks (no URL parsing).
  * @param {SitemapPageEntry[]} entries
@@ -678,125 +708,137 @@ export default async function decorate(block) {
   block.textContent = '';
   block.classList.add('block', 'admin');
 
-  const [devsitePathsJson, sitemapResult] = await Promise.all([
-    getdevsitePathFile(),
-    loadSitemapForAdmin(),
-  ]);
+  const loadingWrap = appendAdminLoadingState(block);
 
-  const devsiteNote = devsitePathsJson?.data?.length
-    ? `${devsitePathsJson.data.length} devsitepaths row(s) loaded.`
-    : 'devsitepaths.json not available.';
+  try {
+    const [devsitePathsJson, sitemapResult] = await Promise.all([
+      getdevsitePathFile(),
+      loadSitemapForAdmin(),
+    ]);
 
-  if (!sitemapResult) {
-    const p = document.createElement('p');
-    p.className = 'admin-site-tree__empty';
-    p.textContent = 'Could not load or parse sitemap.xml.';
-    block.append(p);
-    return;
-  }
+    const devsiteNote = devsitePathsJson?.data?.length
+      ? `${devsitePathsJson.data.length} devsitepaths row(s) loaded.`
+      : 'devsitepaths.json not available.';
 
-  const { bundle, baseUrl } = sitemapResult;
-  const entries = await resolveAllPageUrlsFromSitemap(bundle.document, bundle.text);
-  const urls = entries.map((e) => e.href);
-  const { crossRefSet, lookup: devsiteLookup } = buildCrossReferencedDevsitePaths(
-    devsitePathsJson?.data,
-    urls,
-  );
-
-  const heading = document.createElement('h2');
-  heading.className = 'admin-site-tree__heading';
-  heading.textContent = 'Sitemap';
-
-  const meta = document.createElement('p');
-  meta.className = 'admin-site-tree__intro';
-  meta.textContent = `${devsiteNote} Showing ${urls.length} URL(s) from ${baseUrl}/sitemap.xml as a path tree.`;
-
-  const panel = document.createElement('div');
-  panel.className = 'admin-site-tree';
-
-  const filterRow = document.createElement('div');
-  filterRow.className = 'admin-site-tree__filter-row';
-  const filterLabel = document.createElement('label');
-  filterLabel.className = 'admin-site-tree__filter-label';
-  const filterLabelText = document.createElement('span');
-  filterLabelText.className = 'admin-site-tree__filter-label-text';
-  filterLabelText.textContent = 'Filter';
-  const filterInput = document.createElement('input');
-  filterInput.type = 'search';
-  filterInput.className = 'admin-site-tree__filter-input';
-  filterInput.placeholder = 'Filter by URL, path, or last modified…';
-  filterInput.setAttribute('autocomplete', 'off');
-  filterLabel.append(filterLabelText, filterInput);
-  const filterMeta = document.createElement('p');
-  filterMeta.className = 'admin-site-tree__filter-meta';
-  filterMeta.setAttribute('aria-live', 'polite');
-  filterRow.append(filterLabel);
-
-  const treeMount = document.createElement('div');
-  treeMount.className = 'admin-site-tree__tree-mount';
-
-  const filterIndex = buildSitemapFilterIndex(entries);
-  let filterDebounceId = null;
-  let filterRafId = 0;
-
-  /**
-   * After expanding filtered folders, outline the last `li` in tree order (deepest / bottom row).
-   * @param {HTMLElement} container
-   */
-  function highlightLastExpandedListItem(container) {
-    const lis = container.querySelectorAll('li');
-    if (!lis.length) return;
-    lis[lis.length - 1].classList.add('admin-site-tree__li--last-expanded');
-  }
-
-  function renderTreeForEntries(list, highlightQuery) {
-    treeMount.replaceChildren();
-    if (!list.length) {
-      const empty = document.createElement('p');
-      empty.className = 'admin-site-tree__filter-empty';
-      empty.textContent = 'No pages match this filter.';
-      treeMount.append(empty);
+    if (!sitemapResult) {
+      const p = document.createElement('p');
+      p.className = 'admin-site-tree__empty';
+      p.textContent = 'Could not load or parse sitemap.xml.';
+      block.append(p);
       return;
     }
-    const tree = buildPathTreeFromSitemapEntries(list);
-    treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery, treeMount));
-    const q = (highlightQuery || '').trim();
-    if (q) {
-      treeMount.querySelectorAll('details.admin-site-tree__node').forEach((d) => {
-        d.open = true;
-      });
-      highlightLastExpandedListItem(treeMount);
+
+    const { bundle, baseUrl } = sitemapResult;
+    const entries = await resolveAllPageUrlsFromSitemap(bundle.document, bundle.text);
+    const urls = entries.map((e) => e.href);
+    const { crossRefSet, lookup: devsiteLookup } = buildCrossReferencedDevsitePaths(
+      devsitePathsJson?.data,
+      urls,
+    );
+
+    const heading = document.createElement('h2');
+    heading.className = 'admin-site-tree__heading';
+    heading.textContent = 'Sitemap';
+
+    const meta = document.createElement('p');
+    meta.className = 'admin-site-tree__intro';
+    meta.textContent = `${devsiteNote} Showing ${urls.length} URL(s) from ${baseUrl}/sitemap.xml as a path tree.`;
+
+    const panel = document.createElement('div');
+    panel.className = 'admin-site-tree';
+
+    const filterRow = document.createElement('div');
+    filterRow.className = 'admin-site-tree__filter-row';
+    const filterLabel = document.createElement('label');
+    filterLabel.className = 'admin-site-tree__filter-label';
+    const filterLabelText = document.createElement('span');
+    filterLabelText.className = 'admin-site-tree__filter-label-text';
+    filterLabelText.textContent = 'Filter';
+    const filterInput = document.createElement('input');
+    filterInput.type = 'search';
+    filterInput.className = 'admin-site-tree__filter-input';
+    filterInput.placeholder = 'Filter by URL, path, or last modified…';
+    filterInput.setAttribute('autocomplete', 'off');
+    filterLabel.append(filterLabelText, filterInput);
+    const filterMeta = document.createElement('p');
+    filterMeta.className = 'admin-site-tree__filter-meta';
+    filterMeta.setAttribute('aria-live', 'polite');
+    filterRow.append(filterLabel);
+
+    const treeMount = document.createElement('div');
+    treeMount.className = 'admin-site-tree__tree-mount';
+
+    const filterIndex = buildSitemapFilterIndex(entries);
+    let filterDebounceId = null;
+    let filterRafId = 0;
+
+    /**
+     * After expanding filtered folders, outline the last `li` in tree order (deepest / bottom row).
+     * @param {HTMLElement} container
+     */
+    function highlightLastExpandedListItem(container) {
+      const lis = container.querySelectorAll('li');
+      if (!lis.length) return;
+      lis[lis.length - 1].classList.add('admin-site-tree__li--last-expanded');
     }
-    syncHashToTree(treeMount);
-  }
 
-  function applyFilterFromInput() {
-    const q = filterInput.value;
-    const filtered = filterSitemapEntriesFromIndex(filterIndex, q);
-    const metaText = q.trim()
-      ? `Showing ${filtered.length} of ${entries.length} page(s) matching “${q.trim()}”.`
-      : '';
-    cancelAnimationFrame(filterRafId);
-    filterRafId = requestAnimationFrame(() => {
-      filterRafId = 0;
-      renderTreeForEntries(filtered, q);
-      filterMeta.textContent = metaText;
+    function renderTreeForEntries(list, highlightQuery) {
+      treeMount.replaceChildren();
+      if (!list.length) {
+        const empty = document.createElement('p');
+        empty.className = 'admin-site-tree__filter-empty';
+        empty.textContent = 'No pages match this filter.';
+        treeMount.append(empty);
+        return;
+      }
+      const tree = buildPathTreeFromSitemapEntries(list);
+      treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery, treeMount));
+      const q = (highlightQuery || '').trim();
+      if (q) {
+        treeMount.querySelectorAll('details.admin-site-tree__node').forEach((d) => {
+          d.open = true;
+        });
+        highlightLastExpandedListItem(treeMount);
+      }
+      syncHashToTree(treeMount);
+    }
+
+    function applyFilterFromInput() {
+      const q = filterInput.value;
+      const filtered = filterSitemapEntriesFromIndex(filterIndex, q);
+      const metaText = q.trim()
+        ? `Showing ${filtered.length} of ${entries.length} page(s) matching “${q.trim()}”.`
+        : '';
+      cancelAnimationFrame(filterRafId);
+      filterRafId = requestAnimationFrame(() => {
+        filterRafId = 0;
+        renderTreeForEntries(filtered, q);
+        filterMeta.textContent = metaText;
+      });
+    }
+
+    filterInput.addEventListener('input', () => {
+      clearTimeout(filterDebounceId);
+      filterDebounceId = setTimeout(() => {
+        filterDebounceId = null;
+        applyFilterFromInput();
+      }, FILTER_DEBOUNCE_MS);
     });
+
+    const onHashChange = () => syncHashToTree(treeMount);
+    window.addEventListener('hashchange', onHashChange);
+
+    renderTreeForEntries(entries, '');
+
+    panel.append(filterRow, filterMeta, treeMount);
+    block.append(heading, meta, panel);
+    await waitForNextPaint();
+  } catch {
+    const p = document.createElement('p');
+    p.className = 'admin-site-tree__empty';
+    p.textContent = 'Could not load admin content.';
+    block.append(p);
+  } finally {
+    loadingWrap.remove();
   }
-
-  filterInput.addEventListener('input', () => {
-    clearTimeout(filterDebounceId);
-    filterDebounceId = setTimeout(() => {
-      filterDebounceId = null;
-      applyFilterFromInput();
-    }, FILTER_DEBOUNCE_MS);
-  });
-
-  const onHashChange = () => syncHashToTree(treeMount);
-  window.addEventListener('hashchange', onHashChange);
-
-  renderTreeForEntries(entries, '');
-
-  panel.append(filterRow, filterMeta, treeMount);
-  block.append(heading, meta, panel);
 }

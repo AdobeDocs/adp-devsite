@@ -15,6 +15,37 @@
   box-sizing: border-box;
 }
 
+.admin__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 8rem;
+  padding: 2rem 1rem;
+  font-size: 14px;
+  color: var(--spectrum-global-color-gray-700, rgb(75, 75, 75));
+}
+
+.admin__loading-spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border: 3px solid var(--spectrum-global-color-gray-300, rgb(202, 202, 202));
+  border-top-color: var(--spectrum-global-color-blue-600, rgb(20, 115, 230));
+  border-radius: 50%;
+  animation: admin-loading-spin 0.75s linear infinite;
+}
+
+.admin__loading-text {
+  line-height: 1.4;
+}
+
+@keyframes admin-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .admin-site-tree {
   --admin-tree-border: var(--spectrum-global-color-gray-300, rgb(202, 202, 202));
   --admin-tree-muted: var(--spectrum-global-color-gray-700, rgb(75, 75, 75));
