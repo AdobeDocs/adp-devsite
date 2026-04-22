@@ -292,14 +292,16 @@
   margin-right: 0.5rem;
 }
 
+/* Match `summary` left padding (1.1rem) so leaf segment text lines up with folder labels past the disclosure chevron */
 .admin-site-tree__leaf {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.35rem 0.75rem;
-  padding: 0.15rem 0;
+  padding: 0.2rem 0 0.2rem 1.1rem;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* Leaf segment label + URL list on one row (links use remaining width) */
@@ -308,7 +310,15 @@
   flex: 1 1 12rem;
   min-width: 0;
   margin: 0;
-  padding-left: 0.5rem;
+  padding-left: 0;
+}
+
+/* Match `.admin-site-tree__urls-row .admin-site-tree__urls`: leaf already has `summary`-aligned inset */
+.admin-site-tree__leaf > .admin-site-tree__urls {
+  margin: 0.15rem 0 0.35rem;
+  padding-left: 0;
+  padding-inline-start: 0;
+  list-style: none;
 }
 
 .admin-site-tree__link-line {
@@ -363,6 +373,8 @@ a.admin-site-tree__link mark.admin-site-tree__highlight {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.25rem 0.6rem;
+  padding: 0.2rem 0 0.2rem 1.1rem;
+  box-sizing: border-box;
 }
 
 .admin-site-tree__urls-row .admin-site-tree__urls {
