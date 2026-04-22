@@ -4,7 +4,7 @@ const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/qa-run.yml`;
 const LS_KEY = 'qadashboard_params';
 
 async function loadResults(branch) {
-  const url = `https://raw.githubusercontent.com/${REPO}/${encodeURIComponent(branch)}/${RESULTS_PATH}?_=${Date.now()}`;
+  const url = `https://raw.githubusercontent.com/${REPO}/${RESULTS_PATH}?_=${Date.now()}`;
   const res = await fetch(url);
   if (!res.ok) return null;
   return res.json();
