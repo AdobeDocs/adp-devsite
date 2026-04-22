@@ -32,6 +32,62 @@ function segmentPath(parentPath, segment) {
 }
 
 /**
+ * Stable fragment id for a normalized path (used in `li id` and `#hash` permalinks).
+ * @param {string} fullPath
+ */
+function treeFragmentIdFromPath(fullPath) {
+  const n = normalizePathForMatch(fullPath || '/');
+  try {
+    const bytes = new TextEncoder().encode(n);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 1) {
+      bin += String.fromCharCode(bytes[i]);
+    }
+    const b64 = btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return `admin-sitemap-${b64}`;
+  } catch {
+    return 'admin-sitemap-root';
+  }
+}
+
+/**
+ * Opens every ancestor `details` of `el` inside `mount`, then scrolls `el` into view.
+ * @param {HTMLElement} mount
+ * @param {string} [fragmentId] defaults to `location.hash` without `#`
+ */
+function syncHashToTree(mount, fragmentId) {
+  const id = fragmentId ?? window.location.hash.slice(1);
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (!el || !mount.contains(el)) return;
+  let p = el.parentElement;
+  while (p && p !== mount) {
+    if (p instanceof HTMLDetailsElement && p.classList.contains('admin-site-tree__node')) {
+      p.open = true;
+    }
+    p = p.parentElement;
+  }
+  requestAnimationFrame(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+}
+
+/**
+ * @param {HTMLAnchorElement} a
+ * @param {string} fragId
+ * @param {HTMLElement} treeMount
+ */
+function bindTreePermalinkAnchor(a, fragId, treeMount) {
+  a.href = `#${fragId}`;
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.location.hash = fragId;
+    syncHashToTree(treeMount, fragId);
+  });
+}
+
+/**
  * True if some sitemap URL pathname matches this prefix (exact or nested under it).
  * @param {string} normalizedPrefix
  * @param {string[]} sitemapUrls
@@ -497,14 +553,24 @@ function buildUrlList(urlEntries, highlightQuery) {
  * @param {Set<string>} crossRefSet normalized pathPrefixes present in devsitepaths and sitemap
  * @param {Map<string, object>} devsiteLookup normalized pathPrefix → row
  * @param {string} highlightQuery filter text for <mark> highlights
+ * @param {HTMLElement} treeMount
  */
-function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, highlightQuery) {
+function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, highlightQuery, treeMount) {
   const hq = highlightQuery ?? '';
   const childKeys = Object.keys(node).filter((k) => k !== '_urls').sort((a, b) => a.localeCompare(b));
 
   if (node._urls?.length) {
     const li = document.createElement('li');
     li.className = 'admin-site-tree__urls-row';
+    const pathForRow = normalizePathForMatch(parentPath || '/');
+    const fragId = treeFragmentIdFromPath(pathForRow);
+    li.id = fragId;
+    const perm = document.createElement('a');
+    perm.className = 'admin-site-tree__path-anchor admin-site-tree__row-permalink';
+    perm.textContent = '#';
+    perm.setAttribute('aria-label', `Permalink to path ${pathForRow}`);
+    bindTreePermalinkAnchor(perm, fragId, treeMount);
+
     const n = node._urls.length;
     const links = buildUrlList(node._urls, hq);
     if (n > 1) {
@@ -514,13 +580,12 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       countEl.className = 'admin-site-tree__count';
       countEl.textContent = `${n} URLs at this path`;
       header.append(countEl);
-      const pathHere = normalizePathForMatch(parentPath || '/');
-      if (crossRefSet.has(pathHere) && devsiteLookup.has(pathHere)) {
-        appendDevsitepathsMatchNote(header, devsiteLookup.get(pathHere));
+      if (crossRefSet.has(pathForRow) && devsiteLookup.has(pathForRow)) {
+        appendDevsitepathsMatchNote(header, devsiteLookup.get(pathForRow));
       }
-      li.append(header, links);
+      li.append(perm, header, links);
     } else {
-      li.append(links);
+      li.append(perm, links);
     }
     ul.append(li);
   }
@@ -532,6 +597,8 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
     const hasSubtree = subKeys.length > 0;
     const fullPath = segmentPath(parentPath, key);
     const normPath = normalizePathForMatch(fullPath);
+    const fragId = treeFragmentIdFromPath(fullPath);
+    li.id = fragId;
     const devsiteRow = devsiteLookup.get(normPath);
     const showDevsiteNote = crossRefSet.has(normPath) && devsiteRow;
 
@@ -542,7 +609,11 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       summary.className = 'admin-site-tree__segment';
       const label = document.createElement('span');
       label.className = 'admin-site-tree__segment-label';
-      appendHighlightedText(label, key, hq);
+      const labelA = document.createElement('a');
+      labelA.className = 'admin-site-tree__path-anchor';
+      bindTreePermalinkAnchor(labelA, fragId, treeMount);
+      appendHighlightedText(labelA, key, hq);
+      label.append(labelA);
       summary.append(label);
       if (showDevsiteNote) {
         appendDevsitepathsMatchNote(summary, devsiteRow);
@@ -555,7 +626,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       details.append(summary);
       const nestedUl = document.createElement('ul');
       nestedUl.className = 'admin-site-tree__branch';
-      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup, hq);
+      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup, hq, treeMount);
       details.append(nestedUl);
       li.append(details);
     } else {
@@ -563,10 +634,14 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       wrap.className = 'admin-site-tree__leaf';
       const row = document.createElement('div');
       row.className = 'admin-site-tree__leaf-row';
-      const span = document.createElement('span');
-      span.className = 'admin-site-tree__segment admin-site-tree__segment--leaf';
-      appendHighlightedText(span, key, hq);
-      row.append(span);
+      const segWrap = document.createElement('span');
+      segWrap.className = 'admin-site-tree__segment-wrap';
+      const segA = document.createElement('a');
+      segA.className = 'admin-site-tree__path-anchor admin-site-tree__segment admin-site-tree__segment--leaf';
+      bindTreePermalinkAnchor(segA, fragId, treeMount);
+      appendHighlightedText(segA, key, hq);
+      segWrap.append(segA);
+      row.append(segWrap);
       if (showDevsiteNote) {
         appendDevsitepathsMatchNote(row, devsiteRow);
       }
@@ -594,12 +669,13 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
  * @param {Set<string>} crossRefSet
  * @param {Map<string, object>} devsiteLookup
  * @param {string} highlightQuery
+ * @param {HTMLElement} treeMount
  * @returns {HTMLUListElement}
  */
-function renderPathTree(root, crossRefSet, devsiteLookup, highlightQuery) {
+function renderPathTree(root, crossRefSet, devsiteLookup, highlightQuery, treeMount) {
   const ul = document.createElement('ul');
   ul.className = 'admin-site-tree__branch admin-site-tree__branch--root';
-  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup, highlightQuery);
+  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup, highlightQuery, treeMount);
   return ul;
 }
 
@@ -671,6 +747,16 @@ export default async function decorate(block) {
   let filterDebounceId = null;
   let filterRafId = 0;
 
+  /**
+   * After expanding filtered folders, outline the last `li` in tree order (deepest / bottom row).
+   * @param {HTMLElement} container
+   */
+  function highlightLastExpandedListItem(container) {
+    const lis = container.querySelectorAll('li');
+    if (!lis.length) return;
+    lis[lis.length - 1].classList.add('admin-site-tree__li--last-expanded');
+  }
+
   function renderTreeForEntries(list, highlightQuery) {
     treeMount.replaceChildren();
     if (!list.length) {
@@ -681,13 +767,15 @@ export default async function decorate(block) {
       return;
     }
     const tree = buildPathTreeFromSitemapEntries(list);
-    treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery));
+    treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery, treeMount));
     const q = (highlightQuery || '').trim();
     if (q) {
       treeMount.querySelectorAll('details.admin-site-tree__node').forEach((d) => {
         d.open = true;
       });
+      highlightLastExpandedListItem(treeMount);
     }
+    syncHashToTree(treeMount);
   }
 
   function applyFilterFromInput() {
@@ -711,6 +799,9 @@ export default async function decorate(block) {
       applyFilterFromInput();
     }, FILTER_DEBOUNCE_MS);
   });
+
+  const onHashChange = () => syncHashToTree(treeMount);
+  window.addEventListener('hashchange', onHashChange);
 
   renderTreeForEntries(entries, '');
 
