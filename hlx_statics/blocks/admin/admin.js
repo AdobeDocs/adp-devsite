@@ -32,76 +32,6 @@ function segmentPath(parentPath, segment) {
 }
 
 /**
- * Fragment id for a normalized path: `#admin-sitemap-path-to-url` (slashes → hyphens).
- * Root is `#admin-sitemap-root`. Rare ambiguity if a segment name equals multiple segments joined by `-`.
- * @param {string} fullPath
- */
-function treeFragmentIdFromPath(fullPath) {
-  const n = normalizePathForMatch(fullPath || '/');
-  if (n === '/') return 'admin-sitemap-root';
-  return `admin-sitemap-${n.slice(1).replace(/\//g, '-')}`;
-}
-
-/**
- * Pixels to leave clear below fixed/sticky headers (matches `--fixed-top-offset` from lib-adobeio).
- */
-function getFixedHeaderOffsetPx() {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue('--fixed-top-offset').trim();
-  const n = parseFloat(raw);
-  if (Number.isFinite(n) && n > 0) return n;
-  return 100;
-}
-
-/**
- * Scrolls so `el` sits below the site header; uses layout after `details` opens (double rAF).
- * @param {HTMLElement} el
- */
-function scrollAdminTreeTargetBelowHeader(el) {
-  const gap = 12;
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const top = el.getBoundingClientRect().top + window.scrollY - getFixedHeaderOffsetPx() - gap;
-      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-    });
-  });
-}
-
-/**
- * Opens every ancestor `details` of `el` inside `mount`, then scrolls `el` into view below the top nav.
- * @param {HTMLElement} mount
- * @param {string} [fragmentId] defaults to `location.hash` without `#`
- */
-function syncHashToTree(mount, fragmentId) {
-  const id = fragmentId ?? window.location.hash.slice(1);
-  if (!id) return;
-  const el = document.getElementById(id);
-  if (!el || !mount.contains(el)) return;
-  let p = el.parentElement;
-  while (p && p !== mount) {
-    if (p instanceof HTMLDetailsElement && p.classList.contains('admin-site-tree__node')) {
-      p.open = true;
-    }
-    p = p.parentElement;
-  }
-  scrollAdminTreeTargetBelowHeader(el);
-}
-
-/**
- * @param {HTMLAnchorElement} a
- * @param {string} fragId
- * @param {HTMLElement} treeMount
- */
-function bindTreePermalinkAnchor(a, fragId, treeMount) {
-  a.href = `#${fragId}`;
-  a.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.location.hash = fragId;
-    syncHashToTree(treeMount, fragId);
-  });
-}
-
-/**
  * True if some sitemap URL pathname matches this prefix (exact or nested under it).
  * @param {string} normalizedPrefix
  * @param {string[]} sitemapUrls
@@ -597,9 +527,8 @@ function buildUrlList(urlEntries, highlightQuery) {
  * @param {Set<string>} crossRefSet normalized pathPrefixes present in devsitepaths and sitemap
  * @param {Map<string, object>} devsiteLookup normalized pathPrefix → row
  * @param {string} highlightQuery filter text for <mark> highlights
- * @param {HTMLElement} treeMount
  */
-function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, highlightQuery, treeMount) {
+function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, highlightQuery) {
   const hq = highlightQuery ?? '';
   const childKeys = Object.keys(node).filter((k) => k !== '_urls').sort((a, b) => a.localeCompare(b));
 
@@ -607,13 +536,6 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
     const li = document.createElement('li');
     li.className = 'admin-site-tree__urls-row';
     const pathForRow = normalizePathForMatch(parentPath || '/');
-    const fragId = treeFragmentIdFromPath(pathForRow);
-    li.id = fragId;
-    const perm = document.createElement('a');
-    perm.className = 'admin-site-tree__path-anchor admin-site-tree__row-permalink';
-    perm.textContent = '#';
-    perm.setAttribute('aria-label', `Permalink to path ${pathForRow}`);
-    bindTreePermalinkAnchor(perm, fragId, treeMount);
 
     const n = node._urls.length;
     const links = buildUrlList(node._urls, hq);
@@ -627,9 +549,9 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       if (crossRefSet.has(pathForRow) && devsiteLookup.has(pathForRow)) {
         appendDevsitepathsMatchNote(header, devsiteLookup.get(pathForRow));
       }
-      li.append(perm, header, links);
+      li.append(header, links);
     } else {
-      li.append(perm, links);
+      li.append(links);
     }
     ul.append(li);
   }
@@ -641,8 +563,6 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
     const hasSubtree = subKeys.length > 0;
     const fullPath = segmentPath(parentPath, key);
     const normPath = normalizePathForMatch(fullPath);
-    const fragId = treeFragmentIdFromPath(fullPath);
-    li.id = fragId;
     const devsiteRow = devsiteLookup.get(normPath);
     const showDevsiteNote = crossRefSet.has(normPath) && devsiteRow;
 
@@ -653,11 +573,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       summary.className = 'admin-site-tree__segment';
       const label = document.createElement('span');
       label.className = 'admin-site-tree__segment-label';
-      const labelA = document.createElement('a');
-      labelA.className = 'admin-site-tree__path-anchor';
-      bindTreePermalinkAnchor(labelA, fragId, treeMount);
-      appendHighlightedText(labelA, key, hq);
-      label.append(labelA);
+      appendHighlightedText(label, key, hq);
       summary.append(label);
       if (showDevsiteNote) {
         appendDevsitepathsMatchNote(summary, devsiteRow);
@@ -670,7 +586,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       details.append(summary);
       const nestedUl = document.createElement('ul');
       nestedUl.className = 'admin-site-tree__branch';
-      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup, hq, treeMount);
+      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup, hq);
       details.append(nestedUl);
       li.append(details);
     } else {
@@ -680,11 +596,10 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       row.className = 'admin-site-tree__leaf-row';
       const segWrap = document.createElement('span');
       segWrap.className = 'admin-site-tree__segment-wrap';
-      const segA = document.createElement('a');
-      segA.className = 'admin-site-tree__path-anchor admin-site-tree__segment admin-site-tree__segment--leaf';
-      bindTreePermalinkAnchor(segA, fragId, treeMount);
-      appendHighlightedText(segA, key, hq);
-      segWrap.append(segA);
+      const segLabel = document.createElement('span');
+      segLabel.className = 'admin-site-tree__segment admin-site-tree__segment--leaf';
+      appendHighlightedText(segLabel, key, hq);
+      segWrap.append(segLabel);
       row.append(segWrap);
       if (showDevsiteNote) {
         appendDevsitepathsMatchNote(row, devsiteRow);
@@ -713,13 +628,12 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
  * @param {Set<string>} crossRefSet
  * @param {Map<string, object>} devsiteLookup
  * @param {string} highlightQuery
- * @param {HTMLElement} treeMount
  * @returns {HTMLUListElement}
  */
-function renderPathTree(root, crossRefSet, devsiteLookup, highlightQuery, treeMount) {
+function renderPathTree(root, crossRefSet, devsiteLookup, highlightQuery) {
   const ul = document.createElement('ul');
   ul.className = 'admin-site-tree__branch admin-site-tree__branch--root';
-  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup, highlightQuery, treeMount);
+  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup, highlightQuery);
   return ul;
 }
 
@@ -814,7 +728,7 @@ export default async function decorate(block) {
         return;
       }
       const tree = buildPathTreeFromSitemapEntries(list);
-      treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery, treeMount));
+      treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery));
       const q = (highlightQuery || '').trim();
       if (q) {
         treeMount.querySelectorAll('details.admin-site-tree__node').forEach((d) => {
@@ -822,7 +736,6 @@ export default async function decorate(block) {
         });
         highlightLastExpandedListItem(treeMount);
       }
-      syncHashToTree(treeMount);
     }
 
     function applyFilterFromInput() {
@@ -846,9 +759,6 @@ export default async function decorate(block) {
         applyFilterFromInput();
       }, FILTER_DEBOUNCE_MS);
     });
-
-    const onHashChange = () => syncHashToTree(treeMount);
-    window.addEventListener('hashchange', onHashChange);
 
     renderTreeForEntries(entries, '');
 

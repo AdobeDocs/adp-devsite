@@ -143,14 +143,9 @@
   margin: 0.15rem -0.25rem;
 }
 
-.admin-site-tree__li--last-expanded .admin-site-tree__path-anchor,
-.admin-site-tree__li--last-expanded .admin-site-tree__segment-label .admin-site-tree__path-anchor,
+.admin-site-tree__li--last-expanded .admin-site-tree__segment-label,
 .admin-site-tree__li--last-expanded .admin-site-tree__link,
 .admin-site-tree__li--last-expanded .admin-site-tree__segment--leaf {
-  font-weight: 400;
-}
-
-.admin-site-tree__li--last-expanded .admin-site-tree__row-permalink {
   font-weight: 400;
 }
 
@@ -198,6 +193,7 @@
 .admin-site-tree__segment-label {
   min-width: 0;
   word-break: break-word;
+  font-weight: 600;
 }
 
 .admin-site-tree__devsitepaths-wrap {
@@ -349,29 +345,6 @@
 
 a.admin-site-tree__link mark.admin-site-tree__highlight {
   color: inherit;
-}
-
-/* Permalink to a tree row (`li id` + hash); label uses path text */
-.admin-site-tree__path-anchor {
-  color: inherit;
-  text-decoration: none;
-  font-weight: inherit;
-}
-
-.admin-site-tree__path-anchor:hover {
-  text-decoration: underline;
-}
-
-.admin-site-tree__segment-label .admin-site-tree__path-anchor {
-  font-weight: 600;
-}
-
-.admin-site-tree__row-permalink {
-  flex-shrink: 0;
-  margin-right: 0.35rem;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--admin-tree-muted);
 }
 
 .admin-site-tree__urls {
