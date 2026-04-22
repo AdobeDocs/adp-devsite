@@ -43,6 +43,17 @@ function renderResults(container, results) {
   badge.textContent = passed ? '✓ All Passed' : '✗ Issues Found';
 
   header.append(meta, badge);
+
+  if (results.run_url) {
+    const reportLink = document.createElement('a');
+    reportLink.className = 'qadashboard__btn qadashboard__btn--secondary';
+    reportLink.href = results.run_url;
+    reportLink.target = '_blank';
+    reportLink.rel = 'noopener noreferrer';
+    reportLink.textContent = '↗ View Full Report';
+    header.append(reportLink);
+  }
+
   container.append(header);
 
   const cards = document.createElement('div');

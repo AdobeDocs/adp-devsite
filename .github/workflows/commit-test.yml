@@ -63,12 +63,21 @@ jobs:
             npx playwright test "test/$SUITE.spec.js"
           fi
 
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: tools/qa/playwright-report/
+          retention-days: 30
+
       - name: Write summary
         working-directory: tools/qa
         env:
           PATH_PREFIX: ${{ inputs.path_prefix }}
           DIFF_THRESHOLD: ${{ inputs.threshold }}
           SUITE: ${{ inputs.suite }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node summarize.js
 
       - name: Commit results

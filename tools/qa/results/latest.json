@@ -4,6 +4,7 @@
   "suite": "all",
   "threshold": 5,
   "status": "failed",
+  "run_url": "https://github.com/AdobeDocs/adp-devsite/actions/runs/123456789",
   "suites": {
     "visual": {
       "passed": 8,
