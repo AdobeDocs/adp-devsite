@@ -1,34 +1,81 @@
-name: Commit Test
+name: QA Run
+
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'
+  workflow_dispatch:
+    inputs:
+      path_prefix:
+        description: 'Path prefix to test (e.g. /experience-cloud/cloud-manager)'
+        required: true
+        type: string
+      suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - visual
+          - links
+          - nav
+          - images
+          - content
+      threshold:
+        description: 'Visual diff threshold %'
+        required: false
+        default: '5'
+        type: string
+
+permissions:
+  contents: write
+
 jobs:
-  test:
+  qa:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-      - run: npm install
-      - name: Run tests with coverage
-        id: test
-        run: |
-          npm test 2>&1 | tee test-output.txt
-          exit ${PIPESTATUS[0]}
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: tools/qa
+        run: npm install
+
+      - name: Install Playwright browsers
+        working-directory: tools/qa
+        run: npx playwright install chromium --with-deps
+
+      - name: Run tests
+        working-directory: tools/qa
         continue-on-error: true
-      - name: Post coverage comment
-        if: always() && github.event_name == 'pull_request'
-        run: node test/coverage-comment.js
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_ID: ${{ github.event.pull_request.number }}
-          TEST_OUTCOME: ${{ steps.test.outcome }}
-      # Reveal and report the test failures
-      - name: Fail if tests failed
-        if: steps.test.outcome == 'failure'
-        run: exit 1
+          PATH_PREFIX: ${{ inputs.path_prefix }}
+          DIFF_THRESHOLD: ${{ inputs.threshold }}
+          SUITE: ${{ inputs.suite }}
+          CI: true
+        run: |
+          if [ "$SUITE" = "all" ]; then
+            npx playwright test
+          else
+            npx playwright test "test/$SUITE.spec.js"
+          fi
+
+      - name: Write summary
+        working-directory: tools/qa
+        env:
+          PATH_PREFIX: ${{ inputs.path_prefix }}
+          DIFF_THRESHOLD: ${{ inputs.threshold }}
+          SUITE: ${{ inputs.suite }}
+        run: node summarize.js
+
+      - name: Commit results
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git pull --rebase origin ${{ github.ref_name }}
+          git add tools/qa/results/latest.json
+          git diff --staged --quiet || git commit -m "chore: update qa results [skip ci]"
+          git push origin ${{ github.ref_name }}

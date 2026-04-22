@@ -1,6 +1,6 @@
 const REPO = 'AdobeDocs/adp-devsite';
 const RESULTS_PATH = 'tools/qa/results/latest.json';
-const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/qa-run.yml`;
+const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/commit-test.yml`;
 
 async function loadResults(branch) {
   const url = `https://raw.githubusercontent.com/${REPO}/${encodeURIComponent(branch)}/${RESULTS_PATH}?_=${Date.now()}`;
