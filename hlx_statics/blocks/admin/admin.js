@@ -32,22 +32,14 @@ function segmentPath(parentPath, segment) {
 }
 
 /**
- * Stable fragment id for a normalized path (used in `li id` and `#hash` permalinks).
+ * Fragment id for a normalized path: `#admin-sitemap-path-to-url` (slashes → hyphens).
+ * Root is `#admin-sitemap-root`. Rare ambiguity if a segment name equals multiple segments joined by `-`.
  * @param {string} fullPath
  */
 function treeFragmentIdFromPath(fullPath) {
   const n = normalizePathForMatch(fullPath || '/');
-  try {
-    const bytes = new TextEncoder().encode(n);
-    let bin = '';
-    for (let i = 0; i < bytes.length; i += 1) {
-      bin += String.fromCharCode(bytes[i]);
-    }
-    const b64 = btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return `admin-sitemap-${b64}`;
-  } catch {
-    return 'admin-sitemap-root';
-  }
+  if (n === '/') return 'admin-sitemap-root';
+  return `admin-sitemap-${n.slice(1).replace(/\//g, '-')}`;
 }
 
 /**
