@@ -1,10 +1,11 @@
 const REPO = 'AdobeDocs/adp-devsite-github-actions-test';
+const RESULTS_BRANCH = 'main'; // branch where the workflow commits results
 const RESULTS_PATH = 'tools/qa/results/latest.json';
 const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/qa-run.yml`;
 const LS_KEY = 'qadashboard_params';
 
-async function loadResults(branch) {
-  const url = `https://raw.githubusercontent.com/${REPO}/${RESULTS_PATH}?_=${Date.now()}`;
+async function loadResults() {
+  const url = `https://raw.githubusercontent.com/${REPO}/${encodeURIComponent(RESULTS_BRANCH)}/${RESULTS_PATH}?_=${Date.now()}`;
   const res = await fetch(url);
   if (!res.ok) return null;
   return res.json();
@@ -242,7 +243,7 @@ export default async function decorate(block) {
     statusEl.className = 'qadashboard__status qadashboard__status--running';
     statusEl.textContent = 'Loading results…';
     try {
-      const results = await loadResults(branch);
+      const results = await loadResults();
       // sync form fields to match what was actually last run
       if (results?.path_prefix) pathInput.value = results.path_prefix;
       if (results?.suite) suiteSelect.value = results.suite;
