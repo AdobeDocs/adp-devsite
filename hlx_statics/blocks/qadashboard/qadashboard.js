@@ -1,6 +1,7 @@
 const REPO = 'AdobeDocs/adp-devsite';
 const RESULTS_PATH = 'tools/qa/results/latest.json';
 const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/commit-test.yml`;
+const LS_KEY = 'qadashboard_params';
 
 async function loadResults(branch) {
   const url = `https://raw.githubusercontent.com/${REPO}/${encodeURIComponent(branch)}/${RESULTS_PATH}?_=${Date.now()}`;
@@ -16,6 +17,20 @@ const SUITE_LABELS = {
   images: 'Missing Images',
   content: 'Content QA',
 };
+
+function loadSavedParams() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveParams(params) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(params));
+  } catch { /* ignore */ }
+}
 
 function renderResults(container, results) {
   container.innerHTML = '';
@@ -122,6 +137,51 @@ export default async function decorate(block) {
   heading.textContent = 'QA Dashboard — Prod vs Stage';
   block.append(heading);
 
+  // --- Run parameters form ---
+  const saved = loadSavedParams();
+
+  const form = document.createElement('div');
+  form.className = 'qadashboard__form';
+
+  const pathLabel = document.createElement('label');
+  pathLabel.className = 'qadashboard__form-label';
+  pathLabel.textContent = 'Path prefix';
+  const pathInput = document.createElement('input');
+  pathInput.type = 'text';
+  pathInput.className = 'qadashboard__form-input';
+  pathInput.placeholder = '/experience-cloud/cloud-manager';
+  pathInput.value = saved.path_prefix || '';
+  pathLabel.append(pathInput);
+
+  const suiteLabel = document.createElement('label');
+  suiteLabel.className = 'qadashboard__form-label';
+  suiteLabel.textContent = 'Suite';
+  const suiteSelect = document.createElement('select');
+  suiteSelect.className = 'qadashboard__form-select';
+  for (const val of ['all', 'visual', 'links', 'nav', 'images', 'content']) {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = val;
+    if (val === (saved.suite || 'all')) opt.selected = true;
+    suiteSelect.append(opt);
+  }
+  suiteLabel.append(suiteSelect);
+
+  const threshLabel = document.createElement('label');
+  threshLabel.className = 'qadashboard__form-label';
+  threshLabel.textContent = 'Visual threshold %';
+  const threshInput = document.createElement('input');
+  threshInput.type = 'number';
+  threshInput.className = 'qadashboard__form-input qadashboard__form-input--short';
+  threshInput.min = '0';
+  threshInput.max = '100';
+  threshInput.value = saved.threshold ?? '5';
+  threshLabel.append(threshInput);
+
+  form.append(pathLabel, suiteLabel, threshLabel);
+  block.append(form);
+
+  // --- Toolbar ---
   const toolbar = document.createElement('div');
   toolbar.className = 'qadashboard__toolbar';
 
@@ -149,6 +209,11 @@ export default async function decorate(block) {
   toolbar.append(actions);
   block.append(toolbar);
 
+  const hint = document.createElement('p');
+  hint.className = 'qadashboard__hint';
+  hint.textContent = 'Set your parameters above, then click "Run on GitHub" and paste them into the workflow form.';
+  block.append(hint);
+
   const statusEl = document.createElement('p');
   statusEl.className = 'qadashboard__status';
   statusEl.setAttribute('aria-live', 'polite');
@@ -158,12 +223,31 @@ export default async function decorate(block) {
   resultsContainer.className = 'qadashboard__results';
   block.append(resultsContainer);
 
+  // Persist params on change and update hint
+  function onParamChange() {
+    const params = {
+      path_prefix: pathInput.value.trim(),
+      suite: suiteSelect.value,
+      threshold: threshInput.value,
+    };
+    saveParams(params);
+  }
+
+  pathInput.addEventListener('input', onParamChange);
+  suiteSelect.addEventListener('change', onParamChange);
+  threshInput.addEventListener('input', onParamChange);
+
   async function refresh() {
     refreshBtn.disabled = true;
     statusEl.className = 'qadashboard__status qadashboard__status--running';
     statusEl.textContent = 'Loading results…';
     try {
       const results = await loadResults(branch);
+      // sync form fields to match what was actually last run
+      if (results?.path_prefix) pathInput.value = results.path_prefix;
+      if (results?.suite) suiteSelect.value = results.suite;
+      if (results?.threshold != null) threshInput.value = results.threshold;
+      onParamChange();
       renderResults(resultsContainer, results);
       statusEl.textContent = '';
       statusEl.className = 'qadashboard__status';

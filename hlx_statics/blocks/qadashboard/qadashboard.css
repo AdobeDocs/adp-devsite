@@ -21,6 +21,63 @@
   letter-spacing: -0.01em;
 }
 
+/* Run parameters form */
+.qadashboard__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--spectrum-global-color-gray-100, #f5f5f5);
+  border: 1px solid var(--spectrum-global-color-gray-300, #ccc);
+  border-radius: 8px;
+}
+
+.qadashboard__form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--spectrum-global-color-gray-700, #555);
+}
+
+.qadashboard__form-input,
+.qadashboard__form-select {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--spectrum-global-color-gray-400, #bbb);
+  border-radius: 4px;
+  background: #fff;
+  color: inherit;
+  min-width: 220px;
+}
+
+.qadashboard__form-input--short {
+  min-width: 70px;
+  max-width: 90px;
+}
+
+.qadashboard__form-select {
+  min-width: 120px;
+}
+
+.qadashboard__form-input:focus,
+.qadashboard__form-select:focus {
+  outline: 2px solid #0070f3;
+  outline-offset: 1px;
+  border-color: #0070f3;
+}
+
+.qadashboard__hint {
+  font-size: 12px;
+  color: var(--spectrum-global-color-gray-600, #777);
+  margin: 0 0 0.75rem;
+  font-style: italic;
+}
+
 /* Toolbar */
 .qadashboard__toolbar {
   display: flex;
