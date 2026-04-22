@@ -1,6 +1,6 @@
 const REPO = 'AdobeDocs/adp-devsite-github-actions-test';
 const RESULTS_PATH = 'tools/qa/results/latest.json';
-const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/commit-test.yml`;
+const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/qa-run.yml`;
 const LS_KEY = 'qadashboard_params';
 
 async function loadResults(branch) {
