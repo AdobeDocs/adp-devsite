@@ -285,24 +285,33 @@
 
 .qadashboard__issue-links {
   display: inline-flex;
-  gap: 0.25rem;
+  gap: 0.35rem;
   align-items: center;
   flex-shrink: 0;
   font-size: 11px;
+  font-weight: 700;
 }
 
 .qadashboard__issue-links a {
-  color: #0070f3;
+  color: #fff;
   text-decoration: none;
-  padding: 0.1rem 0.3rem;
-  border: 1px solid #0070f3;
-  border-radius: 3px;
-  line-height: 1;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s;
+}
+
+.qadashboard__issue-links a:first-child {
+  background: #1473e6;
+}
+
+.qadashboard__issue-links a:last-child {
+  background: #e68619;
 }
 
 .qadashboard__issue-links a:hover {
-  background: #0070f3;
-  color: #fff;
+  opacity: 0.82;
 }
 
 /* Overview table */
