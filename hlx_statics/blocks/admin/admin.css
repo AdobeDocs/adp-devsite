@@ -346,6 +346,36 @@
   white-space: nowrap;
 }
 
+.admin-site-tree__url-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+a.admin-site-tree__github-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--admin-tree-muted);
+  text-decoration: none;
+  vertical-align: middle;
+  border-radius: 4px;
+  padding: 0.1rem;
+  margin: -0.1rem;
+}
+
+a.admin-site-tree__github-gear:hover {
+  color: var(--admin-tree-link);
+  background: var(--spectrum-global-color-gray-200, rgb(234, 234, 234));
+}
+
+a.admin-site-tree__github-gear:focus-visible {
+  outline: 2px solid var(--admin-tree-link);
+  outline-offset: 1px;
+}
+
 .admin-site-tree__highlight {
   background: var(--spectrum-global-color-yellow-400, rgb(255, 216, 120));
   color: inherit;

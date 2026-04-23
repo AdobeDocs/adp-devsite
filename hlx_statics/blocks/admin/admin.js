@@ -118,6 +118,73 @@ function appendDevsitepathsMatchNote(parent, row) {
 }
 
 /**
+ * GitHub `tree/…/src/pages/…` URL for a sitemap page from a devsitepaths row.
+ * @param {object} row devsitepaths row (`owner`, `repo`, `pathPrefix`)
+ * @param {string} pageHref sitemap entry URL
+ * @returns {string|null}
+ */
+function githubSrcPagesTreeUrlFromRow(row, pageHref) {
+  const owner = typeof row.owner === 'string' ? row.owner.trim() : '';
+  const repoName = typeof row.repo === 'string' ? row.repo.trim() : '';
+  if (!owner || !repoName) return null;
+  let pathname;
+  try {
+    pathname = normalizePathForMatch(new URL(pageHref).pathname);
+  } catch {
+    return null;
+  }
+  const prefix = normalizePathForMatch(row.pathPrefix);
+  if (!(pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    return null;
+  }
+  const rest = pathname === prefix ? '' : pathname.slice(prefix.length).replace(/^\/+/, '');
+  const tail = rest
+    ? `/${rest.split('/').filter(Boolean).map((seg) => encodeURIComponent(seg)).join('/')}`
+    : '';
+  return `https://github.com/${owner}/${repoName}/tree/main/src/pages${tail}`;
+}
+
+/**
+ * Small gear control linking to repo `src/pages` tree for this URL (devsitepaths match only).
+ * @param {object} row
+ * @param {string} pageHref
+ * @returns {HTMLAnchorElement|null}
+ */
+function createGithubSrcPagesGearLink(row, pageHref) {
+  const url = githubSrcPagesTreeUrlFromRow(row, pageHref);
+  if (!url) return null;
+  const a = document.createElement('a');
+  a.href = url;
+  a.className = 'admin-site-tree__github-gear';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.title = `Markdown source on GitHub (src/pages) for this URL`;
+  a.setAttribute('aria-label', `View src/pages on GitHub for this page`);
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '14');
+  svg.setAttribute('height', '14');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  const p1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  p1.setAttribute('cx', '12');
+  p1.setAttribute('cy', '12');
+  p1.setAttribute('r', '3');
+  const p2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  p2.setAttribute(
+    'd',
+    'M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z',
+  );
+  svg.append(p1, p2);
+  a.append(svg);
+  return a;
+}
+
+/**
  * @returns {Promise<{ bundle: { document: Document, text: string }, baseUrl: string }|null>}
  */
 async function loadSitemapForAdmin() {
@@ -472,10 +539,12 @@ function appendHighlightedText(parent, text, rawQuery) {
 /**
  * @param {SitemapPageEntry[]} urlEntries
  * @param {string} highlightQuery same as filter query (substrings highlighted in URL / date labels)
+ * @param {object|null|undefined} devsiteRow devsitepaths row when this tree path is cross-matched
  * @returns {HTMLElement}
  */
-function buildUrlList(urlEntries, highlightQuery) {
+function buildUrlList(urlEntries, highlightQuery, devsiteRow) {
   const hq = highlightQuery ?? '';
+  const row = devsiteRow || null;
   if (urlEntries.length === 1) {
     const { href, lastmod } = urlEntries[0];
     const line = document.createElement('span');
@@ -492,7 +561,19 @@ function buildUrlList(urlEntries, highlightQuery) {
       const shown = formatLastmodDisplay(lastmod);
       appendHighlightedText(t, shown, hq);
       t.title = `Last modified: ${lastmod}`;
-      line.append(t);
+      if (row) {
+        const meta = document.createElement('span');
+        meta.className = 'admin-site-tree__url-meta';
+        meta.append(t);
+        const gear = createGithubSrcPagesGearLink(row, href);
+        if (gear) meta.append(gear);
+        line.append(meta);
+      } else {
+        line.append(t);
+      }
+    } else if (row) {
+      const gear = createGithubSrcPagesGearLink(row, href);
+      if (gear) line.append(gear);
     }
     return line;
   }
@@ -513,7 +594,19 @@ function buildUrlList(urlEntries, highlightQuery) {
       const shown = formatLastmodDisplay(lastmod);
       appendHighlightedText(t, shown, hq);
       t.title = `Last modified: ${lastmod}`;
-      urlLi.append(t);
+      if (row) {
+        const meta = document.createElement('span');
+        meta.className = 'admin-site-tree__url-meta';
+        meta.append(t);
+        const gear = createGithubSrcPagesGearLink(row, href);
+        if (gear) meta.append(gear);
+        urlLi.append(meta);
+      } else {
+        urlLi.append(t);
+      }
+    } else if (row) {
+      const gear = createGithubSrcPagesGearLink(row, href);
+      if (gear) urlLi.append(gear);
     }
     linkUl.append(urlLi);
   }
@@ -536,9 +629,12 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
     const li = document.createElement('li');
     li.className = 'admin-site-tree__urls-row';
     const pathForRow = normalizePathForMatch(parentPath || '/');
+    const devsiteRowForUrls = crossRefSet.has(pathForRow) && devsiteLookup.has(pathForRow)
+      ? devsiteLookup.get(pathForRow)
+      : null;
 
     const n = node._urls.length;
-    const links = buildUrlList(node._urls, hq);
+    const links = buildUrlList(node._urls, hq, devsiteRowForUrls);
     if (n > 1) {
       const header = document.createElement('div');
       header.className = 'admin-site-tree__urls-header';
@@ -615,7 +711,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       }
       wrap.append(row);
       if (child._urls?.length) {
-        wrap.append(buildUrlList(child._urls, hq));
+        wrap.append(buildUrlList(child._urls, hq, showDevsiteNote ? devsiteRow : null));
       }
       li.append(wrap);
     }
