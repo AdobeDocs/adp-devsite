@@ -280,4 +280,85 @@
 .qadashboard__issue-text {
   color: var(--spectrum-global-color-gray-800, #333);
   word-break: break-word;
+  flex: 1;
+}
+
+.qadashboard__issue-links {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.qadashboard__issue-links a {
+  color: #0070f3;
+  text-decoration: none;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid #0070f3;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.qadashboard__issue-links a:hover {
+  background: #0070f3;
+  color: #fff;
+}
+
+/* Overview table */
+.qadashboard__overview {
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--spectrum-global-color-gray-300, #ccc);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.qadashboard__overview-heading {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  padding: 0.6rem 1rem;
+  background: var(--spectrum-global-color-gray-100, #f5f5f5);
+  border-bottom: 1px solid var(--spectrum-global-color-gray-300, #ccc);
+}
+
+.qadashboard__overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.qadashboard__overview-row {
+  border-bottom: 1px solid var(--spectrum-global-color-gray-200, #eee);
+}
+
+.qadashboard__overview-row:last-child {
+  border-bottom: none;
+}
+
+.qadashboard__overview-row td {
+  padding: 0.5rem 1rem;
+  vertical-align: middle;
+}
+
+.qadashboard__overview-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--spectrum-global-color-gray-900, #222);
+}
+
+.qadashboard__overview-ts {
+  font-size: 12px;
+  color: var(--spectrum-global-color-gray-700, #555);
+  white-space: nowrap;
+}
+
+.qadashboard__overview-suite {
+  font-size: 12px;
+  color: var(--spectrum-global-color-gray-700, #555);
+}
+
+.qadashboard__btn--xs {
+  padding: 0.25rem 0.6rem;
+  font-size: 12px;
 }

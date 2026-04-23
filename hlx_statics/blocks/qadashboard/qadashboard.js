@@ -2,10 +2,19 @@ const REPO = 'AdobeDocs/adp-devsite-github-actions-test';
 const RESULTS_BRANCH = 'main';
 const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/qa-run.yml`;
 const LS_KEY = 'qadashboard_params';
+const PROD_BASE = 'https://developer.adobe.com';
+const STAGE_BASE = 'https://developer-stage.adobe.com';
 
 async function loadResults(pathPrefix) {
   const path = `tools/qa/results${pathPrefix}/latest.json`;
   const url = `https://raw.githubusercontent.com/${REPO}/${RESULTS_BRANCH}/${path}?_=${Date.now()}`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function loadIndex() {
+  const url = `https://raw.githubusercontent.com/${REPO}/${RESULTS_BRANCH}/tools/qa/results/index.json?_=${Date.now()}`;
   const res = await fetch(url);
   if (!res.ok) return null;
   return res.json();
@@ -31,6 +40,70 @@ function saveParams(params) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(params));
   } catch { /* ignore */ }
+}
+
+// Split "path — description" issue text into its parts.
+function parseIssuePath(text) {
+  const sep = ' — ';
+  const idx = text.indexOf(sep);
+  if (idx > 0) {
+    const candidate = text.slice(0, idx);
+    if (candidate.startsWith('/')) return { path: candidate, desc: text.slice(idx + sep.length) };
+  }
+  if (text.startsWith('/')) return { path: text, desc: '' };
+  return { path: null, desc: text };
+}
+
+function renderOverview(container, index, onLoad) {
+  container.innerHTML = '';
+  if (!index || !index.length) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = '';
+
+  const heading = document.createElement('h3');
+  heading.className = 'qadashboard__overview-heading';
+  heading.textContent = 'All Path Prefixes';
+  container.append(heading);
+
+  const table = document.createElement('table');
+  table.className = 'qadashboard__overview-table';
+
+  for (const entry of index) {
+    const tr = document.createElement('tr');
+    tr.className = 'qadashboard__overview-row';
+
+    const tdPath = document.createElement('td');
+    tdPath.className = 'qadashboard__overview-path';
+    tdPath.textContent = entry.path_prefix;
+
+    const tdTs = document.createElement('td');
+    tdTs.className = 'qadashboard__overview-ts';
+    tdTs.textContent = new Date(entry.timestamp).toLocaleString();
+
+    const tdStatus = document.createElement('td');
+    const passed = entry.status === 'passed';
+    const badge = document.createElement('span');
+    badge.className = `qadashboard__badge ${passed ? 'qadashboard__badge--pass' : 'qadashboard__badge--fail'}`;
+    badge.textContent = passed ? '✓ Passed' : '✗ Failed';
+    tdStatus.append(badge);
+
+    const tdSuite = document.createElement('td');
+    tdSuite.className = 'qadashboard__overview-suite';
+    tdSuite.textContent = entry.suite;
+
+    const tdAction = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.className = 'qadashboard__btn qadashboard__btn--secondary qadashboard__btn--xs';
+    btn.textContent = 'Load';
+    btn.addEventListener('click', () => onLoad(entry.path_prefix));
+    tdAction.append(btn);
+
+    tr.append(tdPath, tdTs, tdStatus, tdSuite, tdAction);
+    table.append(tr);
+  }
+  container.append(table);
 }
 
 function renderResults(container, results) {
@@ -107,13 +180,39 @@ function renderResults(container, results) {
     for (const { key, text } of allIssues) {
       const li = document.createElement('li');
       li.className = 'qadashboard__issue-item';
+
       const suite = document.createElement('span');
       suite.className = 'qadashboard__issue-suite';
       suite.textContent = key;
+
+      const { path, desc } = parseIssuePath(text);
+
       const msg = document.createElement('span');
       msg.className = 'qadashboard__issue-text';
-      msg.textContent = text;
+      msg.textContent = path ? `${path}${desc ? ' — ' + desc : ''}` : text;
+
       li.append(suite, msg);
+
+      if (path) {
+        const links = document.createElement('span');
+        links.className = 'qadashboard__issue-links';
+
+        const prodLink = document.createElement('a');
+        prodLink.href = `${PROD_BASE}${path}`;
+        prodLink.target = '_blank';
+        prodLink.rel = 'noopener noreferrer';
+        prodLink.textContent = 'prod';
+
+        const stageLink = document.createElement('a');
+        stageLink.href = `${STAGE_BASE}${path}`;
+        stageLink.target = '_blank';
+        stageLink.rel = 'noopener noreferrer';
+        stageLink.textContent = 'stage';
+
+        links.append(prodLink, ' · ', stageLink);
+        li.append(links);
+      }
+
       ul.append(li);
     }
     section.append(ul);
@@ -138,6 +237,12 @@ export default async function decorate(block) {
   heading.className = 'qadashboard__heading';
   heading.textContent = 'QA Dashboard — Prod vs Stage';
   block.append(heading);
+
+  // --- Overview (all path prefixes) ---
+  const overviewContainer = document.createElement('div');
+  overviewContainer.className = 'qadashboard__overview';
+  overviewContainer.style.display = 'none';
+  block.append(overviewContainer);
 
   // --- Run parameters form ---
   const saved = loadSavedParams();
@@ -230,7 +335,6 @@ export default async function decorate(block) {
     threshLabel.style.display = show ? '' : 'none';
   }
 
-  // Persist params on change
   function onParamChange() {
     const params = {
       path_prefix: pathInput.value.trim(),
@@ -276,6 +380,19 @@ export default async function decorate(block) {
     }
   }
 
+  function loadPrefix(prefix) {
+    pathInput.value = prefix;
+    onParamChange();
+    refresh();
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   refreshBtn.addEventListener('click', refresh);
-  refresh();
+
+  // Load overview index and per-prefix results in parallel
+  const [, index] = await Promise.all([
+    refresh(),
+    loadIndex(),
+  ]);
+  renderOverview(overviewContainer, index, loadPrefix);
 }
