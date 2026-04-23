@@ -42,15 +42,16 @@ function saveParams(params) {
   } catch { /* ignore */ }
 }
 
-// Split "path — description" issue text into its parts.
+// Split issue text into path and description.
+// Handles both "/path — desc" and "suite: /path — desc" formats.
 function parseIssuePath(text) {
   const sep = ' — ';
   const idx = text.indexOf(sep);
-  if (idx > 0) {
-    const candidate = text.slice(0, idx);
-    if (candidate.startsWith('/')) return { path: candidate, desc: text.slice(idx + sep.length) };
-  }
-  if (text.startsWith('/')) return { path: text, desc: '' };
+  const before = idx > 0 ? text.slice(0, idx) : text;
+  const desc = idx > 0 ? text.slice(idx + sep.length) : '';
+  // Path is either the whole token (starts with /) or after "suite: "
+  const pathMatch = before.match(/(?:^|:\s)(\/\S+)$/);
+  if (pathMatch) return { path: pathMatch[1], desc };
   return { path: null, desc: text };
 }
 
