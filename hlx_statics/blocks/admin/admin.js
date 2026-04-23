@@ -118,6 +118,39 @@ function appendDevsitepathsMatchNote(parent, row) {
 }
 
 /**
+ * @param {{ href: string }[]} entries
+ * @returns {Set<string>}
+ */
+function buildSitemapPathnameSet(entries) {
+  const set = new Set();
+  for (const { href } of entries) {
+    try {
+      set.add(normalizePathForMatch(new URL(href).pathname));
+    } catch {
+      /* skip */
+    }
+  }
+  return set;
+}
+
+/**
+ * True if another sitemap pathname lives strictly under this path (treat URL as folder → `index.md`).
+ * @param {string} pathnameNorm
+ * @param {Set<string>} sitemapPathnames
+ */
+function pathnameIsSitemapFolderUrl(pathnameNorm, sitemapPathnames) {
+  for (const p of sitemapPathnames) {
+    if (p === pathnameNorm) continue;
+    if (pathnameNorm === '/') {
+      if (p.length > 1 && p.startsWith('/')) return true;
+      continue;
+    }
+    if (p.startsWith(`${pathnameNorm}/`)) return true;
+  }
+  return false;
+}
+
+/**
  * Longest devsitepaths `pathPrefix` in `crossRefSet` that matches this page pathname (parent + all children).
  * @param {string} pageHref
  * @param {Map<string, object>} devsiteLookup
@@ -147,13 +180,15 @@ function findDevsiteCrossRefForPageHref(pageHref, devsiteLookup, crossRefSet) {
 
 /**
  * GitHub edit URL for the markdown under `src/pages/` (pathPrefix from JSON maps to that folder).
- * Example: `/journey-optimizer-b2b-apis/callback-response` → `…/edit/main/src/pages/callback-response.md`
+ * Leaf pages: `…/segment.md`. Folder URLs (another sitemap path below this one): `…/segment/index.md`.
+ * Section root (pathname equals pathPrefix): `index.md`.
  * @param {object} row devsitepaths row (`owner`, `repo`)
  * @param {string} pageHref
  * @param {string} matchedPrefixNorm normalized pathPrefix that matched (longest)
+ * @param {Set<string>} sitemapPathnames pathnames in the currently rendered sitemap slice
  * @returns {string|null}
  */
-function githubEditSrcPageMdUrl(row, pageHref, matchedPrefixNorm) {
+function githubEditSrcPageMdUrl(row, pageHref, matchedPrefixNorm, sitemapPathnames) {
   const owner = typeof row.owner === 'string' ? row.owner.trim() : '';
   const repoName = typeof row.repo === 'string' ? row.repo.trim() : '';
   if (!owner || !repoName) return null;
@@ -169,8 +204,15 @@ function githubEditSrcPageMdUrl(row, pageHref, matchedPrefixNorm) {
   }
   const rest = pathname === prefix ? '' : pathname.slice(prefix.length).replace(/^\/+/, '');
   const rel = rest.split('/').filter(Boolean).join('/');
-  const mdStem = rel || 'index';
-  const mdPath = `${mdStem.split('/').map((seg) => encodeURIComponent(seg)).join('/')}.md`;
+  const enc = (pathStr) => pathStr.split('/').filter(Boolean).map((seg) => encodeURIComponent(seg)).join('/');
+  let mdPath;
+  if (!rel) {
+    mdPath = 'index.md';
+  } else if (pathnameIsSitemapFolderUrl(pathname, sitemapPathnames)) {
+    mdPath = `${enc(rel)}/index.md`;
+  } else {
+    mdPath = `${enc(rel)}.md`;
+  }
   return `https://github.com/${owner}/${repoName}/edit/main/src/pages/${mdPath}`;
 }
 
@@ -179,12 +221,13 @@ function githubEditSrcPageMdUrl(row, pageHref, matchedPrefixNorm) {
  * @param {string} pageHref
  * @param {Map<string, object>} devsiteLookup
  * @param {Set<string>} crossRefSet
+ * @param {Set<string>} sitemapPathnames
  * @returns {HTMLAnchorElement|null}
  */
-function createGithubSrcPagesGearLink(pageHref, devsiteLookup, crossRefSet) {
+function createGithubSrcPagesGearLink(pageHref, devsiteLookup, crossRefSet, sitemapPathnames) {
   const hit = findDevsiteCrossRefForPageHref(pageHref, devsiteLookup, crossRefSet);
   if (!hit) return null;
-  const url = githubEditSrcPageMdUrl(hit.row, pageHref, hit.prefix);
+  const url = githubEditSrcPageMdUrl(hit.row, pageHref, hit.prefix, sitemapPathnames);
   if (!url) return null;
   const a = document.createElement('a');
   a.href = url;
@@ -574,9 +617,10 @@ function appendHighlightedText(parent, text, rawQuery) {
  * @param {string} highlightQuery same as filter query (substrings highlighted in URL / date labels)
  * @param {Map<string, object>} devsiteLookup normalized pathPrefix → devsitepaths row
  * @param {Set<string>} crossRefSet pathPrefixes that appear in devsitepaths and sitemap
+ * @param {Set<string>} sitemapPathnames normalized pathnames in the current tree’s entry list
  * @returns {HTMLElement}
  */
-function buildUrlList(urlEntries, highlightQuery, devsiteLookup, crossRefSet) {
+function buildUrlList(urlEntries, highlightQuery, devsiteLookup, crossRefSet, sitemapPathnames) {
   const hq = highlightQuery ?? '';
   if (urlEntries.length === 1) {
     const { href, lastmod } = urlEntries[0];
@@ -587,7 +631,7 @@ function buildUrlList(urlEntries, highlightQuery, devsiteLookup, crossRefSet) {
     a.className = 'admin-site-tree__link admin-site-tree__link--solo';
     appendHighlightedText(a, href, hq);
     line.append(a);
-    const gear = createGithubSrcPagesGearLink(href, devsiteLookup, crossRefSet);
+    const gear = createGithubSrcPagesGearLink(href, devsiteLookup, crossRefSet, sitemapPathnames);
     if (lastmod) {
       const t = document.createElement('time');
       t.className = 'admin-site-tree__lastmod';
@@ -618,7 +662,7 @@ function buildUrlList(urlEntries, highlightQuery, devsiteLookup, crossRefSet) {
     a.className = 'admin-site-tree__link';
     appendHighlightedText(a, href, hq);
     urlLi.append(a);
-    const gear = createGithubSrcPagesGearLink(href, devsiteLookup, crossRefSet);
+    const gear = createGithubSrcPagesGearLink(href, devsiteLookup, crossRefSet, sitemapPathnames);
     if (lastmod) {
       const t = document.createElement('time');
       t.className = 'admin-site-tree__lastmod';
@@ -649,8 +693,9 @@ function buildUrlList(urlEntries, highlightQuery, devsiteLookup, crossRefSet) {
  * @param {Set<string>} crossRefSet normalized pathPrefixes present in devsitepaths and sitemap
  * @param {Map<string, object>} devsiteLookup normalized pathPrefix → row
  * @param {string} highlightQuery filter text for <mark> highlights
+ * @param {Set<string>} sitemapPathnames
  */
-function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, highlightQuery) {
+function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, highlightQuery, sitemapPathnames) {
   const hq = highlightQuery ?? '';
   const childKeys = Object.keys(node).filter((k) => k !== '_urls').sort((a, b) => a.localeCompare(b));
 
@@ -660,7 +705,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
     const pathForRow = normalizePathForMatch(parentPath || '/');
 
     const n = node._urls.length;
-    const links = buildUrlList(node._urls, hq, devsiteLookup, crossRefSet);
+    const links = buildUrlList(node._urls, hq, devsiteLookup, crossRefSet, sitemapPathnames);
     if (n > 1) {
       const header = document.createElement('div');
       header.className = 'admin-site-tree__urls-header';
@@ -708,7 +753,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       details.append(summary);
       const nestedUl = document.createElement('ul');
       nestedUl.className = 'admin-site-tree__branch';
-      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup, hq);
+      renderPathNodeToList(child, nestedUl, fullPath, crossRefSet, devsiteLookup, hq, sitemapPathnames);
       details.append(nestedUl);
       li.append(details);
     } else {
@@ -737,7 +782,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       }
       wrap.append(row);
       if (child._urls?.length) {
-        wrap.append(buildUrlList(child._urls, hq, devsiteLookup, crossRefSet));
+        wrap.append(buildUrlList(child._urls, hq, devsiteLookup, crossRefSet, sitemapPathnames));
       }
       li.append(wrap);
     }
@@ -750,12 +795,13 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
  * @param {Set<string>} crossRefSet
  * @param {Map<string, object>} devsiteLookup
  * @param {string} highlightQuery
+ * @param {Set<string>} sitemapPathnames
  * @returns {HTMLUListElement}
  */
-function renderPathTree(root, crossRefSet, devsiteLookup, highlightQuery) {
+function renderPathTree(root, crossRefSet, devsiteLookup, highlightQuery, sitemapPathnames) {
   const ul = document.createElement('ul');
   ul.className = 'admin-site-tree__branch admin-site-tree__branch--root';
-  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup, highlightQuery);
+  renderPathNodeToList(root, ul, '', crossRefSet, devsiteLookup, highlightQuery, sitemapPathnames);
   return ul;
 }
 
@@ -850,7 +896,8 @@ export default async function decorate(block) {
         return;
       }
       const tree = buildPathTreeFromSitemapEntries(list);
-      treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery));
+      const sitemapPathnames = buildSitemapPathnameSet(list);
+      treeMount.append(renderPathTree(tree, crossRefSet, devsiteLookup, highlightQuery, sitemapPathnames));
       const q = (highlightQuery || '').trim();
       if (q) {
         treeMount.querySelectorAll('details.admin-site-tree__node').forEach((d) => {
