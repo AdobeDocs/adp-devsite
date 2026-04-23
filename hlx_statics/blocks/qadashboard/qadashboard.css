@@ -309,11 +309,11 @@
   transition: opacity 0.15s;
 }
 
-.qadashboard__issue-links a:first-child {
+.qadashboard__issue-links a:first-of-type {
   background: #1473e6;
 }
 
-.qadashboard__issue-links a:last-child {
+.qadashboard__issue-links a:last-of-type {
   background: #e68619;
 }
 
