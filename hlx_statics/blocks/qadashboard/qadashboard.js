@@ -39,7 +39,7 @@ function renderResults(container, results) {
   if (!results || !results.timestamp) {
     const p = document.createElement('p');
     p.className = 'qadashboard__empty';
-    p.textContent = results?.message || 'No results yet. Trigger a run on GitHub Actions.';
+    p.textContent = results?.message || 'Enter a path prefix above and click Refresh to load results.';
     container.append(p);
     return;
   }
@@ -247,11 +247,19 @@ export default async function decorate(block) {
   updateThresholdVisibility();
 
   async function refresh() {
+    const prefix = pathInput.value.trim();
+    if (!prefix) {
+      renderResults(resultsContainer, null);
+      statusEl.textContent = '';
+      statusEl.className = 'qadashboard__status';
+      refreshBtn.disabled = false;
+      return;
+    }
     refreshBtn.disabled = true;
     statusEl.className = 'qadashboard__status qadashboard__status--running';
     statusEl.textContent = 'Loading results…';
     try {
-      const results = await loadResults(pathInput.value.trim() || '/');
+      const results = await loadResults(prefix);
       // sync form fields to match what was actually last run
       if (results?.path_prefix) pathInput.value = results.path_prefix;
       if (results?.suite) suiteSelect.value = results.suite;
