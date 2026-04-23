@@ -198,19 +198,23 @@ function renderResults(container, results) {
         const links = document.createElement('span');
         links.className = 'qadashboard__issue-links';
 
+        const label = document.createElement('span');
+        label.className = 'qadashboard__issue-links-label';
+        label.textContent = 'Open:';
+
         const prodLink = document.createElement('a');
         prodLink.href = `${PROD_BASE}${path}`;
         prodLink.target = '_blank';
         prodLink.rel = 'noopener noreferrer';
-        prodLink.textContent = 'prod';
+        prodLink.textContent = '↗ Prod';
 
         const stageLink = document.createElement('a');
         stageLink.href = `${STAGE_BASE}${path}`;
         stageLink.target = '_blank';
         stageLink.rel = 'noopener noreferrer';
-        stageLink.textContent = 'stage';
+        stageLink.textContent = '↗ Stage';
 
-        links.append(prodLink, ' · ', stageLink);
+        links.append(label, prodLink, stageLink);
         li.append(links);
       }
 
