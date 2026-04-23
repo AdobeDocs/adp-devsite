@@ -118,12 +118,42 @@ function appendDevsitepathsMatchNote(parent, row) {
 }
 
 /**
- * GitHub `tree/…/src/pages/…` URL for a sitemap page from a devsitepaths row.
- * @param {object} row devsitepaths row (`owner`, `repo`, `pathPrefix`)
- * @param {string} pageHref sitemap entry URL
+ * Longest devsitepaths `pathPrefix` in `crossRefSet` that matches this page pathname (parent + all children).
+ * @param {string} pageHref
+ * @param {Map<string, object>} devsiteLookup
+ * @param {Set<string>} crossRefSet
+ * @returns {{ row: object, prefix: string }|null}
+ */
+function findDevsiteCrossRefForPageHref(pageHref, devsiteLookup, crossRefSet) {
+  let pathname;
+  try {
+    pathname = normalizePathForMatch(new URL(pageHref).pathname);
+  } catch {
+    return null;
+  }
+  let bestPrefix = '';
+  let bestRow = null;
+  for (const prefixRaw of crossRefSet) {
+    const prefix = normalizePathForMatch(prefixRaw);
+    if (!(pathname === prefix || pathname.startsWith(`${prefix}/`))) continue;
+    if (prefix.length <= bestPrefix.length) continue;
+    const row = devsiteLookup.get(prefix);
+    if (!row) continue;
+    bestPrefix = prefix;
+    bestRow = row;
+  }
+  return bestRow && bestPrefix ? { row: bestRow, prefix: bestPrefix } : null;
+}
+
+/**
+ * GitHub edit URL for the markdown under `src/pages/` (pathPrefix from JSON maps to that folder).
+ * Example: `/journey-optimizer-b2b-apis/callback-response` → `…/edit/main/src/pages/callback-response.md`
+ * @param {object} row devsitepaths row (`owner`, `repo`)
+ * @param {string} pageHref
+ * @param {string} matchedPrefixNorm normalized pathPrefix that matched (longest)
  * @returns {string|null}
  */
-function githubSrcPagesTreeUrlFromRow(row, pageHref) {
+function githubEditSrcPageMdUrl(row, pageHref, matchedPrefixNorm) {
   const owner = typeof row.owner === 'string' ? row.owner.trim() : '';
   const repoName = typeof row.repo === 'string' ? row.repo.trim() : '';
   if (!owner || !repoName) return null;
@@ -133,33 +163,36 @@ function githubSrcPagesTreeUrlFromRow(row, pageHref) {
   } catch {
     return null;
   }
-  const prefix = normalizePathForMatch(row.pathPrefix);
+  const prefix = normalizePathForMatch(matchedPrefixNorm);
   if (!(pathname === prefix || pathname.startsWith(`${prefix}/`))) {
     return null;
   }
   const rest = pathname === prefix ? '' : pathname.slice(prefix.length).replace(/^\/+/, '');
-  const tail = rest
-    ? `/${rest.split('/').filter(Boolean).map((seg) => encodeURIComponent(seg)).join('/')}`
-    : '';
-  return `https://github.com/${owner}/${repoName}/tree/main/src/pages${tail}`;
+  const rel = rest.split('/').filter(Boolean).join('/');
+  const mdStem = rel || 'index';
+  const mdPath = `${mdStem.split('/').map((seg) => encodeURIComponent(seg)).join('/')}.md`;
+  return `https://github.com/${owner}/${repoName}/edit/main/src/pages/${mdPath}`;
 }
 
 /**
- * Small gear control linking to repo `src/pages` tree for this URL (devsitepaths match only).
- * @param {object} row
+ * Gear linking to GitHub edit for this page’s `src/pages/…md` (any URL under a cross-matched pathPrefix).
  * @param {string} pageHref
+ * @param {Map<string, object>} devsiteLookup
+ * @param {Set<string>} crossRefSet
  * @returns {HTMLAnchorElement|null}
  */
-function createGithubSrcPagesGearLink(row, pageHref) {
-  const url = githubSrcPagesTreeUrlFromRow(row, pageHref);
+function createGithubSrcPagesGearLink(pageHref, devsiteLookup, crossRefSet) {
+  const hit = findDevsiteCrossRefForPageHref(pageHref, devsiteLookup, crossRefSet);
+  if (!hit) return null;
+  const url = githubEditSrcPageMdUrl(hit.row, pageHref, hit.prefix);
   if (!url) return null;
   const a = document.createElement('a');
   a.href = url;
   a.className = 'admin-site-tree__github-gear';
   a.target = '_blank';
   a.rel = 'noopener noreferrer';
-  a.title = `Markdown source on GitHub (src/pages) for this URL`;
-  a.setAttribute('aria-label', `View src/pages on GitHub for this page`);
+  a.title = url;
+  a.setAttribute('aria-label', 'Edit this page’s markdown on GitHub');
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '14');
   svg.setAttribute('height', '14');
@@ -539,12 +572,12 @@ function appendHighlightedText(parent, text, rawQuery) {
 /**
  * @param {SitemapPageEntry[]} urlEntries
  * @param {string} highlightQuery same as filter query (substrings highlighted in URL / date labels)
- * @param {object|null|undefined} devsiteRow devsitepaths row when this tree path is cross-matched
+ * @param {Map<string, object>} devsiteLookup normalized pathPrefix → devsitepaths row
+ * @param {Set<string>} crossRefSet pathPrefixes that appear in devsitepaths and sitemap
  * @returns {HTMLElement}
  */
-function buildUrlList(urlEntries, highlightQuery, devsiteRow) {
+function buildUrlList(urlEntries, highlightQuery, devsiteLookup, crossRefSet) {
   const hq = highlightQuery ?? '';
-  const row = devsiteRow || null;
   if (urlEntries.length === 1) {
     const { href, lastmod } = urlEntries[0];
     const line = document.createElement('span');
@@ -554,6 +587,7 @@ function buildUrlList(urlEntries, highlightQuery, devsiteRow) {
     a.className = 'admin-site-tree__link admin-site-tree__link--solo';
     appendHighlightedText(a, href, hq);
     line.append(a);
+    const gear = createGithubSrcPagesGearLink(href, devsiteLookup, crossRefSet);
     if (lastmod) {
       const t = document.createElement('time');
       t.className = 'admin-site-tree__lastmod';
@@ -561,19 +595,16 @@ function buildUrlList(urlEntries, highlightQuery, devsiteRow) {
       const shown = formatLastmodDisplay(lastmod);
       appendHighlightedText(t, shown, hq);
       t.title = `Last modified: ${lastmod}`;
-      if (row) {
+      if (gear) {
         const meta = document.createElement('span');
         meta.className = 'admin-site-tree__url-meta';
-        meta.append(t);
-        const gear = createGithubSrcPagesGearLink(row, href);
-        if (gear) meta.append(gear);
+        meta.append(t, gear);
         line.append(meta);
       } else {
         line.append(t);
       }
-    } else if (row) {
-      const gear = createGithubSrcPagesGearLink(row, href);
-      if (gear) line.append(gear);
+    } else if (gear) {
+      line.append(gear);
     }
     return line;
   }
@@ -587,6 +618,7 @@ function buildUrlList(urlEntries, highlightQuery, devsiteRow) {
     a.className = 'admin-site-tree__link';
     appendHighlightedText(a, href, hq);
     urlLi.append(a);
+    const gear = createGithubSrcPagesGearLink(href, devsiteLookup, crossRefSet);
     if (lastmod) {
       const t = document.createElement('time');
       t.className = 'admin-site-tree__lastmod';
@@ -594,19 +626,16 @@ function buildUrlList(urlEntries, highlightQuery, devsiteRow) {
       const shown = formatLastmodDisplay(lastmod);
       appendHighlightedText(t, shown, hq);
       t.title = `Last modified: ${lastmod}`;
-      if (row) {
+      if (gear) {
         const meta = document.createElement('span');
         meta.className = 'admin-site-tree__url-meta';
-        meta.append(t);
-        const gear = createGithubSrcPagesGearLink(row, href);
-        if (gear) meta.append(gear);
+        meta.append(t, gear);
         urlLi.append(meta);
       } else {
         urlLi.append(t);
       }
-    } else if (row) {
-      const gear = createGithubSrcPagesGearLink(row, href);
-      if (gear) urlLi.append(gear);
+    } else if (gear) {
+      urlLi.append(gear);
     }
     linkUl.append(urlLi);
   }
@@ -629,12 +658,9 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
     const li = document.createElement('li');
     li.className = 'admin-site-tree__urls-row';
     const pathForRow = normalizePathForMatch(parentPath || '/');
-    const devsiteRowForUrls = crossRefSet.has(pathForRow) && devsiteLookup.has(pathForRow)
-      ? devsiteLookup.get(pathForRow)
-      : null;
 
     const n = node._urls.length;
-    const links = buildUrlList(node._urls, hq, devsiteRowForUrls);
+    const links = buildUrlList(node._urls, hq, devsiteLookup, crossRefSet);
     if (n > 1) {
       const header = document.createElement('div');
       header.className = 'admin-site-tree__urls-header';
@@ -711,7 +737,7 @@ function renderPathNodeToList(node, ul, parentPath, crossRefSet, devsiteLookup, 
       }
       wrap.append(row);
       if (child._urls?.length) {
-        wrap.append(buildUrlList(child._urls, hq, showDevsiteNote ? devsiteRow : null));
+        wrap.append(buildUrlList(child._urls, hq, devsiteLookup, crossRefSet));
       }
       li.append(wrap);
     }
