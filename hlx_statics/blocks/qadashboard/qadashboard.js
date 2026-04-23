@@ -225,7 +225,12 @@ export default async function decorate(block) {
   resultsContainer.className = 'qadashboard__results';
   block.append(resultsContainer);
 
-  // Persist params on change and update hint
+  function updateThresholdVisibility() {
+    const show = suiteSelect.value === 'all' || suiteSelect.value === 'visual';
+    threshLabel.style.display = show ? '' : 'none';
+  }
+
+  // Persist params on change
   function onParamChange() {
     const params = {
       path_prefix: pathInput.value.trim(),
@@ -233,11 +238,13 @@ export default async function decorate(block) {
       threshold: threshInput.value,
     };
     saveParams(params);
+    updateThresholdVisibility();
   }
 
   pathInput.addEventListener('input', onParamChange);
   suiteSelect.addEventListener('change', onParamChange);
   threshInput.addEventListener('input', onParamChange);
+  updateThresholdVisibility();
 
   async function refresh() {
     refreshBtn.disabled = true;
