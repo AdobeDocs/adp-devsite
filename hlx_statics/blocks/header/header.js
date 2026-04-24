@@ -219,6 +219,8 @@ async function initSearch() {
           searchResults.style.visibility = "hidden";
         }
         searchCleared = true; // Mark that search was cleared
+        const summarySection = document.querySelector('.ai-summary-section');
+        if (summarySection) summarySection.style.display = 'none';
         toggleClearButton(); // Update clear button visibility after clearing
       });
     }, render() {}, };
@@ -421,6 +423,33 @@ async function initSearch() {
     });
   }
 
+  async function fetchAiSummary(query, hits) {
+    const section = document.querySelector('.ai-summary-section');
+    if (!section) return;
+    const loadingEl = section.querySelector('.ai-summary-loading');
+    const textEl = section.querySelector('.ai-summary-text');
+
+    textEl.textContent = '';
+    section.style.display = 'block';
+    loadingEl.style.display = 'flex';
+
+    try {
+      // LOCAL DEV: points to local-server.js — replace with I/O Runtime URL when deploying
+      const resp = await fetch('http://localhost:3002', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, hits }),
+      });
+      const data = await resp.json();
+      console.log('[ai-summary] response:', data);
+      textEl.textContent = data.summary;
+    } catch (e) {
+      section.style.display = 'none';
+    } finally {
+      loadingEl.style.display = 'none';
+    }
+  }
+
   // Function that sorts results and makes the custom html for each result
   function renderMergedResults() {
     const container = document.querySelector('.merged-results');
@@ -437,6 +466,27 @@ async function initSearch() {
 
     // figure out which products have at least one hit
     const productsWithResults = new Set(productGroupedResults.keys());
+
+    // AI Summary: only fire in Local Search (exactly one product index active)
+    const isLocalSearch = productsWithResults.size === 1;
+    const aiQuery = document.querySelector('#search-box input')?.value || '';
+    const aiSummarySection = document.querySelector('.ai-summary-section');
+    if (isLocalSearch) {
+      const topHits = [];
+      results.forEach((value, key) => {
+        if (topHits.length < 5) {
+          topHits.push({
+            title: key.replace(/<[^>]+>/g, ''),
+            url: value.url,
+            content: value.content.replace(/<[^>]+>/g, ''),
+            product: value.product,
+          });
+        }
+      });
+      fetchAiSummary(aiQuery, topHits);
+    } else if (aiSummarySection) {
+      aiSummarySection.style.display = 'none';
+    }
 
     // hide/show checkboxes based on current results + mode
     updateCheckboxVisibility(productsWithResults);
@@ -604,6 +654,13 @@ const globalNavSearchDropDown = () => {
     </div>
 
     <div class="search-results">
+      <div class="ai-summary-section" style="display:none;">
+        <div class="ai-summary-loading" style="display:none;">
+          <div class="ai-summary-spinner"></div>
+          <span>Generating summary…</span>
+        </div>
+        <div class="ai-summary-text"></div>
+      </div>
       <div class="search-refinement" daa-lh="search-refinement">
         <h4 class="spectrum-Heading spectrum-Heading--sizeXS filter-heading">Filter by Products</h4>
         <div class="filters"></div>
@@ -1073,34 +1130,34 @@ export default async function decorate(block) {
     }
 
     // check if documentation template then retrieve from config otherwise default back to google drive path
-    let navPath;
-    if (IS_DEV_DOCS) {
-      const topNavHtml = await fetchTopNavHtml();
-      if (topNavHtml) {
-        navigationLinks.innerHTML += topNavHtml;
-      }
-    } else {
-      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin,'nav');
-      let fragment = await loadFragment(navPath);
-      if (fragment == null) {
-        // load the default nav in franklin_assets folder nav
-        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
-      }
-      const ul = fragment.querySelector("ul");
-      ul.classList.add("menu");
-      ul.setAttribute("id", "navigation-links");
-      fragment.querySelectorAll("li").forEach((li, index) => {
-        if (index == 0) {
-          if (isTopLevelNav(window.location.pathname)) {
-            const homeLink = ul.querySelector('li:nth-child(1)');
-            homeLink.className = 'navigation-home';
-          } else {
-            li.classList.add("navigation-products");
-          }
-        }
-      });
-      navigationLinks = ul;
-    }
+    // let navPath;
+    // if (IS_DEV_DOCS) {
+    //   const topNavHtml = await fetchTopNavHtml();
+    //   if (topNavHtml) {
+    //     navigationLinks.innerHTML += topNavHtml;
+    //   }
+    // } else {
+    //   navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin,'nav');
+    //   let fragment = await loadFragment(navPath);
+    //   if (fragment == null) {
+    //     // load the default nav in franklin_assets folder nav
+    //     fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+    //   }
+    //   const ul = fragment.querySelector("ul");
+    //   ul.classList.add("menu");
+    //   ul.setAttribute("id", "navigation-links");
+    //   fragment.querySelectorAll("li").forEach((li, index) => {
+    //     if (index == 0) {
+    //       if (isTopLevelNav(window.location.pathname)) {
+    //         const homeLink = ul.querySelector('li:nth-child(1)');
+    //         homeLink.className = 'navigation-home';
+    //       } else {
+    //         li.classList.add("navigation-products");
+    //       }
+    //     }
+    //   });
+    //   navigationLinks = ul;
+    // }
 
     navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
       let dropdownLinkDropdownHTML = '';
