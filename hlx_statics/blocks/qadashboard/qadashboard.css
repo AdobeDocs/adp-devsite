@@ -88,15 +88,6 @@
   margin-bottom: 1rem;
 }
 
-.qadashboard__branch {
-  font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: var(--spectrum-global-color-gray-700, #555);
-  background: var(--spectrum-global-color-gray-100, #f5f5f5);
-  border: 1px solid var(--spectrum-global-color-gray-300, #ccc);
-  border-radius: 4px;
-  padding: 0.2rem 0.5rem;
-}
 
 .qadashboard__actions {
   display: flex;
