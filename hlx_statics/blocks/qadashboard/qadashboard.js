@@ -389,7 +389,6 @@ export default async function decorate(block) {
     pathInput.value = prefix;
     onParamChange();
     refresh();
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   refreshBtn.addEventListener('click', refresh);
