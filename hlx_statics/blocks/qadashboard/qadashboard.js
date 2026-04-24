@@ -187,10 +187,13 @@ function renderResults(container, results) {
       const prompt = [
         `I ran QA tests on the Adobe Developer site for path prefix "${results.path_prefix}" (suite: ${results.suite}, run: ${new Date(results.timestamp).toLocaleString()}).`,
         '',
+        'The site is built on Adobe Experience Manager Edge Delivery Services (AEM EDS). The dev-docs reference for authoring conventions, block structure, and expected page patterns is at:',
+        'https://developer-stage.adobe.com/dev-docs-reference/',
+        '',
         'These issues were found comparing prod vs stage:',
         ...allIssues.map((t) => `- ${t}`),
         '',
-        'For each issue, explain what is likely wrong and suggest how to fix it.',
+        'Using the dev-docs reference as context, explain what is likely wrong for each issue and suggest how to fix it.',
       ].join('\n');
 
       const analyzeLink = document.createElement('a');
