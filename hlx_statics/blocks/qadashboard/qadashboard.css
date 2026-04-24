@@ -125,6 +125,13 @@
   background: var(--spectrum-global-color-gray-300, #d0d0d0);
 }
 
+.qadashboard__btn--analyze {
+  background: #6b21a8;
+  color: #fff;
+}
+
+.qadashboard__btn--analyze:hover { background: #581c87; color: #fff; }
+
 .qadashboard__btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

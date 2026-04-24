@@ -145,6 +145,29 @@ function renderResults(container, results) {
     header.append(reportLink);
   }
 
+  if (!passed) {
+    const allIssues = Object.entries(results.suites || {})
+      .flatMap(([key, s]) => (s.issues || []).map((text) => `[${key}] ${text}`));
+    if (allIssues.length) {
+      const prompt = [
+        `I ran QA tests on the Adobe Developer site for path prefix "${results.path_prefix}" (suite: ${results.suite}, run: ${new Date(results.timestamp).toLocaleString()}).`,
+        '',
+        'These issues were found comparing prod vs stage:',
+        ...allIssues.map((t) => `- ${t}`),
+        '',
+        'For each issue, explain what is likely wrong and suggest how to fix it.',
+      ].join('\n');
+
+      const analyzeLink = document.createElement('a');
+      analyzeLink.className = 'qadashboard__btn qadashboard__btn--analyze';
+      analyzeLink.href = `https://claude.ai/new?q=${encodeURIComponent(prompt)}`;
+      analyzeLink.target = '_blank';
+      analyzeLink.rel = 'noopener noreferrer';
+      analyzeLink.textContent = '✦ Analyze with Claude';
+      header.append(analyzeLink);
+    }
+  }
+
   container.append(header);
 
   const cards = document.createElement('div');
