@@ -93,9 +93,10 @@ function renderOverview(container, index, onLoad) {
 
     const tdStatus = document.createElement('td');
     const passed = entry.status === 'passed';
+    const errored = entry.status === 'error';
     const badge = document.createElement('span');
-    badge.className = `qadashboard__badge ${passed ? 'qadashboard__badge--pass' : 'qadashboard__badge--fail'}`;
-    badge.textContent = passed ? '✓ Passed' : '✗ Failed';
+    badge.className = `qadashboard__badge ${passed ? 'qadashboard__badge--pass' : errored ? 'qadashboard__badge--error' : 'qadashboard__badge--fail'}`;
+    badge.textContent = passed ? '✓ Passed' : errored ? '⚠ Error' : '✗ Failed';
     tdStatus.append(badge);
 
     const tdSuite = document.createElement('td');
@@ -132,6 +133,14 @@ function renderResults(container, results) {
     const p = document.createElement('p');
     p.className = 'qadashboard__empty';
     p.textContent = results?.message || 'Enter a path prefix above and click Refresh to load results.';
+    container.append(p);
+    return;
+  }
+
+  if (results.status === 'error') {
+    const p = document.createElement('p');
+    p.className = 'qadashboard__empty qadashboard__empty--error';
+    p.textContent = `Run failed: ${results.error || 'Test run did not produce results'}. Check the GitHub Actions log for details.`;
     container.append(p);
     return;
   }

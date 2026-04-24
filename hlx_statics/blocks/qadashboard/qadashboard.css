@@ -201,6 +201,15 @@
   margin: 0;
 }
 
+.qadashboard__empty--error {
+  color: #dc2626;
+}
+
+.qadashboard__badge--error {
+  color: #92400e;
+  background: #fef3c7;
+}
+
 /* Cards */
 .qadashboard__cards {
   display: grid;
