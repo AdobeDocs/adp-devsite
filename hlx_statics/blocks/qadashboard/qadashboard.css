@@ -189,6 +189,12 @@
   background: #fee2e2;
 }
 
+.qadashboard__badge--devbiz {
+  color: #92400e;
+  background: #fef3c7;
+  cursor: help;
+}
+
 .qadashboard__empty {
   font-size: 13px;
   color: var(--spectrum-global-color-gray-700, #555);

@@ -134,6 +134,14 @@ function renderResults(container, results) {
 
   header.append(meta, badge);
 
+  if (results.dev_biz) {
+    const devBizBadge = document.createElement('span');
+    devBizBadge.className = 'qadashboard__badge qadashboard__badge--devbiz';
+    devBizBadge.title = 'Dev-biz page — only the root page was tested, not child pages';
+    devBizBadge.textContent = '⚠ dev-biz · root page only';
+    header.append(devBizBadge);
+  }
+
   const reportHref = results.report_url || results.run_url;
   if (reportHref) {
     const reportLink = document.createElement('a');
