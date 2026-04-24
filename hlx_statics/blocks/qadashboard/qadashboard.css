@@ -333,18 +333,14 @@
   overflow: hidden;
 }
 
-.qadashboard__overview-heading {
-  font-size: 13px;
+.qadashboard__overview-group {
+  font-size: 11px;
   font-weight: 700;
-  margin: 0;
-  padding: 0.6rem 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--spectrum-global-color-gray-600, #666);
   background: var(--spectrum-global-color-gray-100, #f5f5f5);
-  border-bottom: 1px solid var(--spectrum-global-color-gray-300, #ccc);
-}
-
-.qadashboard__overview-table + .qadashboard__overview-heading {
-  border-top: 1px solid var(--spectrum-global-color-gray-300, #ccc);
-  margin-top: 0;
+  padding: 0.4rem 1rem;
 }
 
 .qadashboard__overview-table {
