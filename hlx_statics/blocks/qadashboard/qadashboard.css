@@ -342,6 +342,11 @@
   border-bottom: 1px solid var(--spectrum-global-color-gray-300, #ccc);
 }
 
+.qadashboard__overview-table + .qadashboard__overview-heading {
+  border-top: 1px solid var(--spectrum-global-color-gray-300, #ccc);
+  margin-top: 0;
+}
+
 .qadashboard__overview-table {
   width: 100%;
   border-collapse: collapse;

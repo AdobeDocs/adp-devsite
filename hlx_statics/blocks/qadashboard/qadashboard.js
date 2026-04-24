@@ -63,48 +63,58 @@ function renderOverview(container, index, onLoad) {
   }
   container.style.display = '';
 
-  const heading = document.createElement('h3');
-  heading.className = 'qadashboard__overview-heading';
-  heading.textContent = 'All Path Prefixes';
-  container.append(heading);
+  const devDocs = index.filter(e => !e.dev_biz);
+  const devBiz = index.filter(e => e.dev_biz);
 
-  const table = document.createElement('table');
-  table.className = 'qadashboard__overview-table';
+  function buildGroup(label, entries) {
+    if (!entries.length) return;
 
-  for (const entry of index) {
-    const tr = document.createElement('tr');
-    tr.className = 'qadashboard__overview-row';
+    const groupHeading = document.createElement('h3');
+    groupHeading.className = 'qadashboard__overview-heading';
+    groupHeading.textContent = label;
+    container.append(groupHeading);
 
-    const tdPath = document.createElement('td');
-    tdPath.className = 'qadashboard__overview-path';
-    tdPath.textContent = entry.path_prefix;
+    const table = document.createElement('table');
+    table.className = 'qadashboard__overview-table';
 
-    const tdTs = document.createElement('td');
-    tdTs.className = 'qadashboard__overview-ts';
-    tdTs.textContent = new Date(entry.timestamp).toLocaleString();
+    for (const entry of entries) {
+      const tr = document.createElement('tr');
+      tr.className = 'qadashboard__overview-row';
 
-    const tdStatus = document.createElement('td');
-    const passed = entry.status === 'passed';
-    const badge = document.createElement('span');
-    badge.className = `qadashboard__badge ${passed ? 'qadashboard__badge--pass' : 'qadashboard__badge--fail'}`;
-    badge.textContent = passed ? '✓ Passed' : '✗ Failed';
-    tdStatus.append(badge);
+      const tdPath = document.createElement('td');
+      tdPath.className = 'qadashboard__overview-path';
+      tdPath.textContent = entry.path_prefix;
 
-    const tdSuite = document.createElement('td');
-    tdSuite.className = 'qadashboard__overview-suite';
-    tdSuite.textContent = entry.suite;
+      const tdTs = document.createElement('td');
+      tdTs.className = 'qadashboard__overview-ts';
+      tdTs.textContent = new Date(entry.timestamp).toLocaleString();
 
-    const tdAction = document.createElement('td');
-    const btn = document.createElement('button');
-    btn.className = 'qadashboard__btn qadashboard__btn--secondary qadashboard__btn--xs';
-    btn.textContent = 'Load';
-    btn.addEventListener('click', () => onLoad(entry.path_prefix));
-    tdAction.append(btn);
+      const tdStatus = document.createElement('td');
+      const passed = entry.status === 'passed';
+      const badge = document.createElement('span');
+      badge.className = `qadashboard__badge ${passed ? 'qadashboard__badge--pass' : 'qadashboard__badge--fail'}`;
+      badge.textContent = passed ? '✓ Passed' : '✗ Failed';
+      tdStatus.append(badge);
 
-    tr.append(tdPath, tdTs, tdStatus, tdSuite, tdAction);
-    table.append(tr);
+      const tdSuite = document.createElement('td');
+      tdSuite.className = 'qadashboard__overview-suite';
+      tdSuite.textContent = entry.suite;
+
+      const tdAction = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.className = 'qadashboard__btn qadashboard__btn--secondary qadashboard__btn--xs';
+      btn.textContent = 'Load';
+      btn.addEventListener('click', () => onLoad(entry.path_prefix));
+      tdAction.append(btn);
+
+      tr.append(tdPath, tdTs, tdStatus, tdSuite, tdAction);
+      table.append(tr);
+    }
+    container.append(table);
   }
-  container.append(table);
+
+  buildGroup('Dev Docs', devDocs);
+  buildGroup('Dev Biz', devBiz);
 }
 
 function renderResults(container, results) {
