@@ -61,7 +61,7 @@ http
   })
   .listen(PORT, () => {
     console.log(`AI Summary local server running on http://localhost:${PORT}`);
-    console.log('AZURE_OPENAI_ENDPOINT  :', process.env.AZURE_OPENAI_ENDPOINT || 'NOT SET');
+    console.log('AZURE_OPENAI_ENDPOINT  :', process.env.AZURE_OPENAI_ENDPOINT ? 'configured' : 'NOT SET');
     console.log('AZURE_OPENAI_API_KEY   :', process.env.AZURE_OPENAI_API_KEY ? 'configured' : 'NOT SET');
-    console.log('AZURE_OPENAI_DEPLOYMENT:', process.env.AZURE_OPENAI_DEPLOYMENT || 'NOT SET');
+    console.log('AZURE_OPENAI_DEPLOYMENT:', process.env.AZURE_OPENAI_DEPLOYMENT ? 'configured' : 'NOT SET');
   });

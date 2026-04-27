@@ -219,8 +219,14 @@ async function initSearch() {
           searchResults.style.visibility = "hidden";
         }
         searchCleared = true; // Mark that search was cleared
+        if (aiSummaryController) aiSummaryController.abort();
+        lastAiRequestKey = null;
         const summarySection = document.querySelector('.ai-summary-section');
-        if (summarySection) summarySection.style.display = 'none';
+        if (summarySection) {
+          summarySection.style.display = 'none';
+          const disclaimer = summarySection.querySelector('.ai-summary-panel-heading');
+          if (disclaimer) disclaimer.style.display = 'none';
+        }
         toggleClearButton(); // Update clear button visibility after clearing
       });
     }, render() {}, };
@@ -423,13 +429,60 @@ async function initSearch() {
     });
   }
 
+  /**
+   * Change result from AI so that URLs become markdown URLs
+   * Only URLs present in `hits` become <a> elements
+   */
+  function renderAiSummaryText(textEl, text, hits) {
+    textEl.replaceChildren();
+    if (!text) return;
+    const allowedUrls = new Set(
+      (hits || []).map((h) => h.url).filter(Boolean),
+    );
+    const re = /\[([^\]]+)\]\((https?:[^)\s]+)\)/g;
+    let last = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      textEl.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const label = m[1];
+      const url = m[2];
+      if (allowedUrls.has(url)) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent = label;
+        a.className = 'spectrum-Link spectrum-Link--quiet spectrum-Link--secondary';
+        a.rel = 'noopener noreferrer';
+        a.target = '_blank';
+        a.setAttribute('daa-ll', 'ai-summary-link');
+        textEl.appendChild(a);
+      } else {
+        textEl.appendChild(document.createTextNode(m[0]));
+      }
+      last = re.lastIndex;
+    }
+    textEl.appendChild(document.createTextNode(text.slice(last)));
+  }
+
+  let lastAiRequestKey = null;
+  let aiSummaryController = null;
+
   async function fetchAiSummary(query, hits) {
+    const key = `${query}|${hits.map((h) => h.url).join(',')}`;
+    if (key === lastAiRequestKey) return;
+    lastAiRequestKey = key;
+
+    if (aiSummaryController) aiSummaryController.abort();
+    aiSummaryController = new AbortController();
+    const { signal } = aiSummaryController;
+
     const section = document.querySelector('.ai-summary-section');
     if (!section) return;
     const loadingEl = section.querySelector('.ai-summary-loading');
     const textEl = section.querySelector('.ai-summary-text');
+    const disclaimerEl = section.querySelector('.ai-summary-panel-heading');
 
-    textEl.textContent = '';
+    textEl.replaceChildren();
+    if (disclaimerEl) disclaimerEl.style.display = 'none';
     section.style.display = 'block';
     loadingEl.style.display = 'flex';
 
@@ -439,14 +492,25 @@ async function initSearch() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, hits }),
+        signal,
       });
       const data = await resp.json();
       console.log('[ai-summary] response:', data);
-      textEl.textContent = data.summary;
+      renderAiSummaryText(textEl, data.summary, hits);
+      const summaryText = data.summary != null ? String(data.summary).trim() : '';
+      if (summaryText) {
+        if (disclaimerEl) disclaimerEl.style.display = 'block';
+        section.style.display = 'block';
+      } else {
+        if (disclaimerEl) disclaimerEl.style.display = 'none';
+        section.style.display = 'none';
+      }
     } catch (e) {
+      if (e.name === 'AbortError') return;
       section.style.display = 'none';
+      if (disclaimerEl) disclaimerEl.style.display = 'none';
     } finally {
-      loadingEl.style.display = 'none';
+      if (!signal.aborted) loadingEl.style.display = 'none';
     }
   }
 
@@ -467,8 +531,8 @@ async function initSearch() {
     // figure out which products have at least one hit
     const productsWithResults = new Set(productGroupedResults.keys());
 
-    // AI Summary: only fire in Local Search (exactly one product index active)
-    const isLocalSearch = productsWithResults.size === 1;
+    // AI Summary: only fire when exactly one product is selected
+    const isLocalSearch = selectedProducts.length === 1;
     const aiQuery = document.querySelector('#search-box input')?.value || '';
     const aiSummarySection = document.querySelector('.ai-summary-section');
     if (isLocalSearch) {
@@ -485,7 +549,11 @@ async function initSearch() {
       });
       fetchAiSummary(aiQuery, topHits);
     } else if (aiSummarySection) {
+      if (aiSummaryController) aiSummaryController.abort();
+      lastAiRequestKey = null;
       aiSummarySection.style.display = 'none';
+      const disclaimer = aiSummarySection.querySelector('.ai-summary-panel-heading');
+      if (disclaimer) disclaimer.style.display = 'none';
     }
 
     // hide/show checkboxes based on current results + mode
@@ -654,18 +722,21 @@ const globalNavSearchDropDown = () => {
     </div>
 
     <div class="search-results">
-      <div class="ai-summary-section" style="display:none;">
-        <div class="ai-summary-loading" style="display:none;">
-          <div class="ai-summary-spinner"></div>
-          <span>Generating summary…</span>
-        </div>
-        <div class="ai-summary-text"></div>
-      </div>
       <div class="search-refinement" daa-lh="search-refinement">
         <h4 class="spectrum-Heading spectrum-Heading--sizeXS filter-heading">Filter by Products</h4>
         <div class="filters"></div>
       </div>
-      <div class="merged-results" daa-lh="search-results"></div>
+      <div class="search-results-main">
+        <div class="ai-summary-section" style="display:none;">
+          <h4 class="ai-summary-panel-heading spectrum-Heading spectrum-Heading--sizeXS" style="display: none;">AI Suggestions (AI can make mistakes. Verify important information.)</h4>
+          <div class="ai-summary-loading" style="display:none;">
+            <div class="ai-summary-spinner"></div>
+            <span>Generating summary…</span>
+          </div>
+          <div class="ai-summary-text"></div>
+        </div>
+        <div class="merged-results" daa-lh="search-results"></div>
+      </div>
     </div>
     `;
 
