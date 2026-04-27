@@ -488,7 +488,7 @@ async function initSearch() {
 
     try {
       // LOCAL DEV: points to local-server.js — replace with I/O Runtime URL when deploying
-      const resp = await fetch('http://localhost:3002', {
+      const resp = await fetch('https://53444-aisearchsummary-stage.adobeioruntime.net/api/v1/web/default/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, hits }),
