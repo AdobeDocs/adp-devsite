@@ -15,6 +15,8 @@ function getOpenGraphMeta(doc) {
 
 /** One block row per http(s) link so each URL gets a card. */
 function splitArticleRowsOneLinkEach(block) {
+
+
   for (const row of [...block.children]) {
     const links = [...row.querySelectorAll(':scope a[href]')].filter((a) => {
       try { return ['http:', 'https:'].includes(new URL(a.href).protocol); } catch { return false; }
@@ -34,6 +36,20 @@ function splitArticleRowsOneLinkEach(block) {
  * @param {Element} block The info-card block element
  */
 export default async function decorate(block) {
+
+  const response = await fetch(
+    'https://events.ringcentral.com/events/office-hours-for-adobe-express-developers-april-2026',
+    {
+      method: 'GET',
+      headers: {
+        'Cookie': '__cf_bm=qnCKNBx23e2QPLNl2Aeugeat6r3fbzXfRuoLQwjKNd4-1777277602.4241006-1.0.1.1-G9CbqtVR5JrnAF3dhv5T0.eMhWt56kh03ZdaPzgEFziT1k1arzhx_zq1lfnLJ9kaw8zwuj1MGS.m4lwajophPblgllG5GP0_mZHnXP8pCDGVtqFRELX2W29EWd9WpyvK; _cfuvid=2AV1.2ubs0hVIEkB1yR0sUTHb.8f8eeW6HsRgNfcbO0-1777277602.4241006-1.0.1.1-_QcAibX4SoFSd6qYnmbk2JaUuZefGKpacYlVDakMnwM',
+        'User-Agent': 'Mozilla/5.0',
+        'Accept': 'text/html'
+      }
+    });
+
+  const text = await response.text();
+  console.log(text);
 
   block.setAttribute('daa-lh', 'info-card');
   removeEmptyPTags(block);
