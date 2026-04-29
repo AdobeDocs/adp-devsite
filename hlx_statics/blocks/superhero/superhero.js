@@ -118,6 +118,7 @@ async function decorateDevBizHalfWidth(block) {
   if (backgroundImage) {
     const placeholderDiv = block.querySelector('div:nth-child(2)');
     const picSrc = placeholderDiv.querySelectorAll('picture img')[0].src;
+    console.log('picSrc: ' + picSrc);
     Object.assign(wrapper.style, {
       backgroundImage: `url(${picSrc})`,
       backgroundRepeat: 'no-repeat',
