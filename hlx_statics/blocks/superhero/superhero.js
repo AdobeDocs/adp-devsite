@@ -117,7 +117,7 @@ async function decorateDevBizHalfWidth(block) {
 
   if (backgroundImage) {
     const placeholderDiv = block.querySelector('div:nth-child(2)');
-    const picSrc = placeholderDiv.querySelectorAll('picture img')[0].currentSrc;
+    const picSrc = placeholderDiv.querySelectorAll('picture img')[0].src;
     Object.assign(wrapper.style, {
       backgroundImage: `url(${picSrc})`,
       backgroundRepeat: 'no-repeat',
@@ -192,7 +192,7 @@ async function decorateDevBizDefault(block) {
   });
 
   const img = block.querySelector('picture > img');
-  const url = img?.getAttribute('src');
+  const url = img.src;
   const pictureElement = block.querySelector('picture');
 
   const parentDiv = pictureElement?.parentElement;
