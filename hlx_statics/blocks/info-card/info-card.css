@@ -77,6 +77,10 @@ main div.info-card-wrapper div.info-card p {
   color: rgb(71,71,71) !important;
 }
 
+main div.info-card-wrapper div.info-card.ratio > ul > li img {
+  aspect-ratio: 16 / 9;
+}
+
 @media screen and (min-width : 350px) and (max-width : 400px) {
   main div.info-card-wrapper div.info-card > ul > li img {
     width: 100%;
