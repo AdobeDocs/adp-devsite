@@ -2,13 +2,14 @@
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { ChatBubble } from "./ai-assistant_chat-bubble.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
-import { hideStopButton, showStopButton } from "./ai-assistant_chat-ui.js";
 import {
   CHAT_BUTTON_LABEL_MINIMIZE,
   CHAT_BUTTON_LABEL_OPEN,
   ELEMENTS,
   FALLBACK_SUGGESTED_QUESTIONS,
   GENERIC_ERROR_MESSAGE,
+  SEND_ICON_SRC,
+  STOP_ICON_SRC,
 } from "./ai-assistant_constants.js";
 import {
   getCollectionsQuestions,
@@ -112,6 +113,24 @@ export const fetchAiSuggestedQuestions = async () => {
     );
     updateSuggestedQuestions(await getCollectionsQuestions());
   }
+};
+
+const showStopButton = () => {
+  const btn = ELEMENTS.CHAT_SEND_BUTTON;
+  btn.querySelector("img").src = STOP_ICON_SRC;
+  btn.querySelector("span").textContent = "Stop response";
+  btn.classList.add("stop-mode");
+  btn.setAttribute("aria-label", "Stop response");
+  btn.disabled = false;
+};
+
+const hideStopButton = () => {
+  const btn = ELEMENTS.CHAT_SEND_BUTTON;
+  btn.querySelector("img").src = SEND_ICON_SRC;
+  btn.querySelector("span").textContent = "";
+  btn.classList.remove("stop-mode");
+  btn.setAttribute("aria-label", "Send message");
+  btn.disabled = ELEMENTS.CHAT_TEXTAREA.value.trim() === "";
 };
 
 /**

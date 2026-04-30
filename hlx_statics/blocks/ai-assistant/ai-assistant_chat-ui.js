@@ -11,7 +11,6 @@ import {
   CHAT_WINDOW_LABEL_ID,
   ELEMENTS,
   SEND_ICON_SRC,
-  STOP_ICON_SRC,
 } from "./ai-assistant_constants.js";
 
 /**
@@ -64,24 +63,6 @@ export const createChatWindowHeader = () => {
   ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON = minimizeButton;
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON = closeButton;
   return chatWindowHeader;
-};
-
-export const showStopButton = () => {
-  const btn = ELEMENTS.CHAT_SEND_BUTTON;
-  btn.querySelector("img").src = STOP_ICON_SRC;
-  btn.querySelector("span").textContent = "Stop response";
-  btn.classList.add("stop-mode");
-  btn.setAttribute("aria-label", "Stop response");
-  btn.disabled = false;
-};
-
-export const hideStopButton = () => {
-  const btn = ELEMENTS.CHAT_SEND_BUTTON;
-  btn.querySelector("img").src = SEND_ICON_SRC;
-  btn.querySelector("span").textContent = "";
-  btn.classList.remove("stop-mode");
-  btn.setAttribute("aria-label", "Send message");
-  btn.disabled = ELEMENTS.CHAT_TEXTAREA.value.trim() === "";
 };
 
 /**

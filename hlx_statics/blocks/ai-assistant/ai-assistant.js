@@ -75,4 +75,3 @@ export default async function decorate(block) {
   );
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
 }
-// #endregion
