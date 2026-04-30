@@ -6,7 +6,6 @@ import {
   CHAT_BUTTON_LABEL_MINIMIZE,
   CHAT_BUTTON_LABEL_OPEN,
   ELEMENTS,
-  FALLBACK_SUGGESTED_QUESTIONS,
   GENERIC_ERROR_MESSAGE,
   SEND_ICON_SRC,
   STOP_ICON_SRC,
@@ -306,7 +305,7 @@ const sendMessage = ({
   return bubble;
 };
 
-export const restoreChatHistory = () => {
+export const restoreChatHistory = async () => {
   const messages = chatHistory.getAll();
   if (messages.length > 0) {
     for (const [
@@ -333,7 +332,7 @@ export const restoreChatHistory = () => {
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {
-    updateSuggestedQuestions(FALLBACK_SUGGESTED_QUESTIONS);
+    updateSuggestedQuestions(await getCollectionsQuestions());
     showSuggestedQuestions();
   } else {
     hideSuggestedQuestions();
