@@ -1,5 +1,5 @@
 // @ts-check
-import { AI_API_BASE_URL, AI_API_KEY } from "./ai-assistant_constants";
+import { AI_API_BASE_URL, AI_API_KEY } from "./ai-assistant_constants.js";
 
 export class AiApiClient {
   static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
