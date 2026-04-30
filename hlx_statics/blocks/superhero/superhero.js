@@ -194,6 +194,7 @@ async function decorateDevBizDefault(block) {
 
   const img = block.querySelector('picture > img');
   const url = img.src;
+  console.log('url pic src: ' + url);
   const pictureElement = block.querySelector('picture');
 
   const parentDiv = pictureElement?.parentElement;
