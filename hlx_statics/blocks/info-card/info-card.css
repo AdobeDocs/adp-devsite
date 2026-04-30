@@ -77,7 +77,7 @@ main div.info-card-wrapper div.info-card p {
   color: rgb(71,71,71) !important;
 }
 
-main div.info-card-wrapper div.info-card.ratio > ul > li img {
+main div.info-card-wrapper div.info-card.wide > ul > li img {
   aspect-ratio: 16 / 9;
 }
 
