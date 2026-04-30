@@ -52,12 +52,14 @@ export default async function decorate(block) {
         const { title, image, description } = getOpenGraphMeta(new DOMParser().parseFromString(await r.text(), 'text/html'));
         const t = title || fb;
         row.replaceChildren();
-        if (image) row.appendChild(Object.assign(new Image(), { src: image, alt: t }));
+        if (image) row.appendChild(createOptimizedPicture(image, t, false));
         const h3 = document.createElement('h3');
         h3.appendChild(Object.assign(createTag('a', { href: url }), { textContent: t }));
         row.appendChild(h3);
         if (description) row.appendChild(Object.assign(document.createElement('p'), { textContent: description }));
-      } catch { /* CORS / network: keep row */ }
+      } catch (e) {
+        console.warn('[info-card] article fetch failed, keeping original row:', e);
+      }
     }));
   }
 
