@@ -1,7 +1,7 @@
 // @ts-check
-import { createTag } from "../../scripts/lib-adobeio";
-import { chatHistory } from "./ai-assistant_chat-history";
-import { createAiAvatar } from "./ai-assistant_chat-ui";
+import { createTag } from "../../scripts/lib-adobeio.js";
+import { chatHistory } from "./ai-assistant_chat-history.js";
+import { createAiAvatar } from "./ai-assistant_chat-ui.js";
 
 export class ChatBubble {
   /**

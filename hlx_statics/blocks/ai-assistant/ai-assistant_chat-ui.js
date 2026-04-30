@@ -1,7 +1,7 @@
 // @ts-check
-import { createTag } from "../../scripts/lib-adobeio";
-import { aiApiClient } from "./ai-assistant_api-client";
-import { handleUserQuery } from "./ai-assistant_chat-controller";
+import { createTag } from "../../scripts/lib-adobeio.js";
+import { aiApiClient } from "./ai-assistant_api-client.js";
+import { handleUserQuery } from "./ai-assistant_chat-controller.js";
 
 import {
   CHAT_BUTTON_LABEL_CLOSE,
@@ -12,7 +12,7 @@ import {
   ELEMENTS,
   SEND_ICON_SRC,
   STOP_ICON_SRC,
-} from "./ai-assistant_constants";
+} from "./ai-assistant_constants.js";
 
 /**
  * Creates the AI avatar element

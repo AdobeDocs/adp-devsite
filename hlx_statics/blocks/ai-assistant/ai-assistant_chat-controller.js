@@ -1,22 +1,22 @@
 // @ts-check
-import { aiApiClient } from "./ai-assistant_api-client";
-import { ChatBubble } from "./ai-assistant_chat-bubble";
-import { chatHistory } from "./ai-assistant_chat-history";
-import { hideStopButton, showStopButton } from "./ai-assistant_chat-ui";
+import { aiApiClient } from "./ai-assistant_api-client.js";
+import { ChatBubble } from "./ai-assistant_chat-bubble.js";
+import { chatHistory } from "./ai-assistant_chat-history.js";
+import { hideStopButton, showStopButton } from "./ai-assistant_chat-ui.js";
 import {
   CHAT_BUTTON_LABEL_MINIMIZE,
   CHAT_BUTTON_LABEL_OPEN,
   ELEMENTS,
   FALLBACK_SUGGESTED_QUESTIONS,
   GENERIC_ERROR_MESSAGE,
-} from "./ai-assistant_constants";
+} from "./ai-assistant_constants.js";
 import {
   getCollectionsQuestions,
   hideSuggestedQuestions,
   parseAiSuggestedQuestions,
   showSuggestedQuestions,
   updateSuggestedQuestions,
-} from "./ai-assistant_suggested-questions";
+} from "./ai-assistant_suggested-questions.js";
 
 export const openChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");

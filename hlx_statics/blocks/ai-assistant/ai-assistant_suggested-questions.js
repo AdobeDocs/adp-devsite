@@ -1,11 +1,11 @@
 // @ts-check
-import { createTag } from "../../scripts/lib-adobeio";
-import { aiApiClient } from "./ai-assistant_api-client";
-import { handleUserQuery } from "./ai-assistant_chat-controller";
+import { createTag } from "../../scripts/lib-adobeio.js";
+import { aiApiClient } from "./ai-assistant_api-client.js";
+import { handleUserQuery } from "./ai-assistant_chat-controller.js";
 import {
   ELEMENTS,
   FALLBACK_SUGGESTED_QUESTIONS,
-} from "./ai-assistant_constants";
+} from "./ai-assistant_constants.js";
 
 /**
  * Parses AI-generated suggested questions from the ---question--- delimited format.
