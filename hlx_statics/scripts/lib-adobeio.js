@@ -326,7 +326,7 @@ export function buildGrid(main) {
     gridAreaMain.classList.add('grid-main-area');
   }
 
-  if(getMetadata('layout') === 'none' && gridAreaMain?.classList.contains('redoclyapiblock-container')){
+  if(getMetadata('layout') === 'none' && (gridAreaMain?.classList.contains('redoclyapiblock-container') || gridAreaMain?.classList.contains('iframe-container'))){
     main?.classList.add('no-layout');
   }
 

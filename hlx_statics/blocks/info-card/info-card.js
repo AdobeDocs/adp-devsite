@@ -3,6 +3,34 @@ import {
   createOptimizedPicture,
 } from '../../scripts/lib-helix.js';
 
+/** @param {Document} doc */
+function getOpenGraphMeta(doc) {
+  const m = (p) => doc.querySelector(`meta[property="${p}"]`)?.getAttribute('content')?.trim() || '';
+  return {
+    title: m('og:title') || doc.querySelector('title')?.textContent?.trim() || '',
+    image: m('og:image') || m('og:image:secure_url'),
+    description: m('og:description') || doc.querySelector('meta[name="description"]')?.getAttribute('content')?.trim() || '',
+  };
+}
+
+/** One block row per http(s) link so each URL gets a card. */
+function splitArticleRowsOneLinkEach(block) {
+
+
+  for (const row of [...block.children]) {
+    const links = [...row.querySelectorAll(':scope a[href]')].filter((a) => {
+      try { return ['http:', 'https:'].includes(new URL(a.href).protocol); } catch { return false; }
+    });
+    if (links.length < 2) continue;
+    links.forEach((link) => {
+      const wrap = document.createElement('div');
+      wrap.appendChild(link);
+      row.parentNode.insertBefore(wrap, row);
+    });
+    row.remove();
+  }
+}
+
 /**
  * decorates the info-card
  * @param {Element} block The info-card block element
@@ -10,6 +38,31 @@ import {
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'info-card');
   removeEmptyPTags(block);
+
+  if (block.classList.contains('articles')) {
+    splitArticleRowsOneLinkEach(block);
+    await Promise.all([...block.children].map(async (row) => {
+      const link = row.querySelector('a[href]');
+      if (!link) return;
+      const url = link.href;
+      const fb = link.textContent.trim();
+      try {
+        const r = await fetch(url, { credentials: 'omit' });
+        if (!r?.ok) return;
+        const { title, image, description } = getOpenGraphMeta(new DOMParser().parseFromString(await r.text(), 'text/html'));
+        const t = title || fb;
+        row.replaceChildren();
+        if (image) row.appendChild(createOptimizedPicture(image, t, false));
+        const h3 = document.createElement('h3');
+        h3.appendChild(Object.assign(createTag('a', { href: url }), { textContent: t }));
+        row.appendChild(h3);
+        if (description) row.appendChild(Object.assign(document.createElement('p'), { textContent: description }));
+      } catch (e) {
+        console.warn('[info-card] article fetch failed, keeping original row:', e);
+      }
+    }));
+  }
+
   let containerParent;
   if (block.classList.contains('primarybutton')) {
     const primaryButton = block.querySelectorAll('a')[0];
@@ -34,8 +87,9 @@ export default async function decorate(block) {
     const image = row.querySelector('img') || row.querySelector('picture img');
     if (image) {
       const imageDiv = createTag('div', { class: 'cards-card-image' });
+      const picWidth = image.naturalWidth > 0 ? String(image.naturalWidth) : '1200';
       imageDiv.appendChild(
-        createOptimizedPicture(image.src, image.alt, false, [{ width: `${image.naturalWidth}` }])
+        createOptimizedPicture(image.src, image.alt, false, [{ width: picWidth }])
       );
       a.appendChild(imageDiv);
     }
