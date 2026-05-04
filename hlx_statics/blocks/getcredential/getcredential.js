@@ -1366,7 +1366,7 @@ const ensureSignedInContextAndOrganizations = async () => {
 // ============================================================================
 // RETURN PAGE (Previously Created Projects)
 // ============================================================================
-function createReturnContent(config, handleReturnOrgChange, formParagraph) {
+function createReturnContent(config, handleReturnOrgChange) {
   const returnWrapper = createTag('div', { class: 'return-wrapper' });
 
   const contentWrapper = createTag('div', { class: 'return-content-wrapper' });
@@ -1380,11 +1380,9 @@ function createReturnContent(config, handleReturnOrgChange, formParagraph) {
   getCredTitle.textContent = 'Get credentials';
   getCredHeader.appendChild(getCredTitle);
 
-  if (formParagraph) {
-    const getCredDesc = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL' });
-    setRichTextContent(getCredDesc, formParagraph);
-    getCredHeader.appendChild(getCredDesc);
-  }
+  const getCredDesc = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL' });
+  getCredDesc.textContent = 'Create unique credentials that you will use to call Adobe Express Embed SDK from your application.';
+  getCredHeader.appendChild(getCredDesc);
 
   // Organization notice
   getCredHeader.appendChild(createOrgNotice(
@@ -2006,7 +2004,7 @@ export default async function decorate(block) {
 
     // Always create return container as hidden initially
     returnContainer = createTag('div', { class: 'return-container hidden' });
-    returnContainer.appendChild(createReturnContent(credentialData.Return, handleReturnOrgChange, credentialData.Form?.paragraph));
+    returnContainer.appendChild(createReturnContent(credentialData.Return, handleReturnOrgChange));
     block.appendChild(returnContainer);
 
     // Note: Navigation for already signed-in users is now handled by checkAlreadySignedIn()
