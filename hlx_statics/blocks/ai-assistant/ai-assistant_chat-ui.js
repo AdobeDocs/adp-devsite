@@ -70,18 +70,23 @@ export const createChatWindowHeader = () => {
  */
 export const createInputSection = () => {
   const inputSection = createTag("div", { class: "chat-window-input-section" });
-  const textarea = createTag("textarea", {
-    placeholder: "Type your message...",
-    rows: "4",
-    "aria-label": "Type your message",
-  });
+  const textarea = /** @type {HTMLTextAreaElement} */ (
+    createTag("textarea", {
+      placeholder: "Type your message...",
+      rows: "4",
+      "aria-label": "Type your message",
+    })
+  );
   const disclaimerText = createTag("div", { class: "chat-disclaimer-text" });
   disclaimerText.innerHTML = `By using AI Assistant, you agree to the <a href="https://www.adobe.com/legal/licenses-terms/adobe-gen-ai-user-guidelines.html" target="_blank" rel="noopener noreferrer">Generative AI User Guidelines</a>.`;
-  const sendButton = createTag("button", {
-    class: "chat-send-button",
-    type: "button",
-    "aria-label": "Send message",
-  });
+
+  const sendButton = /** @type {HTMLButtonElement} */ (
+    createTag("button", {
+      class: "chat-send-button",
+      type: "button",
+      "aria-label": "Send message",
+    })
+  );
   const sendButtonIcon = createTag("img", {
     src: SEND_ICON_SRC,
     alt: "",
