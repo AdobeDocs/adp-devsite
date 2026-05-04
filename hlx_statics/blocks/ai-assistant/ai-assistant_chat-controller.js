@@ -19,6 +19,14 @@ import {
 } from "./ai-assistant_suggested-questions.js";
 
 export const openChatWindow = () => {
+  if (
+    !ELEMENTS.CHAT_BUTTON ||
+    !ELEMENTS.CHAT_WINDOW ||
+    !ELEMENTS.CHAT_TEXTAREA
+  ) {
+    return;
+  }
+
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_MINIMIZE;
   ELEMENTS.CHAT_WINDOW.classList.add("show");
@@ -48,20 +56,21 @@ export const openChatWindow = () => {
 };
 
 export const minimizeChatWindow = () => {
-  ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "false");
+  ELEMENTS.CHAT_BUTTON?.setAttribute("aria-expanded", "false");
+  // @ts-expect-error - CHAT_BUTTON has to be defined for us to get this far
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
-  ELEMENTS.CHAT_BUTTON.classList.remove("hidden");
-  ELEMENTS.CHAT_WINDOW.classList.remove("show");
+  ELEMENTS.CHAT_BUTTON?.classList.remove("hidden");
+  ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 };
 
 export const closeChatWindow = () => {
   minimizeChatWindow();
   chatHistory.clear();
-  ELEMENTS.CHAT_WINDOW_CONTENT.addEventListener(
+  ELEMENTS.CHAT_WINDOW_CONTENT?.addEventListener(
     "transitionend",
     () => {
-      ELEMENTS.CHAT_WINDOW_CONTENT.replaceChildren(
-        ELEMENTS.CHAT_SUGGESTED_QUESTIONS,
+      ELEMENTS.CHAT_WINDOW_CONTENT?.replaceChildren(
+        ELEMENTS.CHAT_SUGGESTED_QUESTIONS ?? "",
       );
     },
     { once: true },
@@ -115,37 +124,53 @@ export const fetchAiSuggestedQuestions = async () => {
 };
 
 const showStopButton = () => {
-  const btn = ELEMENTS.CHAT_SEND_BUTTON;
-  btn.querySelector("img").src = STOP_ICON_SRC;
-  btn.querySelector("span").textContent = "Stop response";
+  const btn = /** @type {HTMLButtonElement} */ (ELEMENTS.CHAT_SEND_BUTTON);
+  const btnImage = btn.querySelector("img");
+  const btnSpan = btn.querySelector("span");
+  if (btnImage) {
+    btnImage.src = STOP_ICON_SRC;
+  }
+  if (btnSpan) {
+    btnSpan.textContent = "Stop response";
+  }
   btn.classList.add("stop-mode");
   btn.setAttribute("aria-label", "Stop response");
   btn.disabled = false;
 };
 
 const hideStopButton = () => {
-  const btn = ELEMENTS.CHAT_SEND_BUTTON;
-  btn.querySelector("img").src = SEND_ICON_SRC;
-  btn.querySelector("span").textContent = "";
+  const btn = /** @type {HTMLButtonElement} */ (ELEMENTS.CHAT_SEND_BUTTON);
+  const btnImage = btn.querySelector("img");
+  const btnSpan = btn.querySelector("span");
+  if (btnImage) {
+    btnImage.src = SEND_ICON_SRC;
+  }
+  if (btnSpan) {
+    btnSpan.textContent = "";
+  }
   btn.classList.remove("stop-mode");
   btn.setAttribute("aria-label", "Send message");
-  btn.disabled = ELEMENTS.CHAT_TEXTAREA.value.trim() === "";
+  btn.disabled =
+    /** @type {HTMLTextAreaElement} */ (ELEMENTS.CHAT_TEXTAREA).value.trim() ===
+    "";
 };
 
 /**
  * Gets the user's query, sends it to the AI, and displays the response.
  * @param {string} [messageContentOverride] - Optional message content; when provided, used instead of the textarea value
+ * @param {string|null} [collectionId]
  */
 export const handleUserQuery = async (
   messageContentOverride,
   collectionId = null,
 ) => {
   let messageContent = messageContentOverride;
+  const textarea = /** @type {HTMLTextAreaElement} */ (ELEMENTS.CHAT_TEXTAREA);
 
   if (!messageContentOverride) {
-    messageContent = ELEMENTS.CHAT_TEXTAREA.value.trim();
-    ELEMENTS.CHAT_TEXTAREA.value = "";
-    ELEMENTS.CHAT_TEXTAREA.dispatchEvent(new Event("input"));
+    messageContent = textarea.value.trim();
+    textarea.value = "";
+    textarea.dispatchEvent(new Event("input"));
   }
 
   if (!messageContent) {
@@ -173,6 +198,7 @@ export const handleUserQuery = async (
   const queryContext = chatHistory.getContextForAI({ excludeLast: 2 });
 
   let responseContent = "";
+  /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
   let accumulatedReferences = [];
 
   showStopButton();
@@ -209,8 +235,8 @@ export const handleUserQuery = async (
               const title = ref.metadata?.title || url;
               return { url, title };
             })
-            .filter(Boolean);
-          if (references.length) {
+            .filter((r) => !!r);
+          if (references?.length) {
             accumulatedReferences = references;
             targetBubble.appendReferences(references);
             chatHistory.updateLast({
@@ -256,14 +282,12 @@ export const handleUserQuery = async (
 };
 
 /**
+ * @typedef {Object} SendMessageOptions
+ * @property {boolean} [isContinuingConversation=false] - Set to `true` if the previous message was from the same source
+ * @property {boolean} [shouldAppendToHistory=true] - Set to `false` when restoring history to avoid duplicating entries
+ *
  * Sends a message to the content area and scrolls to the bottom. Also adds the message to the chat history.
- * @param {Object} options - The options for the message
- * @param {string} [options.id] - The ID of the message (used for AI messages)
- * @param {string} options.content - The content of the message
- * @param {'user' | 'ai'} options.source - Who sent the message
- * @param {boolean} [options.isContinuingConversation=false] - Set to `true` if the previous message was from the same source
- * @param {boolean} [options.shouldAppendToHistory=true] - Set to `false` when restoring history to avoid duplicating entries
- * @param {number|null} [options.timestamp=Date.now()] - Unix timestamp in ms; when nullish, no timestamp is shown
+ * @param {import('./ai-assistant_chat-history.js').ChatMessage & SendMessageOptions} options - The options for the message
  */
 const sendMessage = ({
   id,
@@ -293,14 +317,16 @@ const sendMessage = ({
   const contentContainer = ELEMENTS.CHAT_WINDOW_CONTENT;
   const insertBefore = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
 
-  // Basically we have to insert the new messages before the suggestion question section
-  // but since this is used for initial messages and history restoration we need to check if the section exists
-  if (insertBefore) {
-    contentContainer.insertBefore(bubble.element, insertBefore);
-  } else {
-    contentContainer.appendChild(bubble.element);
+  if (contentContainer) {
+    // Basically we have to insert the new messages before the suggestion question section
+    // but since this is used for initial messages and history restoration we need to check if the section exists
+    if (insertBefore) {
+      contentContainer.insertBefore(bubble.element, insertBefore);
+    } else {
+      contentContainer.appendChild(bubble.element);
+    }
+    contentContainer.scrollTop = contentContainer.scrollHeight;
   }
-  contentContainer.scrollTop = contentContainer.scrollHeight;
 
   return bubble;
 };
@@ -327,8 +353,10 @@ export const restoreChatHistory = async () => {
         bubble.appendReferences(references);
       }
     }
-    ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-      ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+    if (ELEMENTS.CHAT_WINDOW_CONTENT) {
+      ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+        ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+    }
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {

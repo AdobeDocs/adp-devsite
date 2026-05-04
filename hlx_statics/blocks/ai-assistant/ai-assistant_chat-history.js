@@ -1,10 +1,29 @@
 // @ts-check
+
+/**
+ * @typedef {Object} ChatReference
+ * @property {string} url
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} ChatMessage
+ * @property {string} [id]
+ * @property {string} content
+ * @property {'user'|'ai'} source
+ * @property {ChatReference[]} [references]
+ * @property {string|null|number} [timestamp]
+ */
+
 export class ChatHistory {
   static STORAGE_KEY = "ai-assistant-chat-history";
 
+  /** @type {ChatMessage[]|null} */
+  _cache = null;
+
   /**
    * Gets all messages from history
-   * @returns {Array<{id?: string, content: string, source: 'user'|'ai', references?: Array}>}
+   * @returns {ChatMessage[]}
    */
   getAll() {
     if (this._cache) return [...this._cache]; // Return copy to prevent mutations
@@ -27,7 +46,7 @@ export class ChatHistory {
 
   /**
    * Adds a new message to history
-   * @param {{content: string, source: 'user'|'ai', id?: string, references?: Array}} message
+   * @param {ChatMessage} message
    */
   add(message) {
     const history = this.getAll();
@@ -37,7 +56,7 @@ export class ChatHistory {
 
   /**
    * Updates the last message in history
-   * @param {Object} updates - Properties to merge into last message
+   * @param {Partial<ChatMessage>} updates - Properties to merge into last message
    */
   updateLast(updates) {
     const history = this.getAll();
@@ -53,7 +72,7 @@ export class ChatHistory {
   /**
    * Finds a message by ID
    * @param {string} id - Message ID to find
-   * @returns {Object|undefined} The message object or undefined
+   * @returns {ChatMessage|undefined} The message object or undefined
    */
   findById(id) {
     return this.getAll().find((m) => m.id === id);
@@ -103,7 +122,7 @@ export class ChatHistory {
 
   /**
    * Saves history to sessionStorage
-   * @param {Array} history - The chat history array to save
+   * @param {ChatMessage[]} history - The chat history array to save
    * @private
    */
   _save(history) {
@@ -121,8 +140,8 @@ export class ChatHistory {
 
   /**
    * Sanitizes messages to only include serializable properties
-   * @param {Array} messages - Messages to sanitize
-   * @returns {Array} Sanitized messages
+   * @param {ChatMessage[]} messages - Messages to sanitize
+   * @returns {ChatMessage[]} Sanitized messages
    * @private
    */
   _sanitizeMessages(messages) {

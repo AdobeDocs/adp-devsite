@@ -34,7 +34,7 @@ export const parseAiSuggestedQuestions = (responseText) => {
 
 /**
  * Updates the suggested questions list with new questions or a loading skeleton.
- * @param {Array<{label: string, question: string}>|null} questions - Questions to show, or null for skeleton
+ * @param {Array<{label: string, question: string, id?: string|null}>|null} questions - Questions to show, or null for skeleton
  */
 export const updateSuggestedQuestions = (questions) => {
   const wrapper = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;

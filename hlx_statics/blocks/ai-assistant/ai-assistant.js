@@ -68,10 +68,10 @@ export default async function decorate(block) {
 
   block.appendChild(panel);
 
-  ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
-  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON.addEventListener(
+  ELEMENTS.CHAT_BUTTON?.addEventListener("click", toggleChatWindow);
+  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON?.addEventListener(
     "click",
     minimizeChatWindow,
   );
-  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
+  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener("click", closeChatWindow);
 }

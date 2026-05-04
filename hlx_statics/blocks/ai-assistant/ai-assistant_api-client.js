@@ -1,6 +1,84 @@
 // @ts-check
 import { AI_API_BASE_URL, AI_API_KEY } from "./ai-assistant_constants.js";
 
+/**
+ * @typedef {Object} RequestBody
+ * @property {string} query
+ * @property {string} [collectionId]
+ */
+
+/**
+ * @typedef {Object} MetadataEvent
+ * @property {'metadata'} type
+ * @property {string} sessionId
+ * @property {string} requestId
+ * @property {string} vendorRequestId
+ * @property {string|null} collectionId
+ */
+
+/**
+ * @typedef {Object} ContentEvent
+ * @property {'content'} type
+ * @property {string} text
+ */
+
+/**
+ * @typedef {Object} TimingEvent
+ * @property {'timing'} type
+ * @property {string} metric
+ * @property {number} value
+ */
+
+/**
+ * @typedef {Object} RetrievedReferenceMetadata
+ * @property {string} url
+ * @property {string} collectionId
+ * @property {string} [title]
+ * @property {string[]} [keywords]
+ */
+
+/**
+ * @typedef {Object} RetrievedReference
+ * @property {string} content
+ * @property {RetrievedReferenceMetadata} metadata
+ */
+
+/**
+ * @typedef {Object} Citation
+ * @property {string} generatedResponsePart
+ * @property {RetrievedReference[]} retrievedReferences
+ */
+
+/**
+ * @typedef {Object} CitationEvent
+ * @property {'citation'} type
+ * @property {Citation} citation
+ */
+
+/**
+ * @typedef {Object} CompleteTimingData
+ * @property {number} vendorCommand
+ * @property {number} timeToFirstToken
+ * @property {number} streamingTime
+ * @property {number} total
+ */
+
+/**
+ * @typedef {Object} CompleteEvent
+ * @property {'complete'} type
+ * @property {CompleteTimingData} timingDataMs
+ */
+
+/**
+ * @typedef {Object} StreamRequestCallbacks
+ * @property {(event: MetadataEvent) => void} onMetadata
+ * @property {(event: ContentEvent) => void} onContent
+ * @property {(event: CitationEvent) => void} onCitation
+ * @property {(event: TimingEvent) => void} onTiming
+ * @property {(event?: CompleteEvent) => void} onComplete
+ * @property {(error: unknown) => void} onError
+ */
+
 export class AiApiClient {
   static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
   static NON_STREAMING_ENDPOINT = "/v1/inference/retrieve/generate";
@@ -52,14 +130,7 @@ export class AiApiClient {
 
   /**
    * Makes a streaming request to the AI endpoint
-   * @param {Object} options
-   * @param {Object} options.body - The request body
-   * @param {Function} options.onMetadata - Callback for metadata events (sessionId, requestId, etc.)
-   * @param {Function} options.onContent - Callback for content chunks
-   * @param {Function} options.onCitation - Callback for citation events
-   * @param {Function} options.onTiming - Callback for timing events
-   * @param {Function} options.onComplete - Callback when streaming completes
-   * @param {Function} options.onError - Callback for errors
+   * @param {Partial<StreamRequestCallbacks> & { body: RequestBody }} options
    * @returns {Promise<void>}
    */
   async streamRequest({
@@ -87,8 +158,9 @@ export class AiApiClient {
         },
       );
 
-      if (!response.ok) {
+      if (!response.ok || !response.body) {
         const error = new Error(`HTTP error! status: ${response.status}`);
+        // @ts-expect-error - status is not a known property on Error, maybe we should use ErrorOptions to store it instead
         error.status = response.status;
         onError(error);
         return;
@@ -147,7 +219,7 @@ export class AiApiClient {
         }
       }
     } catch (error) {
-      if (error.name === "AbortError") {
+      if (error instanceof DOMException && error.name === "AbortError") {
         onComplete();
         return;
       }
@@ -214,7 +286,7 @@ export class AiApiClient {
    * @param {string} [options.context] - Optional conversation context/history
    * @param {string} [options.systemPrompt] - Optional system prompt instructions
    * @param {string|null} [options.collectionId] - Optional collection ID for the query
-   * @param {Object} options.callbacks - Event callbacks (onMetadata, onContent, etc.)
+   * @param {Partial<StreamRequestCallbacks>} options.callbacks
    * @returns {Promise<void>}
    */
   async query({
@@ -228,6 +300,7 @@ export class AiApiClient {
       Use markdown formatting for the response.
     `;
 
+    /** @type {RequestBody} */
     const body = {
       query: `
         <system>
