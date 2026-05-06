@@ -257,8 +257,7 @@ export const handleUserQuery = async (
           window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
           return;
         }
-        targetBubble.hideStreamingCursor();
-        targetBubble.showCopyButton();
+        targetBubble.completeBubble();
         chatHistory.updateLast({
           content: responseContent,
           references: accumulatedReferences,
