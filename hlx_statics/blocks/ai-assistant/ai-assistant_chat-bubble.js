@@ -62,7 +62,7 @@ export class ChatBubble {
       this._actionsContainer = createTag("div", {
         class: "chat-bubble-actions",
       });
-      this._copyButton = this.#_createCopyButton(this.id);
+      this._copyButton = this.#_createCopyButton();
       this._actionsContainer.appendChild(this._copyButton);
 
       if (this.id) {
@@ -92,10 +92,9 @@ export class ChatBubble {
 
   /**
    * Creates the copy button element
-   * @param {string|null} [messageId] - Optional message ID
    * @returns {HTMLButtonElement} The copy button element
    */
-  #_createCopyButton(messageId = null) {
+  #_createCopyButton() {
     const COPY_BUTTON_LABEL = "Copy response";
     const COPY_BUTTON_LABEL_COPIED = "Copied to clipboard";
     const COPY_BUTTON_LABEL_FAILED = "Copy failed";
@@ -113,12 +112,8 @@ export class ChatBubble {
       );
     button.innerHTML = COPY_ICON_SVG;
 
-    if (messageId) {
-      button.dataset.messageId = messageId;
-    }
-
     button.addEventListener("click", () => {
-      const id = button.dataset.messageId;
+      const id = this.element.dataset.messageId;
       if (!id) return;
 
       const message = chatHistory.findById(id);
@@ -228,11 +223,6 @@ export class ChatBubble {
 
     this.id = messageId;
     this.element.dataset.messageId = messageId;
-
-    // Update the copy button's dataset if it exists
-    if (this._copyButton) {
-      this._copyButton.dataset.messageId = messageId;
-    }
   }
 
   /**
