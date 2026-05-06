@@ -26,6 +26,7 @@ export class ChatBubble {
     this.id = id;
     this.timestamp = timestamp;
     this.references = null;
+    this._actionsContainer = null;
     this._copyButton = null;
     /** @type {HTMLElement} */
     this.element = this.#_init();
@@ -56,16 +57,20 @@ export class ChatBubble {
     contentElement.innerHTML = window.marked.parse(this.content);
     bubble.appendChild(contentElement);
 
-    // Create copy button for AI messages but don't append to DOM yet
+    // Create actions for AI messages but don't append to DOM yet
     if (this.source === "ai") {
+      this._actionsContainer = createTag("div", {
+        class: "chat-bubble-actions",
+      });
       this._copyButton = this.#_createCopyButton(this.id);
+      this._actionsContainer.appendChild(this._copyButton);
 
       if (this.id) {
         bubble.dataset.messageId = this.id;
-        // If we have an ID already (e.g., restored from history), append the button
-        contentElement.appendChild(this._copyButton);
+        // If we have an ID already (e.g., restored from history), append the actions
+        contentElement.appendChild(this._actionsContainer);
       }
-      // Otherwise, button will be inserted when showCopyButton() is called
+      // Otherwise, the actions will be appended when completeBubble is called
     }
 
     if (this.timestamp) {
@@ -166,6 +171,8 @@ export class ChatBubble {
     return button;
   }
 
+  #_createFeedbackButtons() {}
+
   /**
    * Updates the content of the chat bubble
    * @param {string} content
@@ -229,22 +236,15 @@ export class ChatBubble {
   }
 
   /**
-   * Shows the copy button by inserting it into the DOM (call after streaming completes)
+   * Adds the missing actions to an AI bubble
    */
-  showCopyButton() {
-    if (this.source !== "ai" || !this._copyButton) return;
+  completeBubble() {
+    if (this.source !== "ai" || !this._actionsContainer) return;
 
-    // Hide the streaming cursor when streaming completes
     this.hideStreamingCursor();
 
-    // Check if button is already in the DOM
-    if (this._copyButton.parentElement) return;
-
-    // Insert the button into the content element
     const contentElement = this.element.querySelector(".chat-bubble-content");
-    if (contentElement) {
-      contentElement.appendChild(this._copyButton);
-    }
+    contentElement?.appendChild(this._actionsContainer);
   }
 
   /**
