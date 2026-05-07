@@ -295,6 +295,7 @@ const sendMessage = ({
   isContinuingConversation = false,
   shouldAppendToHistory = true,
   timestamp = Date.now(),
+  feedback,
 }) => {
   const bubble = new ChatBubble({
     id,
@@ -302,6 +303,7 @@ const sendMessage = ({
     source,
     isContinuingConversation,
     timestamp,
+    feedback,
   });
 
   if (shouldAppendToHistory) {
@@ -335,7 +337,7 @@ export const restoreChatHistory = async () => {
   if (messages.length > 0) {
     for (const [
       index,
-      { id, content, source, references, timestamp },
+      { id, content, source, references, timestamp, feedback },
     ] of messages.entries()) {
       const isLastOfGroup =
         index === messages.length - 1 || messages[index + 1]?.source !== source;
@@ -347,6 +349,7 @@ export const restoreChatHistory = async () => {
         isContinuingConversation:
           index > 0 && source === messages[index - 1]?.source,
         shouldAppendToHistory: false,
+        feedback,
       });
       if (references?.length) {
         bubble.appendReferences(references);
