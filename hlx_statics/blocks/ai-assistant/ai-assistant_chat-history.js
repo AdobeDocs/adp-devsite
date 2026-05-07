@@ -13,6 +13,7 @@
  * @property {'user'|'ai'} source
  * @property {ChatReference[]} [references]
  * @property {string|null|number} [timestamp]
+ * @property {{type: 'THUMBS_UP_DOWN'; score: 0|1}} [feedback]
  */
 
 export class ChatHistory {
@@ -67,6 +68,23 @@ export class ChatHistory {
       };
       this._save(history);
     }
+  }
+
+  /**
+   * Updates a message by ID
+   * @param {string} id - Message ID to update
+   * @param {Partial<ChatMessage>} updates - Properties to merge into the message
+   * @returns {boolean} True if the message was found and updated
+   */
+  updateById(id, updates) {
+    const history = this.getAll();
+    const index = history.findIndex((m) => m.id === id);
+    console.log(index);
+    if (index === -1) return false;
+    history[index] = { ...history[index], ...updates };
+    console.log(history[index], updates);
+    this._save(history);
+    return true;
   }
 
   /**
@@ -145,13 +163,16 @@ export class ChatHistory {
    * @private
    */
   _sanitizeMessages(messages) {
-    return messages.map(({ id, content, source, references, timestamp }) => ({
-      ...(id && { id }),
-      content,
-      source,
-      ...(references?.length && { references }),
-      ...(timestamp && { timestamp }),
-    }));
+    return messages.map(
+      ({ id, content, source, references, timestamp, feedback }) => ({
+        ...(id && { id }),
+        content,
+        source,
+        ...(references?.length && { references }),
+        ...(timestamp && { timestamp }),
+        ...(feedback && { feedback }),
+      }),
+    );
   }
 }
 

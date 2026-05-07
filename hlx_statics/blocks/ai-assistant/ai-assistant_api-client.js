@@ -83,6 +83,7 @@ export class AiApiClient {
   static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
   static NON_STREAMING_ENDPOINT = "/v1/inference/retrieve/generate";
   static COLLECTIONS_ENDPOINT = "/v1/inference/collections";
+  static FEEDBACK_ENDPOINT = "/v1/inference/feedback";
   /**
    * @param {Object} config
    * @param {string} config.baseUrl
@@ -126,6 +127,38 @@ export class AiApiClient {
       });
 
     return this._collectionsPromise;
+  }
+
+  /**
+   * Submit feedback on a message
+   * @param {Object} options
+   * @param {'THUMBS_UP_DOWN'} [options.type]
+   * @param {number} options.score
+   * @param {string} options.requestId
+   */
+  async submitFeedback({ type = "THUMBS_UP_DOWN", score, requestId }) {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}${AiApiClient.FEEDBACK_ENDPOINT}/${requestId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Api-Key": this.apiKey,
+          },
+          body: JSON.stringify({ scoreType: type, score }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("[AiApiClient] Feedback request error:", error);
+      return false;
+    }
   }
 
   /**
