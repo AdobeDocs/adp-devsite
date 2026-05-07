@@ -334,9 +334,7 @@ async function loadEager(doc) {
     mainContainer.classList.add('dev-biz');
   }
 
-  if (!main.classList.contains('no-layout')) {
-    buildSideNav(main);
-  }
+  buildSideNav(main);
   buildSiteWideBanner(main);
 
   document.body.classList.add('appear');

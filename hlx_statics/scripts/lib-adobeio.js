@@ -326,7 +326,7 @@ export function buildGrid(main) {
     gridAreaMain.classList.add('grid-main-area');
   }
 
-  if(getMetadata('layout') === 'none' && (gridAreaMain?.classList.contains('redoclyapiblock-container') || gridAreaMain?.classList.contains('iframe-container'))){
+  if(getMetadata('layout') === 'none' && gridAreaMain?.classList.contains('redoclyapiblock-container')){
     main?.classList.add('no-layout');
   }
 
@@ -567,27 +567,8 @@ function activateTab(tabItem, isMainPage) {
   underlineItem.parentElement.classList.add("activeTab");
 }
 
-function shouldHideNavItem(linkPath, topNavPath, li) {
-  if (linkPath.startsWith(topNavPath)) {
-    return false;
-  }
-  // An item whose own link falls outside topNavPath may still belong to the active section
-  // if it is nested within an ancestor li whose link IS under topNavPath (e.g. a reference page
-  // linked from within the optimizer subtree). Walk up the DOM to check.
-  if (li) {
-    let ancestor = li.parentElement?.closest('li');
-    while (ancestor) {
-      const ancestorLink = ancestor.querySelector(':scope > a');
-      if (ancestorLink && !ancestorLink.getAttribute('href').startsWith('http')) {
-        const ancestorPath = new URL(ancestorLink.href, window.location.origin).pathname;
-        if (ancestorPath.startsWith(topNavPath)) {
-          return false;
-        }
-      }
-      ancestor = ancestor.parentElement?.closest('li');
-    }
-  }
-  return true;
+function shouldHideNavItem(linkPath, topNavPath) {
+  return !linkPath.startsWith(topNavPath);
 }
 
 function activeSubNav(actTab) {
@@ -613,7 +594,7 @@ function activeSubNav(actTab) {
           const nextLink = nextSibling.querySelector('a');
           if (nextLink) {
             const nextLinkPath = new URL(nextLink.href, window.location.origin).pathname;
-            if (shouldHideNavItem(nextLinkPath, topNavPath, li)) {
+            if (shouldHideNavItem(nextLinkPath, topNavPath)) {
               li.classList.add('hidden');
             }
           }
@@ -636,7 +617,7 @@ function activeSubNav(actTab) {
           showSidenav = true;
         }
 
-        if (shouldHideNavItem(linkPath, topNavPath, li)) {
+        if (!linkPath.startsWith(topNavPath)) {
           li.classList.add('hidden');
         }
       } else {
