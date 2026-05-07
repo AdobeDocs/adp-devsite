@@ -1,46 +1,27 @@
+// @ts-check
 import {
   addExtraScriptWithLoad,
   createTag,
 } from "../../scripts/lib-adobeio.js";
 
-// #region Constants
-/** TODO: This should be different based on the environment */
-const AI_API_BASE_URL = "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
-const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
-const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
-const CHAT_BUTTON_LABEL_CLOSE = "Close and clear AI Assistant";
-const CHAT_BUTTON_LABEL_MINIMIZE = "Minimize AI Assistant";
-const CHAT_WINDOW_ID = "ai-assistant-chat-window";
-const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
-const ELEMENTS = {
-  CHAT_BUTTON: null,
-  CHAT_WINDOW_CLOSE_BUTTON: null,
-  CHAT_WINDOW_MINIMIZE_BUTTON: null,
-  CHAT_SEND_BUTTON: null,
-  CHAT_TEXTAREA: null,
-  CHAT_WINDOW: null,
-  CHAT_WINDOW_CONTENT: null,
-  CHAT_SUGGESTED_QUESTIONS: null,
-};
-const SUGGESTED_QUESTIONS = [
-  // {
-  //   label: "Firefly integration",
-  //   question: "How do I integrate Adobe Firefly into my application?",
-  // },
-  {
-    label: "Express Add-ons",
-    question: "What can I do with Express Add-ons?",
-  },
-  {
-    label: "App Builder application",
-    question: "How do I build an App Builder application?",
-  },
-];
-const GENERIC_ERROR_MESSAGE =
-  "Sorry, I encountered an error. Please try again later.";
-const SEND_ICON_SRC = "/hlx_statics/icons/send-message.svg";
-const STOP_ICON_SRC = "/hlx_statics/icons/stop-response.svg";
-// #endregion
+import { aiApiClient } from "./ai-assistant_api-client.js";
+import {
+  closeChatWindow,
+  minimizeChatWindow,
+  restoreChatHistory,
+  toggleChatWindow,
+} from "./ai-assistant_chat-controller.js";
+import {
+  createChatButton,
+  createChatWindowHeader,
+  createInputSection,
+} from "./ai-assistant_chat-ui.js";
+import {
+  CHAT_WINDOW_ID,
+  CHAT_WINDOW_LABEL_ID,
+  ELEMENTS,
+} from "./ai-assistant_constants.js";
+import { createSuggestedQuestionsSection } from "./ai-assistant_suggested-questions.js";
 
 // #region ChatBubble
 class ChatBubble {
@@ -1337,11 +1318,10 @@ export default async function decorate(block) {
 
   block.appendChild(panel);
 
-  ELEMENTS.CHAT_BUTTON.addEventListener("click", toggleChatWindow);
-  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON.addEventListener(
+  ELEMENTS.CHAT_BUTTON?.addEventListener("click", toggleChatWindow);
+  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON?.addEventListener(
     "click",
     minimizeChatWindow,
   );
-  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON.addEventListener("click", closeChatWindow);
+  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener("click", closeChatWindow);
 }
-// #endregion
