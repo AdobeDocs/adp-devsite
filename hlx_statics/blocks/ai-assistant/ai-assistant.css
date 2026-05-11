@@ -172,6 +172,16 @@
         }
     }
 
+    .chat-window-clear {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        img {
+            width: 20px;
+        }
+    }
+
     .chat-window-close img {
         width: 140%;
         height: 140%;
@@ -403,8 +413,85 @@
 }
 
 /*
-* MARK: Chat Bubbles
-*/
+ * MARK: Clear dialog
+ */
+.ai-assistant-panel .chat-window .chat-window-dialog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #00000070;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.ai-assistant-panel .chat-window .chat-window-dialog-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    color: #131313;
+
+    .chat-window-dialog-heading {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+    }
+
+    .chat-window-dialog-description {
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 32px;
+    }
+
+    .chat-window-dialog-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .chat-window-dialog-cancel,
+    .chat-window-dialog-clear {
+        border-radius: 16px;
+        padding-inline: 16px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: inherit;
+        line-height: 18px;
+        min-height: 32px;
+        min-width: 32px;
+    }
+
+    .chat-window-dialog-cancel {
+        --border-color: rgb(218, 218, 218);
+        background: transparent;
+        color: #414141;
+        border: 2px solid var(--border-color);
+
+        &:hover {
+            --border-color: rgb(198, 198, 198);
+            background: rgb(233, 233, 233);
+        }
+    }
+
+    .chat-window-dialog-clear {
+        background: rgb(59, 99, 251);
+        color: #ffffff;
+        border: none;
+
+        &:hover {
+            background: rgb(39, 77, 234);
+        }
+    }
+}
+
+/*
+ * MARK: Chat Bubbles
+ */
 .chat-window-content .chat-bubble {
     --bubble-background-color: #f8f8f8;
     --bubble-text-color: #292929;
