@@ -18,6 +18,28 @@ import {
   updateSuggestedQuestions,
 } from "./ai-assistant_suggested-questions.js";
 
+/**
+ * @param {Partial<{delay: number}>} [options]
+ */
+const sendInitialMessages = ({ delay = 250 } = {}) => {
+  hideSuggestedQuestions();
+  window.setTimeout(() => {
+    sendMessage({
+      content: "Hello, welcome to Adobe Developer Website!",
+      source: "ai",
+      timestamp: null,
+    });
+  }, delay);
+  window.setTimeout(() => {
+    sendMessage({
+      content: "What would you like to know today?",
+      source: "ai",
+      isContinuingConversation: true,
+    });
+  }, delay * 2);
+  window.setTimeout(showSuggestedQuestions, delay * 3);
+};
+
 export const openChatWindow = () => {
   if (
     !ELEMENTS.CHAT_BUTTON ||
@@ -34,22 +56,7 @@ export const openChatWindow = () => {
 
   // Initial messages
   if (chatHistory.isEmpty()) {
-    hideSuggestedQuestions();
-    window.setTimeout(() => {
-      sendMessage({
-        content: "Hello, welcome to Adobe Developer Website!",
-        source: "ai",
-        timestamp: null,
-      });
-    }, 250);
-    window.setTimeout(() => {
-      sendMessage({
-        content: "What would you like to know today?",
-        source: "ai",
-        isContinuingConversation: true,
-      });
-    }, 500);
-    window.setTimeout(showSuggestedQuestions, 750);
+    sendInitialMessages();
   }
 
   ELEMENTS.CHAT_TEXTAREA.focus();
@@ -63,18 +70,13 @@ export const minimizeChatWindow = () => {
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 };
 
-export const closeChatWindow = () => {
-  minimizeChatWindow();
+export const clearConversation = () => {
   chatHistory.clear();
-  ELEMENTS.CHAT_WINDOW_CONTENT?.addEventListener(
-    "transitionend",
-    () => {
-      ELEMENTS.CHAT_WINDOW_CONTENT?.replaceChildren(
-        ELEMENTS.CHAT_SUGGESTED_QUESTIONS ?? "",
-      );
-    },
-    { once: true },
+  hideSuggestedQuestions();
+  ELEMENTS.CHAT_WINDOW_CONTENT?.replaceChildren(
+    ELEMENTS.CHAT_SUGGESTED_QUESTIONS ?? "",
   );
+  sendInitialMessages({ delay: 0 });
 };
 
 export const toggleChatWindow = () => {

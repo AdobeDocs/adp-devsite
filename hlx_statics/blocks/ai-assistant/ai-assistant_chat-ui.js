@@ -4,8 +4,8 @@ import { aiApiClient } from "./ai-assistant_api-client.js";
 import { handleUserQuery } from "./ai-assistant_chat-controller.js";
 
 import {
+  CHAT_BUTTON_LABEL_CLEAR,
   CHAT_BUTTON_LABEL_CLOSE,
-  CHAT_BUTTON_LABEL_MINIMIZE,
   CHAT_BUTTON_LABEL_OPEN,
   CHAT_WINDOW_ID,
   CHAT_WINDOW_LABEL_ID,
@@ -33,17 +33,17 @@ export const createChatWindowHeader = () => {
     id: CHAT_WINDOW_LABEL_ID,
   });
   label.textContent = "Adobe Developer AI assistant";
-  const minimizeButton = createTag("button", {
-    class: "chat-window-minimize",
+  const clearButton = createTag("button", {
+    class: "chat-window-clear",
     type: "button",
-    "aria-label": CHAT_BUTTON_LABEL_MINIMIZE,
+    "aria-label": CHAT_BUTTON_LABEL_CLEAR,
   });
-  const minimizeButtonIcon = createTag("img", {
-    src: "/hlx_statics/icons/chevron-down.svg",
+  const clearButtonIcon = createTag("img", {
+    src: "/hlx_statics/icons/delete.svg",
     alt: "",
     "aria-hidden": true,
   });
-  minimizeButton.appendChild(minimizeButtonIcon);
+  clearButton.appendChild(clearButtonIcon);
 
   const closeButton = createTag("button", {
     class: "chat-window-close",
@@ -58,9 +58,9 @@ export const createChatWindowHeader = () => {
   closeButton.appendChild(closeButtonIcon);
 
   chatWindowHeader.appendChild(label);
-  chatWindowHeader.appendChild(minimizeButton);
+  chatWindowHeader.appendChild(clearButton);
   chatWindowHeader.appendChild(closeButton);
-  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON = minimizeButton;
+  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON = clearButton;
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON = closeButton;
   return chatWindowHeader;
 };
