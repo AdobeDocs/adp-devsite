@@ -4,8 +4,9 @@ export const AI_API_BASE_URL =
   "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
 export const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
 export const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
-export const CHAT_BUTTON_LABEL_CLOSE = "Close and clear AI Assistant";
+export const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
 export const CHAT_BUTTON_LABEL_MINIMIZE = "Minimize AI Assistant";
+export const CHAT_BUTTON_LABEL_CLEAR = "Clear AI Assistant";
 export const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
 /**
@@ -14,7 +15,7 @@ export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
 export const ELEMENTS = {
   CHAT_BUTTON: null,
   CHAT_WINDOW_CLOSE_BUTTON: null,
-  CHAT_WINDOW_MINIMIZE_BUTTON: null,
+  CHAT_WINDOW_CLEAR_BUTTON: null,
   CHAT_SEND_BUTTON: null,
   CHAT_TEXTAREA: null,
   CHAT_WINDOW: null,

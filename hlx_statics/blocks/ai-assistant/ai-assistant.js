@@ -6,8 +6,7 @@ import {
 
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
-  closeChatWindow,
-  minimizeChatWindow,
+  clearConversation,
   restoreChatHistory,
   toggleChatWindow,
 } from "./ai-assistant_chat-controller.js";
@@ -69,9 +68,12 @@ export default async function decorate(block) {
   block.appendChild(panel);
 
   ELEMENTS.CHAT_BUTTON?.addEventListener("click", toggleChatWindow);
-  ELEMENTS.CHAT_WINDOW_MINIMIZE_BUTTON?.addEventListener(
+  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener(
     "click",
-    minimizeChatWindow,
+    clearConversation,
   );
-  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener("click", closeChatWindow);
+  ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener(
+    "click",
+    toggleChatWindow,
+  );
 }
