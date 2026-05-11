@@ -52,8 +52,6 @@ export class ChatBubble {
 
     if (this.isContinuingConversation) {
       bubble.style.marginTop = "12px";
-    } else {
-      bubble.style.marginTop = "24px";
     }
 
     // @ts-expect-error - marked is not on the Window type
