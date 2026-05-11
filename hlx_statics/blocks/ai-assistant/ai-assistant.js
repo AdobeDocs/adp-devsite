@@ -6,11 +6,11 @@ import {
 
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
-  clearConversation,
   restoreChatHistory,
   toggleChatWindow,
 } from "./ai-assistant_chat-controller.js";
 import {
+  createClearDialog,
   createChatButton,
   createChatWindowHeader,
   createInputSection,
@@ -68,9 +68,8 @@ export default async function decorate(block) {
   block.appendChild(panel);
 
   ELEMENTS.CHAT_BUTTON?.addEventListener("click", toggleChatWindow);
-  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener(
-    "click",
-    clearConversation,
+  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener("click", () =>
+    chatWindow.appendChild(createClearDialog()),
   );
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener(
     "click",
