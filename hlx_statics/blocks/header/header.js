@@ -171,6 +171,18 @@ async function initSearch() {
       // Initialize clear button visibility
       toggleClearButton();
 
+      const debounceMs = window.adp_search.searchDebounceMs ?? 200;
+      const debouncedSuggestionSearch = window.adp_search.debouncePromise(
+        () => {
+          if (searchExecuted || searchInput.value.trim() === '') {
+            return Promise.resolve();
+          }
+          helper.setQuery(searchInput.value).search();
+          return Promise.resolve();
+        },
+        debounceMs,
+      );
+
       // Detects query in URL but no input value (tab was reloaded)
       if (queryFromURL && !searchInput.value) {
         searchInput.value = queryFromURL;
@@ -188,7 +200,7 @@ async function initSearch() {
         searchCleared = false; // Reset cleared flag when user starts typing
         if (!searchExecuted && searchInput.value.trim() !== "") {
             searchSuggestions.style.display = "block";
-            helper.setQuery(searchInput.value).search();
+            debouncedSuggestionSearch();
         }
       });
 
