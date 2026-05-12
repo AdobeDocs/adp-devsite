@@ -60,13 +60,13 @@ loadScript("https://www.instagram.com/embed.js");
 return embedHTML;
 };
 
-const embedYTShort = (url, loop, controls, vidTitle, autoplay, userMute) => {
+const embedYTShort = (url, loop, controls, vidTitle, autoplay, muted) => {
   const [, videoCode] = url.pathname.split('/shorts/');
   const loopQs = youtubeLoopQuery(loop, videoCode);
-  const muteQs = youtubeMuteQuery(userMute, autoplay);
+  const mutedValue = autoplay ? '&mute=1' : youtubeMuteQuery(muted, autoplay);
   return `<div class="ytShort">
   <iframe 
-    src="https://www.youtube.com/embed/${videoCode}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${muteQs}${loopQs}"
+    src="https://www.youtube.com/embed/${videoCode}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${mutedValue}${loopQs}"
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute; border-radius: 10px;"
     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen
@@ -76,11 +76,11 @@ const embedYTShort = (url, loop, controls, vidTitle, autoplay, userMute) => {
 </div>`;
 };
 
-const embedMP4 = (url, loop, controls, vidTitle, isShort, autoplay, userMute) => {
+const embedMP4 = (url, loop, controls, vidTitle, isShort, autoplay, muted) => {
   const href = url instanceof URL ? url.href : String(url);
   const autoplayAttrs = autoplay ? 'autoplay playsinline' : '';
   // HTML: `muted` attribute = silent. userMute 0 = muted; autoplay requires muted for policy.
-  const mutedAttr = autoplay || userMute === 0 ? 'muted' : '';
+  const mutedAttr = autoplay ? 'muted' : youtubeMuteQuery(muted, autoplay);
   const video = `
 <div style=" width: 100%;">
       <video src="${href}" ${loop ? 'loop' : ''} ${controls ? 'controls' : ''} ${autoplayAttrs} ${mutedAttr} style="width: 100%; height: 100%;">
@@ -238,17 +238,14 @@ const loadEmbed = (block, link) => {
   }
   // Authoring: userMute 0 = start muted, 1 = start unmuted. YouTube iframe: mute=1 is muted; we map 0→mute=1.
   const dm = block.getAttribute('data-muted');
-  if (dm === '0') userMute = 0;
-  else if (dm === '1') userMute = 1;
-  else if (dm === 'true') userMute = 0;
-  else if (block.classList.contains('muted')) userMute = 0;
-  if (block.classList.contains('unmute')) userMute = 1;
+  if (dm === 'true') muted = 0;
+  else if (block.classList.contains('muted')) muted = 0;
   if (controls === 0 ) {
     autoplay = 1;
   }
   const url = new URL(link);
   if (config) {
-    block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort, autoplay, userMute);
+    block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort, autoplay, muted);
     block.classList.add('block', 'embed', `embed-${config.match[0]}`);
   } else {
     block.innerHTML = getDefaultEmbed(url, loop, controls, vidTitle, isShort, autoplay, muted);
