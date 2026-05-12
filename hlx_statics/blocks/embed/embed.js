@@ -5,6 +5,15 @@
  */
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 
+/**
+ * YouTube IFrame embed: for a *single* video, `loop=1` only works together with
+ * `playlist=<same video id>`; otherwise the player does not repeat at the end.
+ * @param {number} loop
+ * @param {string} [videoId]
+ */
+const youtubeLoopQuery = (loop, videoId) =>
+  loop && videoId ? `&playlist=${encodeURIComponent(videoId)}` : '';
+
 const loadScript = (url, callback, type) => {
   const head = document.querySelector('head');
   const script = document.createElement('script');
@@ -43,9 +52,10 @@ return embedHTML;
 const embedYTShort = (url, loop, controls, vidTitle, autoplay) => {
   const [, videoCode] = url.pathname.split('/shorts/');
   const mute = autoplay ? '&mute=1' : '';
+  const loopQs = youtubeLoopQuery(loop, videoCode);
   return `<div class="ytShort">
   <iframe 
-    src="https://www.youtube.com/embed/${videoCode}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
+    src="https://www.youtube.com/embed/${videoCode}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}${loopQs}"
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute; border-radius: 10px;"
     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen
@@ -68,15 +78,23 @@ const embedMP4 = (url, loop, controls, vidTitle, isShort, autoplay) => {
   return video;
 };
 const embedYTPlaylist = (url, loop, controls, vidTitle, isShort, autoplay) => {
+  const listId = url.searchParams.get('list');
+  const params = new URLSearchParams({ list: listId || '' });
+  params.set('loop', String(loop));
+  params.set('controls', String(controls));
+  if (autoplay) {
+    params.set('autoplay', '1');
+    params.set('mute', '1');
+  }
+  const src = `https://www.youtube-nocookie.com/embed/videoseries?${params.toString()}`;
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
-  <iframe 
-  style="opacity: 1" src=${source} ${autoplay ? `autoplay=${autoplay}` : ""} data-src=${source} allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
+  <iframe
+  style="opacity: 1" src="${src}" data-src="${src}" allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
   ${vidTitle ? `title=${vidTitle}` : `title="Content from YouTube"`} scrolling="no">
    </iframe>
   </div>`;
   return embedHTML;
-
-}
+};
 const embedTikTok = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const [, vidID] = url.pathname.split('video/')
   return `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
@@ -106,9 +124,10 @@ const embedYoutube = (url, loop, controls, vidTitle, isShort, autoplay) => {
   }
   if (isShort && vid) {
     const mute = autoplay ? '&mute=1' : '';
+    const loopQs = youtubeLoopQuery(loop, vid);
     return `<div class="ytShort">
       <iframe 
-        src="https://www.youtube.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
+        src="https://www.youtube.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}${loopQs}"
         style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute; border-radius: 10px;"
         allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen
@@ -120,11 +139,12 @@ const embedYoutube = (url, loop, controls, vidTitle, isShort, autoplay) => {
 
   if (vid) {
     const mute = autoplay ? '&mute=1' : '';
+    const loopQs = youtubeLoopQuery(loop, vid);
     return `
       <div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
         <iframe 
-          src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
-          data-src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
+          src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}${loopQs}"
+          data-src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}${loopQs}"
           allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
           scrolling="no" ${vidTitle ? `title="${vidTitle}"` : `title="Content from YouTube"`} loading="lazy">
         </iframe>
