@@ -980,7 +980,15 @@ export function decorateProfile(profile) {
     } else {
       button.classList.remove('is-open');
       profileDropdownPopover.classList.remove('is-open');
-      profileDropdownPopover.ariaHidden = false;
+      profileDropdownPopover.ariaHidden = true;
+    }
+  });
+
+  document.addEventListener('click', (evt) => {
+    if (!parentContainer.contains(evt.target) && button.classList.contains('is-open')) {
+      button.classList.remove('is-open');
+      profileDropdownPopover.classList.remove('is-open');
+      profileDropdownPopover.ariaHidden = true;
     }
   });
 

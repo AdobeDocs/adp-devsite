@@ -864,6 +864,12 @@ function handleButtons(header) {
       });
     }
   });
+
+  document.addEventListener('click', (evt) => {
+    if (!header.contains(evt.target)) {
+      closeAllDropdowns();
+    }
+  });
 }
 
 // To add svg for version switcher
