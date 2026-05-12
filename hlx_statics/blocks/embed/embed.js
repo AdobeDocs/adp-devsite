@@ -230,6 +230,9 @@ const loadEmbed = (block, link) => {
   if (block.getAttribute('data-muted') === 'true' || block.classList.contains('muted')) {
     muted = 1;
   }
+  if(block.classList.contains('unmute') || block.getAttribute('data-unmute') === 'true'|| block.getAttribute('data-autoplay') === 'false') {
+    muted = 0;
+  }
   if (controls === 0 ) {
     autoplay = 1;
   }
