@@ -686,7 +686,6 @@ function loadConfig() {
   let edgeConfigId;
 
   // if on stage, dev or on .page - set analytics to dev
-  isProdEnvironment
   if (isProdEnvironment(window.location.host)) {
     edgeConfigId = '57c20bab-94c3-425e-95cb-0b9948b1fdd4';
     launchURL = 'https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js';
