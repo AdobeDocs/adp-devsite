@@ -17,9 +17,11 @@ const loadScript = (url, callback, type) => {
   return script;
 };
 
-const getDefaultEmbed = (url, loop, controls, vidTitle) => {
+const getDefaultEmbed = (url, loop, controls, vidTitle, isShort, autoplay) => {
+  const mute = autoplay ? '&mute=1' : '';
+  const autoplayValue = autoplay ? 'autoplay=1' : '';
   const embedHTML = `<div style="left: 0; width: 55vw; height: 45vh; max-height: fit-content; position: relative; padding-bottom: 56.25%;">
-    <iframe src="${url.href}?${loop ? `loop=1&` : ``}${controls ? `controls=1`: ``}autoplay=0&mute=0&" 
+    <iframe src="${url.href}?${loop ? `loop=1&` : ``}${controls ? `controls=1`: ``}${autoplayValue}${mute}&" 
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
       scrolling="no" allow="encrypted-media" ${vidTitle ? `title=${vidTitle}` : `title="Content from ${url.hostname}`} loading="lazy">
     </iframe>
@@ -27,10 +29,10 @@ const getDefaultEmbed = (url, loop, controls, vidTitle) => {
   return embedHTML;
 };
 
-const embedIG = (url, loop, controls, vidTitle) => {
+const embedIG = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const link = url.href.split('?')[0] + 'embed/captioned';
   const embedHTML = `<div class="igReel">
-  <iframe src="${link}" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
+  <iframe src="${link}?autoplay=${autoplay}" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
     scrolling="no" allow="encrypted-media" ${vidTitle ? `title=${vidTitle}` : `title="Content from" ${url.hostname}`} loading="lazy">
   </iframe>
 </div>`;
@@ -38,11 +40,12 @@ loadScript("https://www.instagram.com/embed.js");
 return embedHTML;
 };
 
-const embedYTShort = (url, loop, controls, vidTitle) => {
+const embedYTShort = (url, loop, controls, vidTitle, autoplay) => {
   const [, videoCode] = url.pathname.split('/shorts/');
+  const mute = autoplay ? '&mute=1' : '';
   return `<div class="ytShort">
   <iframe 
-    src="https://www.youtube.com/embed/${videoCode}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
+    src="https://www.youtube.com/embed/${videoCode}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute; border-radius: 10px;"
     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen
@@ -52,37 +55,38 @@ const embedYTShort = (url, loop, controls, vidTitle) => {
 </div>`;
 };
 
-const embedMP4 = (url, loop, controls, vidTitle) => {
+const embedMP4 = (url, loop, controls, vidTitle, isShort, autoplay) => {
+  const href = url instanceof URL ? url.href : String(url);
+  const autoplayMute = autoplay ? 'autoplay muted playsinline' : '';
   const video = `
 <div style=" width: 100%;">
-      <video src="${url}" ${loop ? "loop" : ""} ${controls ? "controls":""} style="width: 100%; height: 100%;"> 
+      <video src="${href}" ${loop ? 'loop' : ''} ${controls ? 'controls' : ''} ${autoplayMute} style="width: 100%; height: 100%;">
       <p>Sorry, We're having an internal Error. Please try Again Soon!</p>
       </video>
 </div>
   `;
-  return  video;
+  return video;
 };
-const embedYTPlaylist = (usp, loop, controls, vidTitle) => {
-  const source = `"https://www.youtube-nocookie.com${`/embed/videoseries/?list=${usp.get('list')}`}&loop=${loop}&controls=${controls}";`
+const embedYTPlaylist = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
   <iframe 
-  style="opacity: 1" src=${source} data-src=${source} allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
+  style="opacity: 1" src=${source} ${autoplay ? `autoplay=${autoplay}` : ""} data-src=${source} allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
   ${vidTitle ? `title=${vidTitle}` : `title="Content from YouTube"`} scrolling="no">
    </iframe>
   </div>`;
   return embedHTML;
 
 }
-const embedTikTok = (url, loop, controls, vidTitle) => {
+const embedTikTok = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const [, vidID] = url.pathname.split('video/')
-  return  `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
-    <iframe src="https://www.tiktok.com/embed/${vidID}"style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
+  return `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
+    <iframe src="https://www.tiktok.com/embed/${vidID}" ${autoplay ? `autoplay=${autoplay}` : ""} style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
       scrolling="no" allow="accelerometer encrypted-media" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
     </iframe>
   </div>`;
 }
 
-const embedYoutube = (url, loop, controls, vidTitle, isShort) => {
+const embedYoutube = (url, loop, controls, vidTitle, isShort, autoplay) => {
   let vid;
   const embed = url.pathname;
 
@@ -95,16 +99,16 @@ const embedYoutube = (url, loop, controls, vidTitle, isShort) => {
     vid = embed.split('/')[1];
   }
   if (embed.includes('shorts')) {
-    return embedYTShort(url, loop, controls, vidTitle);
+    return embedYTShort(url, loop, controls, vidTitle, autoplay);
   }
   if (embed.includes('playlist')) {
-    return embedYTPlaylist(url, loop, controls, vidTitle);
+    return embedYTPlaylist(url, loop, controls, vidTitle, isShort, autoplay  );
   }
-  if (isShort && vid) { 
-
+  if (isShort && vid) {
+    const mute = autoplay ? '&mute=1' : '';
     return `<div class="ytShort">
       <iframe 
-        src="https://www.youtube.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}"
+        src="https://www.youtube.com/embed/${vid}?rel=0&modestbranding=1&loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
         style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute; border-radius: 10px;"
         allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowfullscreen
@@ -115,11 +119,12 @@ const embedYoutube = (url, loop, controls, vidTitle, isShort) => {
   }
 
   if (vid) {
+    const mute = autoplay ? '&mute=1' : '';
     return `
       <div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
         <iframe 
-          src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
-          data-src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}" 
+          src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
+          data-src="https://www.youtube-nocookie.com/embed/${vid}?loop=${loop}&controls=${controls}&autoplay=${autoplay}${mute}"
           allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
           scrolling="no" ${vidTitle ? `title="${vidTitle}"` : `title="Content from YouTube"`} loading="lazy">
         </iframe>
@@ -130,10 +135,10 @@ const embedYoutube = (url, loop, controls, vidTitle, isShort) => {
   return null;
 };
 
-const embedVimeo = (url, loop, controls, vidTitle) => {
+const embedVimeo = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const [, video] = url.pathname.split('/');
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
-      <iframe src="https://player.vimeo.com/video/${video}?loop=${loop}&controls=${controls}" 
+      <iframe src="https://player.vimeo.com/video/${video}?loop=${loop}&controls=${controls}&autoplay=${autoplay}" 
       style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" 
       frameborder="0" allow="fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture"  
       allowfullscreen
@@ -141,9 +146,9 @@ const embedVimeo = (url, loop, controls, vidTitle) => {
     </div>`;
   return embedHTML;
 };
-const embedTwitter = (url, loop, controls, vidTitle) => {
-  const source = url.protocol+"//twitter.com"+url.pathname+ (url.search ? url.search : "");
-  const embedHTML = `<blockquote class="twitter-tweet"><a href="${source}"></a></blockquote>`;
+const embedTwitter = (url, loop, controls, vidTitle, isShort, autoplay) => {
+  const source = url.protocol + "//twitter.com" + url.pathname + (url.search ? url.search : "");
+  const embedHTML = `<blockquote class="twitter-tweet"><a href="${source}?autoplay=${autoplay}"></a></blockquote>`;
   loadScript('https://platform.twitter.com/widgets.js');
   return embedHTML;
 };
@@ -184,21 +189,25 @@ const loadEmbed = (block, link) => {
   // Initially set so that looping does not occur, but user can view the controls
   let loop = 0;
   let controls = 1;
-  const attrs = block?.parentElement?.parentElement?.attributes;
-  const vidTitle = attrs?.getNamedItem('data-videotitle')?.value;
-  const isShort = block.getAttribute('data-short')?.toLowerCase() == 'true';
-  // changes the values of these attributes based on section metadata 
-  if (attrs?.getNamedItem('data-loop'))
-  {
-    loop = (attrs.getNamedItem('data-loop').value.toLowerCase()  === 'true') ? 1: 0;
+  let autoplay = 0;
+  const vidTitle = block.getAttribute(  'data-videotitle');
+  const isShort = block.getAttribute('data-short')?.toLowerCase() === 'true';
+  // changes the values based on metadata on this block or an ancestor section
+  if (block.getAttribute('data-loop') === 'true' || block.classList.contains('loop')) {
+    loop = 1;
   }
-  if (attrs?.getNamedItem('data-controls'))
-  {
-    controls = (attrs.getNamedItem('data-controls').value.toLowerCase()  === 'true') ? 1: 0;
+  if (block.getAttribute('data-controls') === 'false' || block.classList.contains('controls')) {
+    controls = 0;
+  }
+  if (block.getAttribute('data-autoplay') === 'true' || block.classList.contains('autoplay')) {
+    autoplay = 1;
+  }
+  if (controls === 0 ) {
+    autoplay = 1;
   }
   const url = new URL(link);
   if (config) {
-    block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort);
+    block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort, autoplay);
     block.classList.add('block', 'embed', `embed-${config.match[0]}`);
   } else {
     block.innerHTML = getDefaultEmbed(url);
