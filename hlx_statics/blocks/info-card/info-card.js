@@ -37,9 +37,14 @@ function splitArticleRowsOneLinkEach(block) {
  */
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'info-card');
+  const isArticles = block.getAttribute('data-articles') === 'true';
+  const isWide = block.getAttribute('data-wide') === 'true';
+  if (isWide) {
+    block.classList.add('wide');
+  }
   removeEmptyPTags(block);
 
-  if (block.classList.contains('articles')) {
+  if (block.classList.contains('articles') || isArticles) {
     splitArticleRowsOneLinkEach(block);
     await Promise.all([...block.children].map(async (row) => {
       const link = row.querySelector('a[href]');
