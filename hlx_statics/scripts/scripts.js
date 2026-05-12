@@ -380,6 +380,24 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
   };
 }
 
+/**
+ * Returns a debounced wrapper that resolves a promise after `time` ms of inactivity.
+ * Same pattern as Algolia Autocomplete debounced sources.
+ * @see https://www.algolia.com/doc/ui-libraries/autocomplete/guides/debouncing-sources
+ */
+function debouncePromise(fn, time) {
+  let timer;
+
+  return function debounced(...args) {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    return new Promise((resolve) => {
+      timer = setTimeout(() => resolve(fn(...args)), time);
+    });
+  };
+}
+
 export async function loadSearch() {
 // load algolia scripts
   // sources: https://www.jsdelivr.com/package/npm/algoliasearch
@@ -411,7 +429,10 @@ export async function loadSearch() {
 
   //load search and product map
   window.adp_search = {};
-  
+  window.adp_search.debouncePromise = debouncePromise;
+  /** Debounce delay (ms) for as-you-type suggestion searches; Algolia recommends ~200ms. */
+  window.adp_search.searchDebounceMs = 200;
+
   try {
     const resp = await fetch('/franklin_assets/product-index-map.json');
     if (!resp.ok) {
