@@ -17,11 +17,11 @@ const loadScript = (url, callback, type) => {
   return script;
 };
 
-const getDefaultEmbed = (url, loop, controls, vidTitle, isShort, autoplay) => {
-  const mute = autoplay ? '&mute=1' : '';
+const getDefaultEmbed = (url, loop, controls, vidTitle, isShort, autoplay, mute) => {
+  const muteValue = mute || autoplay ? '&mute=1' : '';
   const autoplayValue = autoplay ? 'autoplay=1' : '';
   const embedHTML = `<div style="left: 0; width: 55vw; height: 45vh; max-height: fit-content; position: relative; padding-bottom: 56.25%;">
-    <iframe src="${url.href}?${loop ? `loop=1&` : ``}${controls ? `controls=1`: ``}${autoplayValue}${mute}&" 
+    <iframe src="${url.href}?${loop ? `loop=1&` : ``}${controls ? `controls=1`: ``}${autoplayValue}${muteValue}&" 
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
       scrolling="no" allow="encrypted-media" ${vidTitle ? `title=${vidTitle}` : `title="Content from ${url.hostname}`} loading="lazy">
     </iframe>
@@ -40,7 +40,7 @@ loadScript("https://www.instagram.com/embed.js");
 return embedHTML;
 };
 
-const embedYTShort = (url, loop, controls, vidTitle, autoplay) => {
+const embedYTShort = (url, loop, controls, vidTitle, autoplay, mute) => {
   const [, videoCode] = url.pathname.split('/shorts/');
   const mute = autoplay ? '&mute=1' : '';
   return `<div class="ytShort">
@@ -67,20 +67,20 @@ const embedMP4 = (url, loop, controls, vidTitle, isShort, autoplay) => {
   `;
   return video;
 };
-const embedYTPlaylist = (url, loop, controls, vidTitle, isShort, autoplay) => {
+const embedYTPlaylist = (url, loop, controls, vidTitle, isShort, autoplay, mute) => {
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
   <iframe 
-  style="opacity: 1" src=${source} ${autoplay ? `autoplay=${autoplay}` : ""} data-src=${source} allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
+  style="opacity: 1" src=${source} ${autoplay ? `autoplay=${autoplay}` : ""}${mute ? `mute=${mute}` : ""} data-src=${source} allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
   ${vidTitle ? `title=${vidTitle}` : `title="Content from YouTube"`} scrolling="no">
    </iframe>
   </div>`;
   return embedHTML;
 
 }
-const embedTikTok = (url, loop, controls, vidTitle, isShort, autoplay) => {
+const embedTikTok = (url, loop, controls, vidTitle, isShort, autoplay, mute) => {
   const [, vidID] = url.pathname.split('video/')
   return `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
-    <iframe src="https://www.tiktok.com/embed/${vidID}" ${autoplay ? `autoplay=${autoplay}` : ""} style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
+    <iframe src="https://www.tiktok.com/embed/${vidID}" ${autoplay ? `autoplay=${autoplay}` : ""}${mute ? `mute=${mute}` : ""} style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
       scrolling="no" allow="accelerometer encrypted-media" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
     </iframe>
   </div>`;
@@ -196,18 +196,21 @@ const loadEmbed = (block, link) => {
   if (block.getAttribute('data-loop') === 'true' || block.classList.contains('loop')) {
     loop = 1;
   }
-  if (block.getAttribute('data-controls') === 'false' || block.classList.contains('controls')) {
+  if (block.getAttribute('data-controls') === 'false' || block.classList.contains('no-controls')) {
     controls = 0;
   }
   if (block.getAttribute('data-autoplay') === 'true' || block.classList.contains('autoplay')) {
     autoplay = 1;
+  }
+  if(block.classList.contains('muted')) {
+    mute = 1;
   }
   if (controls === 0 ) {
     autoplay = 1;
   }
   const url = new URL(link);
   if (config) {
-    block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort, autoplay);
+    block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort, autoplay, mute);
     block.classList.add('block', 'embed', `embed-${config.match[0]}`);
   } else {
     block.innerHTML = getDefaultEmbed(url);
