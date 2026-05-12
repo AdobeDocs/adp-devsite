@@ -73,6 +73,8 @@ async function initSearch() {
   const searchClient = window.algoliasearch.algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
   const SUGGESTION_MAX_RESULTS = 50;
   const SEARCH_MAX_RESULTS = 100;
+  const SEARCH_MIN_QUERY_LENGTH = 3;
+  const isSearchableQuery = (q) => q.trim().length >= SEARCH_MIN_QUERY_LENGTH;
 
   const indices = window.adp_search.indices
   const indexToProduct = window.adp_search.index_to_product;
@@ -174,7 +176,12 @@ async function initSearch() {
       const debounceMs = window.adp_search.searchDebounceMs ?? 200;
       const debouncedSuggestionSearch = window.adp_search.debouncePromise(
         () => {
-          if (searchExecuted || searchInput.value.trim() === '') {
+          if (searchExecuted) {
+            return Promise.resolve();
+          }
+          const trimmed = searchInput.value.trim();
+          if (trimmed === '' || !isSearchableQuery(trimmed)) {
+            helper.setQuery('').search();
             return Promise.resolve();
           }
           helper.setQuery(searchInput.value).search();
@@ -186,11 +193,13 @@ async function initSearch() {
       // Detects query in URL but no input value (tab was reloaded)
       if (queryFromURL && !searchInput.value) {
         searchInput.value = queryFromURL;
-        helper.setQuery(queryFromURL).search();
-        suggestionsFlag = false;
-        searchResults.style.visibility = "visible";
-        outerSearchSuggestions.style.display = "none";
-        searchExecuted = true; // Mark search as executed
+        if (isSearchableQuery(queryFromURL)) {
+          helper.setQuery(queryFromURL).search();
+          suggestionsFlag = false;
+          searchResults.style.visibility = "visible";
+          outerSearchSuggestions.style.display = "none";
+          searchExecuted = true; // Mark search as executed
+        }
         toggleClearButton(); // Update clear button visibility
       }
 
@@ -198,16 +207,33 @@ async function initSearch() {
       searchInput.addEventListener('input', () => {
         toggleClearButton(); // Update clear button visibility on input
         searchCleared = false; // Reset cleared flag when user starts typing
-        if (!searchExecuted && searchInput.value.trim() !== "") {
-            searchSuggestions.style.display = "block";
-            debouncedSuggestionSearch();
+        if (searchExecuted) {
+          return;
         }
+        const trimmed = searchInput.value.trim();
+        if (trimmed === '') {
+          searchSuggestions.style.display = 'none';
+          helper.setQuery('').search();
+          return;
+        }
+        if (!isSearchableQuery(trimmed)) {
+          searchSuggestions.style.display = 'none';
+          helper.setQuery('').search();
+          return;
+        }
+        searchSuggestions.style.display = 'block';
+        debouncedSuggestionSearch();
       });
 
       // When Enter is pressed, execute full search and prevent suggestions from reappearing
       searchInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
           searchCleared = false; // Reset cleared flag when user presses Enter
+          const trimmed = searchInput.value.trim();
+          if (trimmed !== '' && !isSearchableQuery(trimmed)) {
+            event.preventDefault();
+            return;
+          }
           helper.setQuery(searchInput.value).search();
           outerSearchSuggestions.style.display = "none";
           searchSuggestions.style.display = "none";
