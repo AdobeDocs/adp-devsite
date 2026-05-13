@@ -1,4 +1,4 @@
-main div.info-card-wrapper div.info-card > ul {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul {
   list-style: none;
   margin-top: 0px;
   margin-bottom: 0px;
@@ -11,83 +11,83 @@ main div.info-card-wrapper div.info-card > ul {
   padding: 0;
 }
 
-main div.info-card-wrapper:has(.info-card.background-color-white) {
+main :is(div.info-card-wrapper:has(.info-card.background-color-white), div.infocard-wrapper:has(.infocard.background-color-white)) {
   background-color: white;
 }
 
-main div.info-card-wrapper div.info-card .button-container {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .button-container {
   text-align: center;
 }
 
-main div.info-card-wrapper div.info-card > ul > li {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li {
   max-width: 402px;
   border: 1px solid transparent;
   border-radius: 4px;
-  border-color: rgb(235,235,235);
+  border-color: rgb(235, 235, 235);
 }
 
-main div.info-card-wrapper div.info-card > ul > li:hover{
-  border-color: rgb(177,177,177);
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li:hover {
+  border-color: rgb(177, 177, 177);
 }
 
-main div.info-card-wrapper div.info-card .cards-card-body {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body {
   padding: 16px;
   height: 160px;
   background-color: white;
 }
 
-main div.info-card-wrapper div.info-card .cards-card-image {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image {
   line-height: 0;
 }
 
-main div.info-card-wrapper div.info-card .cards-card-body > *:first-child {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body>*:first-child {
   margin-top: 0;
 }
 
-main div.info-card-wrapper div.info-card > ul > li img {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li img {
   width: 400px;
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
-main div.info-card-wrapper div.info-card div.icon-div p.icon-p {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) div.icon-div p.icon-p {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 16px;
 }
 
-main div.info-card-wrapper div.info-card p.icon-p img {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) p.icon-p img {
   height: 32px;
   width: 32px;
   object-fit: contain;
 }
 
-main div.info-card-wrapper div.info-card p.icon-p svg {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) p.icon-p svg {
   height: 32px;
   width: 32px;
   object-fit: contain;
 }
 
-main div.info-card-wrapper div.info-card .card-heading {
-  color: rgb(0,0,0);
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .card-heading {
+  color: rgb(0, 0, 0);
 }
 
-main div.info-card-wrapper div.info-card p {
-  color: rgb(71,71,71) !important;
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) p {
+  color: rgb(71, 71, 71) !important;
 }
 
-main div.info-card-wrapper div.info-card.wide > ul > li img {
+main :is(div.info-card-wrapper div.info-card.wide, div.infocard-wrapper div.infocard.wide)>ul>li img {
   aspect-ratio: 16 / 9;
 }
 
 @media screen and (min-width : 350px) and (max-width : 400px) {
-  main div.info-card-wrapper div.info-card > ul > li img {
+  main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li img {
     width: 100%;
     object-fit: cover;
   }
 }
 
-div.info-card-wrapper div.info-card a:-webkit-any-link {
+:is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) a:-webkit-any-link {
   text-decoration: none;
 }
