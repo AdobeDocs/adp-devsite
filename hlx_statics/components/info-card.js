@@ -37,7 +37,7 @@ function splitArticleRowsOneLinkEach(block) {
 export default async function decorateInfoCard(block, options = {}) {
   const { daaLh = 'info-card' } = options;
   block.setAttribute('daa-lh', daaLh);
-  const isArticles = block.getAttribute('data-slots').includes('articles');
+  const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
   const isWide = block.getAttribute('data-iswide') === 'true';
   if (isWide) {
     block.classList.add('wide');
