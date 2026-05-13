@@ -79,10 +79,8 @@ export class ChatHistory {
   updateById(id, updates) {
     const history = this.getAll();
     const index = history.findIndex((m) => m.id === id);
-    console.log(index);
     if (index === -1) return false;
     history[index] = { ...history[index], ...updates };
-    console.log(history[index], updates);
     this._save(history);
     return true;
   }
