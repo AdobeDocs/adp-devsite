@@ -129,10 +129,11 @@ async function decorateDevBizHalfWidth(block) {
   const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
     const isControl = block.getAttribute('data-controls') === 'true' || block.classList.contains('controls');
-    const isAutoplay = block.getAttribute('data-autoplay') === 'true' || block.classList.contains('autoplay');
+    const wantAutoplay = block.getAttribute('data-autoplay') === 'true' || block.classList.contains('autoplay');
     const wantLoop = block.getAttribute('data-loop') === 'true' || block.classList.contains('loop');
-    const isLoop = wantLoop && (!isControl || isAutoplay);
-    const muted = isAutoplay || !isControl;
+    const isAutoplay = !isControl || wantAutoplay;
+    const isLoop = !isControl || (wantLoop && wantAutoplay);
+    const muted = !isControl || wantAutoplay;
 
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
     const videoTag = `<video src=${videoURL?.href} alt=${videoURL?.textContent} ${isAutoplay ? 'autoplay' : ''} playsinline ${muted ? 'muted' : ''} ${isControl ? 'controls' : ''} ${isLoop ? 'loop' : ''}></video>`;
