@@ -170,6 +170,7 @@ export class AiApiClient {
       const parsed = JSON.parse(stored);
       // Check if data has expireAt timestamp and if it's still valid
       if (!parsed.expireAt || Date.now() > parsed.expireAt) {
+        localStorage.removeItem(AiApiClient.LOCAL_STORAGE_COLLECTIONS_KEY);
         return null; // Expired or no expiration set
       }
 
