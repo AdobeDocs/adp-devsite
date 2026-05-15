@@ -122,7 +122,8 @@ export class AiApiClient {
     // Check localStorage first for cached data
     const cachedData = this._getCachedCollections();
     if (cachedData !== null) {
-      return Promise.resolve(cachedData);
+      this._collectionsPromise = Promise.resolve(cachedData);
+      return this._collectionsPromise;
     }
 
     this._collectionsPromise = fetch(
