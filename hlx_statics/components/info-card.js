@@ -38,7 +38,7 @@ export default async function decorateInfoCard(block, options = {}) {
   const { daaLh = 'info-card' } = options;
   block.setAttribute('daa-lh', daaLh);
   const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
-  const isWide = block.getAttribute('data-iswide') === 'true';
+  const isWide = block.getAttribute('data-wide') === 'true';
   if (isWide) {
     block.classList.add('wide');
   }
