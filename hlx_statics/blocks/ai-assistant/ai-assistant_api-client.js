@@ -112,46 +112,51 @@ export class AiApiClient {
 
   /**
    * Fetches available collections from the RAG API.
-   * Result is memoized on this instance — at most one network call is made per page load.
-   * Also caches data in localStorage with a TTL to avoid redundant network requests across sessions.
+   * Checks localStorage cache (TTL: 1 day) before making a network request.
+   * Result is memoized on this instance for the page lifetime — at most one network
+   * call is made per page load regardless of how many times this is called.
    * @returns {Promise<Collection[]>}
    */
   getCollections() {
     if (this._collectionsPromise) return this._collectionsPromise;
 
-    // Check localStorage first for cached data
     const cachedData = this._getCachedCollections();
     if (cachedData !== null) {
       this._collectionsPromise = Promise.resolve(cachedData);
       return this._collectionsPromise;
     }
 
-    this._collectionsPromise = fetch(
-      `${this.baseUrl}${AiApiClient.COLLECTIONS_ENDPOINT}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Api-Key": this.apiKey,
-        },
-      },
-    )
-      .then(async (res) => {
+    // IIFE required here to assign the promise
+    this._collectionsPromise = (async () => {
+      try {
+        const res = await fetch(
+          `${this.baseUrl}${AiApiClient.COLLECTIONS_ENDPOINT}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "X-Api-Key": this.apiKey,
+            },
+          },
+        );
         if (!res.ok) throw new Error(`Collections fetch failed: ${res.status}`);
         const data = await res.json();
-        window.localStorage.setItem(
-          AiApiClient.LOCAL_STORAGE_COLLECTIONS_KEY,
-          JSON.stringify({
-            data,
-            expireAt: Date.now() + AiApiClient.LOCAL_STORAGE_COLLECTION_TTL,
-          }),
-        );
-        return Promise.resolve(data);
-      })
-      .catch((err) => {
+        try {
+          window.localStorage.setItem(
+            AiApiClient.LOCAL_STORAGE_COLLECTIONS_KEY,
+            JSON.stringify({
+              data,
+              expireAt: Date.now() + AiApiClient.LOCAL_STORAGE_COLLECTION_TTL,
+            }),
+          );
+        } catch {
+          // storage unavailable; in-memory memoization still works
+        }
+        return data;
+      } catch (err) {
         console.warn("[AI Assistant] Failed to fetch collections:", err);
-        // Do NOT reset _collectionsPromise — one call per page load, even on error.
         return [];
-      });
+      }
+    })();
 
     return this._collectionsPromise;
   }
