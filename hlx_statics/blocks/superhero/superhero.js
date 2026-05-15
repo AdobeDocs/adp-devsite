@@ -128,9 +128,9 @@ async function decorateDevBizHalfWidth(block) {
   
   const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
-    const isControl = block.getAttribute('data-controls') === 'true' || block.classList.contains('controls');
-    const wantAutoplay = block.getAttribute('data-autoplay') === 'true' || block.classList.contains('autoplay');
-    const wantLoop = block.getAttribute('data-loop') === 'true' || block.classList.contains('loop');
+    const isControl = block.classList.contains('controls');
+    const wantAutoplay = block.classList.contains('autoplay');
+    const wantLoop = block.classList.contains('loop');
     const isAutoplay = !isControl || wantAutoplay;
     const isLoop = !isControl || (wantLoop && wantAutoplay);
     const muted = !isControl || wantAutoplay;
@@ -235,6 +235,17 @@ function restructureAsDevBiz(block) {
   if (block.getAttribute('data-overgradient')) {
     block.classList.add('over-gradient');
   }
+
+  if (block.getAttribute('data-controls') === 'true') {
+    block.classList.add('controls');
+  }
+  if (block.getAttribute('data-autoplay') === 'true') {
+    block.classList.add('autoplay');
+  }
+  if (block.getAttribute('data-loop') === 'true') {
+    block.classList.add('loop');
+  }
+
   const slotNames = block
     ?.getAttribute('data-slots')
     ?.split(',')
