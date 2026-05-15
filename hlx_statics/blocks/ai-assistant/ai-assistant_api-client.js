@@ -56,6 +56,14 @@ import { AI_API_BASE_URL, AI_API_KEY } from "./ai-assistant_constants.js";
  */
 
 /**
+ * @typedef {Object} Collection
+ * @property {string} id
+ * @property {string} name
+ * @property {string} description
+ * @property {string[]} [referencedCollectionIds]
+ */
+
+/**
  * @typedef {Object} CompleteTimingData
  * @property {number} vendorCommand
  * @property {number} timeToFirstToken
@@ -84,6 +92,9 @@ export class AiApiClient {
   static NON_STREAMING_ENDPOINT = "/v1/inference/retrieve/generate";
   static COLLECTIONS_ENDPOINT = "/v1/inference/collections";
   static FEEDBACK_ENDPOINT = "/v1/inference/feedback";
+  static LOCAL_STORAGE_COLLECTIONS_KEY = "ai-assistant__collections";
+  static LOCAL_STORAGE_COLLECTION_TTL = 1 * 24 * 60 * 60 * 1000; // 1 day
+
   /**
    * @param {Object} config
    * @param {string} config.baseUrl
@@ -102,10 +113,17 @@ export class AiApiClient {
   /**
    * Fetches available collections from the RAG API.
    * Result is memoized on this instance — at most one network call is made per page load.
-   * @returns {Promise<Array<{id: string, name: string, description: string, referencedCollectionIds?: string[]}>>}
+   * Also caches data in localStorage with a TTL to avoid redundant network requests across sessions.
+   * @returns {Promise<Collection[]>}
    */
   getCollections() {
     if (this._collectionsPromise) return this._collectionsPromise;
+
+    // Check localStorage first for cached data
+    const cachedData = this._getCachedCollections();
+    if (cachedData !== null) {
+      return Promise.resolve(cachedData);
+    }
 
     this._collectionsPromise = fetch(
       `${this.baseUrl}${AiApiClient.COLLECTIONS_ENDPOINT}`,
@@ -116,9 +134,17 @@ export class AiApiClient {
         },
       },
     )
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) throw new Error(`Collections fetch failed: ${res.status}`);
-        return res.json();
+        const data = await res.json();
+        window.localStorage.setItem(
+          AiApiClient.LOCAL_STORAGE_COLLECTIONS_KEY,
+          JSON.stringify({
+            data,
+            expireAt: Date.now() + AiApiClient.LOCAL_STORAGE_COLLECTION_TTL,
+          }),
+        );
+        return Promise.resolve(data);
       })
       .catch((err) => {
         console.warn("[AI Assistant] Failed to fetch collections:", err);
@@ -127,6 +153,30 @@ export class AiApiClient {
       });
 
     return this._collectionsPromise;
+  }
+
+  /**
+   * Checks if valid cached data exists in localStorage.
+   * @returns {Collection[] | null}
+   */
+  _getCachedCollections() {
+    try {
+      const stored = window.localStorage.getItem(
+        AiApiClient.LOCAL_STORAGE_COLLECTIONS_KEY,
+      );
+      if (!stored) return null;
+
+      const parsed = JSON.parse(stored);
+      // Check if data has expireAt timestamp and if it's still valid
+      if (!parsed.expireAt || Date.now() > parsed.expireAt) {
+        return null; // Expired or no expiration set
+      }
+
+      return parsed.data;
+    } catch (e) {
+      console.warn("[AI Assistant] Failed to parse cached collections:", e);
+      return null;
+    }
   }
 
   /**
