@@ -128,8 +128,15 @@ async function decorateDevBizHalfWidth(block) {
   
   const videoURL = block.lastElementChild.querySelector('a');
   if (videoURL && block.classList.contains('video')) {
+    const isControl = block.classList.contains('controls');
+    const wantAutoplay = block.classList.contains('autoplay');
+    const wantLoop = block.classList.contains('loop');
+    const isAutoplay = !isControl || wantAutoplay;
+    const isLoop = !isControl || (wantLoop && wantAutoplay);
+    const muted = !isControl || wantAutoplay;
+
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
-    const videoTag = `<video src=${videoURL?.href} alt=${videoURL?.textContent} autoplay playsinline muted loop></video>`;
+    const videoTag = `<video src=${videoURL?.href} alt=${videoURL?.textContent} ${isAutoplay ? 'autoplay' : ''} playsinline ${muted ? 'muted' : ''} ${isControl ? 'controls' : ''} ${isLoop ? 'loop' : ''}></video>`;
     videoContainer.innerHTML = videoTag;
     block.lastElementChild.replaceWith(videoContainer);
   }
@@ -228,6 +235,17 @@ function restructureAsDevBiz(block) {
   if (block.getAttribute('data-overgradient')) {
     block.classList.add('over-gradient');
   }
+
+  if (block.getAttribute('data-controls') === 'true') {
+    block.classList.add('controls');
+  }
+  if (block.getAttribute('data-autoplay') === 'true') {
+    block.classList.add('autoplay');
+  }
+  if (block.getAttribute('data-loop') === 'true') {
+    block.classList.add('loop');
+  }
+
   const slotNames = block
     ?.getAttribute('data-slots')
     ?.split(',')
