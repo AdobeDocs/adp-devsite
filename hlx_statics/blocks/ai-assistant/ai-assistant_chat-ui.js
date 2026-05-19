@@ -43,7 +43,7 @@ export const createChatWindowHeader = () => {
     class: "chat-window-clear",
     type: "button",
     "aria-label": CHAT_BUTTON_LABEL_CLEAR,
-    "daa-ll": CHAT_BUTTON_LABEL_CLEAR,
+    "daa-ll": "Open clear dialog",
   });
   const clearButtonIcon = createTag("img", {
     src: "/hlx_statics/icons/delete.svg",
