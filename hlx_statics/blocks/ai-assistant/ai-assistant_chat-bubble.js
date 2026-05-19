@@ -255,7 +255,18 @@ export class ChatBubble {
       // @ts-expect-error - DOMPurify is not on the Window object
       contentElement.innerHTML = window.DOMPurify.sanitize(
         // @ts-expect-error - marked is not on the Window object
-        window.marked.parse(this.content),
+        window.marked.parse(this.content, {
+          renderer: {
+            /**
+             * @param {string} href
+             * @param {string} title
+             * @param {string} text
+             */
+            link(href, title, text) {
+              return `<a href="${href}" title="${title || text}" daa-ll="${title || text}" target="_blank">${text}</a>`;
+            },
+          },
+        }),
       );
     }
   }
