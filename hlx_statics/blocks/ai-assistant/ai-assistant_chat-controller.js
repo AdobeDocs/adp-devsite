@@ -18,6 +18,34 @@ import {
   updateSuggestedQuestions,
 } from "./ai-assistant_suggested-questions.js";
 
+let userScrolledUp = false;
+let lastScrollTop = 0;
+
+/**
+ * Handles scroll events in the chat window to detect when the user scrolls up or back to the bottom.
+ * Sets/resets a flag to pause or resume auto-scrolling during streaming.
+ * Uses scroll direction rather than absolute position so programmatic downward scrolls
+ * during streaming don't mask the user's upward intent.
+ *
+ * @param {Event} event - The scroll event from the chat container element
+ */
+export const onUserScroll = (event) => {
+  if (event.type !== "scroll" || !event.target) {
+    return;
+  }
+  const container = /** @type {HTMLDivElement} */ (event.target);
+  const distanceFromBottom =
+    container.scrollHeight - container.clientHeight - container.scrollTop;
+  const scrolledUp = container.scrollTop < lastScrollTop;
+  lastScrollTop = container.scrollTop;
+
+  if (userScrolledUp && distanceFromBottom < 10) {
+    userScrolledUp = false;
+  } else if (!userScrolledUp && scrolledUp && distanceFromBottom > 100) {
+    userScrolledUp = true;
+  }
+};
+
 /**
  * @param {Partial<{delay: number}>} [options]
  */
@@ -166,6 +194,8 @@ export const handleUserQuery = async (
   messageContentOverride,
   collectionId = null,
 ) => {
+  userScrolledUp = false;
+  lastScrollTop = 0;
   let messageContent = messageContentOverride;
   const textarea = /** @type {HTMLTextAreaElement} */ (ELEMENTS.CHAT_TEXTAREA);
 
@@ -222,7 +252,10 @@ export const handleUserQuery = async (
           targetBubble.hideThinking();
           targetBubble.showStreamingCursor();
           targetBubble.updateContent(responseContent);
-          targetBubble.scrollIntoView();
+          if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
+            ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+              ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+          }
         }
       },
       onCitation: (data) => {
@@ -245,7 +278,10 @@ export const handleUserQuery = async (
               content: responseContent,
               references,
             });
-            targetBubble.scrollIntoView();
+            if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
+              ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+                ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+            }
           }
         }
       },
@@ -256,7 +292,11 @@ export const handleUserQuery = async (
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
           updateSuggestedQuestions(await getCollectionsQuestions());
-          window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
+          window.setTimeout(
+            () =>
+              showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
+            suggestedQuestionsDelayMs,
+          );
           return;
         }
         targetBubble.completeBubble();
@@ -264,10 +304,17 @@ export const handleUserQuery = async (
           content: responseContent,
           references: accumulatedReferences,
         });
-        targetBubble.scrollIntoView();
+        if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
+          ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+            ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+        }
 
         updateSuggestedQuestions(null);
-        window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
+        window.setTimeout(
+          () =>
+            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
+          suggestedQuestionsDelayMs,
+        );
         await fetchAiSuggestedQuestions();
       },
       onError: (error) => {
@@ -276,7 +323,11 @@ export const handleUserQuery = async (
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
         getCollectionsQuestions().then(updateSuggestedQuestions);
-        window.setTimeout(showSuggestedQuestions, suggestedQuestionsDelayMs);
+        window.setTimeout(
+          () =>
+            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
+          suggestedQuestionsDelayMs,
+        );
       },
     },
   });
