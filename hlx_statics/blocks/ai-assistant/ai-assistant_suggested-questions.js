@@ -108,14 +108,24 @@ export const createSuggestedQuestionsSection = () => {
   return wrapper;
 };
 
-export const showSuggestedQuestions = () => {
+/**
+ * Shows the suggested questions section with optional scroll behavior.
+ * @param {Object} [options={}] - Options object
+ * @param {boolean} [options.shouldScrollIntoView=true] - Whether to scroll the element into view
+ */
+export const showSuggestedQuestions = ({
+  shouldScrollIntoView = true,
+} = {}) => {
   const el = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
   if (el) {
     el.classList.remove("hidden");
     el.classList.remove("animate-fade-in");
     requestAnimationFrame(() => {
       el.classList.add("animate-fade-in");
-      el.scrollIntoView({ behavior: "smooth" });
+      if (shouldScrollIntoView && ELEMENTS.CHAT_WINDOW_CONTENT) {
+        ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+          ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+      }
     });
   }
 };
