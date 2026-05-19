@@ -40,7 +40,10 @@ export class ChatBubble {
    */
   #_init() {
     const bubble = createTag("div", { class: "chat-bubble" });
-    const contentElement = createTag("div", { class: "chat-bubble-content" });
+    const contentElement = createTag("div", {
+      class: "chat-bubble-content",
+      "daa-lh": "AI Assistant - Message bubble",
+    });
 
     if (this.source === "ai") {
       if (!this.isContinuingConversation) {
@@ -111,6 +114,7 @@ export class ChatBubble {
           class: "chat-bubble-copy",
           type: "button",
           "aria-label": COPY_BUTTON_LABEL,
+          "daa-ll": COPY_BUTTON_LABEL,
         })
       );
     button.innerHTML = COPY_ICON_SVG;
@@ -180,6 +184,7 @@ export class ChatBubble {
         class: "chat-bubble-feedback",
         type: "button",
         "aria-label": THUMB_UP_LABEL,
+        "daa-ll": THUMB_UP_LABEL,
       })
     );
     thumbUpButton.innerHTML = THUMB_UP_ICON_SVG;
@@ -192,6 +197,7 @@ export class ChatBubble {
         class: "chat-bubble-feedback",
         type: "button",
         "aria-label": THUMB_DOWN_LABEL,
+        "daa-ll": THUMB_DOWN_LABEL,
       })
     );
     thumbDownButton.innerHTML = THUMB_DOWN_ICON_SVG;
@@ -249,7 +255,18 @@ export class ChatBubble {
       // @ts-expect-error - DOMPurify is not on the Window object
       contentElement.innerHTML = window.DOMPurify.sanitize(
         // @ts-expect-error - marked is not on the Window object
-        window.marked.parse(this.content),
+        window.marked.parse(this.content, {
+          renderer: {
+            /**
+             * @param {string} href
+             * @param {string} title
+             * @param {string} text
+             */
+            link(href, title, text) {
+              return `<a href="${href}" title="${title || text}" daa-ll="${title || text}" target="_blank">${text}</a>`;
+            },
+          },
+        }),
       );
     }
   }
@@ -324,7 +341,10 @@ export class ChatBubble {
 
     this.references = references;
 
-    const wrapper = createTag("div", { class: "chat-bubble-sources" });
+    const wrapper = createTag("div", {
+      class: "chat-bubble-sources",
+      "daa-lh": "AI Assistant - Message sources",
+    });
     const heading = createTag("p", { class: "chat-bubble-sources-heading" });
     heading.textContent = "Sources:";
     wrapper.appendChild(heading);
@@ -338,6 +358,7 @@ export class ChatBubble {
         rel: "noopener noreferrer",
       });
       a.textContent = title || url;
+      a.setAttribute("daa-ll", a.textContent);
       li.appendChild(a);
       list.appendChild(li);
     });
