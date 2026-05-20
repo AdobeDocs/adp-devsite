@@ -27,12 +27,19 @@ const loadScript = (url, callback, type) => {
 };
 
 const getDefaultEmbed = (url, loop, controls, vidTitle, isShort, autoplay) => {
-  const mute = autoplay ? '&mute=1' : '';
-  const autoplayValue = autoplay ? 'autoplay=1' : '';
+  const params = [];
+  if (loop) params.push('loop=1');
+  if (controls) params.push('controls=1');
+  if (autoplay) {
+    params.push('autoplay=1');
+    params.push('mute=1');
+  }
+  const query = params.length ? `?${params.join('&')}` : '';
+  const titleAttr = vidTitle ? `title="${vidTitle}"` : `title="Content from ${url.hostname}"`;
   const embedHTML = `<div style="left: 0; width: 55vw; height: 45vh; max-height: fit-content; position: relative; padding-bottom: 56.25%;">
-    <iframe src="${url.href}?${loop ? `loop=1&` : ``}${controls ? `controls=1`: ``}${autoplayValue}${mute}&" 
+    <iframe src="${url.href}${query}" 
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
-      scrolling="no" allow="encrypted-media" ${vidTitle ? `title=${vidTitle}` : `title="Content from ${url.hostname}`} loading="lazy">
+      scrolling="no" allow="encrypted-media" ${titleAttr} loading="lazy">
     </iframe>
   </div>`;
   return embedHTML;
@@ -157,8 +164,9 @@ const embedYoutube = (url, loop, controls, vidTitle, isShort, autoplay) => {
 
 const embedVimeo = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const [, video] = url.pathname.split('/');
+  const muted = autoplay ? '&muted=1' : '';
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
-      <iframe src="https://player.vimeo.com/video/${video}?loop=${loop}&controls=${controls}&autoplay=${autoplay}" 
+      <iframe src="https://player.vimeo.com/video/${video}?loop=${loop}&controls=${controls}&autoplay=${autoplay}${muted}" 
       style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" 
       frameborder="0" allow="fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture"  
       allowfullscreen
@@ -216,7 +224,7 @@ const loadEmbed = (block, link) => {
   if (block.getAttribute('data-loop') === 'true' || block.classList.contains('loop')) {
     loop = 1;
   }
-  if (block.getAttribute('data-controls') === 'false' || block.classList.contains('nocontrols')) {
+  if (block.getAttribute('data-nocontrols') === 'true' || block.classList.contains('nocontrols')) {
     controls = 0;
   }
   if (block.getAttribute('data-autoplay') === 'true' || block.classList.contains('autoplay')) {
@@ -230,7 +238,7 @@ const loadEmbed = (block, link) => {
     block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort, autoplay);
     block.classList.add('block', 'embed', `embed-${config.match[0]}`);
   } else {
-    block.innerHTML = getDefaultEmbed(url);
+    block.innerHTML = getDefaultEmbed(url, loop, controls, vidTitle, isShort, autoplay);
     block.classList.add('block', 'embed');
   }
   block.classList.add('embed-is-loaded');
