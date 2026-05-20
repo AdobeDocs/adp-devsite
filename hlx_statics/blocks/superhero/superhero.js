@@ -132,7 +132,7 @@ async function decorateDevBizHalfWidth(block) {
     const wantAutoplay = block.classList.contains('autoplay');
     const wantLoop = block.classList.contains('loop');
     const isAutoplay = !isControl || wantAutoplay;
-    const isLoop = !isControl || (wantLoop && wantAutoplay);
+    const isLoop = !isControl || wantLoop;
     const muted = !isControl || wantAutoplay;
 
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
