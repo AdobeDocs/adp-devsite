@@ -105,7 +105,7 @@ const embedYTPlaylist = (url, loop, controls, vidTitle, isShort, autoplay) => {
 const embedTikTok = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const [, vidID] = url.pathname.split('video/')
   return `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
-    <iframe src="https://www.tiktok.com/embed/${vidID}" ${autoplay ? `autoplay=${autoplay}` : ""} style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
+    <iframe src="https://www.tiktok.com/embed/${vidID}?autoplay=${autoplay}" style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
       scrolling="no" allow="accelerometer encrypted-media" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
     </iframe>
   </div>`;
