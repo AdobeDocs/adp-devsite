@@ -1,5 +1,6 @@
 // @ts-check
-import { AI_API_BASE_URL, AI_API_KEY } from "./ai-assistant_constants.js";
+
+import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
 
 /**
  * @typedef {Object} RequestBody
@@ -87,11 +88,19 @@ import { AI_API_BASE_URL, AI_API_KEY } from "./ai-assistant_constants.js";
  * @property {(error: unknown) => void} onError
  */
 
+const STAGE_API_URL =
+  "https://devsite-rag.stg.app-builder.corp.adp.adobe.io/v1/inference";
+const PROD_API_URL =
+  "https://devsite-rag.app-builder.adp.adobe.io/v1/inference";
+const API_KEY = "ai-assistant-devsite-rag-demo-01";
+const PROD_API_KEY = "test-prod-rag-devsite";
+const IS_PROD = isProdEnvironment(window.location.host);
+
 export class AiApiClient {
-  static STREAMING_ENDPOINT = "/v1/inference/retrieve/generate/stream";
-  static NON_STREAMING_ENDPOINT = "/v1/inference/retrieve/generate";
-  static COLLECTIONS_ENDPOINT = "/v1/inference/collections";
-  static FEEDBACK_ENDPOINT = "/v1/inference/feedback";
+  static STREAMING_ENDPOINT = "/retrieve/generate/stream";
+  static NON_STREAMING_ENDPOINT = "/retrieve/generate";
+  static COLLECTIONS_ENDPOINT = "/collections";
+  static FEEDBACK_ENDPOINT = "/feedback";
   static LOCAL_STORAGE_COLLECTIONS_KEY = "ai-assistant__collections";
   static LOCAL_STORAGE_COLLECTION_TTL = 1 * 24 * 60 * 60 * 1000; // 1 day
 
@@ -414,6 +423,6 @@ export class AiApiClient {
 }
 
 export const aiApiClient = new AiApiClient({
-  baseUrl: AI_API_BASE_URL,
-  apiKey: AI_API_KEY,
+  baseUrl: IS_PROD ? PROD_API_URL : STAGE_API_URL,
+  apiKey: IS_PROD ? PROD_API_KEY : API_KEY,
 });

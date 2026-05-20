@@ -1,8 +1,4 @@
 // @ts-check
-/** TODO: This should be different based on the environment */
-export const AI_API_BASE_URL =
-  "https://devsite-rag.stg.app-builder.corp.adp.adobe.io";
-export const AI_API_KEY = "ai-assistant-devsite-rag-demo-01";
 export const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
 export const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
 export const CHAT_BUTTON_LABEL_MINIMIZE = "Minimize AI Assistant";
