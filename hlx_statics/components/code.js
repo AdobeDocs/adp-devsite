@@ -106,7 +106,7 @@ function applyDataAttributesFromCodeClasses(pre, code) {
 
       parts.forEach((item) => {
         if (!item.includes('language-') && item.includes('=')) {
-          const match = item.match(/^-?([^=]+)="?([^"]*)"?$/);
+          const match = item.match(/^-?([^=]+)="([^"]*)"/);
           if (match) {
             const attrName = `data-${match[1]}`;
             const attrValue = match[2];
@@ -119,7 +119,10 @@ function applyDataAttributesFromCodeClasses(pre, code) {
       code.classList.remove(cls);
       pre.classList.remove(cls);
       if (languagePart) {
-        const cleanClass = languagePart.trim();
+        let cleanClass = languagePart.trim();
+        if (cls.includes('disableLineNumbers') && !cleanClass.includes('disableLineNumbers')) {
+          cleanClass += '-disableLineNumbers';
+        }
         code.classList.add(cleanClass);
         pre.classList.add(cleanClass);
       }
