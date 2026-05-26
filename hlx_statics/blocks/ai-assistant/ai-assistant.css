@@ -100,7 +100,7 @@
     }
 
     &.show {
-        width: 400px;
+        width: 460px;
         height: 100%;
         border-radius: 8px;
         visibility: visible;
@@ -151,8 +151,21 @@
         margin: 0;
         font-size: 18px;
         font-weight: 700;
-        flex: 1;
-        margin-left: 12px;
+        margin-inline: 12px;
+    }
+
+    .chat-window-badge {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 11px;
+        background-color: rgb(255, 232, 240);
+        color: black;
+        border-radius: 7px;
+        font-size: 12px;
+        min-height: 24px;
+        line-height: 14px;
     }
 
     .chat-window-close,
