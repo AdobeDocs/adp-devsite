@@ -92,7 +92,7 @@ const STAGE_API_URL =
   "https://devsite-rag.stg.app-builder.corp.adp.adobe.io/v1/inference";
 const PROD_API_URL =
   "https://devsite-rag.app-builder.adp.adobe.io/v1/inference";
-const API_KEY = "ai-assistant-devsite-rag-demo-01";
+const STAGE_API_KEY = "ai-assistant-devsite-rag-demo-01";
 const PROD_API_KEY = "devsite-rag";
 const IS_PROD = isProdEnvironment(window.location.host);
 
@@ -424,5 +424,5 @@ export class AiApiClient {
 
 export const aiApiClient = new AiApiClient({
   baseUrl: IS_PROD ? PROD_API_URL : STAGE_API_URL,
-  apiKey: IS_PROD ? PROD_API_KEY : API_KEY,
+  apiKey: IS_PROD ? PROD_API_KEY : STAGE_API_KEY,
 });
