@@ -36,6 +36,10 @@ export const createChatWindowHeader = () => {
     id: CHAT_WINDOW_LABEL_ID,
   });
   label.textContent = "Adobe Developer AI assistant";
+
+  const betaBadge = createTag("div", { class: "chat-window-badge" });
+  betaBadge.textContent = "Beta";
+
   const clearButton = createTag("button", {
     class: "chat-window-clear",
     type: "button",
@@ -61,6 +65,8 @@ export const createChatWindowHeader = () => {
   closeButton.appendChild(closeButtonIcon);
 
   chatWindowHeader.appendChild(label);
+  chatWindowHeader.append(betaBadge);
+  chatWindowHeader.appendChild(createTag("div", { style: "flex: 1;" }));
   chatWindowHeader.appendChild(clearButton);
   chatWindowHeader.appendChild(closeButton);
   ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON = clearButton;
