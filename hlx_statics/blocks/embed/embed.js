@@ -35,7 +35,7 @@ const getDefaultEmbed = (url, loop, controls, vidTitle, isShort, autoplay) => {
     params.push('mute=1');
   }
   const query = params.length ? `?${params.join('&')}` : '';
-  const titleAttr = vidTitle ? `title="${vidTitle}"` : `title="Content from ${url.hostname}"`;
+  const titleAttr = `title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}"`;
   const embedHTML = `<div style="left: 0; width: 55vw; height: 45vh; max-height: fit-content; position: relative; padding-bottom: 56.25%;">
     <iframe src="${url.href}${query}" 
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
@@ -49,7 +49,7 @@ const embedIG = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const link = url.href.split('?')[0] + 'embed/captioned';
   const embedHTML = `<div class="igReel">
   <iframe src="${link}?autoplay=${autoplay}" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
-    scrolling="no" allow="encrypted-media" ${vidTitle ? `title=${vidTitle}` : `title="Content from" ${url.hostname}`} loading="lazy">
+    scrolling="no" allow="encrypted-media" title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}" loading="lazy">
   </iframe>
 </div>`;
 loadScript("https://www.instagram.com/embed.js");
@@ -97,7 +97,7 @@ const embedYTPlaylist = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const embedHTML = `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
   <iframe
   style="opacity: 1" src="${src}" data-src="${src}" allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
-  ${vidTitle ? `title=${vidTitle}` : `title="Content from YouTube"`} scrolling="no">
+  title="${vidTitle ? vidTitle : 'Content from YouTube'}" scrolling="no">
    </iframe>
   </div>`;
   return embedHTML;
@@ -106,7 +106,7 @@ const embedTikTok = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const [, vidID] = url.pathname.split('video/')
   return `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
     <iframe src="https://www.tiktok.com/embed/${vidID}?autoplay=${autoplay}" style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
-      scrolling="no" allow="accelerometer encrypted-media" title=${vidTitle ? vidTitle : `Content from ${url.hostname}`} loading="lazy">
+      scrolling="no" allow="accelerometer encrypted-media" title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}" loading="lazy">
     </iframe>
   </div>`;
 }
@@ -170,7 +170,7 @@ const embedVimeo = (url, loop, controls, vidTitle, isShort, autoplay) => {
       style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" 
       frameborder="0" allow="fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture"  
       allowfullscreen
-      ${vidTitle ? `title=${vidTitle}` : `title="Content from" ${url.hostname}`} loading="lazy"></iframe>
+      title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}" loading="lazy"></iframe>
     </div>`;
   return embedHTML;
 };
