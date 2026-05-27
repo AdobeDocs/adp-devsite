@@ -36,6 +36,14 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   background-color: white;
 }
 
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body > :is(h1, h2, h3, h4, h5, h6) {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image {
   line-height: 0;
 }
@@ -71,6 +79,14 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
 
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .card-heading {
   color: rgb(0, 0, 0);
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body > p {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
 }
 
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) p {
