@@ -136,7 +136,7 @@ async function decorateDevBizHalfWidth(block) {
     const muted = !isControl || wantAutoplay;
 
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
-    const videoTag = `<video src=${videoURL?.href} alt=${videoURL?.textContent} ${isAutoplay ? 'autoplay' : ''} playsinline ${muted ? 'muted' : ''} ${isControl ? 'controls' : ''} ${isLoop ? 'loop' : ''}></video>`;
+    const videoTag = `<video src="${videoURL?.href}" alt="${videoURL?.textContent}" ${isAutoplay ? 'autoplay' : ''} playsinline ${muted ? 'muted' : ''} ${isControl ? 'controls' : ''} ${isLoop ? 'loop' : ''}></video>`;
     videoContainer.innerHTML = videoTag;
     block.lastElementChild.replaceWith(videoContainer);
   }
