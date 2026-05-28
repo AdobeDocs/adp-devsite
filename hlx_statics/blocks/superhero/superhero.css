@@ -151,10 +151,30 @@ main div.superhero-wrapper div.superhero.half-width {
 }
 
 main div.superhero-wrapper div.superhero.half-width > div:last-child img,
-main div.superhero-wrapper div.superhero.half-width > div:last-child video {
+main div.superhero-wrapper div.superhero.half-width > div:last-child video,
+main div.superhero-wrapper div.superhero.half-width .superhero-video-container {
   max-width: 100% !important;
+  width: 100%;
+}
+
+main div.superhero-wrapper div.superhero.half-width > div:last-child video {
   max-height: 350px !important;
   object-fit: contain !important;
+}
+
+main div.superhero-wrapper div.superhero.half-width .superhero-video-container.embed-youtube iframe {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+  display: block;
+}
+
+main div.superhero-wrapper div.superhero.half-width .superhero-video-container:not(.embed-youtube) iframe,
+main div.superhero-wrapper div.superhero.half-width .superhero-video-container:not(.embed-youtube) > div {
+  width: 100% !important;
+  max-width: 100%;
 }
 
 main div.superhero-wrapper div.superhero.half-width p.spectrum-Body--sizeL {

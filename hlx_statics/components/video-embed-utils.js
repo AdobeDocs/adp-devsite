@@ -308,6 +308,87 @@ function embedTwitter(url, vidTitle, autoplay, loadScript) {
  * @param {boolean} autoplay
  * @returns {string}
  */
+function escapeAttr(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;');
+}
+
+/**
+ * Resolves display title/alt from a markdown-style video link.
+ * @param {HTMLAnchorElement} anchor
+ * @returns {string}
+ */
+export function resolveVideoLabel(anchor) {
+  if (!anchor) return 'Video content';
+  const linkText = anchor.textContent?.trim() || '';
+  const isUrlLike = isVideoUrl(linkText) || /^https?:\/\//i.test(linkText);
+  if (!isUrlLike && linkText) return linkText;
+  return anchor.getAttribute('title')?.trim() || 'Video content';
+}
+
+/**
+ * Builds video markup for block media slots (superhero, etc.).
+ * @param {string|URL} linkOrUrl
+ * @param {string} title
+ * @param {{ autoplay?: boolean, controls?: boolean, loop?: boolean, muted?: boolean }} options
+ * @returns {{ html: string, className: string }|null}
+ */
+export function buildBlockVideoMediaHtml(linkOrUrl, title = 'Video content', options = {}) {
+  const {
+    autoplay = false,
+    controls = true,
+    loop = false,
+    muted = false,
+  } = options;
+
+  const url = toUrl(linkOrUrl);
+  const provider = getVideoProvider(url);
+  const safeTitle = escapeAttr(title);
+
+  if (provider === 'youtube') {
+    return {
+      html: buildFlatYouTubeIframeHtml(url, title, autoplay),
+      className: 'embed-youtube',
+    };
+  }
+
+  if (isDirectVideoUrl(url)) {
+    const attrs = [
+      controls ? 'controls' : '',
+      autoplay ? 'autoplay' : '',
+      muted || autoplay ? 'muted' : '',
+      loop ? 'loop' : '',
+      'playsinline',
+      'preload="metadata"',
+      `title="${safeTitle}"`,
+    ].filter(Boolean).join(' ');
+
+    return {
+      html: `<video src="${url.href}" ${attrs}></video>`,
+      className: 'superhero-video-mp4',
+    };
+  }
+
+  const rendered = renderEmbedContent(url, {
+    loop: loop ? 1 : 0,
+    controls: controls ? 1 : 0,
+    autoplay: autoplay ? 1 : 0,
+    includeDefault: true,
+    vidTitle: title,
+  });
+
+  if (rendered?.html) {
+    return {
+      html: rendered.html,
+      className: rendered.className || '',
+    };
+  }
+
+  return null;
+}
+
 export function buildFlatYouTubeIframeHtml(linkOrUrl, title = 'Video content', autoplay = false) {
   const embedUrl = getYouTubeEmbedUrl(linkOrUrl);
   if (!embedUrl) return '';

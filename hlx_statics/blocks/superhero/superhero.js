@@ -1,6 +1,12 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 import { insertWrapperChild } from '../../components/wrapperContainer.js';
+import {
+  buildBlockVideoMediaHtml,
+  isVideoAnchor,
+  resolveVideoLabel,
+  resolveVideoUrl,
+} from '../../components/video-embed-utils.js';
 
 const VARIANTS = {
   default: 'default',
@@ -126,20 +132,45 @@ async function decorateDevBizHalfWidth(block) {
     placeholderDiv.remove();
   }
   
-  const videoURL = block.lastElementChild.querySelector('a');
-  if (videoURL && block.classList.contains('video')) {
-    const isControl = block.classList.contains('controls');
-    const wantAutoplay = block.classList.contains('autoplay');
-    const wantLoop = block.classList.contains('loop');
-    const isAutoplay = !isControl || wantAutoplay;
-    const isLoop = !isControl || wantLoop;
-    const muted = !isControl || wantAutoplay;
+  mountSuperheroVideoMedia(block);
+}
 
-    const videoContainer = createTag('div', { class: 'superhero-video-container' });
-    const videoTag = `<video src="${videoURL?.href}" alt="${videoURL?.textContent}" ${isAutoplay ? 'autoplay' : ''} playsinline ${muted ? 'muted' : ''} ${isControl ? 'controls' : ''} ${isLoop ? 'loop' : ''}></video>`;
-    videoContainer.innerHTML = videoTag;
-    block.lastElementChild.replaceWith(videoContainer);
+function mountSuperheroVideoMedia(block) {
+  if (!block.classList.contains('video')) return;
+
+  const mediaColumn = block.lastElementChild;
+  const videoAnchor = mediaColumn?.querySelector('a');
+  if (!videoAnchor || !isVideoAnchor(videoAnchor)) return;
+
+  const urlString = resolveVideoUrl(videoAnchor);
+  if (!urlString) return;
+
+  const isControl = block.classList.contains('controls');
+  const wantAutoplay = block.classList.contains('autoplay');
+  const wantLoop = block.classList.contains('loop');
+  const isAutoplay = !isControl || wantAutoplay;
+  const isLoop = !isControl || wantLoop;
+  const muted = !isControl || wantAutoplay;
+
+  const built = buildBlockVideoMediaHtml(
+    new URL(urlString, window.location.href),
+    resolveVideoLabel(videoAnchor),
+    {
+      autoplay: isAutoplay,
+      controls: isControl,
+      loop: isLoop,
+      muted,
+    },
+  );
+
+  if (!built?.html) return;
+
+  const videoContainer = createTag('div', { class: 'superhero-video-container' });
+  if (built.className) {
+    videoContainer.classList.add(built.className);
   }
+  videoContainer.innerHTML = built.html;
+  mediaColumn.replaceWith(videoContainer);
 }
 
 async function decorateDevBizDefault(block) {
