@@ -51,14 +51,45 @@ function mountSlideVideo(block, slideCell, linkParagraph, urlString) {
   }
 }
 
+function getCarouselSlideCell(node, carouselBlock) {
+  let current = node;
+  while (current && current !== carouselBlock) {
+    const parent = current.parentElement;
+    if (
+      parent?.parentElement?.parentElement === carouselBlock
+      && !parent.classList.contains('block-container')
+      && !parent.classList.contains('carousel-circle-div')
+    ) {
+      return parent;
+    }
+    current = parent;
+  }
+  return null;
+}
+
+function getVideoLinkContainer(anchor) {
+  return anchor.closest('.embed.block')
+    || anchor.closest('p')
+    || anchor.parentElement;
+}
+
 function processCarouselVideos(block) {
   block.querySelectorAll(':scope > div > div a').forEach((anchor) => {
     if (!isVideoAnchor(anchor)) return;
     const urlString = resolveVideoUrl(anchor);
     if (!urlString) return;
-    const slideCell = anchor.parentElement?.parentElement;
-    const linkParagraph = anchor.closest('p') || anchor.parentElement;
-    mountSlideVideo(block, slideCell, linkParagraph, urlString);
+
+    const slideCell = getCarouselSlideCell(anchor, block);
+    if (!slideCell) return;
+
+    const linkContainer = getVideoLinkContainer(anchor);
+    mountSlideVideo(block, slideCell, linkContainer, urlString);
+
+    const embedBlock = anchor.closest('.embed.block');
+    if (embedBlock) {
+      embedBlock.classList.add('embed-is-loaded');
+      embedBlock.dataset.carouselVideo = 'true';
+    }
   });
 
   block.querySelectorAll(':scope > div > div > p').forEach((paragraph) => {
@@ -67,7 +98,8 @@ function processCarouselVideos(block) {
     const text = paragraph.textContent.trim();
     const match = text.match(/^(https?:\/\/\S+)$/i);
     if (!match || !isVideoUrl(match[1])) return;
-    mountSlideVideo(block, paragraph.parentElement, paragraph, match[1]);
+    const slideCell = getCarouselSlideCell(paragraph, block);
+    mountSlideVideo(block, slideCell, paragraph, match[1]);
   });
 }
 

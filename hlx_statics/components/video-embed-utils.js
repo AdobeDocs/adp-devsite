@@ -72,7 +72,7 @@ export function resolveVideoUrl(anchor) {
   for (const candidate of candidates) {
     const httpsMatch = String(candidate).match(/https?:\/\/[^\s"'<>]+/i);
     if (httpsMatch && isVideoUrl(httpsMatch[0])) {
-      return httpsMatch[0];
+      return httpsMatch[0].replace(/[.,;:!?)]+$/, '');
     }
     if (isVideoUrl(candidate)) {
       return candidate.startsWith('http')

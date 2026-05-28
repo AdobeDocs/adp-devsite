@@ -84,6 +84,10 @@ const addImage = (placeholder, block, link) => {
     block.append(wrapper);
 };
 export default function decorate(block) {
+  // Carousel replaces nested embed blocks with its own video slot.
+  if (block.closest('.carousel')) {
+    return;
+  }
   const getParent = block.parentElement;
   block.setAttribute('daa-lh', 'embed');
   const placeholder = block.querySelector('picture');
