@@ -2,7 +2,82 @@ import {
   createTag,
   removeEmptyPTags,
 } from "../../scripts/lib-adobeio.js";
-import { renderEmbedContent } from '../../components/video-embed-utils.js';
+import {
+  getYouTubeEmbedUrl,
+  isDirectVideoUrl,
+  isVideoAnchor,
+  renderEmbedContent,
+  resolveVideoUrl,
+} from '../../components/video-embed-utils.js';
+
+function getCarouselEmbedHtml(block, url) {
+  const autoPlay = block.classList.contains('autoplay');
+  const ytSrc = getYouTubeEmbedUrl(url);
+
+  if (ytSrc) {
+    const params = new URLSearchParams();
+    if (autoPlay) {
+      params.set('autoplay', '1');
+      params.set('mute', '1');
+    }
+    const query = params.toString();
+    const src = query
+      ? `${ytSrc}${ytSrc.includes('?') ? '&' : '?'}${query}`
+      : ytSrc;
+    return `<div class="carousel-video-embed"><iframe src="${src}" title="YouTube video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe></div>`;
+  }
+
+  const rendered = renderEmbedContent(url, {
+    loop: autoPlay ? 1 : 0,
+    controls: 1,
+    autoplay: autoPlay ? 1 : 0,
+    includeDefault: true,
+    vidTitle: `Content from ${url.hostname}`,
+  });
+
+  if (rendered?.html) {
+    return rendered.html;
+  }
+
+  if (isDirectVideoUrl(url)) {
+    return `<div class="carousel-video-embed carousel-video-embed--mp4">
+      <video controls loading="lazy" ${autoPlay ? 'autoplay muted playsinline' : ''} preload="metadata" playsinline>
+        <source src="${url.href}" />
+      </video>
+    </div>`;
+  }
+
+  return `<div class="carousel-video-embed"><iframe src="${url.href}" title="Video" allowfullscreen loading="lazy"></iframe></div>`;
+}
+
+function loadVideoURL(block, anchor) {
+  const link = resolveVideoUrl(anchor);
+  if (!link) return;
+
+  const linkParent = anchor.parentElement;
+  const slideCell = linkParent?.parentElement;
+  if (!linkParent || !slideCell) return;
+
+  let url;
+  try {
+    url = new URL(link, window.location.href);
+  } catch {
+    return;
+  }
+
+  const videoElement = createTag('div', { class: 'video-element' });
+  videoElement.innerHTML = getCarouselEmbedHtml(block, url);
+  slideCell.insertBefore(videoElement, slideCell.firstChild);
+  linkParent.remove();
+}
+
+function processCarouselVideos(block) {
+  block.querySelectorAll(':scope > div > div a').forEach((anchor) => {
+    if (!isVideoAnchor(anchor)) return;
+    loadVideoURL(block, anchor);
+  });
+}
+
 /**
  * decorates the carousel
  * @param {Element} block The carousel block element
@@ -37,15 +112,7 @@ export default async function decorate(block) {
   //add a count to keep track of which slide is showing
   let count = 1;
 
-  //load the video link.
-  const a = block.querySelectorAll("a");
-  const videoLinks = Array.from(a).filter((link) => {
-    const href = link?.href || "";
-    return /(?:youtube\.com|youtu\.be|\.mp4(?:$|\?))/i.test(href);
-  });
-  for (let i = 0; i < videoLinks.length; i++) {
-    loadVideoURL(block, videoLinks[i]);
-  }
+  processCarouselVideos(block);
 
   block.querySelectorAll(':scope > div:not([class]) > div:not([class])').forEach((innerDiv, index) => {
     // one outer div for each slide - add class to inner div and remove outerDiv
@@ -124,6 +191,8 @@ export default async function decorate(block) {
   });
 
   block.querySelectorAll("p").forEach(function (p) {
+    if (p.closest('.video-element')) return;
+
     //add everything but image to the right div
     if (p.classList.contains("IMAGE")) {
       p.classList.add("image-container");
@@ -132,12 +201,14 @@ export default async function decorate(block) {
         "[id=button-div-" + p.parentElement.id + "]"
       );
       if (p.classList.contains("button-container")) {
+        if (!button_div) return;
         button_div.classList.add("carousel-button-container");
         button_div.append(p);
       } else {
         let flex_div = block.querySelector(
           "[id=text-flex-div-" + p.parentElement.id + "]"
         );
+        if (!flex_div) return;
         //changing class list of p tags for icons
         if (p.querySelector("span")) {
           // Add a class to the <p> tag
@@ -291,46 +362,6 @@ export default async function decorate(block) {
     });
   });
 
-
-  // load the video url and append to the video element.
-  function loadVideoURL(block, a) {
-    // block.className = "carousel";
-    const link = a.href;
-    const url = new URL(link);
-    a.insertAdjacentHTML("afterend", loadUrl(url));
-    const videoElement = createTag("div", { class: "video-element" });
-    videoElement.innerHTML = a.parentElement.innerHTML;
-    a.parentElement.parentElement.append(videoElement);
-    
-    a.parentElement.remove();
-    videoElement.querySelector("a").remove();
-    videoElement.parentElement.classList.remove("button-container")
-  }
-
-  function loadUrl(url) {
-    // allow autoplay to be specified in the section metadata.
-    const autoPlay = block.classList.contains("autoplay");
-    const rendered = renderEmbedContent(url, {
-      loop: autoPlay ? 1 : 0,
-      controls: 1,
-      autoplay: autoPlay ? 1 : 0,
-      includeDefault: false,
-      vidTitle: `Content from ${url.hostname}`,
-    });
-
-    if (rendered?.html) {
-      return rendered.html;
-    }
-
-    // Fallback for generic direct media URLs.
-    return `<div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.25%;">
-      <video controls loading="lazy" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" ${
-        autoPlay ? `autoplay="true"` : ""
-      } preload="metadata" playsinline muted>
-        <source src="${url}" />
-      </video>
-    </div>`;
-  }
 
   //automatic scrolling
   function advanceSlide() {

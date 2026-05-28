@@ -48,6 +48,47 @@ export function getEmbeddableVideoUrl(linkOrUrl) {
   return getYouTubeEmbedUrl(url) || url.href;
 }
 
+const VIDEO_URL_PATTERN = /(?:youtube\.com|youtu\.be|video\.tv\.adobe\.com|vimeo\.com|tiktok\.com|instagram\.com|twitter\.com|x\.com|\.mp4(?:$|\?|&))/i;
+
+export function isVideoUrl(linkOrUrl) {
+  if (!linkOrUrl) return false;
+  try {
+    return VIDEO_URL_PATTERN.test(String(linkOrUrl));
+  } catch {
+    return false;
+  }
+}
+
+export function resolveVideoUrl(anchor) {
+  if (!anchor) return null;
+  const candidates = [
+    anchor.textContent?.trim(),
+    anchor.getAttribute('title'),
+    anchor.href,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const httpsMatch = String(candidate).match(/https?:\/\/[^\s"'<>]+/i);
+    if (httpsMatch && isVideoUrl(httpsMatch[0])) {
+      return httpsMatch[0];
+    }
+    if (isVideoUrl(candidate)) {
+      return candidate.startsWith('http')
+        ? candidate
+        : new URL(candidate, window.location.href).href;
+    }
+  }
+  return null;
+}
+
+export function isVideoAnchor(anchor) {
+  if (!anchor) return false;
+  const title = anchor.getAttribute('title') || '';
+  if (title.includes('https') && isVideoUrl(title)) return true;
+  return isVideoUrl(anchor.href)
+    || isVideoUrl(anchor.textContent?.trim());
+}
+
 export function getVideoProvider(linkOrUrl) {
   const url = toUrl(linkOrUrl);
   const host = url.hostname.toLowerCase();
@@ -123,7 +164,7 @@ function embedMP4(url, loop, controls, autoplay) {
   return `
 <div style=" width: 100%;">
       <video src="${url.href}" ${loop ? 'loop' : ''} ${controls ? 'controls' : ''} ${autoplayMute} style="width: 100%; height: 100%;">
-      <p>Sorry, We're having an internal Error. Please try Again Soon!</p>
+      Sorry, we're having an internal error. Please try again soon.
       </video>
 </div>
   `;
@@ -159,14 +200,15 @@ function embedTikTok(url, vidTitle, autoplay) {
 function embedYoutube(url, loop, controls, vidTitle, isShort, autoplay) {
   let vid;
   const embedPath = url.pathname;
+  const host = url.hostname.toLowerCase();
 
-  if (url.hostname === 'www.youtube.com' || url.hostname === 'youtube.com') {
+  if (host === 'www.youtube.com' || host === 'youtube.com') {
     const usp = new URLSearchParams(url.search);
     vid = usp.get('v') || (embedPath.includes('embed') && embedPath.split('/')[2]);
   }
 
-  if (url.hostname === 'youtu.be') {
-    vid = embedPath.split('/')[1];
+  if (host === 'youtu.be') {
+    vid = embedPath.split('/').filter(Boolean)[0]?.split('?')[0] || '';
   }
   if (embedPath.includes('shorts')) {
     return embedYTShort(url, loop, controls, vidTitle, autoplay);
