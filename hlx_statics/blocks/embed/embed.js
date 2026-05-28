@@ -96,7 +96,13 @@ export default function decorate(block) {
     if (slideCell && !slideCell.querySelector(':scope > .video-element') && anchor) {
       const urlString = resolveVideoUrl(anchor);
       if (urlString && isVideoAnchor(anchor)) {
-        mountCarouselVideo(carouselBlock, slideCell, block, urlString);
+        mountCarouselVideo(
+          carouselBlock,
+          slideCell,
+          block,
+          urlString,
+          anchor.textContent?.trim() || 'Video content',
+        );
       }
     }
     return;

@@ -274,18 +274,45 @@ function embedTwitter(url, vidTitle, autoplay, loadScript) {
 }
 
 /**
- * Normalizes provider embed HTML for carousel media slot (single aspect-ratio wrapper).
- * @param {string} html
+ * Flat YouTube iframe markup (same pattern as columns block).
+ * @param {string|URL} linkOrUrl
+ * @param {string} title
+ * @param {boolean} autoplay
  * @returns {string}
  */
-export function buildCarouselVideoHtml(carouselBlock, url) {
+export function buildFlatYouTubeIframeHtml(linkOrUrl, title = 'Video content', autoplay = false) {
+  const embedUrl = getYouTubeEmbedUrl(linkOrUrl);
+  if (!embedUrl) return '';
+
+  const queryIndex = embedUrl.indexOf('?');
+  const base = queryIndex === -1 ? embedUrl : embedUrl.slice(0, queryIndex);
+  const params = new URLSearchParams(queryIndex === -1 ? '' : embedUrl.slice(queryIndex + 1));
+
+  if (autoplay) {
+    params.set('autoplay', '1');
+    params.set('mute', '1');
+  }
+
+  const query = params.toString();
+  const src = query ? `${base}?${query}` : base;
+
+  return `<iframe src="${src}" title="${title}" allowfullscreen loading="lazy"></iframe>`;
+}
+
+export function buildCarouselVideoHtml(carouselBlock, url, title = 'Video content') {
   const autoPlay = carouselBlock?.classList?.contains('autoplay');
+  const provider = getVideoProvider(url);
+
+  if (provider === 'youtube') {
+    return buildFlatYouTubeIframeHtml(url, title, autoPlay);
+  }
+
   const rendered = renderEmbedContent(url, {
     loop: 0,
     controls: 1,
     autoplay: autoPlay ? 1 : 0,
     includeDefault: true,
-    vidTitle: `Content from ${url.hostname}`,
+    vidTitle: title,
   });
 
   if (rendered?.html) {
@@ -301,7 +328,7 @@ export function buildCarouselVideoHtml(carouselBlock, url) {
   }
 
   return wrapCarouselVideoEmbed(
-    `<iframe src="${url.href}" title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`,
+    `<iframe src="${url.href}" title="${title}" allowfullscreen loading="lazy"></iframe>`,
   );
 }
 
@@ -312,13 +339,23 @@ export function buildCarouselVideoHtml(carouselBlock, url) {
  * @param {Element|null} container Node to remove after mount (embed block, paragraph, etc.)
  * @param {string} urlString
  */
-export function mountCarouselVideo(carouselBlock, slideCell, container, urlString) {
+export function mountCarouselVideo(
+  carouselBlock,
+  slideCell,
+  container,
+  urlString,
+  title = 'Video content',
+) {
   if (!slideCell || !urlString || slideCell.querySelector(':scope > .video-element')) return;
   try {
     const url = new URL(urlString, window.location.href);
+    const provider = getVideoProvider(url);
     const videoElement = document.createElement('div');
     videoElement.className = 'video-element';
-    videoElement.innerHTML = buildCarouselVideoHtml(carouselBlock, url);
+    if (provider === 'youtube') {
+      videoElement.classList.add('embed-youtube');
+    }
+    videoElement.innerHTML = buildCarouselVideoHtml(carouselBlock, url, title);
     slideCell.insertBefore(videoElement, slideCell.firstChild);
     container?.remove();
     const embedBlock = container?.classList?.contains('block')

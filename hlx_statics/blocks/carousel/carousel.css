@@ -110,6 +110,16 @@ main div.carousel-wrapper div.carousel .video-element {
   max-width: 100%;
 }
 
+main div.carousel-wrapper div.carousel .video-element.embed-youtube iframe {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+  display: block;
+  position: relative;
+}
+
 main div.carousel-wrapper div.carousel .video-element .carousel-video-embed,
 main div.carousel-wrapper div.carousel .video-element > div {
   width: 100% !important;

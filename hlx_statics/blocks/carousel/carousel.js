@@ -28,6 +28,7 @@ function processCarouselVideos(carouselBlock) {
         slideCell,
         getVideoLinkContainer(anchor),
         urlString,
+        anchor.textContent?.trim() || 'Video content',
       );
     });
 
@@ -39,7 +40,7 @@ function processCarouselVideos(carouselBlock) {
       const text = paragraph.textContent.trim();
       const match = text.match(/^(https?:\/\/\S+)$/i);
       if (!match || !isVideoUrl(match[1])) return;
-      mountCarouselVideo(carouselBlock, slideCell, paragraph, match[1]);
+      mountCarouselVideo(carouselBlock, slideCell, paragraph, match[1], 'Video content');
     });
   });
 }
