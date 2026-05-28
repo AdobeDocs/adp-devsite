@@ -3,32 +3,18 @@ import {
   removeEmptyPTags,
 } from "../../scripts/lib-adobeio.js";
 import {
-  getYouTubeEmbedUrl,
   isDirectVideoUrl,
   isVideoAnchor,
+  isVideoUrl,
   renderEmbedContent,
   resolveVideoUrl,
+  wrapCarouselVideoEmbed,
 } from '../../components/video-embed-utils.js';
 
 function getCarouselEmbedHtml(block, url) {
   const autoPlay = block.classList.contains('autoplay');
-  const ytSrc = getYouTubeEmbedUrl(url);
-
-  if (ytSrc) {
-    const params = new URLSearchParams();
-    if (autoPlay) {
-      params.set('autoplay', '1');
-      params.set('mute', '1');
-    }
-    const query = params.toString();
-    const src = query
-      ? `${ytSrc}${ytSrc.includes('?') ? '&' : '?'}${query}`
-      : ytSrc;
-    return `<div class="carousel-video-embed"><iframe src="${src}" title="YouTube video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe></div>`;
-  }
-
   const rendered = renderEmbedContent(url, {
-    loop: autoPlay ? 1 : 0,
+    loop: 0,
     controls: 1,
     autoplay: autoPlay ? 1 : 0,
     includeDefault: true,
@@ -36,45 +22,52 @@ function getCarouselEmbedHtml(block, url) {
   });
 
   if (rendered?.html) {
-    return rendered.html;
+    return wrapCarouselVideoEmbed(rendered.html);
   }
 
   if (isDirectVideoUrl(url)) {
-    return `<div class="carousel-video-embed carousel-video-embed--mp4">
-      <video controls loading="lazy" ${autoPlay ? 'autoplay muted playsinline' : ''} preload="metadata" playsinline>
+    return wrapCarouselVideoEmbed(
+      `<video controls loading="lazy" ${autoPlay ? 'autoplay muted playsinline' : ''} preload="metadata" playsinline>
         <source src="${url.href}" />
-      </video>
-    </div>`;
+      </video>`,
+    );
   }
 
-  return `<div class="carousel-video-embed"><iframe src="${url.href}" title="Video" allowfullscreen loading="lazy"></iframe></div>`;
+  return wrapCarouselVideoEmbed(
+    `<iframe src="${url.href}" title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`,
+  );
 }
 
-function loadVideoURL(block, anchor) {
-  const link = resolveVideoUrl(anchor);
-  if (!link) return;
-
-  const linkParent = anchor.parentElement;
-  const slideCell = linkParent?.parentElement;
-  if (!linkParent || !slideCell) return;
-
-  let url;
+function mountSlideVideo(block, slideCell, linkParagraph, urlString) {
+  if (!slideCell || !urlString) return;
   try {
-    url = new URL(link, window.location.href);
+    const url = new URL(urlString, window.location.href);
+    const videoElement = createTag('div', { class: 'video-element' });
+    videoElement.innerHTML = getCarouselEmbedHtml(block, url);
+    slideCell.insertBefore(videoElement, slideCell.firstChild);
+    linkParagraph?.remove();
   } catch {
-    return;
+    // invalid URL — leave content unchanged
   }
-
-  const videoElement = createTag('div', { class: 'video-element' });
-  videoElement.innerHTML = getCarouselEmbedHtml(block, url);
-  slideCell.insertBefore(videoElement, slideCell.firstChild);
-  linkParent.remove();
 }
 
 function processCarouselVideos(block) {
   block.querySelectorAll(':scope > div > div a').forEach((anchor) => {
     if (!isVideoAnchor(anchor)) return;
-    loadVideoURL(block, anchor);
+    const urlString = resolveVideoUrl(anchor);
+    if (!urlString) return;
+    const slideCell = anchor.parentElement?.parentElement;
+    const linkParagraph = anchor.closest('p') || anchor.parentElement;
+    mountSlideVideo(block, slideCell, linkParagraph, urlString);
+  });
+
+  block.querySelectorAll(':scope > div > div > p').forEach((paragraph) => {
+    if (paragraph.closest('.video-element')) return;
+    if (paragraph.querySelector('a, picture, img, video, iframe')) return;
+    const text = paragraph.textContent.trim();
+    const match = text.match(/^(https?:\/\/\S+)$/i);
+    if (!match || !isVideoUrl(match[1])) return;
+    mountSlideVideo(block, paragraph.parentElement, paragraph, match[1]);
   });
 }
 

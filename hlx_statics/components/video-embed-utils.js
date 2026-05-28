@@ -12,7 +12,9 @@ export function isDirectVideoUrl(linkOrUrl) {
 export function getYouTubeEmbedUrl(linkOrUrl) {
   const url = toUrl(linkOrUrl);
   const host = url.hostname.toLowerCase();
-  const isYouTubeHost = host === 'youtu.be' || host.endsWith('youtube.com');
+  const isYouTubeHost = host === 'youtu.be'
+    || host === 'm.youtube.com'
+    || host.endsWith('youtube.com');
 
   if (!isYouTubeHost) return null;
 
@@ -94,7 +96,9 @@ export function getVideoProvider(linkOrUrl) {
   const host = url.hostname.toLowerCase();
 
   if (isDirectVideoUrl(url)) return 'mp4';
-  if (host === 'youtu.be' || host.endsWith('youtube.com')) return 'youtube';
+  if (host === 'youtu.be' || host === 'm.youtube.com' || host.endsWith('youtube.com')) {
+    return 'youtube';
+  }
   if (host.includes('vimeo.com')) return 'vimeo';
   if (host === 'x.com' || host.endsWith('twitter.com')) return 'twitter';
   if (host.includes('instagram.com')) return 'insta';
@@ -267,6 +271,41 @@ function embedTwitter(url, vidTitle, autoplay, loadScript) {
     loadScript('https://platform.twitter.com/widgets.js');
   }
   return `<blockquote class="twitter-tweet"><a href="${source}?autoplay=${autoplay}"></a></blockquote>`;
+}
+
+/**
+ * Normalizes provider embed HTML for carousel media slot (single aspect-ratio wrapper).
+ * @param {string} html
+ * @returns {string}
+ */
+export function wrapCarouselVideoEmbed(html) {
+  if (!html) return '';
+
+  const temp = document.createElement('div');
+  temp.innerHTML = html.trim();
+  const iframe = temp.querySelector('iframe');
+  const video = temp.querySelector('video');
+
+  if (iframe) {
+    const src = iframe.getAttribute('src') || iframe.getAttribute('data-src');
+    if (src) {
+      iframe.setAttribute('src', src);
+      iframe.removeAttribute('data-src');
+    }
+    iframe.setAttribute('loading', 'lazy');
+    return `<div class="carousel-video-embed">${iframe.outerHTML}</div>`;
+  }
+
+  if (video) {
+    return `<div class="carousel-video-embed carousel-video-embed--mp4">${video.outerHTML}</div>`;
+  }
+
+  const inner = temp.querySelector(':scope > div') || temp.firstElementChild;
+  if (inner) {
+    return `<div class="carousel-video-embed">${inner.outerHTML}</div>`;
+  }
+
+  return `<div class="carousel-video-embed">${html}</div>`;
 }
 
 export function renderEmbedContent(linkOrUrl, options = {}) {
