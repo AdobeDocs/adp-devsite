@@ -263,7 +263,7 @@ export class ChatBubble {
              * @param {string} text
              */
             link(href, title, text) {
-              return `<a href="${href}" title="${title || text}" daa-ll="${title || text}" target="_blank">${text}</a>`;
+              return `<a href="${href}" title="${title || text}" daa-ll="${title || text}" target="_blank" rel="noopener noreferrer">${text}</a>`;
             },
           },
         }),
