@@ -101,6 +101,15 @@ describe('Carousel block', () => {
         });
     });
 
+    it('Carousel > youtube flat iframe', async () => {
+        const youtubeSlot = carouselBlock.querySelector('.video-element.embed-youtube');
+        expect(youtubeSlot).to.exist;
+        const iframe = youtubeSlot.querySelector(':scope > iframe');
+        expect(iframe).to.exist;
+        expect(iframe.getAttribute('src')).to.include('youtube-nocookie.com/embed/zHy4Y1GALaM');
+        expect(iframe.getAttribute('allowfullscreen')).to.exist;
+    });
+
     it('Carousel > p', async () => {
         carouselBlock.querySelectorAll('p').forEach((p) => {
             if (p.classList.contains('IMAGE')) {

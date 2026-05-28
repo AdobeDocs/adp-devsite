@@ -84,11 +84,39 @@ export function resolveVideoUrl(anchor) {
 }
 
 export function isVideoAnchor(anchor) {
-  if (!anchor) return false;
-  const title = anchor.getAttribute('title') || '';
-  if (title.includes('https') && isVideoUrl(title)) return true;
-  return isVideoUrl(anchor.href)
-    || isVideoUrl(anchor.textContent?.trim());
+  return Boolean(resolveVideoUrl(anchor));
+}
+
+/**
+ * Resolves a video URL from an embed block (anchor or plain text in cells).
+ * @param {Element} embedBlock
+ * @returns {{ urlString: string, title: string }|null}
+ */
+export function resolveEmbedBlockVideo(embedBlock) {
+  if (!embedBlock) return null;
+
+  const anchor = embedBlock.querySelector('a');
+  if (anchor) {
+    const urlString = resolveVideoUrl(anchor);
+    if (urlString) {
+      return {
+        urlString,
+        title: anchor.textContent?.trim() || 'Video content',
+      };
+    }
+  }
+
+  const cell = embedBlock.querySelector(':scope > div > div');
+  const text = cell?.textContent?.trim() || '';
+  const match = text.match(/https?:\/\/[^\s"'<>]+/i);
+  if (match && isVideoUrl(match[0])) {
+    return {
+      urlString: match[0].replace(/[.,;:!?)]+$/, ''),
+      title: 'Video content',
+    };
+  }
+
+  return null;
 }
 
 export function getVideoProvider(linkOrUrl) {
@@ -296,7 +324,7 @@ export function buildFlatYouTubeIframeHtml(linkOrUrl, title = 'Video content', a
   const query = params.toString();
   const src = query ? `${base}?${query}` : base;
 
-  return `<iframe src="${src}" title="${title}" allowfullscreen loading="lazy"></iframe>`;
+  return `<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`;
 }
 
 export function buildCarouselVideoHtml(carouselBlock, url, title = 'Video content') {
@@ -355,7 +383,9 @@ export function mountCarouselVideo(
     if (provider === 'youtube') {
       videoElement.classList.add('embed-youtube');
     }
-    videoElement.innerHTML = buildCarouselVideoHtml(carouselBlock, url, title);
+    const html = buildCarouselVideoHtml(carouselBlock, url, title);
+    if (!html?.trim()) return;
+    videoElement.innerHTML = html;
     slideCell.insertBefore(videoElement, slideCell.firstChild);
     container?.remove();
     const embedBlock = container?.classList?.contains('block')

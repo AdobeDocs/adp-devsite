@@ -140,8 +140,8 @@ main div.carousel-wrapper div.carousel .video-element .carousel-video-embed--mp4
   display: block;
 }
 
-main div.carousel-wrapper div.carousel .video-element iframe,
-main div.carousel-wrapper div.carousel .video-element > div iframe,
+main div.carousel-wrapper div.carousel .video-element:not(.embed-youtube) iframe,
+main div.carousel-wrapper div.carousel .video-element:not(.embed-youtube) > div iframe,
 main div.carousel-wrapper div.carousel .video-element > div video:not(.carousel-video-embed--mp4 video) {
   position: absolute;
   top: 0;

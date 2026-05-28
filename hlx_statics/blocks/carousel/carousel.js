@@ -6,6 +6,7 @@ import {
   isVideoAnchor,
   isVideoUrl,
   mountCarouselVideo,
+  resolveEmbedBlockVideo,
   resolveVideoUrl,
 } from '../../components/video-embed-utils.js';
 
@@ -29,6 +30,20 @@ function processCarouselVideos(carouselBlock) {
         getVideoLinkContainer(anchor),
         urlString,
         anchor.textContent?.trim() || 'Video content',
+      );
+    });
+
+    if (slideCell.querySelector(':scope > .video-element')) return;
+
+    slideCell.querySelectorAll(':scope > .embed.block').forEach((embedBlock) => {
+      const resolved = resolveEmbedBlockVideo(embedBlock);
+      if (!resolved) return;
+      mountCarouselVideo(
+        carouselBlock,
+        slideCell,
+        embedBlock,
+        resolved.urlString,
+        resolved.title,
       );
     });
 

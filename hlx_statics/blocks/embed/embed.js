@@ -5,10 +5,9 @@
  */
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 import {
-  isVideoAnchor,
   mountCarouselVideo,
   renderEmbedContent,
-  resolveVideoUrl,
+  resolveEmbedBlockVideo,
 } from '../../components/video-embed-utils.js';
 
 const loadScript = (url, callback, type) => {
@@ -92,16 +91,15 @@ export default function decorate(block) {
   const carouselBlock = block.closest('.carousel');
   if (carouselBlock) {
     const slideCell = block.closest('.carousel-container');
-    const anchor = block.querySelector('a');
-    if (slideCell && !slideCell.querySelector(':scope > .video-element') && anchor) {
-      const urlString = resolveVideoUrl(anchor);
-      if (urlString && isVideoAnchor(anchor)) {
+    if (slideCell && !slideCell.querySelector(':scope > .video-element')) {
+      const resolved = resolveEmbedBlockVideo(block);
+      if (resolved) {
         mountCarouselVideo(
           carouselBlock,
           slideCell,
           block,
-          urlString,
-          anchor.textContent?.trim() || 'Video content',
+          resolved.urlString,
+          resolved.title,
         );
       }
     }
