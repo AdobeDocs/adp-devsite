@@ -123,7 +123,7 @@ export default async function decorate(block) {
       const tabButton = document.createElement('button');
       tabButton.className = 'tab-button';
       tabButton.innerHTML = `
-        <div class="tab-icon">${tabImage}</div>
+        ${tabImage ? `<div class="tab-icon">${tabImage}</div>` : ''}
         <span class="tab-title">${tabTitle}</span>
       `;
       tabButton.setAttribute('data-tab', `tab${tabCount}`);
