@@ -6,7 +6,7 @@ function toUrl(linkOrUrl) {
 export function isDirectVideoUrl(linkOrUrl) {
   const url = toUrl(linkOrUrl);
   const path = url.pathname.toLowerCase();
-  return /\.(mp4|webm|ogg)$/.test(path);
+  return /\.(mp4|webm|ogg)(?:$|[?#])/i.test(path);
 }
 
 export function getYouTubeEmbedUrl(linkOrUrl) {
