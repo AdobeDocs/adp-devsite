@@ -306,8 +306,10 @@ export default async function decorate(block) {
   }
 
   function loadUrl(url) {
+    console.log("loadUrl", url);
     let html;
     const embed = url.pathname;
+    console.log("embed", embed);
     // Check if the URL is a youtube link.
     const usp = new URLSearchParams(url.search);
     let vid = encodeURIComponent(usp.get("v"));
@@ -316,6 +318,7 @@ export default async function decorate(block) {
     if (url.origin.includes("youtu.be")) {
       vid = url.pathname.split("/")[1];
     }
+    console.log("vid", vid);
     // allow autoplay to be specified in the section metadata.
     const autoPlay = block.classList.contains("autoplay");
 
@@ -327,10 +330,7 @@ export default async function decorate(block) {
         autoPlay ? dataSource + "&autoplay=1&mute=1" : dataSource;
       // Render the youtube link through iframe within right container of one of the video carousel slide.
       html = `<div style="left: 0; width: 560px; height: 320px; position: relative; ">
-      <img loading="lazy" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;"
-        src="https://i.ytimg.com/vi_webp/${vid}/maxresdefault.webp">
           <iframe data-src="${dataSource}" allow="autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen="" scrolling="no" title="Content from Youtube" loading="lazy"></iframe>
-      </img>
      </div>`;
     } else {
       // Render the url link through video tag within right container of one of the video carousel slide.
