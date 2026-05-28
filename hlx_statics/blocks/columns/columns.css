@@ -61,7 +61,8 @@ main div.columns-wrapper  div.columns  div.second-column div.button-group-contai
 
 @media screen and (max-width: 620px) {
     main div.columns-wrapper div.columns div.first-column img,
-    main div.columns-wrapper div.columns div.first-column video {
+    main div.columns-wrapper div.columns div.first-column video,
+    main div.columns-wrapper div.columns div.first-column iframe {
         width: 100vw;
         height: auto;
     }
@@ -79,12 +80,39 @@ main div.columns-wrapper div.columns div.first-column {
 }
 
 main div.columns-wrapper div.columns div.first-column img,
-main div.columns-wrapper div.columns div.first-column video {
+main div.columns-wrapper div.columns div.first-column video,
+main div.columns-wrapper div.columns div.first-column iframe {
     max-width: 100%;
     max-height: 350px;
     height: auto;
     width: auto;
     object-fit: contain;
+}
+
+main div.columns-wrapper div.columns div.first-column iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+}
+
+main div.columns-wrapper div.columns div.first-column .columns-video-slot {
+    width: 100%;
+    max-width: 100%;
+}
+
+main div.columns-wrapper div.columns div.first-column .columns-video-slot > div {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    padding-bottom: 56.25% !important;
+}
+
+main div.columns-wrapper div.columns div.first-column .columns-video-slot > div iframe,
+main div.columns-wrapper div.columns div.first-column .columns-video-slot > div video {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    border: 0;
 }
 
 main div.columns-wrapper div.second-column {
@@ -154,7 +182,8 @@ main div.columns-wrapper div.second-column div.product-link-container {
         width: 100% !important;
     }
     main div.columns-wrapper div.columns div.first-column img,
-    main div.columns-wrapper div.columns div.first-column video {
+    main div.columns-wrapper div.columns div.first-column video,
+    main div.columns-wrapper div.columns div.first-column iframe {
         max-width: 100%;
         max-height: 350px;
         height: auto;
@@ -282,7 +311,8 @@ main div.columns-wrapper div.vertical .first-column {
 }
 
 main div.columns-wrapper div.columns.vertical div.first-column img,
-main div.columns-wrapper div.columns.vertical div.first-column video {
+main div.columns-wrapper div.columns.vertical div.first-column video,
+main div.columns-wrapper div.columns.vertical div.first-column iframe {
     max-height: 150px;
 }
 

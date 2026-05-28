@@ -2,6 +2,7 @@ import {
   createTag,
   removeEmptyPTags,
 } from "../../scripts/lib-adobeio.js";
+import { renderEmbedContent } from '../../components/video-embed-utils.js';
 /**
  * decorates the carousel
  * @param {Element} block The carousel block element
@@ -38,9 +39,10 @@ export default async function decorate(block) {
 
   //load the video link.
   const a = block.querySelectorAll("a");
-  const videoLinks = Array.from(a).filter(link => 
-    link.title.includes('https')
-  );
+  const videoLinks = Array.from(a).filter((link) => {
+    const href = link?.href || "";
+    return /(?:youtube\.com|youtu\.be|\.mp4(?:$|\?))/i.test(href);
+  });
   for (let i = 0; i < videoLinks.length; i++) {
     loadVideoURL(block, videoLinks[i]);
   }
@@ -306,44 +308,28 @@ export default async function decorate(block) {
   }
 
   function loadUrl(url) {
-    let html;
-    const embed = url.pathname;
-    // Check if the URL is a youtube link.
-    const usp = new URLSearchParams(url.search);
-    let vid = encodeURIComponent(usp.get("v"));
-    const youtubeRegex =
-      /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)/;
-    if (url.origin.includes("youtu.be")) {
-      vid = url.pathname.split("/")[1];
-    }
     // allow autoplay to be specified in the section metadata.
     const autoPlay = block.classList.contains("autoplay");
+    const rendered = renderEmbedContent(url, {
+      loop: autoPlay ? 1 : 0,
+      controls: 1,
+      autoplay: autoPlay ? 1 : 0,
+      includeDefault: false,
+      vidTitle: `Content from ${url.hostname}`,
+    });
 
-    if (youtubeRegex.test(url)) {
-      let dataSource = "https://www.youtube.com";
-      dataSource += vid ? "/embed/" + vid + "?rel=0&v=" + vid : embed;
-      // if autoplay is true, append autoplay to the datasource.
-      dataSource =
-        autoPlay ? dataSource + "&autoplay=1&mute=1" : dataSource;
-      // Render the youtube link through iframe within right container of one of the video carousel slide.
-      html = `<div style="left: 0; width: 560px; height: 320px; position: relative; ">
-      <img loading="lazy" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;"
-        src="https://i.ytimg.com/vi_webp/${vid}/maxresdefault.webp">
-          <iframe data-src="${dataSource}" allow="autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen="" scrolling="no" title="Content from Youtube" loading="lazy"></iframe>
-      </img>
-     </div>`;
-    } else {
-      // Render the url link through video tag within right container of one of the video carousel slide.
-      // if autoplay is true, add autoplay attribute to the video tag.
-      html = `<div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.25%;">
-        <video controls loading="lazy" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" ${
-          autoPlay ? `autoplay="true"` : ""
-        } preload="metadata" playsinline muted>
-          <source src="${url}" />
-        </video>
-      </div>`;
+    if (rendered?.html) {
+      return rendered.html;
     }
-    return html;
+
+    // Fallback for generic direct media URLs.
+    return `<div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.25%;">
+      <video controls loading="lazy" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" ${
+        autoPlay ? `autoplay="true"` : ""
+      } preload="metadata" playsinline muted>
+        <source src="${url}" />
+      </video>
+    </div>`;
   }
 
   //automatic scrolling

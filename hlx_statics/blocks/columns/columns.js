@@ -11,6 +11,10 @@ import {
   decorateLightOrDark,
   IS_DEV_DOCS,
 } from '../../scripts/lib-helix.js';
+import {
+  getEmbeddableVideoUrl,
+  renderEmbedContent,
+} from '../../components/video-embed-utils.js';
 
 /**
  * Generates optimized images for all columns in the block
@@ -24,6 +28,36 @@ function processImages(block) {
     p.appendChild(picture);
     parent.replaceChild(p, img.parentElement);
   });
+}
+
+function createVideoSlotContent(videoAnchor) {
+  const videoUrl = new URL(videoAnchor.href, window.location.href);
+  const title = videoAnchor.textContent?.trim() || 'Video content';
+  const wrapper = createTag('div', { class: 'columns-video-slot' });
+  const renderResult = renderEmbedContent(videoUrl, {
+    loop: 1,
+    controls: 0,
+    vidTitle: title,
+    autoplay: 1,
+    includeDefault: false,
+  });
+
+  if (renderResult?.provider === 'youtube') {
+    // Keep YouTube markup flat in columns so it aligns like image/mp4 cards.
+    const iframeSrc = getEmbeddableVideoUrl(videoUrl);
+    wrapper.classList.add('embed-youtube');
+    wrapper.innerHTML = `<iframe src="${iframeSrc}" title="${title}" allowfullscreen loading="lazy"></iframe>`;
+  } else if (renderResult?.html) {
+    wrapper.innerHTML = renderResult.html;
+    if (renderResult.className) {
+      wrapper.classList.add(renderResult.className);
+    }
+  } else {
+    const iframeSrc = getEmbeddableVideoUrl(videoUrl);
+    wrapper.innerHTML = `<iframe src="${iframeSrc}" title="${title}" allowfullscreen loading="lazy"></iframe>`;
+  }
+
+  return wrapper;
 }
 
 /**
@@ -88,8 +122,7 @@ export default async function decorate(block) {
         
         const videoAnchor = slotElements.video?.querySelector('a');
         if (videoAnchor) {
-          const wrapperVideo = createTag('div');
-          wrapperVideo.innerHTML = `<video src="${videoAnchor.href}" alt="${videoAnchor.textContent}" autoplay playsinline muted loop></video>`;
+          const wrapperVideo = createVideoSlotContent(videoAnchor);
           slotElements.video?.replaceWith(wrapperVideo);
   
           const newWrapper = createTag('div');
