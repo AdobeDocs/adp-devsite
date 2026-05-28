@@ -3,69 +3,11 @@ import {
   removeEmptyPTags,
 } from "../../scripts/lib-adobeio.js";
 import {
-  isDirectVideoUrl,
   isVideoAnchor,
   isVideoUrl,
-  renderEmbedContent,
+  mountCarouselVideo,
   resolveVideoUrl,
-  wrapCarouselVideoEmbed,
 } from '../../components/video-embed-utils.js';
-
-function getCarouselEmbedHtml(block, url) {
-  const autoPlay = block.classList.contains('autoplay');
-  const rendered = renderEmbedContent(url, {
-    loop: 0,
-    controls: 1,
-    autoplay: autoPlay ? 1 : 0,
-    includeDefault: true,
-    vidTitle: `Content from ${url.hostname}`,
-  });
-
-  if (rendered?.html) {
-    return wrapCarouselVideoEmbed(rendered.html);
-  }
-
-  if (isDirectVideoUrl(url)) {
-    return wrapCarouselVideoEmbed(
-      `<video controls loading="lazy" ${autoPlay ? 'autoplay muted playsinline' : ''} preload="metadata" playsinline>
-        <source src="${url.href}" />
-      </video>`,
-    );
-  }
-
-  return wrapCarouselVideoEmbed(
-    `<iframe src="${url.href}" title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`,
-  );
-}
-
-function mountSlideVideo(block, slideCell, linkParagraph, urlString) {
-  if (!slideCell || !urlString) return;
-  try {
-    const url = new URL(urlString, window.location.href);
-    const videoElement = createTag('div', { class: 'video-element' });
-    videoElement.innerHTML = getCarouselEmbedHtml(block, url);
-    slideCell.insertBefore(videoElement, slideCell.firstChild);
-    linkParagraph?.remove();
-  } catch {
-    // invalid URL — leave content unchanged
-  }
-}
-
-function getCarouselSlideCell(node, carouselBlock) {
-  let current = node;
-  while (current && current !== carouselBlock) {
-    const parent = current.parentElement;
-    if (
-      parent?.parentElement?.parentElement === carouselBlock
-      && !parent.classList.contains('block-container')
-      && !parent.classList.contains('carousel-circle-div')
-    ) {
-      return parent;
-    }
-    current = parent;
-  }
-  return null;
-}
 
 function getVideoLinkContainer(anchor) {
   return anchor.closest('.embed.block')
@@ -73,33 +15,41 @@ function getVideoLinkContainer(anchor) {
     || anchor.parentElement;
 }
 
-function processCarouselVideos(block) {
-  block.querySelectorAll(':scope > div > div a').forEach((anchor) => {
-    if (!isVideoAnchor(anchor)) return;
-    const urlString = resolveVideoUrl(anchor);
-    if (!urlString) return;
+function processCarouselVideos(carouselBlock) {
+  carouselBlock.querySelectorAll('.carousel-container').forEach((slideCell) => {
+    if (slideCell.querySelector(':scope > .video-element')) return;
 
-    const slideCell = getCarouselSlideCell(anchor, block);
-    if (!slideCell) return;
+    slideCell.querySelectorAll('a').forEach((anchor) => {
+      if (!isVideoAnchor(anchor)) return;
+      const urlString = resolveVideoUrl(anchor);
+      if (!urlString) return;
+      mountCarouselVideo(
+        carouselBlock,
+        slideCell,
+        getVideoLinkContainer(anchor),
+        urlString,
+      );
+    });
 
-    const linkContainer = getVideoLinkContainer(anchor);
-    mountSlideVideo(block, slideCell, linkContainer, urlString);
+    if (slideCell.querySelector(':scope > .video-element')) return;
 
-    const embedBlock = anchor.closest('.embed.block');
-    if (embedBlock) {
-      embedBlock.classList.add('embed-is-loaded');
-      embedBlock.dataset.carouselVideo = 'true';
-    }
+    slideCell.querySelectorAll(':scope > p').forEach((paragraph) => {
+      if (paragraph.closest('.video-element')) return;
+      if (paragraph.querySelector('a, picture, img, video, iframe')) return;
+      const text = paragraph.textContent.trim();
+      const match = text.match(/^(https?:\/\/\S+)$/i);
+      if (!match || !isVideoUrl(match[1])) return;
+      mountCarouselVideo(carouselBlock, slideCell, paragraph, match[1]);
+    });
   });
+}
 
-  block.querySelectorAll(':scope > div > div > p').forEach((paragraph) => {
-    if (paragraph.closest('.video-element')) return;
-    if (paragraph.querySelector('a, picture, img, video, iframe')) return;
-    const text = paragraph.textContent.trim();
-    const match = text.match(/^(https?:\/\/\S+)$/i);
-    if (!match || !isVideoUrl(match[1])) return;
-    const slideCell = getCarouselSlideCell(paragraph, block);
-    mountSlideVideo(block, slideCell, paragraph, match[1]);
+function setupCarouselVideoMedia(carouselBlock) {
+  carouselBlock.querySelectorAll('.video-element').forEach((vid) => {
+    const slide = vid.closest('.carousel-container');
+    if (!slide?.id) return;
+    vid.id = `media-flex-div-${slide.id}`;
+    vid.classList.add('media-container');
   });
 }
 
@@ -136,8 +86,6 @@ export default async function decorate(block) {
 
   //add a count to keep track of which slide is showing
   let count = 1;
-
-  processCarouselVideos(block);
 
   block.querySelectorAll(':scope > div:not([class]) > div:not([class])').forEach((innerDiv, index) => {
     // one outer div for each slide - add class to inner div and remove outerDiv
@@ -178,6 +126,10 @@ export default async function decorate(block) {
   carousel_block_child.insertBefore(arrow_button_previous, carousel_section);
   carousel_block_child.append(arrow_button_forward);
 
+  // Mount videos before paragraphs are moved into the text column
+  processCarouselVideos(block);
+  setupCarouselVideoMedia(block);
+
   //add id to image and add image to left div
   block.querySelectorAll("img").forEach((img) => {
     // checks if dealing with a hyperlinked image
@@ -206,13 +158,6 @@ export default async function decorate(block) {
       flex_div.append(img.parentElement.parentElement);
       flex_div.classList.add("media-container");
     }
-  });
-
-  //add id to image and add image to left div
-  block.querySelectorAll(".video-element").forEach((vid) => {
-    //add image to left div
-    vid.id = "media-flex-div-" + vid.parentElement.id;
-    vid.classList.add("media-container");
   });
 
   block.querySelectorAll("p").forEach(function (p) {

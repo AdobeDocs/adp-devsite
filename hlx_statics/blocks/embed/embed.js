@@ -4,7 +4,12 @@
  * https://www.hlx.live/developer/block-collection/embed
  */
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
-import { renderEmbedContent } from '../../components/video-embed-utils.js';
+import {
+  isVideoAnchor,
+  mountCarouselVideo,
+  renderEmbedContent,
+  resolveVideoUrl,
+} from '../../components/video-embed-utils.js';
 
 const loadScript = (url, callback, type) => {
   const head = document.querySelector('head');
@@ -84,8 +89,16 @@ const addImage = (placeholder, block, link) => {
     block.append(wrapper);
 };
 export default function decorate(block) {
-  // Carousel replaces nested embed blocks with its own video slot.
-  if (block.closest('.carousel')) {
+  const carouselBlock = block.closest('.carousel');
+  if (carouselBlock) {
+    const slideCell = block.closest('.carousel-container');
+    const anchor = block.querySelector('a');
+    if (slideCell && !slideCell.querySelector(':scope > .video-element') && anchor) {
+      const urlString = resolveVideoUrl(anchor);
+      if (urlString && isVideoAnchor(anchor)) {
+        mountCarouselVideo(carouselBlock, slideCell, block, urlString);
+      }
+    }
     return;
   }
   const getParent = block.parentElement;

@@ -278,6 +278,62 @@ function embedTwitter(url, vidTitle, autoplay, loadScript) {
  * @param {string} html
  * @returns {string}
  */
+export function buildCarouselVideoHtml(carouselBlock, url) {
+  const autoPlay = carouselBlock?.classList?.contains('autoplay');
+  const rendered = renderEmbedContent(url, {
+    loop: 0,
+    controls: 1,
+    autoplay: autoPlay ? 1 : 0,
+    includeDefault: true,
+    vidTitle: `Content from ${url.hostname}`,
+  });
+
+  if (rendered?.html) {
+    return wrapCarouselVideoEmbed(rendered.html);
+  }
+
+  if (isDirectVideoUrl(url)) {
+    return wrapCarouselVideoEmbed(
+      `<video controls loading="lazy" ${autoPlay ? 'autoplay muted playsinline' : ''} preload="metadata" playsinline>
+        <source src="${url.href}" />
+      </video>`,
+    );
+  }
+
+  return wrapCarouselVideoEmbed(
+    `<iframe src="${url.href}" title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`,
+  );
+}
+
+/**
+ * Mounts a video in a carousel slide media column.
+ * @param {Element} carouselBlock
+ * @param {Element} slideCell
+ * @param {Element|null} container Node to remove after mount (embed block, paragraph, etc.)
+ * @param {string} urlString
+ */
+export function mountCarouselVideo(carouselBlock, slideCell, container, urlString) {
+  if (!slideCell || !urlString || slideCell.querySelector(':scope > .video-element')) return;
+  try {
+    const url = new URL(urlString, window.location.href);
+    const videoElement = document.createElement('div');
+    videoElement.className = 'video-element';
+    videoElement.innerHTML = buildCarouselVideoHtml(carouselBlock, url);
+    slideCell.insertBefore(videoElement, slideCell.firstChild);
+    container?.remove();
+    const embedBlock = container?.classList?.contains('block')
+      && container?.classList?.contains('embed')
+      ? container
+      : container?.closest?.('.embed.block');
+    if (embedBlock) {
+      embedBlock.classList.add('embed-is-loaded');
+      embedBlock.dataset.carouselVideo = 'true';
+    }
+  } catch {
+    // invalid URL — leave content unchanged
+  }
+}
+
 export function wrapCarouselVideoEmbed(html) {
   if (!html) return '';
 
