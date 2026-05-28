@@ -16,7 +16,7 @@ export default async function decorate(block) {
     block.append(aside);
 
     const mainContainer = document.querySelector('main');
-    const headings = mainContainer.querySelectorAll('h2:not(.side-nav h2):not(footer h2), h3:not(.side-nav h3):not(footer h3)');
+    const headings = mainContainer.querySelectorAll('.heading2:not(.side-nav .heading2):not(footer .heading2) h2, .heading3:not(.side-nav .heading3):not(footer .heading3) h3');
 
     Object.assign(aside.style, {
         display: 'flex',
