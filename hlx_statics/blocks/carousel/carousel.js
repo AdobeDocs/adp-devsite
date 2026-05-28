@@ -2,6 +2,99 @@ import {
   createTag,
   removeEmptyPTags,
 } from "../../scripts/lib-adobeio.js";
+import {
+  isVideoAnchor,
+  isVideoUrl,
+  mountCarouselVideo,
+  resolveEmbedBlockVideo,
+  resolveVideoUrl,
+} from '../../components/video-embed-utils.js';
+
+function getVideoLinkContainer(anchor) {
+  return anchor.closest('.embed.block')
+    || anchor.closest('p')
+    || anchor.parentElement;
+}
+
+function processCarouselVideos(carouselBlock) {
+  carouselBlock.querySelectorAll('.carousel-container').forEach((slideCell) => {
+    if (slideCell.querySelector(':scope > .video-element')) return;
+
+    slideCell.querySelectorAll('a').forEach((anchor) => {
+      if (!isVideoAnchor(anchor)) return;
+      const urlString = resolveVideoUrl(anchor);
+      if (!urlString) return;
+      mountCarouselVideo(
+        carouselBlock,
+        slideCell,
+        getVideoLinkContainer(anchor),
+        urlString,
+        anchor.textContent?.trim() || 'Video content',
+      );
+    });
+
+    if (slideCell.querySelector(':scope > .video-element')) return;
+
+    slideCell.querySelectorAll(':scope > .embed.block').forEach((embedBlock) => {
+      const resolved = resolveEmbedBlockVideo(embedBlock);
+      if (!resolved) return;
+      mountCarouselVideo(
+        carouselBlock,
+        slideCell,
+        embedBlock,
+        resolved.urlString,
+        resolved.title,
+      );
+    });
+
+    if (slideCell.querySelector(':scope > .video-element')) return;
+
+    slideCell.querySelectorAll(':scope > p').forEach((paragraph) => {
+      if (paragraph.closest('.video-element')) return;
+      if (paragraph.querySelector('a, picture, img, video, iframe')) return;
+      const text = paragraph.textContent.trim();
+      const match = text.match(/^(https?:\/\/\S+)$/i);
+      if (!match || !isVideoUrl(match[1])) return;
+      mountCarouselVideo(carouselBlock, slideCell, paragraph, match[1], 'Video content');
+    });
+  });
+}
+
+function setupCarouselVideoMedia(carouselBlock) {
+  carouselBlock.querySelectorAll('.video-element').forEach((vid) => {
+    const slide = vid.closest('.carousel-container');
+    if (!slide?.id) return;
+    vid.id = `media-flex-div-${slide.id}`;
+    vid.classList.add('media-container');
+  });
+}
+
+/**
+ * Hyperlinked images inside embed blocks are wrapped in extra divs; unwrap them.
+ * Video embed links (no picture) are left for processCarouselVideos.
+ */
+function reformatHyperlinkImages(carouselBlock) {
+  carouselBlock.querySelectorAll('div.embed.block > div > div > a').forEach((anchor) => {
+    const picture = anchor.querySelector('picture');
+    if (!picture) return;
+
+    const wrapper = anchor.firstElementChild;
+    if (wrapper && wrapper !== picture && !wrapper.contains(picture)) {
+      anchor.append(picture);
+      anchor.removeChild(wrapper);
+    }
+
+    const newDivParent = anchor.parentElement?.parentElement?.parentElement?.parentElement;
+    const replaceTarget = newDivParent?.firstElementChild;
+    if (!newDivParent || !replaceTarget) return;
+
+    const paragraphWrapper = createTag('p', {});
+    anchor.parentElement?.removeChild(anchor);
+    paragraphWrapper.append(anchor);
+    newDivParent.replaceChild(paragraphWrapper, replaceTarget);
+  });
+}
+
 /**
  * decorates the carousel
  * @param {Element} block The carousel block element
@@ -35,15 +128,6 @@ export default async function decorate(block) {
 
   //add a count to keep track of which slide is showing
   let count = 1;
-
-  //load the video link.
-  const a = block.querySelectorAll("a");
-  const videoLinks = Array.from(a).filter(link => 
-    link.title.includes('https')
-  );
-  for (let i = 0; i < videoLinks.length; i++) {
-    loadVideoURL(block, videoLinks[i]);
-  }
 
   block.querySelectorAll(':scope > div:not([class]) > div:not([class])').forEach((innerDiv, index) => {
     // one outer div for each slide - add class to inner div and remove outerDiv
@@ -83,6 +167,9 @@ export default async function decorate(block) {
 
   carousel_block_child.insertBefore(arrow_button_previous, carousel_section);
   carousel_block_child.append(arrow_button_forward);
+
+  processCarouselVideos(block);
+  setupCarouselVideoMedia(block);
 
   //add id to image and add image to left div
   block.querySelectorAll("img").forEach((img) => {
@@ -243,36 +330,6 @@ export default async function decorate(block) {
     }
   }
 
-  /**
-   * For images that have hyperlinks attached to them in Google Docs, they are wrapped in an anchor tag, which messes up
-   * formatting the carousel slide. This function reformats the images/links so they are in a similar format to other slides
-   */
-  function reformatHyperlinkImages(block) {
-    // Selects all hyper linked images
-    block.querySelectorAll("div.embed.block > div > div > a").forEach((a) => {
-      const picture = a.firstElementChild?.firstElementChild;
-      console.log("a.firstElementChild", a.firstElementChild);
-      console.log("a.firstElementChild.firstElementChild", a.firstElementChild.firstElementChild);
-      console.log("picture", picture);
-      if (picture) {
-        a.append(picture);
-        a.removeChild(a.firstElementChild);
-      }
-      const paragraphWrapper = createTag("p", {});
-      // Because of link, image is surrounded by numerous divs. Navigates back up to OG parent
-      const newDivParent =
-        a.parentElement.parentElement.parentElement.parentElement;
-      a.parentElement.removeChild(a);
-      paragraphWrapper.append(a);
-      // pulls out the old image container and replaces it with pargraph-wrapped image
-      // Format is same as other slides
-      newDivParent.replaceChild(
-        paragraphWrapper,
-        newDivParent.firstElementChild
-      );
-    });
-  }
-
   //change color of circle button when clicked
   const buttons = block.querySelectorAll(".carousel-circle");
   buttons[0].classList.add("carousel-circle-selected"); //when reloading first slide should be selected
@@ -291,63 +348,6 @@ export default async function decorate(block) {
       button.classList.add("carousel-circle-selected");
     });
   });
-
-
-  // load the video url and append to the video element.
-  function loadVideoURL(block, a) {
-    // block.className = "carousel";
-    const link = a.href;
-    const url = new URL(link);
-    a.insertAdjacentHTML("afterend", loadUrl(url));
-    const videoElement = createTag("div", { class: "video-element" });
-    videoElement.innerHTML = a.parentElement.innerHTML;
-    a.parentElement.parentElement.append(videoElement);
-    
-    a.parentElement.remove();
-    videoElement.querySelector("a").remove();
-    videoElement.parentElement.classList.remove("button-container")
-  }
-
-  function loadUrl(url) {
-    console.log("loadUrl", url);
-    let html;
-    const embed = url.pathname;
-    console.log("embed", embed);
-    // Check if the URL is a youtube link.
-    const usp = new URLSearchParams(url.search);
-    let vid = encodeURIComponent(usp.get("v"));
-    const youtubeRegex =
-      /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)/;
-    if (url.origin.includes("youtu.be")) {
-      vid = url.pathname.split("/")[1];
-    }
-    console.log("vid", vid);
-    // allow autoplay to be specified in the section metadata.
-    const autoPlay = block.classList.contains("autoplay");
-
-    if (youtubeRegex.test(url)) {
-      let dataSource = "https://www.youtube.com";
-      dataSource += vid ? "/embed/" + vid + "?rel=0&v=" + vid : embed;
-      // if autoplay is true, append autoplay to the datasource.
-      dataSource =
-        autoPlay ? dataSource + "&autoplay=1&mute=1" : dataSource;
-      // Render the youtube link through iframe within right container of one of the video carousel slide.
-      html = `<div style="left: 0; width: 560px; height: 320px; position: relative; ">
-          <iframe data-src="${dataSource}" allow="autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen="" scrolling="no" title="Content from Youtube" loading="lazy"></iframe>
-     </div>`;
-    } else {
-      // Render the url link through video tag within right container of one of the video carousel slide.
-      // if autoplay is true, add autoplay attribute to the video tag.
-      html = `<div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.25%;">
-        <video controls loading="lazy" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" ${
-          autoPlay ? `autoplay="true"` : ""
-        } preload="metadata" playsinline muted>
-          <source src="${url}" />
-        </video>
-      </div>`;
-    }
-    return html;
-  }
 
   //automatic scrolling
   function advanceSlide() {

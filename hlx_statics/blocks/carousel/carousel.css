@@ -70,6 +70,8 @@ main div.carousel-wrapper div.carousel p.image-container picture {
 main div.carousel-wrapper div.carousel {
   max-width: 1280px;
   margin: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 main div.carousel-wrapper div.carousel .block-container {
@@ -97,6 +99,52 @@ main div.carousel-wrapper div.carousel .media-container {
   min-height: 100%;
   max-width: 50%;
   padding: 0 8px;
+}
+
+main div.carousel-wrapper div.carousel .video-element {
+  width: 100%;
+  max-width: 100%;
+}
+
+main div.carousel-wrapper div.carousel .video-element.embed-youtube iframe {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+  display: block;
+  position: relative;
+}
+
+main div.carousel-wrapper div.carousel .video-element .carousel-video-embed,
+main div.carousel-wrapper div.carousel .video-element > div {
+  width: 100% !important;
+  height: 0 !important;
+  position: relative !important;
+  padding-bottom: 56.25% !important;
+}
+
+main div.carousel-wrapper div.carousel .video-element .carousel-video-embed--mp4 {
+  height: auto !important;
+  padding-bottom: 0 !important;
+}
+
+main div.carousel-wrapper div.carousel .video-element .carousel-video-embed--mp4 video {
+  position: relative;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+main div.carousel-wrapper div.carousel .video-element:not(.embed-youtube) iframe,
+main div.carousel-wrapper div.carousel .video-element:not(.embed-youtube) > div iframe,
+main div.carousel-wrapper div.carousel .video-element > div video:not(.carousel-video-embed--mp4 video) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 main div.carousel-wrapper div.carousel .text-container {
