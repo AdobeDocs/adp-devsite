@@ -250,7 +250,10 @@ export default async function decorate(block) {
   function reformatHyperlinkImages(block) {
     // Selects all hyper linked images
     block.querySelectorAll("div.embed.block > div > div > a").forEach((a) => {
-      const picture = a.firstElementChild.firstElementChild;
+      const picture = a.firstElementChild?.firstElementChild;
+      console.log("a.firstElementChild", a.firstElementChild);
+      console.log("a.firstElementChild.firstElementChild", a.firstElementChild.firstElementChild);
+      console.log("picture", picture);
       if (picture) {
         a.append(picture);
         a.removeChild(a.firstElementChild);
