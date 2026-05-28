@@ -86,7 +86,7 @@ const createSubTabs = (table) => {
 }
 
 export default async function decorate(block) {
-  block.querySelectorAll(':scope > div > div > code').forEach((code) => {
+  block.querySelectorAll(':scope > div > div > pre > code').forEach((code) => {
     const match = code.textContent.trim().match(/^(data-[^=]+)=(.*)$/);
     if (!match) return;
     const [, attr, value] = match;
