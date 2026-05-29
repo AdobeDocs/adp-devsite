@@ -35,6 +35,20 @@ export default async function decorate(block) {
     document.body,
     "https://unpkg.com/marked@^17/lib/marked.umd.js",
     () => {
+      // @ts-expect-error - marked is not on the Window object
+      window.marked.use({
+        renderer: {
+          /**
+           * @param {Object} options
+           * @param {string} options.href
+           * @param {string} options.title
+           * @param {string} options.text
+           */
+          link({ href, title, text }) {
+            return `<a href="${href}" title="${title || text}" daa-ll="${title || text}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+          },
+        },
+      });
       addExtraScriptWithLoad(
         document.body,
         "https://unpkg.com/dompurify@^3/dist/purify.min.js",
