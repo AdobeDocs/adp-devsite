@@ -63,10 +63,29 @@ main div.text-wrapper .text-block-link {
   color: #2980e8;
 }
 
+main div.text-wrapper .text-video-slot,
 main div.text-wrapper .videoIFrame {
   width: 100%;
-  height: 425px;
+  max-width: 100%;
+}
+
+main div.text-wrapper .text-video-slot video,
+main div.text-wrapper .text-video-slot iframe,
+main div.text-wrapper .videoIFrame {
+  width: 100%;
   border: none;
+  display: block;
+}
+
+main div.text-wrapper .text-video-slot.embed-youtube iframe,
+main div.text-wrapper .videoIFrame {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
+main div.text-wrapper .text-video-slot video {
+  height: auto;
+  max-height: 425px;
 }
 
 main div.text-wrapper .text-button-container {
