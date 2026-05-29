@@ -25,6 +25,7 @@
     );
     --container-padding: 40px;
     --button-size: 48px;
+    --opening-transition-duration: 0.25s;
 
     display: flex;
     flex-direction: column-reverse;
@@ -51,6 +52,9 @@
         var(--ai-border-linear-gradient) border-box;
     align-self: flex-end;
     pointer-events: auto;
+    visibility: visible;
+    transition: visibility 0s linear
+        calc(var(--opening-transition-duration) * 0.9);
 
     &:hover {
         --background-color: #f0f0f0;
@@ -58,6 +62,7 @@
 
     &.hidden {
         visibility: hidden;
+        transition: visibility 0s linear;
     }
 }
 
@@ -65,13 +70,11 @@
 * MARK: Chat Window
 */
 .ai-assistant-panel .chat-window {
-    --transition-duration: 0.25s;
-    width: var(--button-size);
-    height: var(--button-size);
-    border-radius: calc(var(--button-size) / 2);
-    background:
-        linear-gradient(#ffffff, #ffffff) padding-box,
-        var(--ai-border-linear-gradient) border-box;
+    --chat-window-width: 460px;
+    width: var(--chat-window-width);
+    height: 100%;
+    border-radius: 8px;
+    background: #fff;
     /* Drop shadow/elevated (pretty much copy pasta from Figma) */
     box-shadow:
         0 0 2px 0 rgba(0, 0, 0, 0.12),
@@ -80,48 +83,25 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transform: translateY(var(--button-size));
+    transform: scale(0);
+    transform-origin: calc(100% - var(--button-size) / 2)
+        calc(100% - var(--button-size) / 2);
+    translate: 0 var(--button-size);
     visibility: hidden;
-    border: solid transparent;
-    border-width: 2px;
+    border: 0;
 
     transition:
-        width var(--transition-duration) ease-out var(--transition-duration),
-        height var(--transition-duration) ease-out var(--transition-duration),
-        border-radius var(--transition-duration) ease-out,
-        border-width var(--transition-duration) linear,
-        visibility 0s linear calc(var(--transition-duration) * 2);
-
-    .chat-window-header,
-    .chat-window-content,
-    .chat-window-input-section {
-        opacity: 0;
-        transition: opacity var(--transition-duration) ease-out 0s;
-    }
+        transform var(--opening-transition-duration) cubic-bezier(0.5, 0, 1, 1),
+        visibility 0s linear var(--opening-transition-duration);
 
     &.show {
-        width: 460px;
-        height: 100%;
-        border-radius: 8px;
         visibility: visible;
         transition:
-            width var(--transition-duration) ease-out,
-            height var(--transition-duration) ease-out,
-            border-radius var(--transition-duration) ease-out
-                var(--transition-duration),
-            border-width var(--transition-duration) linear
-                var(--transition-duration),
-            visibility 0s linear 0s;
+            transform var(--opening-transition-duration)
+                cubic-bezier(0, 0, 0.4, 1),
+            visibility 0s linear;
         pointer-events: auto;
-        border-width: 0px;
-
-        .chat-window-header,
-        .chat-window-content,
-        .chat-window-input-section {
-            opacity: 1;
-            transition: opacity var(--transition-duration) ease-out
-                calc(var(--transition-duration) * 2);
-        }
+        transform: scale(1);
     }
 
     .chat-ai-avatar {
