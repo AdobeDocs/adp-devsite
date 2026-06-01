@@ -3,6 +3,14 @@ function toUrl(linkOrUrl) {
   return new URL(linkOrUrl, window.location.href);
 }
 
+/** Escape text for safe use inside double-quoted HTML attributes. */
+export function escapeAttr(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;');
+}
+
 export function isDirectVideoUrl(linkOrUrl) {
   const url = toUrl(linkOrUrl);
   const path = url.pathname.toLowerCase();
@@ -50,12 +58,13 @@ export function getEmbeddableVideoUrl(linkOrUrl) {
   return getYouTubeEmbedUrl(url) || url.href;
 }
 
-const VIDEO_URL_PATTERN = /(?:youtube\.com|youtu\.be|video\.tv\.adobe\.com|vimeo\.com|tiktok\.com|instagram\.com|twitter\.com|x\.com|\.mp4(?:$|\?|&))/i;
-
 export function isVideoUrl(linkOrUrl) {
   if (!linkOrUrl) return false;
   try {
-    return VIDEO_URL_PATTERN.test(String(linkOrUrl));
+    const url = toUrl(linkOrUrl);
+    if (isDirectVideoUrl(url)) return true;
+    if (getVideoProvider(url)) return true;
+    return url.hostname.toLowerCase() === 'video.tv.adobe.com';
   } catch {
     return false;
   }
@@ -101,7 +110,7 @@ export function resolveEmbedBlockVideo(embedBlock) {
     if (urlString) {
       return {
         urlString,
-        title: anchor.textContent?.trim() || 'Video content',
+        title: resolveVideoLabel(anchor),
       };
     }
   }
@@ -154,7 +163,7 @@ function getDefaultEmbed(url, loop, controls, vidTitle, autoplay) {
     params.push('mute=1');
   }
   const query = params.length ? `?${params.join('&')}` : '';
-  const titleAttr = `title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}"`;
+  const titleAttr = `title="${vidTitle || escapeAttr(`Content from ${url.hostname}`)}"`;
   return `<div style="left: 0; width: 55vw; height: 45vh; max-height: fit-content; position: relative; padding-bottom: 56.25%;">
     <iframe src="${url.href}${query}"
     style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
@@ -170,7 +179,7 @@ function embedIG(url, vidTitle, autoplay, loadScript) {
   }
   return `<div class="igReel">
   <iframe src="${link}?autoplay=${autoplay}" style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" allowfullscreen
-    scrolling="no" allow="encrypted-media" title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}" loading="lazy">
+    scrolling="no" allow="encrypted-media" title="${vidTitle || escapeAttr(`Content from ${url.hostname}`)}" loading="lazy">
   </iframe>
 </div>`;
 }
@@ -215,7 +224,7 @@ function embedYTPlaylist(url, loop, controls, vidTitle, autoplay) {
   return `<div style="left: 0; width: 100%; height: 100%; position: relative; padding-bottom: 56.25%;">
   <iframe
   style="opacity: 1" src="${src}" data-src="${src}" allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" allowfullscreen
-  title="${vidTitle ? vidTitle : 'Content from YouTube'}" scrolling="no">
+  title="${vidTitle || 'Content from YouTube'}" scrolling="no">
    </iframe>
   </div>`;
 }
@@ -224,7 +233,7 @@ function embedTikTok(url, vidTitle, autoplay) {
   const [, vidID] = url.pathname.split('video/');
   return `<div style="left: 0; width: 325px; height: 736px;  position: relative;">
     <iframe src="https://www.tiktok.com/embed/${vidID}?autoplay=${autoplay}" style="border: 0; top: 0; left: 0; width: 100%; height: 736px; position: absolute;" allowfullscreen
-      scrolling="no" allow="accelerometer encrypted-media" title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}" loading="lazy">
+      scrolling="no" allow="accelerometer encrypted-media" title="${vidTitle || escapeAttr(`Content from ${url.hostname}`)}" loading="lazy">
     </iframe>
   </div>`;
 }
@@ -289,7 +298,7 @@ function embedVimeo(url, loop, controls, vidTitle, autoplay) {
       style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;"
       frameborder="0" allow="fullscreen; encrypted-media; accelerometer; gyroscope; picture-in-picture"
       allowfullscreen
-      title="${vidTitle ? vidTitle : `Content from ${url.hostname}`}" loading="lazy"></iframe>
+      title="${vidTitle || escapeAttr(`Content from ${url.hostname}`)}" loading="lazy"></iframe>
     </div>`;
 }
 
@@ -299,20 +308,6 @@ function embedTwitter(url, vidTitle, autoplay, loadScript) {
     loadScript('https://platform.twitter.com/widgets.js');
   }
   return `<blockquote class="twitter-tweet"><a href="${source}?autoplay=${autoplay}"></a></blockquote>`;
-}
-
-/**
- * Flat YouTube iframe markup (same pattern as columns block).
- * @param {string|URL} linkOrUrl
- * @param {string} title
- * @param {boolean} autoplay
- * @returns {string}
- */
-function escapeAttr(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;');
 }
 
 /**
@@ -345,7 +340,6 @@ export function buildBlockVideoMediaHtml(linkOrUrl, title = 'Video content', opt
 
   const url = toUrl(linkOrUrl);
   const provider = getVideoProvider(url);
-  const safeTitle = escapeAttr(title);
 
   if (provider === 'youtube') {
     return {
@@ -362,7 +356,7 @@ export function buildBlockVideoMediaHtml(linkOrUrl, title = 'Video content', opt
       loop ? 'loop' : '',
       'playsinline',
       'preload="metadata"',
-      `title="${safeTitle}"`,
+      `title="${escapeAttr(title)}"`,
     ].filter(Boolean).join(' ');
 
     return {
@@ -405,7 +399,7 @@ export function buildFlatYouTubeIframeHtml(linkOrUrl, title = 'Video content', a
   const query = params.toString();
   const src = query ? `${base}?${query}` : base;
 
-  return `<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`;
+  return `<iframe src="${src}" title="${escapeAttr(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`;
 }
 
 export function buildCarouselVideoHtml(carouselBlock, url, title = 'Video content') {
@@ -437,7 +431,7 @@ export function buildCarouselVideoHtml(carouselBlock, url, title = 'Video conten
   }
 
   return wrapCarouselVideoEmbed(
-    `<iframe src="${url.href}" title="${title}" allowfullscreen loading="lazy"></iframe>`,
+    `<iframe src="${url.href}" title="${escapeAttr(title)}" allowfullscreen loading="lazy"></iframe>`,
   );
 }
 
@@ -479,6 +473,7 @@ export function mountCarouselVideo(
     }
   } catch {
     // invalid URL — leave content unchanged
+    console.warn('mountCarouselVideo: could not mount video for', urlString, error);
   }
 }
 
@@ -525,38 +520,39 @@ export function renderEmbedContent(linkOrUrl, options = {}) {
 
   const url = toUrl(linkOrUrl);
   const provider = getVideoProvider(url);
+  const safeVidTitle = vidTitle ? escapeAttr(vidTitle) : '';
 
   if (provider === 'youtube') {
     return {
-      html: embedYoutube(url, loop, controls, vidTitle, isShort, autoplay),
+      html: embedYoutube(url, loop, controls, safeVidTitle, isShort, autoplay),
       className: 'embed-youtube',
       provider,
     };
   }
   if (provider === 'vimeo') {
     return {
-      html: embedVimeo(url, loop, controls, vidTitle, autoplay),
+      html: embedVimeo(url, loop, controls, safeVidTitle, autoplay),
       className: 'embed-vimeo',
       provider,
     };
   }
   if (provider === 'twitter') {
     return {
-      html: embedTwitter(url, vidTitle, autoplay, loadScript),
+      html: embedTwitter(url, safeVidTitle, autoplay, loadScript),
       className: 'embed-twitter',
       provider,
     };
   }
   if (provider === 'insta') {
     return {
-      html: embedIG(url, vidTitle, autoplay, loadScript),
+      html: embedIG(url, safeVidTitle, autoplay, loadScript),
       className: 'embed-insta',
       provider,
     };
   }
   if (provider === 'tiktok') {
     return {
-      html: embedTikTok(url, vidTitle, autoplay),
+      html: embedTikTok(url, safeVidTitle, autoplay),
       className: 'embed-tiktok',
       provider,
     };
@@ -572,7 +568,7 @@ export function renderEmbedContent(linkOrUrl, options = {}) {
   if (!includeDefault) return null;
 
   return {
-    html: getDefaultEmbed(url, loop, controls, vidTitle, autoplay),
+    html: getDefaultEmbed(url, loop, controls, safeVidTitle, autoplay),
     className: '',
     provider: null,
   };

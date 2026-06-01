@@ -8,6 +8,7 @@ import {
   mountCarouselVideo,
   renderEmbedContent,
   resolveEmbedBlockVideo,
+  resolveVideoLabel,
 } from '../../components/video-embed-utils.js';
 
 const loadScript = (url, callback, type) => {
@@ -22,7 +23,7 @@ const loadScript = (url, callback, type) => {
   return script;
 };
 
-const loadEmbed = (block, link) => {
+const loadEmbed = (block, link, vidTitle = '') => {
   if (block.classList.contains('embed-is-loaded')) {
     return;
   }
@@ -31,7 +32,6 @@ const loadEmbed = (block, link) => {
   let loop = 0;
   let controls = 1;
   let autoplay = 0;
-  const vidTitle = block.getAttribute(  'data-videotitle');
   const isShort = block.getAttribute('data-short')?.toLowerCase() === 'true';
   // changes the values based on metadata on this block or an ancestor section
   if (block.getAttribute('data-loop') === 'true' || block.classList.contains('loop')) {
@@ -77,13 +77,13 @@ const loadEmbed = (block, link) => {
   }
 };
 
-const addImage = (placeholder, block, link) => {
+const addImage = (placeholder, block, link, vidTitle) => {
   const wrapper = document.createElement('div');
     wrapper.className = 'embed-placeholder';
     wrapper.innerHTML = '<div class="embed-placeholder-play"><button type="button" title="Play"></button></div>';
     wrapper.prepend(placeholder);
     wrapper.addEventListener('click', () => {
-      loadEmbed(block, link, true);
+      loadEmbed(block, link, vidTitle);
     });
     block.append(wrapper);
 };
@@ -108,24 +108,25 @@ export default function decorate(block) {
 
   block.setAttribute('daa-lh', 'embed');
   const placeholder = block.querySelector('picture');
-  let link
-  if (block.querySelector('a')?.href) {
-    link = block.querySelector('a')?.href
-  }
-  else {
-    link = block.querySelector('.embed > div > div').innerText;
+  const anchor = block.querySelector('a');
+  const vidTitle = block.getAttribute('data-videotitle') || resolveVideoLabel(anchor);
+  let link;
+  if (anchor?.href) {
+    link = anchor.href;
+  } else {
+    link = block.querySelector('.embed > div > div')?.innerText;
   }
 
   block.textContent = '';
   if (placeholder) {
     if (!(placeholder.alt)) placeholder.alt = "Content thumbnail";
-    addImage(placeholder, block, link);
+    addImage(placeholder, block, link, vidTitle);
   }
   else {
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((e) => e.isIntersecting)){
         observer.disconnect();
-        loadEmbed(block, link);
+        loadEmbed(block, link, vidTitle);
       }
     });
    observer.observe(block);

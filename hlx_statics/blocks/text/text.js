@@ -5,10 +5,11 @@ import {
   buildFlatYouTubeIframeHtml,
   getVideoProvider,
   isDirectVideoUrl,
-  isVideoAnchor,
   renderEmbedContent,
-  resolveVideoUrl,
 } from '../../components/video-embed-utils.js';
+
+/** Text blocks only auto-embed standalone video links (not social/profile URLs). */
+const TEXT_BLOCK_VIDEO_PROVIDERS = new Set(['youtube', 'vimeo', 'mp4']);
 
 function rearrangeLinks(block) {
   const contentDiv = block.firstElementChild.querySelectorAll('div:has(p)');
@@ -26,8 +27,41 @@ function rearrangeLinks(block) {
   block.firstElementChild.append(contentContainer);
 }
 
-function mountTextBlockVideo(anchor) {
-  const urlString = resolveVideoUrl(anchor);
+function isStandaloneVideoParagraph(anchor) {
+  const paragraph = anchor.closest('p');
+  if (!paragraph) return false;
+  if (paragraph.classList.contains('button-container')) return true;
+
+  return [...paragraph.childNodes].every((node) => {
+    if (node === anchor) return true;
+    return node.nodeType === Node.TEXT_NODE && !node.textContent.trim();
+  });
+}
+
+function resolveTextBlockVideoUrl(anchor) {
+  const candidates = [
+    anchor.href,
+    anchor.textContent?.trim(),
+    anchor.getAttribute('title'),
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const httpsMatch = String(candidate).match(/https?:\/\/[^\s"'<>]+/i);
+    const raw = (httpsMatch ? httpsMatch[0] : candidate).replace(/[.,;:!?)]+$/, '');
+    try {
+      const url = new URL(raw, window.location.href);
+      if (isDirectVideoUrl(url)) return url.href;
+      const provider = getVideoProvider(url);
+      if (provider && TEXT_BLOCK_VIDEO_PROVIDERS.has(provider)) return url.href;
+      if (url.hostname.toLowerCase() === 'video.tv.adobe.com') return url.href;
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
+}
+
+function mountTextBlockVideo(anchor, urlString) {
   if (!urlString) return;
 
   const url = new URL(urlString, window.location.href);
@@ -65,8 +99,10 @@ function mountTextBlockVideo(anchor) {
 function processTextBlockVideos(block) {
   block.querySelectorAll('a').forEach((anchor) => {
     if (anchor.closest('.text-video-slot')) return;
-    if (!isVideoAnchor(anchor)) return;
-    mountTextBlockVideo(anchor);
+    if (!isStandaloneVideoParagraph(anchor)) return;
+    const urlString = resolveTextBlockVideoUrl(anchor);
+    if (!urlString) return;
+    mountTextBlockVideo(anchor, urlString);
   });
 }
 

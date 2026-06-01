@@ -6,7 +6,7 @@ import {
   decorateAnchorLink,
 } from '../../scripts/lib-adobeio.js';
 import {
-  getEmbeddableVideoUrl,
+  buildFlatYouTubeIframeHtml,
   renderEmbedContent,
 } from '../../components/video-embed-utils.js';
 
@@ -44,17 +44,15 @@ function createVideoSlotContent(videoAnchor) {
 
   if (renderResult?.provider === 'youtube') {
     // Keep YouTube markup flat in columns so it aligns like image/mp4 cards.
-    const iframeSrc = getEmbeddableVideoUrl(videoUrl);
     wrapper.classList.add('embed-youtube');
-    wrapper.innerHTML = `<iframe src="${iframeSrc}" title="${title}" allowfullscreen loading="lazy"></iframe>`;
+    wrapper.innerHTML = buildFlatYouTubeIframeHtml(videoUrl, title, true);
   } else if (renderResult?.html) {
     wrapper.innerHTML = renderResult.html;
     if (renderResult.className) {
       wrapper.classList.add(renderResult.className);
     }
   } else {
-    const iframeSrc = getEmbeddableVideoUrl(videoUrl);
-    wrapper.innerHTML = `<iframe src="${iframeSrc}" title="${title}" allowfullscreen loading="lazy"></iframe>`;
+    wrapper.innerHTML = buildFlatYouTubeIframeHtml(videoUrl, title, true);
   }
 
   return wrapper;
