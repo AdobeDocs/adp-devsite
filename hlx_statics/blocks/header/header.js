@@ -70,11 +70,25 @@ async function initSearch() {
 
   const { connectAutocomplete } = instantsearch.connectors;
 
-  const searchClient = window.algoliasearch.algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
+  const algoliaClient = window.algoliasearch.algoliasearch(ALGOLIA_CONFIG.APP_KEY, ALGOLIA_CONFIG.API_KEY);
   const SUGGESTION_MAX_RESULTS = 50;
   const SEARCH_MAX_RESULTS = 100;
-  const SEARCH_MIN_QUERY_LENGTH = 3;
-  const isSearchableQuery = (q) => q.trim().length >= SEARCH_MIN_QUERY_LENGTH;
+  const isSearchableQuery = (q) => q.trim() !== '';
+  const searchClient = { // "To prevent the initial empty query, you must wrap a custom search client around..." source: https://www.algolia.com/doc/guides/building-search-ui/going-further/conditional-requests/js
+    ...algoliaClient,
+    search(requests) {
+      if (requests.every(({ params }) => !isSearchableQuery(params.query ?? ''))) {
+        return Promise.resolve({
+          results: requests.map(() => ({
+            hits: [], nbHits: 0, nbPages: 0, page: 0,
+            processingTimeMS: 0, hitsPerPage: 0,
+            exhaustiveNbHits: false, query: '', params: '',
+          })),
+        });
+      }
+      return algoliaClient.search(requests);
+    },
+  };
 
   const indices = window.adp_search.indices
   const indexToProduct = window.adp_search.index_to_product;
@@ -230,8 +244,12 @@ async function initSearch() {
         if (event.key === 'Enter') {
           searchCleared = false; // Reset cleared flag when user presses Enter
           const trimmed = searchInput.value.trim();
-          if (trimmed !== '' && !isSearchableQuery(trimmed)) {
-            event.preventDefault();
+          if (trimmed === '') { // If users presses enter with an empty query while in a full search, clear results and show suggestions again
+            searchResults.classList.remove('has-results');
+            searchResults.style.visibility = 'hidden';
+            outerSearchSuggestions.style.display = 'flex';
+            suggestionsFlag = true;
+            searchExecuted = false;
             return;
           }
           helper.setQuery(searchInput.value).search();
@@ -405,24 +423,7 @@ async function initSearch() {
     });
   }
 
-  // Function that is called after each search render to hide/show product checkboxes
-  function updateCheckboxVisibility(productsWithResults) {
-    const allSelected = selectedProducts.length === allProducts.length;
-
-    // loop over each product‐wrapper
-    document.querySelectorAll('.search-checkbox-div[data-product]').forEach((div) => {
-      const product = div.dataset.product;
-      if (allSelected) {
-        // only show those with results
-        div.style.display = productsWithResults.has(product) ? '' : 'none';
-      } else {
-        // specific‐product mode: show all product checkboxes
-        div.style.display = '';
-      }
-    });
-  }
-
-  // Function that attaches event listeners to each checkbox
+// Function that attaches event listeners to each checkbox
   function attachCheckboxEventListeners() {
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
     const productCheckboxes = document.querySelectorAll('.filters input[type="checkbox"]:not(#checkbox-all-products)');
@@ -447,6 +448,9 @@ async function initSearch() {
         selectedProducts = Array.from(productCheckboxes)
           .filter((cb) => cb.checked) // Get checked product checkboxes
           .map((cb) => cb.value);
+        if (checkbox.checked) { // Add new selected product to the beginning of the list to prioritize it in results
+          selectedProducts = [checkbox.value, ...selectedProducts.filter((p) => p !== checkbox.value)];
+        }
 
         if (selectedProducts.length === 0) {
           // If no products selected, revert to "All Products"
@@ -475,9 +479,6 @@ async function initSearch() {
 
     // figure out which products have at least one hit
     const productsWithResults = new Set(productGroupedResults.keys());
-
-    // hide/show checkboxes based on current results + mode
-    updateCheckboxVisibility(productsWithResults);
 
     // determine display order
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
@@ -536,7 +537,6 @@ async function initSearch() {
 
     // compute who has any suggestions
     const productsWithResults = new Set(productGroupedResults.keys());
-    updateCheckboxVisibility(productsWithResults);
 
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
     const productsToShow = allProductsCheckbox.checked
