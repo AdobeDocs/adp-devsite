@@ -8,7 +8,7 @@ export default async function decorate(block) {
         'red': 'rgb(187, 2, 2)',
         'green': 'rgb(0, 128, 0)',
         'blue': 'rgb(4, 105, 227)',
-        'grey': 'rgb(71,71,71)'
+        'gray': 'rgb(71,71,71)'
     };
 
     // Get background color from data attribute or class name
