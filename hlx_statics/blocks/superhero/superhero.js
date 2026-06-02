@@ -45,6 +45,10 @@ function hasAnyClass(block, classes) {
   return classes.some((c) => block.classList.contains(c));
 }
 
+function getTextColorModifier(block) {
+  return Object.values(TEXT_COLORS).find((color) => block.classList.contains(`text-color-${color}`));
+}
+
 function unwrapIcons(block) {
   block.querySelectorAll('span.icon').forEach((span) => {
     span.textContent = '';  
@@ -56,6 +60,7 @@ function unwrapIcons(block) {
 
 async function decorateDevBizCentered(block) {
   const defaultTextColor = TEXT_COLORS.white;
+  const textColor = getTextColorModifier(block);
 
   removeEmptyPTags(block);
   decorateButtons(block);
@@ -69,7 +74,7 @@ async function decorateDevBizCentered(block) {
   block.classList.add('spectrum--dark');
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeXXL');
-    h.style.color = defaultTextColor;
+    if (!textColor) h.style.color = defaultTextColor;
     h.parentElement.classList.add('superhero-content');
     h.parentElement.append(button_div);
   });
@@ -77,7 +82,7 @@ async function decorateDevBizCentered(block) {
   block.querySelectorAll('p').forEach((p) => {
     if (!p.classList.contains('icon-container')) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
-      p.style.color = defaultTextColor;
+      if (!textColor) p.style.color = defaultTextColor;
     }
     if (p.classList.contains('button-container')) {
       button_div.append(p);
@@ -189,9 +194,8 @@ async function decorateDevBizDefault(block) {
   div.append(...newChildren);
   block.replaceChildren(div);
 
-  const defaultTextColor = TEXT_COLORS.white;
-  let textColor = Object.values(TEXT_COLORS).find((color) => block.classList.contains(`text-color-${color}`)) ?? defaultTextColor;
-  block.classList.add(`text-color-${defaultTextColor}`);
+  const textColor = getTextColorModifier(block) ?? TEXT_COLORS.white;
+  block.classList.add(`text-color-${textColor}`);
 
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.style.color = textColor;
@@ -355,14 +359,6 @@ function applyDataAttributeStyles(block) {
     wrapper.style.background = background;
   } else {
     block.style.background = background;
-  }
-
-  const defaultTextColor = variant === VARIANTS.halfWidth ? TEXT_COLORS.black : TEXT_COLORS.white;
-  const textColor = block.getAttribute('data-textcolor') || defaultTextColor;
-  if (Object.keys(TEXT_COLORS).includes(textColor)) {
-    block.querySelectorAll('h1, h2, h3, h4, h5, h6, p').forEach((el) => {
-      el.style.color = textColor;
-    });
   }
 }
 
