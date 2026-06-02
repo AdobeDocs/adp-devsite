@@ -150,16 +150,6 @@ main div.codeblock-wrapper div.codeblock .collapse-toggle:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-main div.codeblock-wrapper div.codeblock .collapse-toggle svg {
-  fill: currentColor;
-  display: block;
-  transition: transform 0.2s ease;
-}
-
-main div.codeblock-wrapper div.codeblock.collapsed .collapse-toggle svg {
-  transform: rotate(-90deg);
-}
-
 main div.codeblock-wrapper div.codeblock.collapsed .tabs-panel {
   display: none;
 }
