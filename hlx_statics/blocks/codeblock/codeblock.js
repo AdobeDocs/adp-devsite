@@ -122,11 +122,12 @@ export default function decorate(block) {
   collapseToggle.setAttribute('type', 'button');
   collapseToggle.setAttribute('aria-label', 'Collapse code');
   collapseToggle.setAttribute('aria-expanded', 'true');
-  collapseToggle.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.47 5.22a.75.75 0 0 1 1.06 0L8 8.69l3.47-3.47a.75.75 0 1 1 1.06 1.06l-4 4a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 0-1.06Z"/></svg>';
+  collapseToggle.textContent = 'Hide';
   collapseToggle.addEventListener('click', () => {
     const isCollapsed = block.classList.toggle('collapsed');
     collapseToggle.setAttribute('aria-expanded', String(!isCollapsed));
     collapseToggle.setAttribute('aria-label', isCollapsed ? 'Expand code' : 'Collapse code');
+    collapseToggle.textContent = isCollapsed ? 'Show' : 'Hide';
   });
   rightControls.append(collapseToggle);
 
