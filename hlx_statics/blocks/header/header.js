@@ -139,9 +139,17 @@ async function initSearch() {
   let results = new Map();
 
   search.start();
+  
+  let currentDynamicWidgets = []; // Widgets that change on each call
+  let staticWidgetsAdded = false; // One-time widgets
 
   // Function to initialize or update the search
   function updateSearch() {
+    // Remove widgets from the previous call before adding new ones
+    if (currentDynamicWidgets.length) {
+      search.removeWidgets(currentDynamicWidgets);
+      currentDynamicWidgets = [];
+    }
     // Get indices corresponding to selected products
     const selectedIndices = indices.filter((indexName) => {
       const product = indexToProduct[indexName];
@@ -157,14 +165,14 @@ async function initSearch() {
      // Calculate hits dynamically based number of selected indices
     const hits = Math.min(15, Math.max(4, Math.floor(SUGGESTION_MAX_RESULTS / selectedIndices.length)));
 
-     // Add common widgets like hits per index and how long results are (content)
-     search.addWidgets([
-       instantsearch.widgets.configure({
-         hitsPerPage: hits,
-         attributesToHighlight: ['title', 'content'],
-         attributesToSnippet: ['content:50'],
-       }),
-     ]);
+     // Add common widgets like hits per index and how long results are (content) - and save reference so it can be removed on the next call
+     const configureWidget = instantsearch.widgets.configure({
+       hitsPerPage: hits,
+       attributesToHighlight: ['title', 'content'],
+       attributesToSnippet: ['content:50'],
+     });
+     currentDynamicWidgets.push(configureWidget);
+     search.addWidgets([configureWidget]);
 
     // Custom InstantSearch search box to deal with suggestions and full results which depends on user input
     function customSearchBox() { return { init({ helper }) {
@@ -316,21 +324,25 @@ async function initSearch() {
     }
 
     const customMergedHits = connectAutocomplete(mergedHits);
-    search.addWidgets([
-      customSearchBox(),
-      customMergedHits({
-        container: document.querySelector(searchBoxContainer)
-      }),
-    ]);
-
-    // Loop through rest of indices
-    selectedIndices.slice(1).forEach((indexName) => {
+    // Only add the search box and hits renderer once — fixes event listeners duplicates
+    if (!staticWidgetsAdded) {
       search.addWidgets([
-        instantsearch.widgets.index({
-          indexName: indexName,
+        customSearchBox(),
+        customMergedHits({
+          container: document.querySelector(searchBoxContainer)
         }),
       ]);
-    });
+      staticWidgetsAdded = true;
+    }
+
+    // Instead of looping through other indices - add a child index widget for rest of indices (the main index is always searched, so it doesn't need a widget)
+    const indexWidgets = selectedIndices
+      .filter((indexName) => indexName !== initialIndex)
+      .map((indexName) => instantsearch.widgets.index({ indexName }));
+    if (indexWidgets.length) {
+      currentDynamicWidgets.push(...indexWidgets);
+      search.addWidgets(indexWidgets);
+    }
 
     search.refresh();
   }
