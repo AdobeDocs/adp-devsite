@@ -304,7 +304,8 @@ async function initSearch() {
           // Process each hit
           //
           results.set(instantsearch.highlight({ hit, attribute: "title" }), {
-            url: hit.url,
+            // Add anchor link if it exists to URL
+            url: hit.fragment ? `${hit.url}${hit.fragment}` : hit.url,
             product: hit.product,
             content: instantsearch.snippet({ hit, attribute: 'content' }),
           });
@@ -497,11 +498,16 @@ async function initSearch() {
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
     const productsToShow = allProductsCheckbox.checked ? allProducts : selectedProducts;
 
-    const productsWith = [], productsWithout = [];
-    productsToShow.forEach((p) =>
-      productsWithResults.has(p) ? productsWith.push(p) : productsWithout.push(p)
-    );
-    const sorted = [...productsWith, ...productsWithout];
+    let sorted;
+    if (allProductsCheckbox.checked) {
+      const productsWith = [], productsWithout = [];
+      productsToShow.forEach((p) =>
+        productsWithResults.has(p) ? productsWith.push(p) : productsWithout.push(p)
+      );
+      sorted = [...productsWith, ...productsWithout];
+    } else {
+      sorted = productsToShow; // preserve selected order regardless of results
+    }
 
     // render each group
     sorted.forEach((product) => {
@@ -556,11 +562,16 @@ async function initSearch() {
       ? allProducts
       : selectedProducts;
 
-    const withHits = [], withoutHits = [];
-    productsToShow.forEach((p) =>
-      productsWithResults.has(p) ? withHits.push(p) : withoutHits.push(p)
-    );
-    const sorted = [...withHits, ...withoutHits];
+    let sorted;
+    if (allProductsCheckbox.checked) {
+      const withHits = [], withoutHits = [];
+      productsToShow.forEach((p) =>
+        productsWithResults.has(p) ? withHits.push(p) : withoutHits.push(p)
+      );
+      sorted = [...withHits, ...withoutHits];
+    } else {
+      sorted = productsToShow; // preserve selected order regardless of results
+    }
 
     // render each section
     sorted.forEach((product) => {
