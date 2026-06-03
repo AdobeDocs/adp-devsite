@@ -81,7 +81,10 @@ export const updateSuggestedQuestions = (questions) => {
 export const getCollectionsQuestions = async () => {
   const rawCollections = await aiApiClient.getCollections();
   const questions = rawCollections
-    .filter((c) => c.id !== "__all-collections__" && !c.referencedCollectionIds)
+    // .filter((c) => c.id !== "__all-collections__" && !c.referencedCollectionIds)
+    .filter((c) =>
+      ["app-builder", "io-events", "developer-console"].includes(c.id),
+    )
     .map((c) => ({
       id: c.id,
       label: c.name,
