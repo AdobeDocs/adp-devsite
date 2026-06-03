@@ -253,7 +253,6 @@ async function initSearch() {
           searchCleared = false; // Reset cleared flag when user presses Enter
           const trimmed = searchInput.value.trim();
           if (trimmed === '') { // If users presses enter with an empty query while in a full search, clear results and show suggestions again
-            console.log('TEST 1');
             searchResults.classList.remove('has-results');
             searchResults.style.visibility = 'hidden';
             outerSearchSuggestions.style.display = 'flex';
