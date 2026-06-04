@@ -113,7 +113,7 @@ export class ChatBubble {
           class: "chat-bubble-copy",
           type: "button",
           "aria-label": COPY_BUTTON_LABEL,
-          "daa-ll": "Devsite AI Assistant:Message:Button:Copy",
+          "daa-ll": "DevsiteAI Assistant:Message:Button:Copy",
         })
       );
     button.innerHTML = COPY_ICON_SVG;
@@ -183,7 +183,7 @@ export class ChatBubble {
         class: "chat-bubble-feedback",
         type: "button",
         "aria-label": THUMB_UP_LABEL,
-        "daa-ll": "Devsite AI Assistant:Message:Button:Upvote",
+        "daa-ll": "DevsiteAI Assistant:Message:Button:Upvote",
       })
     );
     thumbUpButton.innerHTML = THUMB_UP_ICON_SVG;
@@ -196,7 +196,7 @@ export class ChatBubble {
         class: "chat-bubble-feedback",
         type: "button",
         "aria-label": THUMB_DOWN_LABEL,
-        "daa-ll": "Devsite AI Assistant:Message:Button:Downvote",
+        "daa-ll": "DevsiteAI Assistant:Message:Button:Downvote",
       })
     );
     thumbDownButton.innerHTML = THUMB_DOWN_ICON_SVG;
@@ -347,7 +347,7 @@ export class ChatBubble {
       a.textContent = title || url;
       a.setAttribute(
         "daa-ll",
-        `Devsite AI Assistant:Message:Sources:Link:${a.textContent}|${url}`,
+        `DevsiteAI Assistant:Message:Sources:Link:${a.textContent}|${url}`,
       );
       li.appendChild(a);
       list.appendChild(li);
