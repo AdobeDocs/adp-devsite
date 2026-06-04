@@ -52,7 +52,7 @@ function createVideoSlotContent(videoAnchor) {
       wrapper.classList.add(renderResult.className);
     }
   } else {
-    wrapper.innerHTML = buildFlatYouTubeIframeHtml(videoUrl, title, true);
+    return null;
   }
 
   return wrapper;
@@ -121,11 +121,13 @@ export default async function decorate(block) {
         const videoAnchor = slotElements.video?.querySelector('a');
         if (videoAnchor) {
           const wrapperVideo = createVideoSlotContent(videoAnchor);
-          slotElements.video?.replaceWith(wrapperVideo);
-  
-          const newWrapper = createTag('div');
-          Array.from(repeatRow.children).forEach((child) => child !== wrapperVideo && newWrapper.appendChild(child) );
-          repeatRow.appendChild(newWrapper);
+          if (wrapperVideo) {
+            slotElements.video?.replaceWith(wrapperVideo);
+
+            const newWrapper = createTag('div');
+            Array.from(repeatRow.children).forEach((child) => child !== wrapperVideo && newWrapper.appendChild(child));
+            repeatRow.appendChild(newWrapper);
+          }
         }
       });
     }

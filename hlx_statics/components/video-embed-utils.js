@@ -471,7 +471,7 @@ export function mountCarouselVideo(
       embedBlock.classList.add('embed-is-loaded');
       embedBlock.dataset.carouselVideo = 'true';
     }
-  } catch {
+  } catch (error){
     // invalid URL — leave content unchanged
     console.warn('mountCarouselVideo: could not mount video for', urlString, error);
   }
