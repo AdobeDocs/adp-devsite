@@ -57,7 +57,7 @@ export const updateSuggestedQuestions = (questions) => {
     const button = createTag("button", {
       type: "button",
       class: "chat-suggested-questions-button",
-      "daa-ll": `Devsite AI Assistant:Suggested questions:${label}`,
+      "daa-ll": `DevsiteAI Assistant:Suggested questions:${label}`,
     });
     const icon = createTag("img", {
       src: "/hlx_statics/icons/arrow-curved.svg",
