@@ -47,7 +47,7 @@ main div.discoverblock-container div.heading2-wrapper h2 {
   padding-bottom: 3px;
 }
 
-main div.discoverblock-container h2 {
+main div.discoverblock-container h2:not(.ai-assistant-wrapper h2) {
   border-bottom: 1px solid #e1e1e1;
   margin-top: 40px;
   padding-top: 20px;
@@ -55,7 +55,7 @@ main div.discoverblock-container h2 {
   margin-bottom: 0px;
 }
 
-main div.discoverblock-container h3 {
+main div.discoverblock-container h3:not(.ai-assistant-wrapper h3) {
   width: 100%;
 }
 
