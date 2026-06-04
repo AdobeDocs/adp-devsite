@@ -45,7 +45,7 @@ export default async function decorate(block) {
            * @param {string} options.text
            */
           link({ href, title, text }) {
-            return `<a href="${href}" title="${title || text}" daa-ll="Devsite AI Assistant:Message:Link:${title || text}|${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            return `<a href="${href}" title="${title || text}" daa-ll="DevsiteAI Assistant:Message:Link:${title || text}|${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
           },
         },
       });
