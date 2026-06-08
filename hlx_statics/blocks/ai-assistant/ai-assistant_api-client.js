@@ -396,7 +396,7 @@ export class AiApiClient {
     callbacks = {},
   }) {
     const defaultSystemPrompt = `
-      Use markdown formatting for the response.
+      Use markdown formatting and codeblocks for the response.
     `;
 
     /** @type {RequestBody} */

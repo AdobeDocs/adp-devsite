@@ -24,6 +24,8 @@ import {
   getCodePlaygroundJsonPath
 } from './lib-helix.js';
 
+import { ensurePrismLoaded } from './prism-loader.js';
+
 import {
   buildAiAssistant,
   buildBreadcrumbs,
@@ -898,15 +900,7 @@ async function loadPrism(document) {
 
       if (!prismLoaded) {
         prismLoaded = true;
-        window.Prism = { manual: true };
-        loadCSS(`${window.hlx.codeBasePath}/styles/prism.css`);
-        import('./prism.js').then(() => {
-          // Ensure Prism autoloader knows where to fetch language components
-          if (window.Prism && window.Prism.plugins && window.Prism.plugins.autoloader) {
-            window.Prism.plugins.autoloader.languages_path = '/hlx_statics/scripts/prism-grammars/';
-            window.Prism.plugins.autoloader.use_minified = true;
-          }
-
+        ensurePrismLoaded().then(() => {
           // Register "Try it" button for code blocks with "try" class
           if (window.Prism?.plugins?.toolbar) {
             window.Prism.plugins.toolbar.registerButton('try-code', (env) => {

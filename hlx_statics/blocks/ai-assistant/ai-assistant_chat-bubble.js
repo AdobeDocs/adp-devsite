@@ -1,5 +1,7 @@
 // @ts-check
 import { createTag } from "../../scripts/lib-adobeio.js";
+import decoratePreformattedCode from "../../components/code.js";
+import { ensurePrismLoaded } from "../../scripts/prism-loader.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
 import { createAiAvatar } from "./ai-assistant_chat-ui.js";
@@ -74,6 +76,8 @@ export class ChatBubble {
         bubble.dataset.messageId = this.id;
         // If we have an ID already (e.g., restored from history), append the actions
         contentElement.appendChild(this._actionsContainer);
+        // Restored-history bubbles never call completeBubble(), so decorate here.
+        this.#_decorateCodeBlocks(contentElement);
       }
       // Otherwise, the actions will be appended when completeBubble is called
     }
@@ -301,7 +305,7 @@ export class ChatBubble {
   }
 
   /**
-   * Adds the missing actions to an AI bubble
+   * Final processing that needs to be done after streaming finishes.
    */
   completeBubble() {
     if (this.source !== "ai" || !this._actionsContainer) return;
@@ -310,6 +314,52 @@ export class ChatBubble {
 
     const contentElement = this.element.querySelector(".chat-bubble-content");
     contentElement?.appendChild(this._actionsContainer);
+    if (contentElement) {
+      this.#_decorateCodeBlocks(contentElement);
+    }
+  }
+
+  /**
+   * @param {Element} contentElement - The `.chat-bubble-content` element
+   */
+  #_decorateCodeBlocks(contentElement) {
+    const preBlocks = contentElement.querySelectorAll("pre");
+    if (!preBlocks.length) return;
+
+    let decoratedAny = false;
+    preBlocks.forEach((pre) => {
+      // decoratePreformattedCode dereferences a <code> child unconditionally.
+      if (!pre.querySelector("code")) return;
+      decoratePreformattedCode(pre);
+      decoratedAny = true;
+    });
+
+    if (!decoratedAny) return;
+
+    ensurePrismLoaded().then(() => {
+      // @ts-expect-error - Prism is not on the Window type
+      window.Prism?.highlightAllUnder?.(contentElement);
+    });
+  }
+
+  /**
+   * Recomputes Prism's line-number row heights for every decorated code block
+   * inside a container.
+   * This is required to correctly align line numbers after restoring history.
+   * @param {Element | null | undefined} container
+   */
+  static resizeCodeBlockLineNumbers(container) {
+    const preBlocks = container?.querySelectorAll("pre.line-numbers");
+    if (!preBlocks?.length) return;
+
+    ensurePrismLoaded().then(() => {
+      // @ts-expect-error - Prism is not on the Window type
+      const resize = window.Prism?.plugins?.lineNumbers?.resize;
+      if (typeof resize !== "function") return;
+      preBlocks.forEach((pre) => {
+        resize(pre);
+      });
+    });
   }
 
   /**

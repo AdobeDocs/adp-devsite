@@ -422,6 +422,7 @@
     justify-content: center;
     padding: 24px;
     box-sizing: border-box;
+    z-index: 11;
 }
 
 .ai-assistant-panel .chat-window .chat-window-dialog-card {
