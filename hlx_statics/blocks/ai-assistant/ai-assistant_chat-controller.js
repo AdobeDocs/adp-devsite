@@ -83,6 +83,25 @@ export const openChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.classList.add("hidden");
   ELEMENTS.CHAT_BUTTON_BADGE?.classList.add("hidden");
 
+  // Code blocks in restored-history bubbles are decorated while the window is
+  // hidden (scaled to 0), so Prism's line-number rows collapse onto line 1.
+  // Recompute them once the open transition settles and the window has real
+  // layout. transitionend is the precise signal; the timeout is a fallback in
+  // case the transition is skipped (e.g. reduced motion / 0s duration).
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  let fixedLineNumbers = false;
+  const fixLineNumbers = (event) => {
+    // transitionend bubbles, so ignore descendant transitions and only react to
+    // the window's own transform settling (or the timeout, which has no event).
+    if (event && (event.target !== chatWindow || event.propertyName !== "transform")) return;
+    if (fixedLineNumbers) return;
+    fixedLineNumbers = true;
+    chatWindow.removeEventListener("transitionend", fixLineNumbers);
+    ChatBubble.resizeCodeBlockLineNumbers(ELEMENTS.CHAT_WINDOW_CONTENT);
+  };
+  chatWindow.addEventListener("transitionend", fixLineNumbers);
+  window.setTimeout(fixLineNumbers, 400);
+
   // Initial messages
   if (chatHistory.isEmpty()) {
     sendInitialMessages();
