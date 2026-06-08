@@ -6,7 +6,9 @@ import {
   decorateAnchorLink,
 } from '../../scripts/lib-adobeio.js';
 import {
+  buildFlatVideoIframeHtml,
   buildFlatYouTubeIframeHtml,
+  isVideoUrl,
   renderEmbedContent,
 } from '../../components/video-embed-utils.js';
 
@@ -32,6 +34,8 @@ function processImages(block) {
 
 function createVideoSlotContent(videoAnchor) {
   const videoUrl = new URL(videoAnchor.href, window.location.href);
+  if (!isVideoUrl(videoUrl)) return null;
+
   const title = videoAnchor.textContent?.trim() || 'Video content';
   const wrapper = createTag('div', { class: 'columns-video-slot' });
   const renderResult = renderEmbedContent(videoUrl, {
@@ -52,7 +56,9 @@ function createVideoSlotContent(videoAnchor) {
       wrapper.classList.add(renderResult.className);
     }
   } else {
-    return null;
+    const flatIframe = buildFlatVideoIframeHtml(videoUrl, title);
+    if (!flatIframe) return null;
+    wrapper.innerHTML = flatIframe;
   }
 
   return wrapper;

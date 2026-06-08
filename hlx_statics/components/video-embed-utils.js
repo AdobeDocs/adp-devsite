@@ -402,6 +402,12 @@ export function buildFlatYouTubeIframeHtml(linkOrUrl, title = 'Video content', a
   return `<iframe src="${src}" title="${escapeAttr(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`;
 }
 
+export function buildFlatVideoIframeHtml(linkOrUrl, title = 'Video content') {
+  const src = getEmbeddableVideoUrl(linkOrUrl);
+  if (!src) return '';
+  return `<iframe src="${src}" title="${escapeAttr(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`;
+}
+
 export function buildCarouselVideoHtml(carouselBlock, url, title = 'Video content') {
   const autoPlay = carouselBlock?.classList?.contains('autoplay');
   const provider = getVideoProvider(url);
