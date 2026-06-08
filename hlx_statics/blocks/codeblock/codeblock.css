@@ -29,6 +29,7 @@ main div.codeblock-wrapper div.codeblock .inline-code {
 
 main div.codeblock-wrapper div.codeblock .control-bar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -37,6 +38,7 @@ main div.codeblock-wrapper div.codeblock .control-bar {
 main div.codeblock-wrapper div.codeblock .control-bar,
 main div.codeblock-wrapper div.codeblock .control-bar .tabs-list {
   display: flex;
+  align-items: center;
   gap: 16px;
   max-width: 100%;
   overflow-x: auto;
@@ -59,6 +61,9 @@ main div.codeblock-wrapper div.codeblock .control-bar select {
   white-space: unset;
   cursor: pointer;
   background-color: initial;
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar .tabs-list button {
   border-bottom: 3px solid transparent;
 }
 
@@ -84,18 +89,30 @@ main div.codeblock-wrapper div.codeblock .control-bar select::picker(select) {
 
 main div.codeblock-wrapper div.codeblock .control-bar select {
   border: none;
+  display: flex;
+  align-items: center;
+}
+
+main div.codeblock-wrapper div.codeblock .control-bar select > button {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: rgb(209, 209, 209);
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar select selectedcontent {
-  margin: auto;
+  display: flex;
+  align-items: center;
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar select::picker-icon {
   content: "⌄";
-  margin: auto;
-  padding-bottom: 6px;
+  display: flex;
+  align-items: center;
   font-weight: bold;
-  transform: scaleX(1.5);
+  transform: scaleX(1.5) translateY(-1px);
 }
 
 main div.codeblock-wrapper div.codeblock .control-bar select::picker(select) {
@@ -134,7 +151,9 @@ main div.codeblock-wrapper div.codeblock .right-controls {
 
 main div.codeblock-wrapper div.codeblock .collapse-toggle {
   flex: 0 0 auto;
-  padding: 4px;
+  margin-left: 8px;
+  padding-top: 2px;
+  font-size: 14px;
   background: none;
   border: none;
   cursor: pointer;
