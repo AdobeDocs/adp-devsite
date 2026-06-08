@@ -1141,33 +1141,33 @@ export default async function decorate(block) {
 
     // check if documentation template then retrieve from config otherwise default back to google drive path
     let navPath;
-    // if (IS_DEV_DOCS) {
-    //   const topNavHtml = await fetchTopNavHtml();
-    //   if (topNavHtml) {
-    //     navigationLinks.innerHTML += topNavHtml;
-    //   }
-    // } else {
-    //   navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin,'nav');
-    //   let fragment = await loadFragment(navPath);
-    //   if (fragment == null) {
-    //     // load the default nav in franklin_assets folder nav
-    //     fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
-    //   }
-    //   const ul = fragment.querySelector("ul");
-    //   ul.classList.add("menu");
-    //   ul.setAttribute("id", "navigation-links");
-    //   fragment.querySelectorAll("li").forEach((li, index) => {
-    //     if (index == 0) {
-    //       if (isTopLevelNav(window.location.pathname)) {
-    //         const homeLink = ul.querySelector('li:nth-child(1)');
-    //         homeLink.className = 'navigation-home';
-    //       } else {
-    //         li.classList.add("navigation-products");
-    //       }
-    //     }
-    //   });
-    //   navigationLinks = ul;
-    // }
+    if (IS_DEV_DOCS) {
+      const topNavHtml = await fetchTopNavHtml();
+      if (topNavHtml) {
+        navigationLinks.innerHTML += topNavHtml;
+      }
+    } else {
+      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin,'nav');
+      let fragment = await loadFragment(navPath);
+      if (fragment == null) {
+        // load the default nav in franklin_assets folder nav
+        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+      }
+      const ul = fragment.querySelector("ul");
+      ul.classList.add("menu");
+      ul.setAttribute("id", "navigation-links");
+      fragment.querySelectorAll("li").forEach((li, index) => {
+        if (index == 0) {
+          if (isTopLevelNav(window.location.pathname)) {
+            const homeLink = ul.querySelector('li:nth-child(1)');
+            homeLink.className = 'navigation-home';
+          } else {
+            li.classList.add("navigation-products");
+          }
+        }
+      });
+      navigationLinks = ul;
+    }
 
     navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
       let dropdownLinkDropdownHTML = '';
