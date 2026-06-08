@@ -32,6 +32,14 @@ main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover {
     color: white;
 }
 
+main div.tab-wrapper div.code-toolbar pre.line-numbers {
+    padding-top: 3.5em;
+}
+
+main div.tab-wrapper div.code-toolbar pre.line-numbers .line-highlight {
+    margin-top: 3.5em;
+}
+
 main div.tab-wrapper div.code-toolbar>.toolbar>.toolbar-item>button {
     padding: 12px;
     height: 32px;
@@ -55,7 +63,6 @@ main div.tab-wrapper .line-numbers-rows>span {
 @media only screen and (max-width: 860px) {
 
     main div.tab-wrapper div.code-toolbar>.toolbar>.toolbar-item>button {
-        padding: 0;
         height: 25px;
         right: 0px;
     }
@@ -223,7 +230,7 @@ main div.tab-wrapper div.background-color-navy .code-toolbar pre {
     background-color: #111a35;
     border-radius: 2vh;
 }
- 
+
 main div.sub-content-wrapper .code-toolbar pre {
     border-radius: 0%;
 }

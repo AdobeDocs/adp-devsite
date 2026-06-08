@@ -1,6 +1,12 @@
 main div.code-wrapper pre[class*=language-],
 main div.nested-code-wrapper pre[class*=language-] {
     border-radius: 4px;
+    padding-top: 3.5em;
+}
+
+main div.code-wrapper pre[class*=language-] .line-highlight,
+main div.nested-code-wrapper pre[class*=language-] .line-highlight {
+    margin-top: 3.5em;
 }
 
 main div.code-wrapper pre[class*=language-].no-line-numbers .line-highlight,
