@@ -86,11 +86,22 @@ const createSubTabs = (table) => {
 }
 
 export default async function decorate(block) {
-  let orientation;
-  if (IS_DEV_DOCS) {
-    orientation = block.getAttribute('data-orientation') || 'horizontal';
+  block.querySelectorAll(':scope > div > div > pre > code').forEach((code) => {
+    const match = code.textContent.trim().match(/^(data-[^=]+)=(.*)$/);
+    if (!match) return;
+    const [, attr, value] = match;
+    if (attr === 'data-orientation') {
+      block.setAttribute('data-orientation', value.trim());
+    } else if (attr === 'data-classname') {
+      value.trim().split(/\s+/).filter(Boolean).forEach((cls) => block.classList.add(cls));
+    }
+  });
+
+  const dataOrientation = block.getAttribute('data-orientation');
+  const orientation = dataOrientation || (block.classList.contains('vertical') ? 'vertical' : 'horizontal');
+  if (!block.classList.contains(orientation)) {
+    block.classList.add(orientation);
   }
-  block.classList.add(orientation);
   block.setAttribute('daa-lh', 'tab');
 
   const tabsWrapper = document.createElement('div');
@@ -112,7 +123,7 @@ export default async function decorate(block) {
       const tabButton = document.createElement('button');
       tabButton.className = 'tab-button';
       tabButton.innerHTML = `
-        <div class="tab-icon">${tabImage}</div>
+        ${tabImage ? `<div class="tab-icon">${tabImage}</div>` : ''}
         <span class="tab-title">${tabTitle}</span>
       `;
       tabButton.setAttribute('data-tab', `tab${tabCount}`);

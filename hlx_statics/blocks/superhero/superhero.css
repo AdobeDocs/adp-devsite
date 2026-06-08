@@ -1,3 +1,28 @@
+main div.superhero-wrapper div.superhero a:not(.spectrum-Button) {
+  color: inherit !important;
+  text-decoration: underline;
+}
+
+main div.superhero-wrapper div.superhero.text-color-white,
+main div.superhero-wrapper div.superhero.text-color-white :is(h1, h2, h3, h4, h5, h6, p) {
+  color: rgb(255, 255, 255) !important;
+}
+
+main div.superhero-wrapper div.superhero.text-color-black,
+main div.superhero-wrapper div.superhero.text-color-black :is(h1, h2, h3, h4, h5, h6, p) {
+  color: rgb(0, 0, 0) !important;
+}
+
+main div.superhero-wrapper div.superhero.text-color-gray,
+main div.superhero-wrapper div.superhero.text-color-gray :is(h1, h2, h3, h4, h5, h6, p) {
+  color: rgb(110, 110, 110) !important;
+}
+
+main div.superhero-wrapper div.superhero.text-color-navy,
+main div.superhero-wrapper div.superhero.text-color-navy :is(h1, h2, h3, h4, h5, h6, p) {
+  color: rgb(15, 55, 95) !important;
+}
+
 main div.superhero-wrapper div.superhero span.icon {
   display: inline-block;
 }
@@ -159,7 +184,6 @@ main div.superhero-wrapper div.superhero.half-width > div:last-child video {
 
 main div.superhero-wrapper div.superhero.half-width p.spectrum-Body--sizeL {
   margin-top: 0 !important;
-  color: rgb(80, 80, 80) !important;
 }
 
 main div.superhero-wrapper:has(div.superhero.half-width) {
@@ -206,20 +230,6 @@ main div.superhero-wrapper div.superhero.half-width h3 {
 
 main div.superhero-wrapper div.superhero.half-width h1 + p.last-of-type {
   margin-bottom: 0 !important;
-}
-
-main div.superhero-wrapper div.superhero.half-width a:not(.spectrum-Button) {
-  text-decoration: underline;
-}
-
-main div.superhero-wrapper div.superhero.half-width.text-color-white h1,
-main div.superhero-wrapper div.superhero.half-width.text-color-white a,
-main div.superhero-wrapper div.superhero.half-width.text-color-white p {
-  color: white !important;
-}
-
-main div.superhero-wrapper div.superhero.half-width.text-color-black {
-  color: black;
 }
 
 main div.superhero-wrapper div.superhero.half-width.over-gradient p.button-container:not(strong) a:not(.spectrum-Button--accent) {
@@ -294,22 +304,6 @@ main div.superhero-wrapper div.superhero.default .all-button-container > p {
 main div.superhero-wrapper div.superhero.default .all-button-container {
   display: inline-flex;
   gap: 16px;
-}
-
-main div.superhero-wrapper div.superhero.default.text-color-white {
-  color: rgb(255, 255, 255);
-}
-
-main div.superhero-wrapper div.superhero.default.text-color-black {
-  color: rgb(0, 0, 0);
-}
-
-main div.superhero-wrapper div.superhero.default.text-color-gray {
-  color: rgb(110, 110, 110);
-}
-
-main div.superhero-wrapper div.superhero.default.text-color-navy {
-  color: rgb(15, 55, 95);
 }
 
 @media screen and (max-width: 1280px) {

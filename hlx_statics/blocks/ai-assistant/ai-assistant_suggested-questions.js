@@ -57,7 +57,7 @@ export const updateSuggestedQuestions = (questions) => {
     const button = createTag("button", {
       type: "button",
       class: "chat-suggested-questions-button",
-      "daa-ll": label,
+      "daa-ll": `DevsiteAI Assistant:Suggested questions:${label}`,
     });
     const icon = createTag("img", {
       src: "/hlx_statics/icons/arrow-curved.svg",
@@ -100,7 +100,6 @@ export const createSuggestedQuestionsSection = () => {
   title.textContent = "or choose from the following:";
   const list = createTag("div", {
     class: "chat-suggested-questions-list",
-    "daa-lh": "AI Assistant - Suggested questions",
   });
 
   wrapper.appendChild(title);
