@@ -51,7 +51,6 @@ import {
   isProdEnvironment,
   addExtraScript,
   addExtraScriptWithLoad,
-  decorateHR,
   buildNextPrev,
   buildResources,
   checkExternalLink,
@@ -203,7 +202,6 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateNestedCodes(main);
-  decorateHR(main);
   checkExternalLink(main);
 }
 
