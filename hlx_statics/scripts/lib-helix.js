@@ -11,6 +11,7 @@
  */
 
 import { loadFragment } from '../blocks/fragment/fragment.js';
+import { isLocalHostEnvironment, isStageEnvironment } from './lib-adobeio.js';
 
 /**
  * log RUM if part of the sample.
@@ -118,7 +119,7 @@ export const IS_DEV_DOCS = Boolean(getMetadata('githubblobpath'));
 if (localStorage.getItem('ai-assistant-enabled') !== 'false') {
   localStorage.setItem('ai-assistant-enabled', 'true');
 }
-export const IS_AI_ASSISTANT_ENABLED = localStorage.getItem('ai-assistant-enabled') === 'true';
+export const IS_AI_ASSISTANT_ENABLED = localStorage.getItem('ai-assistant-enabled') === 'true' && (isStageEnvironment(window.location.host, true) || isLocalHostEnvironment(window.location.host));
 window.ENABLE_AI_ASSISTANT = () => {
   localStorage.setItem('ai-assistant-enabled', 'true');
   window.location.reload();
