@@ -801,7 +801,7 @@ async function loadLazy(doc) {
     }
   }
 
-  if (IS_AI_ASSISTANT_ENABLED && isStageEnvironment(window.location.host, true)) {
+  if (IS_AI_ASSISTANT_ENABLED) {
     buildAiAssistant(main);
     loadAiAssistant(doc.querySelector('.ai-assistant-wrapper'));
   }
