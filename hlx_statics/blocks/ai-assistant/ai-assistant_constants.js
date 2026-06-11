@@ -10,6 +10,7 @@ export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
  */
 export const ELEMENTS = {
   CHAT_BUTTON: null,
+  CHAT_BUTTON_BADGE: null,
   CHAT_WINDOW_CLOSE_BUTTON: null,
   CHAT_WINDOW_CLEAR_BUTTON: null,
   CHAT_SEND_BUTTON: null,

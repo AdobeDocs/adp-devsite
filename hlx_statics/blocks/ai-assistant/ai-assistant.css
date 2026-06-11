@@ -39,6 +39,7 @@
 */
 .ai-assistant-panel .chat-button {
     --background-color: #ffffff;
+    --transition-delay: calc(var(--opening-transition-duration) * 0.9);
 
     position: relative;
     width: var(--button-size);
@@ -54,9 +55,11 @@
         var(--ai-border-linear-gradient) border-box;
     align-self: flex-end;
     pointer-events: auto;
+    transform: scale(1);
     visibility: visible;
-    transition: visibility 0s linear
-        calc(var(--opening-transition-duration) * 0.9);
+    transition:
+        visibility 0s linear var(--transition-delay),
+        transform 0.15s cubic-bezier(0, 0, 0.4, 1) var(--transition-delay);
 
     &:hover {
         --background-color: #f0f0f0;
@@ -65,7 +68,34 @@
     &.hidden {
         visibility: hidden;
         transition: visibility 0s linear;
+        transform: scale(0.9);
     }
+}
+
+.ai-assistant-panel .chat-button .chat-button-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--ai-border-linear-gradient);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 2px solid #fff;
+    pointer-events: none;
+    line-height: 1.4;
+    opacity: 1;
+    transform: scale(1);
+    transition:
+        opacity 0.15s cubic-bezier(0, 0, 0.4, 1),
+        transform 0.15s cubic-bezier(0, 0, 0.4, 1);
+}
+
+.ai-assistant-panel .chat-button .chat-button-badge.hidden {
+    opacity: 0;
+    transform: scale(0.6);
 }
 
 /*
