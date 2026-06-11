@@ -81,6 +81,7 @@ export const openChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_MINIMIZE;
   ELEMENTS.CHAT_WINDOW.classList.add("show");
   ELEMENTS.CHAT_BUTTON.classList.add("hidden");
+  ELEMENTS.CHAT_BUTTON_BADGE?.classList.add("hidden");
 
   // Initial messages
   if (chatHistory.isEmpty()) {
@@ -96,6 +97,44 @@ export const minimizeChatWindow = () => {
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
   ELEMENTS.CHAT_BUTTON?.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
+
+  restoreBadgeAfterClose();
+};
+
+/**
+ * Restores the beta badge after the chat window's collapse (transform) transition
+ * completes.
+ */
+const restoreBadgeAfterClose = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  if (!chatWindow) return;
+
+  // With reduced motion the window collapses instantly (no transform transition),
+  // so `transitionend` may never fire — restore the badge right away instead.
+  const prefersReducedMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  )?.matches;
+  if (prefersReducedMotion) {
+    if (!chatWindow.classList.contains("show")) {
+      ELEMENTS.CHAT_BUTTON_BADGE?.classList.remove("hidden");
+    }
+    return;
+  }
+
+  /** @param {TransitionEvent} event */
+  const onTransitionEnd = (event) => {
+    // The window animates both `transform` and `visibility`; only react to the
+    // transform transition, which is the visible collapse.
+    if (event.target !== chatWindow || event.propertyName !== "transform") {
+      return;
+    }
+    chatWindow.removeEventListener("transitionend", onTransitionEnd);
+    if (!chatWindow.classList.contains("show")) {
+      ELEMENTS.CHAT_BUTTON_BADGE?.classList.remove("hidden");
+    }
+  };
+
+  chatWindow.addEventListener("transitionend", onTransitionEnd);
 };
 
 export const clearConversation = () => {
