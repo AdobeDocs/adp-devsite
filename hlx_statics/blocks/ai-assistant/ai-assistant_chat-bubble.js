@@ -330,6 +330,8 @@ export class ChatBubble {
     preBlocks.forEach((pre) => {
       // decoratePreformattedCode dereferences a <code> child unconditionally.
       if (!pre.querySelector("code")) return;
+      // The chat panel is narrow, so use the icon-only copy button.
+      pre.classList.add("copy-condensed");
       decoratePreformattedCode(pre);
       decoratedAny = true;
     });
