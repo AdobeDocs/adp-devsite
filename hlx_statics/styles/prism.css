@@ -181,6 +181,43 @@ div.code-toolbar>.toolbar>.toolbar-item>button {
     background: rgba(0, 0, 0, 0);
 }
 
+/* Condensed mode: icon-only copy button */
+div.code-toolbar:has(pre.copy-condensed) {
+    --copy-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M11.75 18h-7.5C3.01 18 2 16.99 2 15.75v-7.5C2 7.01 3.01 6 4.25 6c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75v7.5c0 .413.337.75.75.75h7.5c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M6.75 5C6.336 5 6 4.664 6 4.25 6 3.01 7.01 2 8.25 2c.414 0 .75.336.75.75s-.336.75-.75.75c-.413 0-.75.337-.75.75 0 .414-.336.75-.75.75M13 3.5h-2c-.414 0-.75-.336-.75-.75S10.586 2 11 2h2c.414 0 .75.336.75.75s-.336.75-.75.75'/%3E%3Cpath d='M13 14h-2c-.414 0-.75-.336-.75-.75s.336-.75.75-.75h2c.414 0 .75.336.75.75s-.336.75-.75.75M15.75 14c-.414 0-.75-.336-.75-.75s.336-.75.75-.75c.413 0 .75-.337.75-.75 0-.414.336-.75.75-.75s.75.336.75.75c0 1.24-1.01 2.25-2.25 2.25M17.25 5c-.414 0-.75-.336-.75-.75 0-.413-.337-.75-.75-.75-.414 0-.75-.336-.75-.75s.336-.75.75-.75C16.99 2 18 3.01 18 4.25c0 .414-.336.75-.75.75M17.25 9.75c-.414 0-.75-.336-.75-.75V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M6.75 9.75C6.336 9.75 6 9.414 6 9V7c0-.414.336-.75.75-.75s.75.336.75.75v2c0 .414-.336.75-.75.75M8.25 14C7.01 14 6 12.99 6 11.75c0-.414.336-.75.75-.75s.75.336.75.75c0 .413.337.75.75.75.414 0 .75.336.75.75s-.336.75-.75.75'/%3E%3C/svg%3E");
+    --check-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M7.864 15.734c-.222 0-.433-.098-.576-.27l-3.747-4.497c-.266-.319-.222-.792.096-1.057.317-.265.79-.223 1.056.096l3.154 3.786 7.44-9.469c.255-.326.728-.382 1.052-.127.326.256.383.728.127 1.053L8.454 15.447c-.14.179-.352.284-.579.287z'/%3E%3C/svg%3E");
+
+    & > .toolbar > .toolbar-item > button.copy-to-clipboard-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.4em;
+    
+        /* Visually hide the label but without display: none so it remains accessible */
+        & > span {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            clip: rect(0, 0, 0, 0);
+        }
+    
+        &::before {
+            content: "";
+            display: block;
+            width: 1em;
+            height: 1em;
+            background-color: currentColor;
+            -webkit-mask: var(--copy-icon) no-repeat center / contain;
+            mask: var(--copy-icon) no-repeat center / contain;
+        }
+    
+        /* swap to checkmark on copy success */
+        &[data-copy-state="copy-success"]::before {
+            -webkit-mask-image: var(--check-icon);
+            mask-image: var(--check-icon);
+        } 
+    }
+}
+
 pre.prism-loading {
     background: #e0e0e0;
     color: transparent !important;
