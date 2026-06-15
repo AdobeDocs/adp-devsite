@@ -4,6 +4,11 @@
  * https://www.hlx.live/developer/block-collection/embed
  */
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
+import {
+  getVideoTitle,
+  parseVideoSource,
+  resolveVideoUrl,
+} from '../../scripts/video.js';
 
 /**
  * YouTube IFrame embed: for a *single* video, `loop=1` only works together with
@@ -75,9 +80,10 @@ const embedYTShort = (url, loop, controls, vidTitle, autoplay) => {
 const embedMP4 = (url, loop, controls, vidTitle, isShort, autoplay) => {
   const href = url instanceof URL ? url.href : String(url);
   const autoplayMute = autoplay ? 'autoplay muted playsinline' : '';
+  const titleAttr = vidTitle ? `title="${vidTitle}" aria-label="${vidTitle}"` : '';
   const video = `
 <div style=" width: 100%;">
-      <video src="${href}" ${loop ? 'loop' : ''} ${controls ? 'controls' : ''} ${autoplayMute} style="width: 100%; height: 100%;">
+      <video src="${href}" ${titleAttr} ${loop ? 'loop' : ''} ${controls ? 'controls' : ''} ${autoplayMute} style="width: 100%; height: 100%;">
       <p>Sorry, We're having an internal Error. Please try Again Soon!</p>
       </video>
 </div>
@@ -182,7 +188,7 @@ const embedTwitter = (url, loop, controls, vidTitle, isShort, autoplay) => {
 };
 
 
-const loadEmbed = (block, link) => {
+const loadEmbed = (block, link, linkText) => {
   if (block.classList.contains('embed-is-loaded')) {
     return;
   }
@@ -218,7 +224,11 @@ const loadEmbed = (block, link) => {
   let loop = 0;
   let controls = 1;
   let autoplay = 0;
-  const vidTitle = block.getAttribute(  'data-videotitle');
+  const vidTitle = getVideoTitle(
+    link,
+    linkText,
+    block.getAttribute('data-videotitle'),
+  );
   const isShort = block.getAttribute('data-short')?.toLowerCase() === 'true';
   // changes the values based on metadata on this block or an ancestor section
   if (block.getAttribute('data-loop') === 'true' || block.classList.contains('loop')) {
@@ -233,7 +243,8 @@ const loadEmbed = (block, link) => {
   if (controls === 0 ) {
     autoplay = 1;
   }
-  const url = new URL(link);
+  const resolvedLink = resolveVideoUrl(link);
+  const url = new URL(resolvedLink);
   if (config) {
     block.innerHTML = config.embed(url, loop, controls, vidTitle, isShort, autoplay);
     block.classList.add('block', 'embed', `embed-${config.match[0]}`);
@@ -258,13 +269,13 @@ const loadEmbed = (block, link) => {
   }
 };
 
-const addImage = (placeholder, block, link) => {
+const addImage = (placeholder, block, link, linkText) => {
   const wrapper = document.createElement('div');
     wrapper.className = 'embed-placeholder';
     wrapper.innerHTML = '<div class="embed-placeholder-play"><button type="button" title="Play"></button></div>';
     wrapper.prepend(placeholder);
     wrapper.addEventListener('click', () => {
-      loadEmbed(block, link, true);
+      loadEmbed(block, link, linkText);
     });
     block.append(wrapper);
 };
@@ -272,24 +283,20 @@ export default function decorate(block) {
   const getParent = block.parentElement;
   block.setAttribute('daa-lh', 'embed');
   const placeholder = block.querySelector('picture');
-  let link
-  if (block.querySelector('a')?.href) {
-    link = block.querySelector('a')?.href
-  }
-  else {
-    link = block.querySelector('.embed > div > div').innerText;
-  }
+  const videoSource = parseVideoSource(block);
+  const link = videoSource?.href || videoSource?.url;
+  const linkText = videoSource?.linkText;
 
   block.textContent = '';
   if (placeholder) {
     if (!(placeholder.alt)) placeholder.alt = "Content thumbnail";
-    addImage(placeholder, block, link);
+    addImage(placeholder, block, link, linkText);
   }
   else {
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((e) => e.isIntersecting)){
         observer.disconnect();
-        loadEmbed(block, link);
+        loadEmbed(block, link, linkText);
       }
     });
    observer.observe(block);
