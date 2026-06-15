@@ -23,31 +23,40 @@ main div.discoverblock-wrapper div.discoverblock {
   margin-right: 32px;
 }
 
+main div.discoverblock-wrapper div.discoverblock.has-image {
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+}
+
+main div.discoverblock-wrapper div.discoverblock.has-image > img.discover-image {
+  /* width/height come from inline styles set by discoverblock.js */
+  align-self: flex-start;
+}
+
+main div.discoverblock-wrapper div.discoverblock.has-image > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 /* Wrapper display */
 main div.discoverblock-wrapper {
   display: inline-flex;
   flex-direction: column;
   width: 320px;
-  padding-top:0px;
+  min-width: 280px;
+  padding-top: 0px;
+  vertical-align: top;
 }
 
-/* Responsive design for mobile and tablet */
 @media (max-width: 768px) {
   main div.discoverblock-wrapper {
     width: 100% !important;
+    min-width: 0;
   }
 }
 
-main div.discoverblock-container div.heading2-wrapper{
-  margin-bottom: 5px;
-}
-
-main div.discoverblock-container div.heading2-wrapper h2 {
-  border-bottom: 0px;
-  padding-bottom: 3px;
-}
-
-main div.discoverblock-container h2:not(.ai-assistant-wrapper h2) {
+main h2.discoverblock-heading {
   border-bottom: 1px solid #e1e1e1;
   margin-top: 40px;
   padding-top: 20px;
@@ -55,7 +64,7 @@ main div.discoverblock-container h2:not(.ai-assistant-wrapper h2) {
   margin-bottom: 0px;
 }
 
-main div.discoverblock-container h3:not(.ai-assistant-wrapper h3) {
+main h3.discoverblock-heading {
   width: 100%;
 }
 
@@ -84,11 +93,8 @@ main div.discoverblock-wrapper p {
   margin-bottom: 0;
 }
 
-main div.discoverblock-container .discover-heading-with-image {
+main .discoverblock-heading.discover-heading-with-image {
   padding-left: 126px;
   margin-bottom: 5px;
 }
 
-main div.discoverblock-wrapper div.discover-content-with-image {
-  padding-left: 126px;
-}
