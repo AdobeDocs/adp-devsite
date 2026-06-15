@@ -11,6 +11,11 @@ import {
   decorateLightOrDark,
   IS_DEV_DOCS,
 } from '../../scripts/lib-helix.js';
+import {
+  buildVideoTag,
+  getVideoTitle,
+  parseVideoSource,
+} from '../../scripts/video.js';
 
 /**
  * Generates optimized images for all columns in the block
@@ -86,10 +91,16 @@ export default async function decorate(block) {
           Array.from(repeatRow.children).map((child, index) => [slotNames[index], child])
         );
         
-        const videoAnchor = slotElements.video?.querySelector('a');
-        if (videoAnchor) {
+        const videoSource = parseVideoSource(slotElements.video);
+        if (videoSource) {
           const wrapperVideo = createTag('div');
-          wrapperVideo.innerHTML = `<video src="${videoAnchor.href}" alt="${videoAnchor.textContent}" autoplay playsinline muted loop></video>`;
+          wrapperVideo.innerHTML = buildVideoTag({
+            url: videoSource.url,
+            title: getVideoTitle(videoSource.url, videoSource.linkText),
+            autoplay: true,
+            muted: true,
+            loop: true,
+          });
           slotElements.video?.replaceWith(wrapperVideo);
   
           const newWrapper = createTag('div');

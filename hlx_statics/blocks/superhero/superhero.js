@@ -1,6 +1,7 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 import { insertWrapperChild } from '../../components/wrapperContainer.js';
+import { buildVideoTag, getVideoTitle, parseVideoSource } from '../../scripts/video.js';
 
 const VARIANTS = {
   default: 'default',
@@ -131,8 +132,8 @@ async function decorateDevBizHalfWidth(block) {
     placeholderDiv.remove();
   }
   
-  const videoURL = block.lastElementChild.querySelector('a');
-  if (videoURL && block.classList.contains('video')) {
+  const videoSource = parseVideoSource(block.lastElementChild);
+  if (videoSource && block.classList.contains('video')) {
     const isControl = block.classList.contains('controls');
     const wantAutoplay = block.classList.contains('autoplay');
     const wantLoop = block.classList.contains('loop');
@@ -141,8 +142,14 @@ async function decorateDevBizHalfWidth(block) {
     const muted = !isControl || wantAutoplay;
 
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
-    const videoTag = `<video src="${videoURL?.href}" alt="${videoURL?.textContent}" ${isAutoplay ? 'autoplay' : ''} playsinline ${muted ? 'muted' : ''} ${isControl ? 'controls' : ''} ${isLoop ? 'loop' : ''}></video>`;
-    videoContainer.innerHTML = videoTag;
+    videoContainer.innerHTML = buildVideoTag({
+      url: videoSource.url,
+      title: getVideoTitle(videoSource.url, videoSource.linkText),
+      autoplay: isAutoplay,
+      muted,
+      controls: isControl,
+      loop: isLoop,
+    });
     block.lastElementChild.replaceWith(videoContainer);
   }
 }
