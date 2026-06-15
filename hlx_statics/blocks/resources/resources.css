@@ -10,7 +10,7 @@ main div.resources-wrapper ul{
 main div.resources-wrapper li{
     margin-top:15px;
     display:flex;
-    align-items: flex-end;
+    align-items: center;
 }
 
 main div.resources-wrapper h3{
