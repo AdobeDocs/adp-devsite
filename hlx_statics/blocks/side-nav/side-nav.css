@@ -281,6 +281,10 @@ main div.side-nav-wrapper .side-nav-menu-section .nav-playground-button a{
   main div.side-nav-wrapper .side-nav-menu-section .spectrum-SideNav-item .nav-dropdown-description {
     display: none;
   }
+
+  main div.side-nav-wrapper .side-nav-subpages-section {
+    padding-bottom: 80px;
+  }
 }
 
 
