@@ -16,33 +16,69 @@
  * @property {{type: 'THUMBS_UP_DOWN'; score: 0|1}} [feedback]
  */
 
+/**
+ * @typedef {Object} SuggestedQuestion
+ * @property {string} label
+ * @property {string} question
+ * @property {string|null} [id]
+ */
+
+/**
+ * A single conversation: its messages plus the suggested questions currently
+ * associated with it. Bundling them keeps suggestions tied to the conversation,
+ * which makes supporting multiple switchable conversations straightforward later.
+ * @typedef {Object} Conversation
+ * @property {ChatMessage[]} messages
+ * @property {SuggestedQuestion[]|null} suggestedQuestions
+ */
+
 export class ChatHistory {
   static STORAGE_KEY = "ai-assistant-chat-history";
 
-  /** @type {ChatMessage[]|null} */
+  /** @type {Conversation|null} */
   _cache = null;
+
+  /**
+   * Loads the conversation from cache or sessionStorage.
+   * @returns {Conversation}
+   * @private
+   */
+  _getConversation() {
+    if (this._cache) return this._cache;
+
+    try {
+      const stored = sessionStorage.getItem(ChatHistory.STORAGE_KEY);
+      if (!stored) {
+        this._cache = this._emptyConversation();
+        return this._cache;
+      }
+      const parsed = JSON.parse(stored);
+      this._cache = {
+        messages: this._sanitizeMessages(parsed?.messages ?? []),
+        suggestedQuestions: parsed?.suggestedQuestions ?? null,
+      };
+      return this._cache;
+    } catch (error) {
+      console.error("Error retrieving chat history:", error);
+      this._cache = this._emptyConversation();
+      return this._cache;
+    }
+  }
+
+  /**
+   * @returns {Conversation}
+   * @private
+   */
+  _emptyConversation() {
+    return { messages: [], suggestedQuestions: null };
+  }
 
   /**
    * Gets all messages from history
    * @returns {ChatMessage[]}
    */
   getAll() {
-    if (this._cache) return [...this._cache]; // Return copy to prevent mutations
-
-    try {
-      const stored = sessionStorage.getItem(ChatHistory.STORAGE_KEY);
-      if (!stored) {
-        this._cache = [];
-        return [];
-      }
-      const parsed = JSON.parse(stored);
-      this._cache = this._sanitizeMessages(parsed);
-      return [...this._cache];
-    } catch (error) {
-      console.error("Error retrieving chat history:", error);
-      this._cache = [];
-      return [];
-    }
+    return [...this._getConversation().messages]; // Copy to prevent mutations
   }
 
   /**
@@ -50,9 +86,11 @@ export class ChatHistory {
    * @param {ChatMessage} message
    */
   add(message) {
-    const history = this.getAll();
-    history.push(message);
-    this._save(history);
+    const conversation = this._getConversation();
+    this._save({
+      ...conversation,
+      messages: [...conversation.messages, message],
+    });
   }
 
   /**
@@ -60,13 +98,14 @@ export class ChatHistory {
    * @param {Partial<ChatMessage>} updates - Properties to merge into last message
    */
   updateLast(updates) {
-    const history = this.getAll();
-    if (history.length > 0) {
-      history[history.length - 1] = {
-        ...history[history.length - 1],
+    const conversation = this._getConversation();
+    const messages = [...conversation.messages];
+    if (messages.length > 0) {
+      messages[messages.length - 1] = {
+        ...messages[messages.length - 1],
         ...updates,
       };
-      this._save(history);
+      this._save({ ...conversation, messages });
     }
   }
 
@@ -77,11 +116,12 @@ export class ChatHistory {
    * @returns {boolean} True if the message was found and updated
    */
   updateById(id, updates) {
-    const history = this.getAll();
-    const index = history.findIndex((m) => m.id === id);
+    const conversation = this._getConversation();
+    const messages = [...conversation.messages];
+    const index = messages.findIndex((m) => m.id === id);
     if (index === -1) return false;
-    history[index] = { ...history[index], ...updates };
-    this._save(history);
+    messages[index] = { ...messages[index], ...updates };
+    this._save({ ...conversation, messages });
     return true;
   }
 
@@ -92,6 +132,23 @@ export class ChatHistory {
    */
   findById(id) {
     return this.getAll().find((m) => m.id === id);
+  }
+
+  /**
+   * Gets the suggested questions associated with the current conversation.
+   * @returns {SuggestedQuestion[]|null}
+   */
+  getSuggestedQuestions() {
+    return this._getConversation().suggestedQuestions ?? null;
+  }
+
+  /**
+   * Sets the suggested questions associated with the current conversation.
+   * @param {SuggestedQuestion[]} questions
+   */
+  setSuggestedQuestions(questions) {
+    const conversation = this._getConversation();
+    this._save({ ...conversation, suggestedQuestions: questions });
   }
 
   /**
@@ -114,7 +171,7 @@ export class ChatHistory {
   clear() {
     try {
       sessionStorage.removeItem(ChatHistory.STORAGE_KEY);
-      this._cache = [];
+      this._cache = this._emptyConversation();
     } catch (error) {
       console.error("Error clearing chat history:", error);
     }
@@ -137,13 +194,16 @@ export class ChatHistory {
   }
 
   /**
-   * Saves history to sessionStorage
-   * @param {ChatMessage[]} history - The chat history array to save
+   * Saves the conversation to sessionStorage
+   * @param {Conversation} conversation - The conversation to save
    * @private
    */
-  _save(history) {
+  _save(conversation) {
     try {
-      const serializable = this._sanitizeMessages(history);
+      const serializable = {
+        messages: this._sanitizeMessages(conversation.messages),
+        suggestedQuestions: conversation.suggestedQuestions ?? null,
+      };
       sessionStorage.setItem(
         ChatHistory.STORAGE_KEY,
         JSON.stringify(serializable),

@@ -1,6 +1,7 @@
 // @ts-check
 import { createTag } from "../../scripts/lib-adobeio.js";
 import { handleUserQuery } from "./ai-assistant_chat-controller.js";
+import { chatHistory } from "./ai-assistant_chat-history.js";
 import {
   ELEMENTS,
   INITIAL_SUGGESTED_QUESTIONS,
@@ -36,6 +37,10 @@ export const parseAiSuggestedQuestions = (responseText) => {
  * @param {Array<{label: string, question: string, id?: string|null}>|null} questions - Questions to show, or null for skeleton
  */
 export const updateSuggestedQuestions = (questions) => {
+  if (questions !== null) {
+    chatHistory.setSuggestedQuestions(questions);
+  }
+
   const wrapper = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
   if (!wrapper) return;
   const list = wrapper.querySelector(".chat-suggested-questions-list");
@@ -88,7 +93,10 @@ export const createSuggestedQuestionsSection = () => {
   wrapper.appendChild(list);
   ELEMENTS.CHAT_SUGGESTED_QUESTIONS = wrapper;
 
-  updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
+  // Restore if we have an existing convo
+  updateSuggestedQuestions(
+    chatHistory.getSuggestedQuestions() ?? INITIAL_SUGGESTED_QUESTIONS,
+  );
 
   return wrapper;
 };
