@@ -41,7 +41,7 @@ export const INITIAL_SUGGESTED_QUESTIONS = [
   },
   {
     label: "Adobe Express",
-    question: "How do I delevelop Adobe Express addons?",
+    question: "How do I develop Adobe Express addons?",
   },
   {
     label: "Adobe for Creativity",
