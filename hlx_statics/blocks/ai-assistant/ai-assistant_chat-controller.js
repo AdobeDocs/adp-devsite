@@ -455,7 +455,9 @@ export const restoreChatHistory = async () => {
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {
-    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
+    updateSuggestedQuestions(
+      chatHistory.getSuggestedQuestions() ?? INITIAL_SUGGESTED_QUESTIONS,
+    );
     showSuggestedQuestions();
   } else {
     hideSuggestedQuestions();
