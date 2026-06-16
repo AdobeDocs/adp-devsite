@@ -7,11 +7,11 @@ import {
   CHAT_BUTTON_LABEL_OPEN,
   ELEMENTS,
   GENERIC_ERROR_MESSAGE,
+  INITIAL_SUGGESTED_QUESTIONS,
   SEND_ICON_SRC,
   STOP_ICON_SRC,
 } from "./ai-assistant_constants.js";
 import {
-  getCollectionsQuestions,
   hideSuggestedQuestions,
   parseAiSuggestedQuestions,
   showSuggestedQuestions,
@@ -51,6 +51,7 @@ export const onUserScroll = (event) => {
  */
 const sendInitialMessages = ({ delay = 250 } = {}) => {
   hideSuggestedQuestions();
+  updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
   window.setTimeout(() => {
     sendMessage({
       content: "Hello, welcome to Adobe Developer Website!",
@@ -161,7 +162,7 @@ export const toggleChatWindow = () => {
  * Falls back to static questions on any error or parse failure.
  */
 export const fetchAiSuggestedQuestions = async () => {
-  const query = `Please suggest 2 follow-up questions based on our conversation to make the users.`;
+  const query = `Please suggest 2 follow-up questions based on our conversation to make the users happy.`;
   const systemPrompt = `
   Structured questions format:
     ---question---
@@ -181,14 +182,14 @@ export const fetchAiSuggestedQuestions = async () => {
     if (parsed.length > 0) {
       updateSuggestedQuestions(parsed);
     } else {
-      updateSuggestedQuestions(await getCollectionsQuestions());
+      updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
     }
   } catch (error) {
     console.warn(
       "[AI Assistant] Failed to fetch AI suggested questions:",
       error,
     );
-    updateSuggestedQuestions(await getCollectionsQuestions());
+    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
   }
 };
 
@@ -330,7 +331,7 @@ export const handleUserQuery = async (
           targetBubble.hideThinking();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-          updateSuggestedQuestions(await getCollectionsQuestions());
+          updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
           window.setTimeout(
             () =>
               showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
@@ -361,7 +362,7 @@ export const handleUserQuery = async (
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
-        getCollectionsQuestions().then(updateSuggestedQuestions);
+        updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
         window.setTimeout(
           () =>
             showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
@@ -454,7 +455,7 @@ export const restoreChatHistory = async () => {
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {
-    updateSuggestedQuestions(await getCollectionsQuestions());
+    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
     showSuggestedQuestions();
   } else {
     hideSuggestedQuestions();
