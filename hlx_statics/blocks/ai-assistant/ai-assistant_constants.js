@@ -22,14 +22,30 @@ export const ELEMENTS = {
 /**
  * @type {Array<{id?: string | null; label: string; question: string;}>}
  */
-export const FALLBACK_SUGGESTED_QUESTIONS = [
+export const INITIAL_SUGGESTED_QUESTIONS = [
   {
-    label: "Express Add-ons",
-    question: "What can I do with Express Add-ons?",
+    label: "Adobe APIs and SDKs",
+    question: "Tell me about what Adobe APIs and SDKs are available",
   },
   {
-    label: "App Builder application",
-    question: "How do I build an App Builder application?",
+    label: "How do I get credentials?",
+    question: "How do I get credentials?",
+  },
+  {
+    label: "Adobe Developer App Builder",
+    question: "What is Adobe Developer App Builder?",
+  },
+  {
+    label: "Firefly Services",
+    question: "What are Firefly Services and how can I use them?",
+  },
+  {
+    label: "Adobe Express",
+    question: "What can I use Adobe Express for?",
+  },
+  {
+    label: "Adobe for Creativity",
+    question: "How can I use Adobe for Creativity in Claude?",
   },
 ];
 export const GENERIC_ERROR_MESSAGE =

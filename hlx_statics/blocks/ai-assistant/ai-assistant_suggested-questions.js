@@ -1,10 +1,9 @@
 // @ts-check
 import { createTag } from "../../scripts/lib-adobeio.js";
-import { aiApiClient } from "./ai-assistant_api-client.js";
 import { handleUserQuery } from "./ai-assistant_chat-controller.js";
 import {
   ELEMENTS,
-  FALLBACK_SUGGESTED_QUESTIONS,
+  INITIAL_SUGGESTED_QUESTIONS,
 } from "./ai-assistant_constants.js";
 
 /**
@@ -74,23 +73,6 @@ export const updateSuggestedQuestions = (questions) => {
 };
 
 /**
- * Fetches collections and returns them as suggestion question objects.
- * Falls back to SUGGESTED_QUESTIONS if the API returns no results.
- * @returns {Promise<Array<{id?: string|null, label: string, question: string}>>}
- */
-export const getCollectionsQuestions = async () => {
-  const rawCollections = await aiApiClient.getCollections();
-  const questions = rawCollections
-    .filter((c) => c.id !== "__all-collections__" && !c.referencedCollectionIds)
-    .map((c) => ({
-      id: c.id,
-      label: c.name,
-      question: `What can I learn about ${c.name}?`,
-    }));
-  return questions.length > 0 ? questions : FALLBACK_SUGGESTED_QUESTIONS;
-};
-
-/**
  * Creates the suggested questions section with topic buttons.
  * @returns {HTMLElement} The suggested questions wrapper element
  */
@@ -106,7 +88,7 @@ export const createSuggestedQuestionsSection = () => {
   wrapper.appendChild(list);
   ELEMENTS.CHAT_SUGGESTED_QUESTIONS = wrapper;
 
-  getCollectionsQuestions().then(updateSuggestedQuestions);
+  updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
 
   return wrapper;
 };
