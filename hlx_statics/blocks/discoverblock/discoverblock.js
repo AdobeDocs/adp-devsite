@@ -30,11 +30,6 @@ export default async function decorate(block) {
     image.classList.add('discover-image');
 
     block.insertBefore(image, block.firstChild);
-
-    const buttonContainer = block.querySelector('.button-container');
-    if (buttonContainer && buttonContainer.parentElement) {
-      buttonContainer.parentElement.classList.add('discover-content-with-image');
-    }
   } else if (width) {
     wrapper.style.width = width;
   }
