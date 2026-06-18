@@ -1,8 +1,8 @@
 import { createTag, decorateButtons } from '../../scripts/lib-adobeio.js';
 import {
+  applyVideoContainer,
   getVideoTitle,
   parseVideoSource,
-  resolveVideoUrl,
 } from '../../scripts/video.js';
 
 /**
@@ -80,14 +80,14 @@ export default async function decorate(block) {
 
     if (hasVideo) {
       const videoSource = parseVideoSource(video);
-      const videoTag = createTag('video');
-      const title = getVideoTitle(videoSource.url, videoSource.linkText);
-      videoTag.setAttribute('title', title);
-      videoTag.setAttribute('aria-label', title);
-      videoTag.innerHTML = `<source src="${resolveVideoUrl(videoSource.url)}" type="video/mp4">`;
-      mediaContainer.appendChild(videoTag);
-      innerDiv.children[videoIndex].remove();
-      excludeElement = videoTag;
+      if (videoSource) {
+        applyVideoContainer(mediaContainer, {
+          url: videoSource.url,
+          title: getVideoTitle(videoSource.url, videoSource.linkText),
+        });
+        innerDiv.children[videoIndex].remove();
+        excludeElement = mediaContainer;
+      }
     } else {
       const pictureWrapper = pictureElement.closest('div') || pictureElement;
       mediaContainer.appendChild(pictureWrapper);

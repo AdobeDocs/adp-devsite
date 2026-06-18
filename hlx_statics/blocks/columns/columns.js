@@ -12,7 +12,7 @@ import {
   IS_DEV_DOCS,
 } from '../../scripts/lib-helix.js';
 import {
-  buildVideoTag,
+  applyVideoContainer,
   getVideoTitle,
   parseVideoSource,
 } from '../../scripts/video.js';
@@ -94,7 +94,7 @@ export default async function decorate(block) {
         const videoSource = parseVideoSource(slotElements.video);
         if (videoSource) {
           const wrapperVideo = createTag('div');
-          wrapperVideo.innerHTML = buildVideoTag({
+          applyVideoContainer(wrapperVideo, {
             url: videoSource.url,
             title: getVideoTitle(videoSource.url, videoSource.linkText),
             autoplay: true,

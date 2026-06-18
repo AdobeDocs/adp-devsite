@@ -35,12 +35,18 @@ main div.herosimple-wrapper div.herosimple div.hero-left-content > div {
 }
 
 main div.herosimple-wrapper div.herosimple div.hero-left-content,
-main div.herosimple-wrapper div.herosimple div.hero-right-image {
+main div.herosimple-wrapper div.herosimple div.hero-right-image,
+main div.herosimple-wrapper div.herosimple div.hero-right-video {
   width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 main div.herosimple-wrapper div.herosimple div.hero-right-image img {
   width: 600px;
+  max-height: 350px;
+  object-fit: contain;
 }
 
 main div.herosimple-wrapper div.halfWidth {

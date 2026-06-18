@@ -72,19 +72,22 @@ main div.columns-wrapper div.columns div.first-column {
     align-items: center;
     justify-content: center;
     width: 50%;
-    max-height: 350px !important;
     box-sizing: border-box;
     padding: 0 8px;
     margin-top: 0;
 }
 
-main div.columns-wrapper div.columns div.first-column img,
-main div.columns-wrapper div.columns div.first-column video {
+main div.columns-wrapper div.columns div.first-column img {
     max-width: 100%;
     max-height: 350px;
     height: auto;
     width: auto;
     object-fit: contain;
+}
+
+main div.columns-wrapper div.columns div.first-column video {
+    max-width: 100%;
+    max-height: 350px;
 }
 
 main div.columns-wrapper div.second-column {

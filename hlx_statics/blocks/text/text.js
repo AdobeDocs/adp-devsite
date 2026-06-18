@@ -1,6 +1,11 @@
 import {
   decorateButtons
 } from '../../scripts/lib-adobeio.js';
+import {
+  applyVideoContainer,
+  getVideoTitle,
+  parseVideoSource,
+} from '../../scripts/video.js';
 
 function rearrangeLinks(block) {
   const contentDiv = block.firstElementChild.querySelectorAll(`div:has(p)`);
@@ -18,12 +23,15 @@ function rearrangeLinks(block) {
   block.firstElementChild.append(contentContainer);
 }
 function videoConverter(div) {
-  const iFrame = document.createElement('iframe');
-  iFrame.setAttribute('src', `${div.firstElementChild.href}`);
-  iFrame.classList.add('videoIFrame');
-  iFrame.setAttribute('allow', 'autoplay');
-  div.append(iFrame);
-  div.firstElementChild.remove();
+  const videoSource = parseVideoSource(div);
+  if (!videoSource) return;
+
+  div.classList.remove('button-container');
+  applyVideoContainer(div, {
+    url: videoSource.url,
+    title: getVideoTitle(videoSource.url, videoSource.linkText),
+    controls: true,
+  });
 }
 function rearrangeButtons(block) {
   const contentDiv = block.firstElementChild.querySelectorAll(`div:has(p)`);
