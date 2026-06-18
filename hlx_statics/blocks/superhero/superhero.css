@@ -182,6 +182,18 @@ main div.superhero-wrapper div.superhero.half-width > div:last-child video {
   object-fit: contain !important;
 }
 
+main div.superhero-wrapper div.superhero.half-width > div:last-child .video-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+main div.superhero-wrapper div.superhero-video-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 main div.superhero-wrapper div.superhero.half-width p.spectrum-Body--sizeL {
   margin-top: 0 !important;
 }

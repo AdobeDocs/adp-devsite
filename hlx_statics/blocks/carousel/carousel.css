@@ -97,6 +97,9 @@ main div.carousel-wrapper div.carousel .media-container {
   min-height: 100%;
   max-width: 50%;
   padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 main div.carousel-wrapper div.carousel .text-container {

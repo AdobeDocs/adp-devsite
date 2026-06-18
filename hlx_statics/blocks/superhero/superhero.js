@@ -1,7 +1,7 @@
 import { removeEmptyPTags, decorateButtons, createTag } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 import { insertWrapperChild } from '../../components/wrapperContainer.js';
-import { buildVideoTag, getVideoTitle, parseVideoSource } from '../../scripts/video.js';
+import { applyVideoContainer, getVideoTitle, parseVideoSource } from '../../scripts/video.js';
 
 const VARIANTS = {
   default: 'default',
@@ -142,7 +142,7 @@ async function decorateDevBizHalfWidth(block) {
     const muted = !isControl || wantAutoplay;
 
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
-    videoContainer.innerHTML = buildVideoTag({
+    applyVideoContainer(videoContainer, {
       url: videoSource.url,
       title: getVideoTitle(videoSource.url, videoSource.linkText),
       autoplay: isAutoplay,

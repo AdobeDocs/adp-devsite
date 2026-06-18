@@ -1,6 +1,6 @@
 import { createTag, decorateButtons } from '../../scripts/lib-adobeio.js';
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
-import { buildVideoTag, getVideoTitle, parseVideoSource } from '../../scripts/video.js';
+import { applyVideoContainer, getVideoTitle, parseVideoSource } from '../../scripts/video.js';
 
 /**
  * Rearranges the links into a hero-button-container div
@@ -72,7 +72,7 @@ export default async function decorate(block) {
   const videoSource = parseVideoSource(block.lastElementChild);
   if (videoSource && block.classList.contains('video')) {
     const videoContainer = createTag('div', { class: 'hero-video-container' });
-    videoContainer.innerHTML = buildVideoTag({
+    applyVideoContainer(videoContainer, {
       url: videoSource.url,
       title: getVideoTitle(videoSource.url, videoSource.linkText),
       autoplay: true,
