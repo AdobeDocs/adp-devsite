@@ -300,9 +300,9 @@ export const handleUserQuery = async (
     collectionId,
     callbacks: {
       onMetadata: (data) => {
-        if (data.sessionId) {
-          chatHistory.updateLast({ id: data.sessionId });
-          targetBubble.setMessageId(data.sessionId);
+        if (data.requestId) {
+          chatHistory.updateLast({ id: data.requestId });
+          targetBubble.setMessageId(data.requestId);
         }
       },
       onContent: (data) => {
