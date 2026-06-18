@@ -63,12 +63,6 @@ main div.text-wrapper .text-block-link {
   color: #2980e8;
 }
 
-main div.text-wrapper .videoIFrame {
-  width: 100%;
-  height: 425px;
-  border: none;
-}
-
 main div.text-wrapper .text-button-container {
   display: flex;
   gap: 20px;
