@@ -130,6 +130,9 @@ main div.tab-wrapper .code-toolbar {
 
 main div.tab-wrapper .tab.vertical {
     flex-direction: row;
+}
+
+main.dev-docs  div.tab-wrapper .tab.vertical {
     align-items: stretch;
     width: 100%;
     margin: 0;
