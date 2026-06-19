@@ -147,6 +147,9 @@ main div.tab-wrapper .tab.horizontal {
 main div.tab-wrapper .tab.vertical > .tabs-wrapper {
     display: flex;
     flex-direction: column;
+}
+
+main.dev-docs div.tab-wrapper .tab.vertical > .tabs-wrapper {
     width: 240px;
     min-width: 180px;
     flex-shrink: 0;
@@ -157,14 +160,15 @@ main div.tab-wrapper .tab.vertical > .tabs-wrapper {
     border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-main div.tab-wrapper .tab.vertical > .content-wrapper {
+
+main.dev-docs div.tab-wrapper .tab.vertical > .content-wrapper {
     flex: 1;
     min-width: 0;
     padding: 16px 24px;
     width: auto;
 }
 
-main div.tab-wrapper .tab.vertical .tab-button {
+main.dev-docs div.tab-wrapper .tab.vertical .tab-button {
     width: 100%;
     height: auto;
     min-height: 54px;
@@ -180,7 +184,7 @@ main div.tab-wrapper .tab.vertical .tab-button {
     gap: 12px;
 }
 
-main div.tab-wrapper .tab.vertical .tab-icon {
+main.dev-docs div.tab-wrapper .tab.vertical .tab-icon {
     width: 36px;
     height: 36px;
     flex-shrink: 0;
@@ -189,7 +193,11 @@ main div.tab-wrapper .tab.vertical .tab-icon {
     justify-content: center;
 }
 
-main div.tab-wrapper .tab.vertical .tab-icon img {
+main div.tab-wrapper .tab.vertical>.content-wrapper {
+    width: 80%;
+}
+
+main.dev-docs div.tab-wrapper .tab.vertical .tab-icon img {
     width: 36px;
     height: 36px;
     object-fit: contain;
@@ -216,11 +224,12 @@ main div.tab-wrapper > div.background-color-navy .tab-button:not(.active) .tab-t
     color: white;
 }
 
+
 main div.tab-wrapper > div.background-color-navy .tab-button:hover .tab-title {
-    color: white;
+    color: #000;
 }
 
-main div.tab-wrapper > div:not(.background-color-navy) .tab-button {
+main.dev-docs div.tab-wrapper > div:not(.background-color-navy) .tab-button {
     background: #eee;
 }
 
@@ -281,52 +290,52 @@ main div.tab-wrapper div.tab pre[class*=language-].no-line-numbers .line-highlig
 }
 
 
-main div.tab-wrapper:has(.tab.vertical.background-color-navy) {
+main.dev-docs div.tab-wrapper:has(.tab.vertical.background-color-navy) {
     background-color: rgb(15, 55, 95);
     padding: 0;
 }
 
-main div.tab-wrapper .tab.vertical.background-color-navy > .tabs-wrapper {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .tabs-wrapper {
     background-color: rgb(15, 55, 95);
     border-right-color: rgba(255, 255, 255, 0.15);
     padding: 20px 12px;
 }
 
-main div.tab-wrapper .tab.vertical.background-color-navy .tab-title {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-title {
     color: rgba(255, 255, 255, 0.9);
 }
 
-main div.tab-wrapper .tab.vertical.background-color-navy .tab-button {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button {
     background: transparent;
     border: none;
 }
 
-main div.tab-wrapper .tab.vertical.background-color-navy .tab-button:hover {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button:hover {
     background-color: rgba(255, 255, 255, 0.08);
     color: white;
 }
 
-main div.tab-wrapper .tab.vertical.background-color-navy .tab-button.active {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button.active {
     background-color: rgba(255, 255, 255, 0.18);
     color: white;
 }
 
-main div.tab-wrapper .tab.vertical.background-color-navy .tab-button.active .tab-title,
-main div.tab-wrapper .tab.vertical.background-color-navy .tab-button:hover .tab-title {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button.active .tab-title,
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button:hover .tab-title {
     color: white;
 }
 
-main div.tab-wrapper .tab.vertical.background-color-navy > .content-wrapper {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wrapper {
     background-color: #111a35;
     padding: 20px 24px;
 }
 
 @media only screen and (max-width: 860px) {
-    main div.tab-wrapper .tab.vertical {
+    main.dev-docs div.tab-wrapper .tab.vertical {
         flex-direction: column;
     }
 
-    main div.tab-wrapper .tab.vertical > .tabs-wrapper {
+    main.dev-docs div.tab-wrapper .tab.vertical > .tabs-wrapper {
         width: 100%;
         min-width: unset;
         flex-direction: row;
@@ -336,18 +345,18 @@ main div.tab-wrapper .tab.vertical.background-color-navy > .content-wrapper {
         padding: 8px;
     }
 
-    main div.tab-wrapper .tab.vertical.background-color-navy > .tabs-wrapper {
+    main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .tabs-wrapper {
         border-bottom-color: rgba(255, 255, 255, 0.15);
         border-right: none;
     }
 
-    main div.tab-wrapper .tab.vertical .tab-button {
+    main.dev-docs div.tab-wrapper .tab.vertical .tab-button {
         width: auto;
         min-height: unset;
         white-space: nowrap;
     }
 
-    main div.tab-wrapper .tab.vertical > .content-wrapper {
+    main.dev-docs div.tab-wrapper .tab.vertical > .content-wrapper {
         padding: 12px 16px;
         width: 100%;
     }
