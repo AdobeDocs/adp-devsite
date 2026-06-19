@@ -74,7 +74,7 @@ main div.tab-wrapper .tabs-wrapper {
     gap: 10px;
 }
 
-main div.tab-wrapper .tabs-wrapper .tab{
+main div.tab-wrapper .tab{
     display: flex;
     gap: 3%;
 }
