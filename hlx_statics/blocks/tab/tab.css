@@ -72,8 +72,11 @@ main div.tab-wrapper .line-numbers-rows>span {
 main div.tab-wrapper .tabs-wrapper {
     display: flex;
     gap: 10px;
-    margin-bottom: 10px;
-    margin-right: 10px;
+}
+
+main div.tab-wrapper .tabs-wrapper .tab{
+    display: flex;
+    gap: 3%;
 }
 
 main div.tab-wrapper .tab-button {
