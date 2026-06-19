@@ -4,7 +4,7 @@ main div.mini-resource-card-wrapper:has(.mini-resource-card.background-color-whi
 
 main div.mini-resource-card-wrapper div.mini-resource-card .card-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--grid-columns, 3), 1fr);
   column-gap: 10px;
   row-gap: 30px;
   margin-top: auto;
