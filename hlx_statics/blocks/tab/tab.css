@@ -72,7 +72,8 @@ main div.tab-wrapper .line-numbers-rows>span {
 main div.tab-wrapper .tabs-wrapper {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    margin-right: 10px;
 }
 
 main div.tab-wrapper .tab-button {
@@ -326,7 +327,7 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button:ho
 }
 
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wrapper {
-    background-color: #111a35;
+    background-color: #111a35 !important;
     padding: 20px 24px;
 }
 
