@@ -62,8 +62,10 @@ export default async function decorate(block) {
         decorateButtons(containerParent);
     }
     const grid_div = createTag('div', { class: 'card-container' });
+    let cardCount = 0;
     block.querySelectorAll('.mini-resource-card > div').forEach((resource) => {
         if (resource.querySelector(".button-container")) return;
+        cardCount += 1;
         removeEmptyPTags(resource);
         grid_div.appendChild(resource);
 
@@ -82,6 +84,9 @@ export default async function decorate(block) {
         pictureContainer.append(picture);
 
     });
+    if (cardCount > 0) {
+        grid_div.style.setProperty('--grid-columns', Math.min(cardCount, 3));
+    }
     block.appendChild(grid_div);
     if (block.classList.contains('primarybutton')) {
         block.appendChild(containerParent);
