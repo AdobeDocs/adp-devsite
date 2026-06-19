@@ -93,7 +93,7 @@ export const createInputSection = () => {
     })
   );
   const disclaimerText = createTag("div", { class: "chat-disclaimer-text" });
-  disclaimerText.innerHTML = `By using AI Assistant, you agree to the <a href="https://www.adobe.com/legal/licenses-terms/adobe-gen-ai-user-guidelines.html" target="_blank" rel="noopener noreferrer" daa-ll="DevsiteAI Assistant:Disclaimer:Link:Generative AI User Guidelines">Generative AI User Guidelines</a>.`;
+  disclaimerText.innerHTML = `AI-generated responses may be inaccurate or misleading. Be sure to double-check responses and sources. Responses are not your Content. By using AI Assistant, you agree to the <a href="https://www.adobe.com/legal/licenses-terms/adobe-gen-ai-user-guidelines.html" target="_blank" rel="noopener noreferrer" daa-ll="DevsiteAI Assistant:Disclaimer:Link:Generative AI User Guidelines">Generative AI User Guidelines</a>.`;
 
   const sendButton = /** @type {HTMLButtonElement} */ (
     createTag("button", {
