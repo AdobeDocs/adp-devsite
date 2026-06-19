@@ -87,9 +87,9 @@ export const createInputSection = () => {
   });
   const textarea = /** @type {HTMLTextAreaElement} */ (
     createTag("textarea", {
-      placeholder: "Type your message...",
+      placeholder: "What question would you like to ask today?",
       rows: "4",
-      "aria-label": "Type your message",
+      "aria-label": "Enter a question for the AI Assistant",
     })
   );
   const disclaimerText = createTag("div", { class: "chat-disclaimer-text" });

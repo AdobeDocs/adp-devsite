@@ -24,29 +24,21 @@ export const ELEMENTS = {
  */
 export const INITIAL_SUGGESTED_QUESTIONS = [
   {
-    label: "Adobe APIs and SDKs",
-    question: "Tell me about what Adobe APIs and SDKs are available",
+    label: "What Adobe APIs and SDKs are available",
+    question: "What Adobe APIs and SDKs are available",
   },
   {
-    label: "How do I get credentials?",
-    question: "How do I get credentials?",
+    label: "How do I get credentials",
+    question: "How do I get credentials",
   },
   {
-    label: "Adobe Developer App Builder",
-    question: "What is Adobe Developer App Builder?",
+    label: "What is Adobe Developer App Builder",
+    question: "What is Adobe Developer App Builder",
   },
   {
-    label: "Firefly Services",
-    question: "What are Firefly Services and how can I use them?",
-  },
-  {
-    label: "Adobe Express",
-    question: "How do I develop Adobe Express addons?",
-  },
-  {
-    label: "Adobe for Creativity",
-    question: "How can I use Adobe for Creativity in Claude?",
-  },
+    label: "Firefly Services and how can I use them",
+    question: "Firefly Services and how can I use them",
+  }
 ];
 export const GENERIC_ERROR_MESSAGE =
   "Sorry, I encountered an error. Please try again later.";
