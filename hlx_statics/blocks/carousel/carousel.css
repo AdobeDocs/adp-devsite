@@ -102,6 +102,16 @@ main div.carousel-wrapper div.carousel .media-container {
   justify-content: center;
 }
 
+main div.carousel-wrapper div.carousel .media-container.video-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+main div.carousel-wrapper div.carousel .media-container .video-embed {
+  width: 100%;
+  max-width: 100%;
+}
+
 main div.carousel-wrapper div.carousel .text-container {
   display: flex;
   flex-direction: column;

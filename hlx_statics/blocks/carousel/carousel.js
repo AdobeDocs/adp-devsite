@@ -3,9 +3,9 @@ import {
   removeEmptyPTags,
 } from "../../scripts/lib-adobeio.js";
 import {
-  findVideoLinks,
   applyVideoContainer,
   getVideoTitle,
+  parseVideoSource,
 } from "../../scripts/video.js";
 /**
  * decorates the carousel
@@ -41,11 +41,13 @@ export default async function decorate(block) {
   //add a count to keep track of which slide is showing
   let count = 1;
 
-  //load the video link.
-  const videoLinks = findVideoLinks(block);
-  for (let i = 0; i < videoLinks.length; i++) {
-    loadVideoURL(block, videoLinks[i]);
-  }
+  // load video links and raw video URLs from each slide
+  block.querySelectorAll(':scope > div:not([class]) > div:not([class])').forEach((innerDiv) => {
+    const videoSource = parseVideoSource(innerDiv);
+    if (videoSource) {
+      loadVideoFromSource(innerDiv, videoSource);
+    }
+  });
 
   block.querySelectorAll(':scope > div:not([class]) > div:not([class])').forEach((innerDiv, index) => {
     // one outer div for each slide - add class to inner div and remove outerDiv
@@ -118,9 +120,9 @@ export default async function decorate(block) {
 
   //add id to image and add image to left div
   block.querySelectorAll(".video-element").forEach((vid) => {
-    //add image to left div
     vid.id = "media-flex-div-" + vid.parentElement.id;
     vid.classList.add("media-container");
+    vid.parentElement.prepend(vid);
   });
 
   block.querySelectorAll("p").forEach(function (p) {
@@ -292,22 +294,27 @@ export default async function decorate(block) {
   });
 
 
-  // load the video url and append to the video element.
-  function loadVideoURL(block, a) {
-    const link = a.getAttribute('href') || a.href;
-    const title = getVideoTitle(link, a.textContent?.trim());
-    const autoPlay = block.classList.contains('autoplay');
+  function loadVideoFromSource(innerDiv, videoSource) {
+    const title = getVideoTitle(videoSource.url, videoSource.linkText);
+    const slideAutoplay = block.classList.contains('autoplay');
     const videoElement = createTag('div', { class: 'video-element' });
     applyVideoContainer(videoElement, {
-      url: link,
+      url: videoSource.url,
       title,
-      autoplay: autoPlay,
-      muted: autoPlay,
-      controls: !autoPlay,
+      autoplay: slideAutoplay,
+      muted: slideAutoplay,
+      controls: !slideAutoplay,
     });
-    a.parentElement.parentElement.append(videoElement);
-    a.parentElement.remove();
-    videoElement.parentElement.classList.remove('button-container');
+
+    if (videoSource.anchor) {
+      videoSource.anchor.parentElement.replaceWith(videoElement);
+    } else if (videoSource.sourceElement) {
+      videoSource.sourceElement.replaceWith(videoElement);
+    } else {
+      innerDiv.prepend(videoElement);
+    }
+
+    videoElement.parentElement?.classList.remove('button-container');
   }
 
   //automatic scrolling
