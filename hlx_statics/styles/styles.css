@@ -1316,17 +1316,12 @@ header.global-nav-header img.icon {
   color: rgb(2,101,220);
 }
 
-:root {
-  --video-media-max-height: 350px;
-  --video-media-max-width: calc(350px * 16 / 9);
-}
-
 .video-container {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: var(--video-media-max-width);
+  max-width: calc(350px * 16 / 9);
 }
 
 .video-embed {
@@ -1335,7 +1330,7 @@ header.global-nav-header img.icon {
   background: transparent;
   flex: 0 1 auto;
   width: 100%;
-  max-width: var(--video-media-max-width);
+  max-width: calc(350px * 16 / 9);
 }
 
 .video-embed::before {
@@ -1388,7 +1383,7 @@ header.global-nav-header img.icon {
 
 .video-embed-twitter {
   width: 100%;
-  max-width: var(--video-media-max-width);
+  max-width: calc(350px * 16 / 9);
   height: auto;
   min-height: 0;
   max-height: none;
