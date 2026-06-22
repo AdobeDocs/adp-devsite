@@ -1,9 +1,4 @@
 import { createTag, decorateButtons } from '../../scripts/lib-adobeio.js';
-import {
-  applyVideoContainer,
-  getVideoTitle,
-  parseVideoSource,
-} from '../../scripts/video.js';
 
 /**
  * decorates the herosimple
@@ -76,18 +71,15 @@ export default async function decorate(block) {
     });
   } else if ((pictureElement || hasVideo) && variant === 'halfWidth') {
     let mediaContainer = hasVideo ? videoContainer : imageContainer;
+    let videoLink = video && video.querySelector('a');
     let excludeElement;
 
     if (hasVideo) {
-      const videoSource = parseVideoSource(video);
-      if (videoSource) {
-        applyVideoContainer(mediaContainer, {
-          url: videoSource.url,
-          title: getVideoTitle(videoSource.url, videoSource.linkText),
-        });
-        innerDiv.children[videoIndex].remove();
-        excludeElement = mediaContainer;
-      }
+      const videoTag = createTag('video');
+      videoTag.innerHTML = `<source src="${videoLink.href}" type="video/mp4" alt="${videoLink.textContent}">`;
+      mediaContainer.appendChild(videoTag);
+      innerDiv.children[videoIndex].remove();
+      excludeElement = videoTag;
     } else {
       const pictureWrapper = pictureElement.closest('div') || pictureElement;
       mediaContainer.appendChild(pictureWrapper);
