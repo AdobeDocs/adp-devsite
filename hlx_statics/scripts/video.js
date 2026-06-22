@@ -474,28 +474,36 @@ export function parseVideoSource(source) {
   const anchor = source.tagName === 'A' ? source : source.querySelector?.('a');
   if (anchor?.href) {
     const href = anchor.getAttribute('href') || anchor.href;
-    const linkText = anchor.textContent?.trim() || '';
-    return {
-      url: resolveVideoUrl(href),
-      href,
-      linkText,
-      anchor,
-    };
+    if (isVideoLink(href)) {
+      const linkText = anchor.textContent?.trim() || '';
+      return {
+        url: resolveVideoUrl(href),
+        href,
+        linkText,
+        anchor,
+      };
+    }
   }
 
-  const paragraphText = source.querySelector?.('p')?.textContent?.trim();
-  if (paragraphText && isVideoLink(paragraphText)) {
+  const videoParagraph = [...(source.querySelectorAll?.('p') || [])].find((p) => {
+    if (p.querySelector('a')) return false;
+    const text = p.textContent?.trim();
+    return text && isVideoLink(text);
+  });
+  if (videoParagraph) {
+    const text = videoParagraph.textContent.trim();
     return {
-      url: resolveVideoUrl(paragraphText),
-      href: paragraphText,
-      linkText: paragraphText,
+      url: resolveVideoUrl(text),
+      href: text,
+      linkText: text,
       anchor: null,
+      sourceElement: videoParagraph,
     };
   }
 
   const rawContainer = source.querySelector?.(':scope > div > div') || source;
   const rawText = rawContainer?.textContent?.trim();
-  if (rawText && (isVideoLink(rawText) || /^https?:\/\//i.test(rawText) || rawText.startsWith('/'))) {
+  if (rawText && isVideoLink(rawText)) {
     return {
       url: resolveVideoUrl(rawText),
       href: rawText,
