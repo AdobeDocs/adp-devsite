@@ -104,6 +104,8 @@ main :is(div.info-card-wrapper div.info-card.wide, div.infocard-wrapper div.info
   }
 }
 
-:is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) a:-webkit-any-link {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) a,
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) a:hover,
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) a:focus {
   text-decoration: none;
 }
