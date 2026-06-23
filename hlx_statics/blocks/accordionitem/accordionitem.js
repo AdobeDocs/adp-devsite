@@ -1,4 +1,5 @@
 import {removeEmptyPTags, createTag} from '../../scripts/lib-adobeio.js';
+import decoratePreformattedCode from '../../components/code.js';
 
 /**
  * Decorates tables with Adobe Spectrum styling
@@ -157,6 +158,13 @@ export default async function decorate(block) {
         heading.querySelector('.collapse-icon').style.display = 'none';
       };
     });
+  });
+
+  // Decorate any raw <pre><code> blocks in content areas so they get line numbers
+  block.querySelectorAll('.accordion-itemContent pre').forEach((pre) => {
+    if (!pre.classList.contains('line-numbers') && !pre.classList.contains('no-line-numbers')) {
+      decoratePreformattedCode(pre);
+    }
   });
 
   // Decorate tables with Spectrum styling

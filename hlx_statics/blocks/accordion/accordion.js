@@ -1,4 +1,5 @@
 import {removeEmptyPTags, createTag} from '../../scripts/lib-adobeio.js';
+import decoratePreformattedCode from '../../components/code.js';
 
 /**
  * Returns the HTML for an accordion item
@@ -38,17 +39,31 @@ export default async function decorate(block) {
 
     const accordion_div = createTag('div', {class: 'accordion-div'});
     block.querySelectorAll('.accordion > div').forEach((item) => {
-        const text = item.querySelector('p');
-        if(text === null){ //title
+        const headingEl = item.querySelector('h3, h4, h5, h6');
+        if (!headingEl) { // title row (h1 or h2)
             const title = item.querySelector('h1, h2');
             title.setAttribute('class', 'spectrum-Heading spectrum-Heading--sizeM');
             title.parentElement.setAttribute('class', 'accordion-title');
-        }else{ //accordion item
+        } else { // accordion item
             item.setAttribute("class", "accordion-item");
-            const heading = item.querySelector('h3, h4, h5, h6')?.innerText;
-            item.innerHTML = getAccordionItem(heading);
-            item.querySelector('.accordion-itemContent').appendChild(text);
-            accordion_div.appendChild(item);   
+            const headingText = headingEl.innerText;
+
+            // Collect all content siblings BEFORE innerHTML wipes the DOM
+            const innerDiv = headingEl.parentElement;
+            const contentNodes = [...innerDiv.childNodes].filter(node => node !== headingEl);
+
+            item.innerHTML = getAccordionItem(headingText);
+            const contentArea = item.querySelector('.accordion-itemContent');
+            contentNodes.forEach(node => contentArea.appendChild(node));
+
+            // Decorate any raw <pre><code> blocks so they get line numbers
+            contentArea.querySelectorAll('pre').forEach((pre) => {
+                if (!pre.classList.contains('line-numbers') && !pre.classList.contains('no-line-numbers')) {
+                    decoratePreformattedCode(pre);
+                }
+            });
+
+            accordion_div.appendChild(item);
         };
     });
     block.appendChild(accordion_div);
