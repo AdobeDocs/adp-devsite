@@ -255,6 +255,10 @@ main div.side-nav-wrapper .side-nav-menu-section .nav-playground-button a{
     transform: translateX(0);
   }
 
+  main div.side-nav-wrapper div.side-nav.no-transition {
+    transition: none;
+  }
+
   main div.side-nav-wrapper .side-nav-menu-section,
   main div.side-nav-wrapper .side-nav-section-label {
     display: block;

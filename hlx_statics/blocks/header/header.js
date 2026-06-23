@@ -996,6 +996,27 @@ function handleMenuButton(header) {
       document.body.style.overflow = ''; // Restore scrolling
     }
   });
+
+  // Suppress the slide-out animation when resizing from desktop to mobile.
+  // Without this, the sidenav animates from its desktop position to the hidden
+  // mobile position even though it was never visible on desktop.
+  const mobileQuery = window.matchMedia('(max-width: 768px)');
+  mobileQuery.addEventListener('change', () => {
+    const sideNav = document.querySelector('.side-nav');
+    if (!sideNav) return;
+    sideNav.classList.add('no-transition');
+    // Close the menu when switching between breakpoints
+    if (menuBtn.checked) {
+      menuBtn.checked = false;
+      sideNav.classList.remove('is-visible');
+      document.body.style.overflow = '';
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        sideNav.classList.remove('no-transition');
+      });
+    });
+  });
 }
 
 function hideSpinner() {
