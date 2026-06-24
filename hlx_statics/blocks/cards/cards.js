@@ -26,6 +26,11 @@ export default async function decorate(block) {
     decorateButtons(block);
   }
 
+  const isWide = block.classList.contains("wide") || block.getAttribute('data-wide') === 'true';
+  if (isWide) {
+    block.classList.add('wide');
+  }
+
   // for devdocs, the author can put in an attribute width to change the width of the cards.
   const width = block.getAttribute('data-width');
   if (width) {
