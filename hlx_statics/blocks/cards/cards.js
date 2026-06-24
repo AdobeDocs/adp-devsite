@@ -26,8 +26,7 @@ export default async function decorate(block) {
     decorateButtons(block);
   }
 
-  const isWide = block.classList.contains("wide") || block.getAttribute('data-wide') === 'true';
-  if (isWide) {
+  if (block.getAttribute('data-wide') === 'true') {
     block.classList.add('wide');
   }
 
