@@ -179,4 +179,7 @@ app.listen(PORT, async () => {
   // Initialize devsite paths after server starts
   await fetchDevsitePaths();
   isInitialized = true;
+}).on('error', (err) => {
+  console.error(err);
+  process.exit(1);
 });
