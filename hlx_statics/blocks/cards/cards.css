@@ -82,6 +82,10 @@ main div.cards-wrapper div.cards > div img {
   margin-bottom: 24px;
 }
 
+main div.cards-wrapper div.cards.wide img {
+  height: 200px;
+}
+
 main div.cards-wrapper div.cards > div h3 {
   margin-bottom: 16px !important;
 }
