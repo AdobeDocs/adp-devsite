@@ -7,6 +7,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = process.env.DEV_PORT || 3000;
 
+// From: https://github.com/adobe/helix-html-pipeline/blob/fd858b582f92f953ace385abf97b3148801722e0/src/steps/rewrite-icons.js#L16
+const ICON_PATTERN = /(?<!(?:https?|urn)[^\s]*):(#?[a-z_-]+[a-z\d]*):/gi;
+
+// Based on: https://github.com/adobe/helix-html-pipeline/blob/fd858b582f92f953ace385abf97b3148801722e0/src/steps/rewrite-icons.js#L24-L35
+function rewriteIcons(html) {
+  const codeBlocks = [];
+  let processed = html.replace(/<(code|pre)[^>]*>[\s\S]*?<\/\1>/gi, (match) => {
+    codeBlocks.push(match);
+    return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+  });
+
+  processed = processed.replace(ICON_PATTERN, (match, iconName) => {
+    const name = iconName.startsWith('#') ? iconName.substring(1) : iconName;
+    return `<span class="icon icon-${name}"></span>`;
+  });
+
+  return processed.replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => codeBlocks[index]);
+}
+
 const corsOptions = {
   origin: 'http://127.0.0.1:3000/',
   credentials: true,
@@ -131,6 +150,7 @@ app.use(async (req, res) => {
 
   if (source === 'docs' && contentType.includes('text/html')) {
     body = await resp.text();
+    body = rewriteIcons(body);
     // inject the head.html
     const [pre, post] = body.split('</head>');
     body = `${pre}
