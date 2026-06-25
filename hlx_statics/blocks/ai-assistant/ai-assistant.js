@@ -33,7 +33,7 @@ export default async function decorate(block) {
 
   addExtraScriptWithLoad(
     document.body,
-    "https://unpkg.com/marked@^17/lib/marked.umd.js",
+    "https://unpkg.com/marked@18.0.5/lib/marked.umd.js",
     () => {
       // @ts-expect-error - marked is not on the Window object
       window.marked.use({
@@ -51,7 +51,7 @@ export default async function decorate(block) {
       });
       addExtraScriptWithLoad(
         document.body,
-        "https://unpkg.com/dompurify@^3/dist/purify.min.js",
+        "https://unpkg.com/dompurify@3.4.11/dist/purify.min.js",
         () => {
           restoreChatHistory();
         },
