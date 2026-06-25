@@ -123,6 +123,10 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
   main div.cards-wrapper div.cards > div {
     padding: 40px 0;
   }
+  main div.cards-wrapper {
+    width: 90% !important;
+    margin: auto;
+  }
 }
 
 @media screen and (max-width: 425px) {
