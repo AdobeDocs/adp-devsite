@@ -136,6 +136,9 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
   main.dev-biz div.cards-wrapper div.cards > div > div {
     padding: 0;
   }
+  main div.cards-wrapper div.cards.wide img {
+    height: 150px !important;
+  }
 }
 
 @media screen and (max-width: 425px) {
