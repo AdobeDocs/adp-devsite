@@ -82,6 +82,10 @@ main div.cards-wrapper div.cards > div img {
   margin-bottom: 24px;
 }
 
+main div.cards-wrapper div.cards.wide img {
+  height: 200px;
+}
+
 main div.cards-wrapper div.cards > div h3 {
   margin-bottom: 16px !important;
 }
@@ -118,6 +122,21 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
   }
   main div.cards-wrapper div.cards > div {
     padding: 40px 0;
+  }
+  main div.cards-wrapper {
+    width: 100% !important;
+  }
+  main.dev-biz div.cards-wrapper div.cards.wide div.three-card {
+    width: 100% !important;
+  }
+  main.dev-biz div.cards-wrapper div.cards {
+    flex-direction: column;
+  }
+  main.dev-biz div.cards-wrapper div.cards > div > div {
+    padding: 0;
+  }
+  main div.cards-wrapper div.cards.wide img {
+    height: 150px !important;
   }
 }
 
