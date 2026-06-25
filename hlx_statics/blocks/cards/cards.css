@@ -127,6 +127,12 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
     width: 90% !important;
     margin: auto;
   }
+  main.dev-biz div.cards-wrapper div.cards.wide div.three-card {
+    width: 100% !important;
+  }
+  main.dev-biz div.cards-wrapper div.cards {
+    flex-direction: column;
+  }
 }
 
 @media screen and (max-width: 425px) {
