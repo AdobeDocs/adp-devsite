@@ -4,7 +4,6 @@ import {
   createTag,
 } from "../../scripts/lib-adobeio.js";
 
-import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
   onUserScroll,
   restoreChatHistory,
@@ -28,9 +27,6 @@ import { createSuggestedQuestionsSection } from "./ai-assistant_suggested-questi
  * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
-  // Prefetch collections to warm cache — resolves before user opens chat
-  aiApiClient.getCollections();
-
   addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@18.0.5/lib/marked.umd.js",
