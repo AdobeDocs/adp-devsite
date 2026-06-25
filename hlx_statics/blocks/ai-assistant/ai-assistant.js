@@ -41,7 +41,8 @@ export default async function decorate(block) {
            * @param {string} options.text
            */
           link({ href, title, text }) {
-            return `<a href="${href}" title="${title || text}" daa-ll="DevsiteAI Assistant:Message:Link:${title || text}|${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            const analyticsLabel = `DevsiteAI Assistant:Message:Link:${title || text}|${href}`;
+            return `<a href="${href}" title="${title || text}" data-ll="${analyticsLabel}" target="_blank" rel="noopener noreferrer">${text}</a>`;
           },
         },
       });
@@ -49,6 +50,15 @@ export default async function decorate(block) {
         document.body,
         "https://unpkg.com/dompurify@3.4.11/dist/purify.min.js",
         () => {
+          // @ts-expect-error - DOMPurify is not on the Window object
+          window.DOMPurify.setConfig({ ADD_ATTR: ["daa-ll", "daa-lh", "target"] });
+          // @ts-expect-error - DOMPurify is not on the Window object
+          window.DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+            console.log('afterSanitizeAttributes')
+            if ('data-ll' in node) {
+              node.setAttribute('daa-ll', node.getAttribute('data-ll'));
+            }
+          });
           restoreChatHistory();
         },
       );

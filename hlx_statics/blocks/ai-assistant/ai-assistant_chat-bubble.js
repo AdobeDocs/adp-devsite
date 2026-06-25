@@ -58,11 +58,10 @@ export class ChatBubble {
       bubble.style.marginTop = "12px";
     }
 
-    // @ts-expect-error - marked is not on the Window type
-    contentElement.innerHTML = window.marked.parse(this.content);
+    this.#_renderContent(contentElement);
     bubble.appendChild(contentElement);
 
-    // Create actions for AI messages but don't append to DOM yet
+    // Create actions for AI messages
     if (this.source === "ai") {
       this._actionsContainer = createTag("div", {
         class: "chat-bubble-actions",
@@ -248,6 +247,18 @@ export class ChatBubble {
   }
 
   /**
+   * Renders this.content into a content element via marked + DOMPurify.
+   * @param {Element} contentElement
+   */
+  #_renderContent(contentElement) {
+    // @ts-expect-error - DOMPurify is not on the Window object
+    contentElement.innerHTML = window.DOMPurify.sanitize(
+      // @ts-expect-error - marked is not on the Window object
+      window.marked.parse(this.content),
+    );
+  }
+
+  /**
    * Updates the content of the chat bubble
    * @param {string} content
    */
@@ -255,11 +266,7 @@ export class ChatBubble {
     this.content = content;
     const contentElement = this.element.querySelector(".chat-bubble-content");
     if (contentElement) {
-      // @ts-expect-error - DOMPurify is not on the Window object
-      contentElement.innerHTML = window.DOMPurify.sanitize(
-        // @ts-expect-error - marked is not on the Window object
-        window.marked.parse(this.content),
-      );
+      this.#_renderContent(contentElement);
     }
   }
 
