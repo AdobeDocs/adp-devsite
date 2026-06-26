@@ -21,6 +21,11 @@ import {
 let userScrolledUp = false;
 let lastScrollTop = 0;
 
+/** @param {KeyboardEvent} e */
+const escapeKeyHandler = (e) => {
+  if (e.key === 'Escape') minimizeChatWindow();
+};
+
 /**
  * Handles scroll events in the chat window to detect when the user scrolls up or back to the bottom.
  * Sets/resets a flag to pause or resume auto-scrolling during streaming.
@@ -108,6 +113,8 @@ export const openChatWindow = () => {
     sendInitialMessages();
   }
 
+  ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', escapeKeyHandler);
+
   ELEMENTS.CHAT_TEXTAREA.focus();
 };
 
@@ -118,7 +125,35 @@ export const minimizeChatWindow = () => {
   ELEMENTS.CHAT_BUTTON?.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 
+  ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', escapeKeyHandler);
+
+  focusChatButtonAfterClose();
   restoreBadgeAfterClose();
+};
+
+/**
+ * Focuses the chat button once its visibility transition delay clears after close.
+ */
+const focusChatButtonAfterClose = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  const btn = /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_BUTTON);
+  if (!chatWindow || !btn) return;
+
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  if (prefersReducedMotion) {
+    btn.focus();
+    return;
+  }
+
+  /** @param {TransitionEvent} event */
+  const onTransitionEnd = (event) => {
+    if (event.target !== chatWindow || event.propertyName !== 'transform') return;
+    chatWindow.removeEventListener('transitionend', onTransitionEnd);
+    if (!chatWindow.classList.contains('show')) {
+      btn.focus();
+    }
+  };
+  chatWindow.addEventListener('transitionend', onTransitionEnd);
 };
 
 /**

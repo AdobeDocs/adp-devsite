@@ -90,9 +90,11 @@ export default async function decorate(block) {
 
   ELEMENTS.CHAT_WINDOW_CONTENT?.addEventListener("scroll", onUserScroll);
   ELEMENTS.CHAT_BUTTON?.addEventListener("click", toggleChatWindow);
-  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener("click", () =>
-    chatWindow.appendChild(createClearDialog()),
-  );
+  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener("click", () => {
+    const dialog = createClearDialog();
+    chatWindow.appendChild(dialog);
+    /** @type {HTMLElement | null} */ (dialog.querySelector(".chat-window-dialog-cancel"))?.focus();
+  });
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener(
     "click",
     toggleChatWindow,
