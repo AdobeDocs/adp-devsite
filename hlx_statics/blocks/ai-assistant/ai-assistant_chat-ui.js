@@ -173,6 +173,12 @@ export const createChatButton = () => {
 
 export const createClearDialog = () => {
   const dialog = createTag("div", { class: "chat-window-dialog" });
+  dialog.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    e.stopPropagation();
+    dialog.remove();
+    /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+  });
 
   const card = createTag("section", {
     class: "chat-window-dialog-card",
@@ -195,7 +201,10 @@ export const createClearDialog = () => {
     "daa-ll": "DevsiteAI Assistant:Clear dialog:Cancel",
   });
   cancelButton.textContent = "Cancel";
-  cancelButton.addEventListener("click", () => dialog.remove());
+  cancelButton.addEventListener("click", () => {
+    dialog.remove();
+    /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+  });
 
   const clearButton = createTag("button", {
     class: "chat-window-dialog-clear",
@@ -206,6 +215,7 @@ export const createClearDialog = () => {
   clearButton.addEventListener("click", () => {
     dialog.remove();
     clearConversation();
+    /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_TEXTAREA)?.focus();
   });
 
   buttons.appendChild(cancelButton);
