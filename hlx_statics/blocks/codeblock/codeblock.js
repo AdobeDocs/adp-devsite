@@ -101,7 +101,11 @@ export default function decorate(block) {
 
   const select = document.createElement('select');
   select.id = selectId;
-  select.addEventListener('change', handleSelectChange);
+  if(!hasLanguagesParam) {
+    select.style.display = 'none';
+  } else {
+    select.addEventListener('change', handleSelectChange);
+  }
   rightControls.append(select);
 
   // set up customizable select (as opposed to classic which can't be styled) as described in https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Customizable_select
