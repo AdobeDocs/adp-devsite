@@ -3,12 +3,22 @@ import decoratePreformattedCode from '../../components/code.js';
 
 export default function decorate(block) {
   const handleSelectChange = () => {
-    // show tabpanel associated with selected option
+    const selectedOption = select.options[select.selectedIndex];
+    const selectedHeading = selectedOption?.getAttribute('heading');
     const panels = [...block.querySelectorAll('[role=tabpanel]')];
+    const tabs = [...block.querySelectorAll('[role=tab]')];
+    const tabIndexToSelect = areTabsGrouped
+      ? tabs.findIndex((tab) => tab.getAttribute('heading') === selectedHeading)
+      : select.selectedIndex;
+
+    tabs.forEach((tab, i) => {
+      tab.setAttribute('aria-selected', i === tabIndexToSelect);
+    });
+
     panels.forEach((panel, i) => {
       panel.classList.toggle('hidden', i !== select.selectedIndex);
     });
-  }
+  };
 
   const filterSelectOptions = (clickedTabId) => {
     const clickedTab = block.querySelector(`[role=tab][id='${clickedTabId}']`);
@@ -54,8 +64,8 @@ export default function decorate(block) {
   // get from block before additional children are added
   const panels = [...block.children].slice(0, tabContents.length);
 
-  const languages = block.getAttribute('data-languages')?.split(',').map(language => language.trim()) ?? [];
-  const areTabsGrouped = languages.length > 0;
+  const languages = block.getAttribute('data-languages')?.split(',').map((language) => language.trim()).filter(Boolean) ?? [];
+  const areTabsGrouped = languages.length > 1 && languages.length === tabContents.length;
   const selectId = 'select-language';
   
   const controlBar = document.createElement('div');
@@ -76,6 +86,7 @@ export default function decorate(block) {
     tab.setAttribute('role', 'tab');
     tab.setAttribute('type', 'button');
     tab.innerHTML = tabContent.innerHTML;
+    tab.setAttribute('heading', toClassName(tab.textContent));
     tab.addEventListener('click', handleTabClick);
 
     const isGroupAdded = [...tabs.children].find(existingTab => tab.textContent === existingTab.textContent);
@@ -90,7 +101,6 @@ export default function decorate(block) {
 
   const select = document.createElement('select');
   select.id = selectId;
-  select.classList.toggle('hidden', !areTabsGrouped);
   select.addEventListener('change', handleSelectChange);
   rightControls.append(select);
 
@@ -105,9 +115,9 @@ export default function decorate(block) {
     option.value = i;
     option.setAttribute('heading', toClassName(tabContent.textContent));
     option.setAttribute('aria-controls', `tabpanel-${i}`);
-    option.text = languages[i] ?? i;
+    option.text = languages[i] || tabContent.textContent.trim() || `Tab ${i + 1}`;
     select.append(option); 
-  })
+  });
 
   panels.forEach((panel, i) => {
     panel.className = 'tabs-panel';
