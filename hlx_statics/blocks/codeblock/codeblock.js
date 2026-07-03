@@ -64,8 +64,12 @@ export default function decorate(block) {
   // get from block before additional children are added
   const panels = [...block.children].slice(0, tabContents.length);
 
-  const languages = block.getAttribute('data-languages')?.split(',').map((language) => language.trim()).filter(Boolean) ?? [];
-  const areTabsGrouped = languages.length > 1 && languages.length === tabContents.length;
+  const hasLanguagesParam = Boolean(block.getAttribute('data-languages')?.trim());
+  const languages = hasLanguagesParam
+    ? block.getAttribute('data-languages').split(',').map((language) => language.trim()).filter(Boolean)
+    : [];
+  // Group tabs only when data-languages is explicitly provided and valid.
+  const areTabsGrouped = hasLanguagesParam && languages.length > 1 && languages.length === tabContents.length;
   const selectId = 'select-language';
   
   const controlBar = document.createElement('div');
@@ -101,11 +105,8 @@ export default function decorate(block) {
 
   const select = document.createElement('select');
   select.id = selectId;
-  if(!hasLanguagesParam) {
-    select.style.display = 'none';
-  } else {
-    select.addEventListener('change', handleSelectChange);
-  }
+  select.style.display = hasLanguagesParam ? '' : 'none';
+  select.addEventListener('change', handleSelectChange);
   rightControls.append(select);
 
   // set up customizable select (as opposed to classic which can't be styled) as described in https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Customizable_select
