@@ -523,16 +523,17 @@
     --bubble-text-color: #292929;
 
     display: grid;
-    grid-template-columns: 24px auto;
+    grid-template-columns: auto;
     grid-template-rows: auto auto auto;
     grid-template-areas:
-        "avatar content"
-        "avatar timestamp"
-        "avatar sources";
+        "content"
+        "timestamp"
+        "sources";
     justify-items: start;
     column-gap: 12px;
     width: 100%;
     overflow-wrap: anywhere;
+    max-width: 388px;
     animation: fadeIn 0.3s ease-in;
     font-size: 16px;
 
@@ -541,11 +542,13 @@
     }
 
     &.chat-bubble-user {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: auto;
         grid-template-rows: auto auto;
         grid-template-areas:
-            "spacer content"
-            "spacer timestamp";
+            "content"
+            "timestamp";
+        align-self: end;
+        justify-items: end;
         --bubble-background-color: #7a6afd;
         --bubble-text-color: #ffffff;
     }
