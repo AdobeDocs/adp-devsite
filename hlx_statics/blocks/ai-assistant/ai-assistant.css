@@ -532,6 +532,7 @@
     justify-items: start;
     column-gap: 12px;
     width: 100%;
+    overflow-wrap: anywhere;
     animation: fadeIn 0.3s ease-in;
     font-size: 16px;
 
