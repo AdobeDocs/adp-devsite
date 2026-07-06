@@ -46,11 +46,7 @@ export class ChatBubble {
       class: "chat-bubble-content",
     });
 
-    if (this.source === "ai") {
-      if (!this.isContinuingConversation) {
-        bubble.appendChild(createAiAvatar());
-      }
-    } else if (this.source === "user") {
+    if (this.source === "user") {
       bubble.classList.add("chat-bubble-user");
     }
 
