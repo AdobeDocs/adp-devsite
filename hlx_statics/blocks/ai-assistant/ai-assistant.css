@@ -1,6 +1,41 @@
 /* Ai Assistant Floating Chat Bot */
 
 /*
+ * MARK: Skip Link
+ * Visually hidden "Skip to AI Assistant" link. Kept 1px (not display:none) so it
+ * stays in the accessibility tree and tab order; revealed on keyboard focus.
+ */
+.skip-to-ai-assistant {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.skip-to-ai-assistant:focus,
+.skip-to-ai-assistant:focus-visible {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1000001; /* above the sticky global-nav header (z-index: 1000000) */
+    width: auto;
+    height: auto;
+    padding: 8px 16px;
+    overflow: visible;
+    background-color: #fff;
+    color: #292929;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+    outline: 2px solid #1473e6;
+    outline-offset: 2px;
+}
+
+/*
  * MARK: Root & Layout
  */
 .ai-assistant-wrapper {

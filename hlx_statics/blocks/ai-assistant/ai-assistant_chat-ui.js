@@ -7,6 +7,7 @@ import {
 } from "./ai-assistant_chat-controller.js";
 
 import {
+  CHAT_BUTTON_ID,
   CHAT_BUTTON_LABEL_CLEAR,
   CHAT_BUTTON_LABEL_CLOSE,
   CHAT_BUTTON_LABEL_OPEN,
@@ -150,6 +151,7 @@ export const createInputSection = () => {
 export const createChatButton = () => {
   const chatButton = createTag("button", {
     class: "chat-button",
+    id: CHAT_BUTTON_ID,
     type: "button",
     "aria-controls": CHAT_WINDOW_ID,
     "aria-expanded": "false",
