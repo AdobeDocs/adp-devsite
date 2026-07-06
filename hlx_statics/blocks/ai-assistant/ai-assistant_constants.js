@@ -38,6 +38,11 @@ export const INITIAL_SUGGESTED_QUESTIONS = [
   {
     label: "Firefly Services and how can I use them",
     question: "Firefly Services and how can I use them",
+  },
+  {
+    id: "mcp-server-docs",
+    label: "Available MCP servers and where I can find them",
+    question: "Available MCP servers and where I can find them"
   }
 ];
 export const GENERIC_ERROR_MESSAGE =
