@@ -16,6 +16,7 @@ import {
   createInputSection,
 } from "./ai-assistant_chat-ui.js";
 import {
+  CHAT_BUTTON_ID,
   CHAT_WINDOW_ID,
   CHAT_WINDOW_LABEL_ID,
   ELEMENTS,
@@ -27,6 +28,20 @@ import { createSuggestedQuestionsSection } from "./ai-assistant_suggested-questi
  * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
+  // a11y: a visually-hidden "Skip to AI Assistant" link
+  if (!document.getElementById("skip-to-ai-assistant")) {
+    const skipLink = createTag("a", {
+      id: "skip-to-ai-assistant",
+      class: "skip-to-ai-assistant",
+      href: `#${CHAT_BUTTON_ID}`,
+    });
+    skipLink.textContent = "Skip to AI Assistant";
+    document.body.prepend(skipLink);
+  }
+
+  // Prefetch collections to warm cache — resolves before user opens chat
+  aiApiClient.getCollections();
+
   addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@18.0.5/lib/marked.umd.js",
@@ -51,12 +66,14 @@ export default async function decorate(block) {
         "https://unpkg.com/dompurify@3.4.11/dist/purify.min.js",
         () => {
           // @ts-expect-error - DOMPurify is not on the Window object
-          window.DOMPurify.setConfig({ ADD_ATTR: ["daa-ll", "daa-lh", "target"] });
+          window.DOMPurify.setConfig({
+            ADD_ATTR: ["daa-ll", "daa-lh", "target"],
+          });
           // @ts-expect-error - DOMPurify is not on the Window object
-          window.DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-            console.log('afterSanitizeAttributes')
-            if (node.hasAttribute('data-ll')) {
-              node.setAttribute('daa-ll', node.getAttribute('data-ll'));
+          window.DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+            console.log("afterSanitizeAttributes");
+            if (node.hasAttribute("data-ll")) {
+              node.setAttribute("daa-ll", node.getAttribute("data-ll"));
             }
           });
           restoreChatHistory();
@@ -93,7 +110,9 @@ export default async function decorate(block) {
   ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener("click", () => {
     const dialog = createClearDialog();
     chatWindow.appendChild(dialog);
-    /** @type {HTMLElement | null} */ (dialog.querySelector(".chat-window-dialog-cancel"))?.focus();
+    /** @type {HTMLElement | null} */ (
+      dialog.querySelector(".chat-window-dialog-cancel")
+    )?.focus();
   });
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener(
     "click",
