@@ -93,7 +93,7 @@ export const createInputSection = () => {
     })
   );
   const disclaimerText = createTag("div", { class: "chat-disclaimer-text" });
-  disclaimerText.innerHTML = `AI‑generated responses. Please double-check the source before use.`;
+  disclaimerText.innerHTML = `AI-generated responses. Please double-check the source before use.`;
 
   const sendButton = /** @type {HTMLButtonElement} */ (
     createTag("button", {
