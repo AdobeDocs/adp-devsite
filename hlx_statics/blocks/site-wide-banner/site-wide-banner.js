@@ -18,10 +18,10 @@ export default async function decorate(block) {
   const mainArea = document.querySelector('.grid-main-area');
   const sidenavArea = document.querySelector('.side-nav-container');
   const productName = getMetadata('product');
-  const superHeroBanner = document.querySelector('.superhero-wrapper');
+  const superHeroWrapper = document.querySelector('.superhero-wrapper');
   const isMobile = window.innerWidth < 1025;
   const paddingTargets = IS_DEV_DOCS
-    ? [!superHeroBanner && mainArea, sidenavArea].filter(Boolean)
+    ? [!superHeroWrapper && mainArea, sidenavArea].filter(Boolean)
     : [siteParent.nextElementSibling?.nextElementSibling];
   block.setAttribute('daa-lh', 'site-wide-banner');
   const allowedColors = ["warning", "success", "info", "neutral", "notice", "light"];
