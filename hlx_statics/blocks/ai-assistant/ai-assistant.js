@@ -17,6 +17,7 @@ import {
 } from "./ai-assistant_chat-ui.js";
 import {
   CHAT_BUTTON_ID,
+  CHAT_SKIP_BUTTON_LABEL,
   CHAT_WINDOW_ID,
   CHAT_WINDOW_LABEL_ID,
   ELEMENTS,
@@ -35,7 +36,7 @@ export default async function decorate(block) {
       class: "skip-to-ai-assistant",
       href: `#${CHAT_BUTTON_ID}`,
     });
-    skipLink.textContent = "Skip to AI Assistant";
+    skipLink.textContent = CHAT_SKIP_BUTTON_LABEL;
     document.body.prepend(skipLink);
   }
 
