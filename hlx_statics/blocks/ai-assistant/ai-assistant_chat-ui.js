@@ -3,8 +3,8 @@ import { createTag } from "../../scripts/lib-adobeio.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
   clearConversation,
-  getFocusableElements,
   handleUserQuery,
+  trapTabFocus,
 } from "./ai-assistant_chat-controller.js";
 
 import {
@@ -198,19 +198,7 @@ export const createClearDialog = () => {
     // Stop the outer chat-window focus trap from also reacting: this dialog
     // owns tabbing while it's open, since it overlays the rest of the window.
     e.stopPropagation();
-
-    const focusable = getFocusableElements(dialog);
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
+    trapTabFocus(e, dialog);
   });
 
   const card = createTag("section", {

@@ -40,17 +40,17 @@ export const getFocusableElements = (container) =>
   );
 
 /**
- * Keeps keyboard focus trapped within the chat window while it's open: tabbing
- * past the last focusable element wraps to the first, and shift-tabbing past
- * the first wraps to the last.
+ * Wraps Tab/Shift-Tab at the boundaries of a container's focusable elements,
+ * so focus cycles within it instead of escaping. Call this from a keydown
+ * listener scoped to whatever should currently own the tab order (the chat
+ * window, or an overlay like the clear-confirmation dialog).
  * @param {KeyboardEvent} e
+ * @param {HTMLElement} container
  */
-const trapFocusHandler = (e) => {
-  if (e.key !== 'Tab' || !ELEMENTS.CHAT_WINDOW) return;
+export const trapTabFocus = (e, container) => {
+  if (e.key !== 'Tab') return;
 
-  const focusable = getFocusableElements(
-    /** @type {HTMLElement} */ (ELEMENTS.CHAT_WINDOW),
-  );
+  const focusable = getFocusableElements(container);
   if (focusable.length === 0) return;
 
   const first = focusable[0];
@@ -63,6 +63,12 @@ const trapFocusHandler = (e) => {
     e.preventDefault();
     first.focus();
   }
+};
+
+/** @param {KeyboardEvent} e */
+const trapFocusHandler = (e) => {
+  if (!ELEMENTS.CHAT_WINDOW) return;
+  trapTabFocus(e, /** @type {HTMLElement} */ (ELEMENTS.CHAT_WINDOW));
 };
 
 /**
