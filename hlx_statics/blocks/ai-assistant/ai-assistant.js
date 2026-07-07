@@ -40,9 +40,6 @@ export default async function decorate(block) {
     document.body.prepend(skipLink);
   }
 
-  // Prefetch collections to warm cache — resolves before user opens chat
-  aiApiClient.getCollections();
-
   addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@18.0.5/lib/marked.umd.js",
