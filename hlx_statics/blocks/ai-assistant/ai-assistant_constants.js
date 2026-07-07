@@ -3,6 +3,7 @@ export const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
 export const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
 export const CHAT_BUTTON_LABEL_MINIMIZE = "Minimize AI Assistant";
 export const CHAT_BUTTON_LABEL_CLEAR = "Clear AI Assistant";
+export const CHAT_SKIP_BUTTON_LABEL = "Skip to AI Assistant";
 export const CHAT_BUTTON_ID = "ai-assistant-chat-button";
 export const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
