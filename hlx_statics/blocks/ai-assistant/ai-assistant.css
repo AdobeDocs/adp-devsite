@@ -365,16 +365,28 @@
     padding: 0 24px 24px 24px;
 
     .chat-textarea-wrapper {
-        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 2px solid #dadada;
+        border-radius: 8px;
+        background: #ffffff;
+        box-sizing: border-box;
+
+        &:focus-within {
+            border-color: #3b63fb;
+        }
     }
 
     textarea {
+        /* height is set by JS event listener based on amount of text */
+        min-height: 36px;
+        /* css var injected from js into style since it's required in both */
+        max-height: var(--max-height);
         width: 100%;
-        min-height: 96px;
-        max-height: 120px;
-        padding: 12px 12px 48px 12px;
-        border: 2px solid #dadada;
-        border-radius: 8px;
+        padding: 0;
+        border: none;
         font-family:
             "adobe-clean",
             "Source Sans Pro",
@@ -386,22 +398,27 @@
             "Trebuchet MS",
             "Lucida Grande",
             sans-serif;
-        font-size: 14px;
+        font-size: var(--spectrum-global-dimension-font-size-100);
         line-height: 18px;
         color: #292929;
-        background: #ffffff;
+        background: transparent;
         resize: none;
         overflow-y: auto;
         box-sizing: border-box;
 
         &:focus {
             outline: none;
-            border-color: #3b63fb;
         }
 
         &::placeholder {
             color: #717171;
         }
+    }
+
+    .chat-input-footer {
+        display: flex;
+        justify-content: flex-end;
+        flex: none;
     }
 
     .chat-disclaimer-text {
@@ -421,9 +438,6 @@
     }
 
     .chat-send-button {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
         width: 72px;
         height: 32px;
         padding: 0;
