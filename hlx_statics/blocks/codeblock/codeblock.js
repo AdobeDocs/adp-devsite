@@ -64,12 +64,8 @@ export default function decorate(block) {
   // get from block before additional children are added
   const panels = [...block.children].slice(0, tabContents.length);
 
-  const hasLanguagesParam = Boolean(block.getAttribute('data-languages')?.trim());
-  const languages = hasLanguagesParam
-    ? block.getAttribute('data-languages').split(',').map((language) => language.trim()).filter(Boolean)
-    : [];
-  // Group tabs only when data-languages is explicitly provided and valid.
-  const areTabsGrouped = hasLanguagesParam && languages.length > 1 && languages.length === tabContents.length;
+  const languages = block.getAttribute('data-languages')?.split(',').map((language) => language.trim()).filter(Boolean) ?? [];
+  const areTabsGrouped = languages.length > 0;
   const selectId = 'select-language';
   
   const controlBar = document.createElement('div');
@@ -105,7 +101,7 @@ export default function decorate(block) {
 
   const select = document.createElement('select');
   select.id = selectId;
-  select.style.display = hasLanguagesParam ? '' : 'none';
+  select.style.display = areTabsGrouped ? '' : 'none';
   select.addEventListener('change', handleSelectChange);
   rightControls.append(select);
 
