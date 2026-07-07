@@ -34,7 +34,7 @@ const FOCUSABLE_SELECTOR =
  * @param {HTMLElement} container
  * @returns {HTMLElement[]}
  */
-const getFocusableElements = (container) =>
+export const getFocusableElements = (container) =>
   Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
     (/** @type {HTMLElement} */ el) => el.offsetParent !== null,
   );

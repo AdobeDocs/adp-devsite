@@ -3,6 +3,7 @@ import { createTag } from "../../scripts/lib-adobeio.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
   clearConversation,
+  getFocusableElements,
   handleUserQuery,
 } from "./ai-assistant_chat-controller.js";
 
@@ -186,10 +187,30 @@ export const createChatButton = () => {
 export const createClearDialog = () => {
   const dialog = createTag("div", { class: "chat-window-dialog" });
   dialog.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      dialog.remove();
+      /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+      return;
+    }
+
+    if (e.key !== "Tab") return;
+    // Stop the outer chat-window focus trap from also reacting: this dialog
+    // owns tabbing while it's open, since it overlays the rest of the window.
     e.stopPropagation();
-    dialog.remove();
-    /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+
+    const focusable = getFocusableElements(dialog);
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 
   const card = createTag("section", {
