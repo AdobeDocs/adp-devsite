@@ -40,6 +40,7 @@ export default async function decorate(block) {
     document.body.prepend(skipLink);
   }
 
+  const headingSizes = ["XL", "M", "S", "XS", "XXS", "XXS"];
   addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@18.0.5/lib/marked.umd.js",
@@ -47,6 +48,17 @@ export default async function decorate(block) {
       // @ts-expect-error - marked is not on the Window object
       window.marked.use({
         renderer: {
+          /**
+           * @param {Object} options
+           * @param {Array<unknown>} options.tokens
+           * @param {number} options.depth
+           */
+          heading({ tokens, depth }) {
+            /** @type {string} **/
+            const text = this.parser.parseInline(tokens);
+            const newDepth = Math.min(depth + 2, 6);
+            return `<h${newDepth} class="spectrum-Heading spectrum-Heading--size${headingSizes[newDepth - 1]}">${text}</h${newDepth}>\n`;
+          },
           /**
            * @param {Object} options
            * @param {string} options.href
