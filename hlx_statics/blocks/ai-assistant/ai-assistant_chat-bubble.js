@@ -442,7 +442,7 @@ export class ChatBubble {
       a.textContent = title || url;
       a.setAttribute(
         "daa-ll",
-        `DevsiteAI Assistant:Message:Sources:Link:${a.textContent}|${url}`,
+        `DevsiteAI Assistant:Message:Sources:Link`,
       );
       li.appendChild(marker);
       li.appendChild(a);
