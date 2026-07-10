@@ -81,7 +81,6 @@ export default async function decorate(block) {
           });
           // @ts-expect-error - DOMPurify is not on the Window object
           window.DOMPurify.addHook("afterSanitizeAttributes", (node) => {
-            console.log("afterSanitizeAttributes");
             if (node.hasAttribute("data-ll")) {
               node.setAttribute("daa-ll", node.getAttribute("data-ll"));
             }
