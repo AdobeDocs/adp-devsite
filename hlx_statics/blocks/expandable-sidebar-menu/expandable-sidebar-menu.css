@@ -110,7 +110,7 @@ main div.expandable-sidebar-menu-wrapper .sidebar-accordion.open .sidebar-accord
 /* Child items */
 
 main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list li {
-  padding: 12px 16px;
+  padding: 8px 10px;
   cursor: pointer;
   border-radius: 4px;
   transition: background 0.2s;
