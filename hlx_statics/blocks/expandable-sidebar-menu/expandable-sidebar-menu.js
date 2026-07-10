@@ -1,5 +1,6 @@
 export default async function decorate(block) {
   const rows = [...block.children];
+  console.log("rows",rows);
 
   const wrapper = document.createElement('div');
   wrapper.className = 'expandable-sidebar-wrapper';
