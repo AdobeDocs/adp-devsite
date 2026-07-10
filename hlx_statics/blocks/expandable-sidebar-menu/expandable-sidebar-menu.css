@@ -1,27 +1,27 @@
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper {
+.expandable-sidebar-wrapper {
   max-width: 1280px;
   margin: auto;
   display: flex;
   gap: 48px;
 }
 
-main div.expandable-sidebar-menu div.expandable-sidebar {
+.expandable-sidebar {
   width: 320px;
   flex-shrink: 0;
 }
 
-main div.expandable-sidebar-menu div.expandable-content {
+.expandable-content {
   flex: 1;
   min-width: 0;
 }
 
 /* Accordion */
 
-main div.expandable-sidebar-menu div.sidebar-accordion {
+.sidebar-accordion {
   margin-bottom: 16px;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion-header {
+.sidebar-accordion-header {
   width: 100%;
   display: flex;
   align-items: center;
@@ -35,50 +35,50 @@ main div.expandable-sidebar-menu div.sidebar-accordion-header {
   text-align: left;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion.open .sidebar-accordion-header::before {
+.sidebar-accordion.open .sidebar-accordion-header::before {
   transform: rotate(90deg);
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion-list {
+.sidebar-accordion-list {
   list-style: none;
   margin: 0;
   padding: 0 0 0 32px;
   display: none;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion.open .sidebar-accordion-list {
+.sidebar-accordion.open .sidebar-accordion-list {
   display: block;
 }
 
 /* Child items */
 
-main div.expandable-sidebar-menu div.sidebar-accordion-list li {
+.sidebar-accordion-list li {
   padding: 12px 16px;
   cursor: pointer;
   border-radius: 4px;
   transition: background 0.2s;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion-list li:hover {
+.sidebar-accordion-list li:hover {
   background: #f5f5f5;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion-list li.active {
+.sidebar-accordion-list li.active {
   background: #ececec;
   font-weight: 500;
 }
 
 /* Content Panels */
 
-main div.expandable-sidebar-menu div.expandable-panel {
+.expandable-panel {
   display: none;
 }
 
-main div.expandable-sidebar-menu div.expandable-panel.active {
+.expandable-panel.active {
   display: block;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion-header {
+.sidebar-accordion-header {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -90,56 +90,30 @@ main div.expandable-sidebar-menu div.sidebar-accordion-header {
   text-align: left;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion-title {
+.sidebar-accordion-title {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-main div.expandable-sidebar-menu div.sidebar-accordion-title picture,
-main div.expandable-sidebar-menu div.sidebar-accordion-title img {
+.sidebar-accordion-title picture,
+.sidebar-accordion-title img {
   width: 24px;
   height: 24px;
   display: block;
   flex-shrink: 0;
 }
 
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper div.sidebar-accordion-title span {
+.sidebar-accordion-title span {
   font-weight: 700;
 }
 
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper div.sidebar-accordion-icon {
+.sidebar-accordion-icon {
   display: flex;
   align-items: center;
   transition: transform 0.2s ease;
 }
 
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper div.sidebar-accordion.open .sidebar-accordion-icon {
+.sidebar-accordion.open .sidebar-accordion-icon {
   transform: rotate(90deg);
-}
-
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper div.expandable-sidebar.background-color-gray {
-  background-color: rgb(245, 245, 245);
-}
-
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper:has(.expandable-sidebar.background-color-white),
-main div.expandable-sidebar.background-color-white {
-  background-color: white;
-}
-
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper:has(.expandable-sidebar.background-color-navy),
-main div.expandable-sidebar.background-color-navy {
-  background-color: rgb(15, 55, 95);
-}
-
-main div.expandable-sidebar-menu div.expandable-sidebar-wrapper:has(.expandable-sidebar.background-color-dark-gray),
-main div.expandable-sidebar.background-color-dark-gray {
-  background-color: #323232;
-}
-
-main div.expandable-sidebar-wrapper div.expandable-sidebar.background-color-dark-gray .expandable-sidebar-heading,
-main div.expandable-sidebar-wrapper div.expandable-sidebar.background-color-dark-gray p,
-main div.expandable-sidebar-wrapper div.expandable-sidebar.background-color-navy .expandable-sidebar-heading,
-main div.expandable-sidebar-wrapper div.expandable-sidebar.background-color-navy p {
-  color: white;
 }
