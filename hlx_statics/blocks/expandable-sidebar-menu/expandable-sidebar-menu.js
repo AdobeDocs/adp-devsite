@@ -1,6 +1,9 @@
+import { decorateLightOrDark } from "../../scripts/lib-helix";
+
 export default async function decorate(block) {
+  decorateLightOrDark(block);
   const rows = [...block.children];
-  console.log("rows",rows);
+  console.log("rows", rows);
 
   const wrapper = document.createElement('div');
   wrapper.className = 'expandable-sidebar-wrapper';
@@ -27,7 +30,31 @@ export default async function decorate(block) {
 
       const header = document.createElement('button');
       header.className = 'sidebar-accordion-header';
-      header.textContent = titleEl.textContent.trim();
+
+      const icon = document.createElement('span');
+      icon.className = 'sidebar-accordion-icon';
+      icon.innerHTML = `
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M8 5L16 12L8 19"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      `;
+
+      const text = document.createElement('span');
+      text.textContent = titleEl.textContent.trim();
+
+      header.append(icon, text);
 
       currentList = document.createElement('ul');
       currentList.className = 'sidebar-accordion-list';
@@ -36,9 +63,20 @@ export default async function decorate(block) {
       sidebar.append(currentAccordion);
 
       header.addEventListener('click', () => {
-        currentAccordion.classList.toggle('open');
+        const isOpen = currentAccordion.classList.contains('open');
+      
+        // Close all accordions
+        sidebar.querySelectorAll('.sidebar-accordion').forEach((accordion) => {
+          accordion.classList.remove('open');
+        });
+      
+        // Open only the clicked accordion if it wasn't already open
+        if (!isOpen) {
+          currentAccordion.classList.add('open');
+        }
       });
     }
+    
 
     // If no accordion exists yet, skip
     if (!currentList) {

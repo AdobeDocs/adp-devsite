@@ -1,4 +1,6 @@
 .expandable-sidebar-wrapper {
+  max-width: 1280px;
+  margin: auto;
   display: flex;
   gap: 48px;
 }
