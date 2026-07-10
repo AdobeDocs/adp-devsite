@@ -1165,7 +1165,7 @@ export async function loadCustomAnalytic(domObj, path) {
  */
 export async function applyAnalytic(domObj = document) {
   domObj.querySelectorAll('a').forEach((a) => {
-    if (a.innerText.length > 0) {
+    if (a.innerText.length > 0 && !a.hasAttribute('daa-ll')) {
       a.setAttribute('daa-ll', a.innerText);
     }
   });
