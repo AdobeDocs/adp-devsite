@@ -172,3 +172,8 @@ main div.expandable-sidebar-menu-wrapper ul,
 main div.expandable-sidebar-menu-wrapper ol {
   margin-bottom: 18px !important;
 }
+
+main div.expandable-sidebar-menu-wrapper ul,
+main div.expandable-sidebar-menu-wrapper ol {
+  margin-top: 18px !important;
+}
