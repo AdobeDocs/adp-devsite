@@ -171,8 +171,7 @@ main div.expandable-sidebar-menu-wrapper h3,
 main div.expandable-sidebar-menu-wrapper h4,
 main div.expandable-sidebar-menu-wrapper h5,
 main div.expandable-sidebar-menu-wrapper h6,
-main div.expandable-sidebar-menu-wrapper p,
-main div.expandable-sidebar-menu-wrapper li {
+main div.expandable-sidebar-menu-wrapper p {
   margin-bottom: 18px !important;
 }
 
