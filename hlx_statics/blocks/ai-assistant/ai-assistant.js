@@ -54,7 +54,7 @@ export default async function decorate(block) {
            * @param {string} options.text
            */
           link({ href, title, text }) {
-            const analyticsLabel = `DevsiteAI Assistant:Message:Link:${title || text}|${href}`;
+            const analyticsLabel = `DevsiteAI Assistant:Message:Link`;
             return `<a href="${href}" title="${title || text}" data-ll="${analyticsLabel}" target="_blank" rel="noopener noreferrer">${text}</a>`;
           },
         },
