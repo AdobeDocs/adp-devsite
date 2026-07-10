@@ -84,7 +84,6 @@ main div.expandable-sidebar-menu-wrapper .sidebar-accordion-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
   border: none;
   background: transparent;
   font-size: 18px;
