@@ -1,6 +1,5 @@
 export default async function decorate(block) {
   const rows = [...block.children];
-  console.log("rows", rows);
 
   const wrapper = document.createElement('div');
   wrapper.className = 'expandable-sidebar-wrapper';
@@ -48,21 +47,19 @@ export default async function decorate(block) {
         </svg>
       `;
 
-      const content = document.createElement('span');
-      content.className = 'sidebar-accordion-title';
+      const title = document.createElement('span');
+      title.className = 'sidebar-accordion-title';
 
       const picture = titleEl.querySelector('picture');
-
       if (picture) {
-        content.append(picture.cloneNode(true));
+        title.append(picture.cloneNode(true));
       }
 
       const text = document.createElement('span');
       text.textContent = titleEl.textContent.trim();
+      title.append(text);
 
-      content.append(text);
-
-      header.append(icon, content);
+      header.append(icon, title);
 
       currentList = document.createElement('ul');
       currentList.className = 'sidebar-accordion-list';
@@ -75,25 +72,30 @@ export default async function decorate(block) {
       header.addEventListener('click', () => {
         const isOpen = accordion.classList.contains('open');
 
-        // Close all accordions
+        // close all accordions
         sidebar.querySelectorAll('.sidebar-accordion').forEach((item) => {
           item.classList.remove('open');
         });
 
-        // Open the clicked accordion if it was closed
         if (!isOpen) {
           accordion.classList.add('open');
+
+          // Automatically select first child
+          const firstItem = accordion.querySelector(
+            '.sidebar-accordion-list li'
+          );
+
+          if (firstItem) {
+            firstItem.click();
+          }
         }
       });
     }
 
-
-    // If no accordion exists yet, skip
     if (!currentList) {
       return;
     }
 
-    // Determine child title and content
     const childTitle = hasParent ? cols[1] : cols[0];
     const childContent = hasParent ? cols[2] : cols[1];
 
@@ -109,13 +111,6 @@ export default async function decorate(block) {
     panel.className = 'expandable-panel';
     panel.append(childContent);
 
-    if (firstContent) {
-      item.classList.add('active');
-      panel.classList.add('active');
-      currentAccordion.classList.add('open');
-      firstContent = false;
-    }
-
     contentArea.append(panel);
 
     item.addEventListener('click', () => {
@@ -123,13 +118,32 @@ export default async function decorate(block) {
         li.classList.remove('active');
       });
 
-      contentArea.querySelectorAll('.expandable-panel').forEach((el) => {
-        el.classList.remove('active');
-      });
+      contentArea
+        .querySelectorAll('.expandable-panel')
+        .forEach((el) => {
+          el.classList.remove('active');
+        });
 
       item.classList.add('active');
       panel.classList.add('active');
+
+      const parentAccordion = item.closest('.sidebar-accordion');
+      if (parentAccordion) {
+        sidebar.querySelectorAll('.sidebar-accordion').forEach((acc) => {
+          acc.classList.remove('open');
+        });
+
+        parentAccordion.classList.add('open');
+      }
     });
+
+    // Initial state
+    if (firstContent) {
+      item.classList.add('active');
+      panel.classList.add('active');
+      currentAccordion.classList.add('open');
+      firstContent = false;
+    }
   });
 
   wrapper.append(sidebar, contentArea);
