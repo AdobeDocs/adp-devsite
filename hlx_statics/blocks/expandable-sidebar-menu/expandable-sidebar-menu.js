@@ -177,9 +177,18 @@ export default async function decorate(block) {
   });
 
   wrapper.append(sidebar, contentArea);
-
+  
   block.innerHTML = '';
   block.append(wrapper);
+
+  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'expandable-sidebar-menu-heading');
+    h.style.whiteSpace = "normal";
+  });
+  block.querySelectorAll('p').forEach((p) => {
+    p.classList.add('spectrum-Body', 'spectrum-Body--sizeL', 'expandable-sidebar-menu-body');
+    p.style.whiteSpace = "normal";
+  });
 
   applyBackgroundColor(block);
 }

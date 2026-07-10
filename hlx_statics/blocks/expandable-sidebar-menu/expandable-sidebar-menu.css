@@ -159,3 +159,9 @@ main div.expandable-sidebar-menu-wrapper .sidebar-accordion-icon {
 main div.expandable-sidebar-menu-wrapper .sidebar-accordion.open .sidebar-accordion-icon {
   transform: rotate(90deg);
 }
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list-item ,
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title span {
+  font-size : 16px;
+}
+
