@@ -1,8 +1,33 @@
 import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 
-export default async function decorate(block) {
+const ALLOWED_BACKGROUND_COLORS = [
+  'background-color-white',
+  'background-color-navy',
+  'background-color-dark-gray',
+  'background-color-gray',
+];
 
- decorateLightOrDark(block);
+function applyBackgroundColor(block) {
+  const backgroundColor = block.getAttribute('data-backgroundcolor');
+
+  if (ALLOWED_BACKGROUND_COLORS.includes(backgroundColor)) {
+    block.className = block.className.split(/\s+/).filter((c) => !c.startsWith('background-color-')).join(' ').trim();
+    block.classList.add(backgroundColor);
+  }
+  if (!ALLOWED_BACKGROUND_COLORS.some((color) => block.classList.contains(color))) {
+    block.classList.add('background-color-gray');
+  }
+
+  const bgClass = [...block.classList].find((c) => c.startsWith('background-color-'));
+  const blockWrapper = block.parentElement;
+  if (bgClass && blockWrapper?.classList.contains('expandable-sidebar-menu-wrapper')) {
+    blockWrapper.classList.add(bgClass);
+  }
+}
+
+export default async function decorate(block) {
+  applyBackgroundColor(block);
+  decorateLightOrDark(block);
 
   const rows = [...block.children];
   const wrapper = document.createElement('div');
@@ -154,4 +179,6 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
   block.append(wrapper);
+
+  applyBackgroundColor(block);
 }

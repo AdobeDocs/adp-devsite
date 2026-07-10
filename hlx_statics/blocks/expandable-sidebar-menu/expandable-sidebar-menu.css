@@ -1,28 +1,40 @@
-main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu {
+main div.expandable-sidebar-menu-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.block {
   margin: auto;
   max-width: 1280px;
   padding: 20px;
+  width: 100%;
 }
 
-main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-gray {
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-gray,
+main div.expandable-sidebar-menu.background-color-gray > .expandable-sidebar-wrapper {
   background-color: rgb(245, 245, 245);
 }
 
 main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-white),
-main div.expandable-sidebar-menu.background-color-white {
+main div.expandable-sidebar-menu-wrapper.background-color-white,
+main div.expandable-sidebar-menu.background-color-white,
+main div.expandable-sidebar-menu.background-color-white > .expandable-sidebar-wrapper {
   background-color: white;
 }
 
 main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-navy),
-main div.expandable-sidebar-menu.background-color-navy {
+main div.expandable-sidebar-menu-wrapper.background-color-navy,
+main div.expandable-sidebar-menu.background-color-navy,
+main div.expandable-sidebar-menu.background-color-navy > .expandable-sidebar-wrapper {
   background-color: rgb(15, 55, 95);
 }
 
 main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-dark-gray),
-main div.expandable-sidebar-menu.background-color-dark-gray {
+main div.expandable-sidebar-menu-wrapper.background-color-dark-gray,
+main div.expandable-sidebar-menu.background-color-dark-gray,
+main div.expandable-sidebar-menu.background-color-dark-gray > .expandable-sidebar-wrapper {
   background-color: #323232;
 }
-
 main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray .sidebar-accordion-header,
 main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray p,
 main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy .sidebar-accordion-header,
