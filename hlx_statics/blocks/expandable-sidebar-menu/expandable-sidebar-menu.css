@@ -1,3 +1,46 @@
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu {
+  margin: auto;
+  max-width: 1280px;
+  padding: 20px;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-gray {
+  background-color: rgb(245, 245, 245);
+}
+
+main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-white),
+main div.expandable-sidebar-menu.background-color-white {
+  background-color: white;
+}
+
+main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-navy),
+main div.expandable-sidebar-menu.background-color-navy {
+  background-color: rgb(15, 55, 95);
+}
+
+main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-dark-gray),
+main div.expandable-sidebar-menu.background-color-dark-gray {
+  background-color: #323232;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray .sidebar-accordion-header,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray p,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy .sidebar-accordion-header,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy p {
+  color: white;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy .sidebar-accordion-list li:hover,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray .sidebar-accordion-list li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy .sidebar-accordion-list li.active,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray .sidebar-accordion-list li.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
 .expandable-sidebar-wrapper {
   max-width: 1280px;
   margin: auto;

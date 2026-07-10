@@ -1,6 +1,10 @@
-export default async function decorate(block) {
-  const rows = [...block.children];
+import { decorateLightOrDark } from '../../scripts/lib-helix.js';
 
+export default async function decorate(block) {
+
+ decorateLightOrDark(block);
+
+  const rows = [...block.children];
   const wrapper = document.createElement('div');
   wrapper.className = 'expandable-sidebar-wrapper';
 
