@@ -133,6 +133,7 @@ export default async function decorate(block) {
     }
 
     const item = document.createElement('li');
+    item.className = 'sidebar-accordion-list-item';
     item.textContent = childTitle.textContent.trim();
     currentList.append(item);
 
@@ -143,7 +144,7 @@ export default async function decorate(block) {
     contentArea.append(panel);
 
     item.addEventListener('click', () => {
-      sidebar.querySelectorAll('li').forEach((li) => {
+      sidebar.querySelectorAll('.sidebar-accordion-list-item').forEach((li) => {
         li.classList.remove('active');
       });
 
