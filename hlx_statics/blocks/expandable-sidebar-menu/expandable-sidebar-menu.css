@@ -127,12 +127,12 @@ main div.expandable-sidebar.background-color-white {
   background-color: white;
 }
 
-main div.expandable-sidebar-wrapper:has(.expandable-sidebar.background-color-navy),
+main div.expandable-sidebar-menu div.expandable-sidebar-wrapper:has(.expandable-sidebar.background-color-navy),
 main div.expandable-sidebar.background-color-navy {
   background-color: rgb(15, 55, 95);
 }
 
-main div.expandable-sidebar-wrapper:has(.expandable-sidebar.background-color-dark-gray),
+main div.expandable-sidebar-menu div.expandable-sidebar-wrapper:has(.expandable-sidebar.background-color-dark-gray),
 main div.expandable-sidebar.background-color-dark-gray {
   background-color: #323232;
 }

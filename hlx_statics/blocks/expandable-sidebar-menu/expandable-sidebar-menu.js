@@ -1,5 +1,3 @@
-import { decorateLightOrDark } from '../../scripts/lib-helix.js';
-
 export default async function decorate(block) {
   const rows = [...block.children];
 
@@ -152,5 +150,4 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
   block.append(wrapper);
-  decorateLightOrDark(block);
 }
