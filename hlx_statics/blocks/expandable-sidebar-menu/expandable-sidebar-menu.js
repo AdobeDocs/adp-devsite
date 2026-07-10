@@ -177,17 +177,23 @@ export default async function decorate(block) {
   });
 
   wrapper.append(sidebar, contentArea);
-  
+
   block.innerHTML = '';
   block.append(wrapper);
-
-  block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
-    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'expandable-sidebar-menu-heading');
+  block.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((h) => {
     h.style.whiteSpace = "normal";
   });
+  block.querySelectorAll('h1').forEach((h) => {
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'expandable-sidebar-menu-heading');
+  });
+  block.querySelectorAll('h2, h3, h4, h5, h6').forEach((h) => {
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'expandable-sidebar-menu-heading');
+  });
+  block.querySelectorAll('h3, h4, h5, h6').forEach((h) => {
+    h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'expandable-sidebar-menu-heading');
+  });
   block.querySelectorAll('p').forEach((p) => {
-    p.classList.add('spectrum-Body', 'spectrum-Body--sizeL', 'expandable-sidebar-menu-body');
-    p.style.whiteSpace = "normal";
+    p.classList.add('spectrum-Body', 'spectrum-Body--sizeM', 'expandable-sidebar-menu-body');
   });
 
   applyBackgroundColor(block);
