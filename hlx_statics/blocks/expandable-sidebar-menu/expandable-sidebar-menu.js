@@ -199,7 +199,7 @@ export default async function decorate(block) {
     unorder.classList.add('spectrum-Body', 'spectrum-Body--sizeS');
   });
   block.querySelectorAll('li').forEach((li) => {
-    li.classList.add('spectrum-Body', 'spectrum-Body--sizeS');
+    li.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
   });
 
   applyBackgroundColor(block);
