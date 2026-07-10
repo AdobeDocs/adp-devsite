@@ -186,7 +186,7 @@ export default async function decorate(block) {
   block.querySelectorAll('h1').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'expandable-sidebar-menu-heading');
   });
-  block.querySelectorAll('h2, h3, h4, h5, h6').forEach((h) => {
+  block.querySelectorAll('h2').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'expandable-sidebar-menu-heading');
   });
   block.querySelectorAll('h3, h4, h5, h6').forEach((h) => {
@@ -194,6 +194,12 @@ export default async function decorate(block) {
   });
   block.querySelectorAll('p').forEach((p) => {
     p.classList.add('spectrum-Body', 'spectrum-Body--sizeM', 'expandable-sidebar-menu-body');
+  });
+  block.querySelectorAll('ul, ol').forEach((unorder) => {
+    unorder.classList.add('spectrum-Body', 'spectrum-Body--sizeS');
+  });
+  block.querySelectorAll('li').forEach((li) => {
+    li.classList.add('spectrum-Body', 'spectrum-Body--sizeL');
   });
 
   applyBackgroundColor(block);
