@@ -1,3 +1,5 @@
+import { decorateLightOrDark } from '../../scripts/lib-helix.js';
+
 export default async function decorate(block) {
   const rows = [...block.children];
 
@@ -32,9 +34,9 @@ export default async function decorate(block) {
       icon.innerHTML = `
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
+          width="22"
+          height="22"
+          viewBox="0 0 34 34"
           fill="none"
         >
           <path
@@ -150,4 +152,5 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
   block.append(wrapper);
+  decorateLightOrDark(block);
 }
