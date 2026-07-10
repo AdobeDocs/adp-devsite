@@ -69,7 +69,7 @@ export default async function decorate(block) {
           <path
             d="M8 5L16 12L8 19"
             stroke="currentColor"
-            stroke-width="2"
+            stroke-width="3"
             stroke-linecap="round"
             stroke-linejoin="round"
           />
