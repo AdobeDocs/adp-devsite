@@ -82,6 +82,7 @@ export default async function decorate(block) {
       const picture = titleEl.querySelector('picture');
       if (picture) {
         title.append(picture.cloneNode(true));
+        currentAccordion.classList.add('has-header-image');
       }
 
       const text = document.createElement('span');

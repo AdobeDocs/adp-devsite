@@ -95,8 +95,12 @@ main div.expandable-sidebar-menu-wrapper .sidebar-accordion-header {
 main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list {
   list-style: none;
   margin: 0;
-  padding: 0 0 0 80px;
+  padding: 0 0 0 32px;
   display: none;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion.has-header-image .sidebar-accordion-list {
+  padding: 0 0 0 80px;
 }
 
 main div.expandable-sidebar-menu-wrapper .sidebar-accordion.open .sidebar-accordion-list {
