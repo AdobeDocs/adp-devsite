@@ -85,6 +85,7 @@ export default async function decorate(block) {
       }
 
       const text = document.createElement('span');
+      text.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM');
       text.textContent = titleEl.textContent.trim();
       title.append(text);
 

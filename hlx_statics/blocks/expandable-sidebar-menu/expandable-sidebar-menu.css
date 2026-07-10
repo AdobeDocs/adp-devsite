@@ -95,7 +95,7 @@ main div.expandable-sidebar-menu-wrapper .sidebar-accordion-header {
 main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list {
   list-style: none;
   margin: 0;
-  padding: 0 0 0 32px;
+  padding: 0 0 0 80px;
   display: none;
 }
 
@@ -175,4 +175,14 @@ main div.expandable-sidebar-menu-wrapper ol {
 main div.expandable-sidebar-menu-wrapper ul,
 main div.expandable-sidebar-menu-wrapper ol {
   margin-top: 18px !important;
+}
+
+@media screen and (max-width: 768px) {
+  main div.expandable-sidebar-menu-wrapper .expandable-sidebar {
+    width: 100%;
+  }
+
+  main div.expandable-sidebar-menu-wrapper .expandable-sidebar-wrapper {
+    flex-direction: column;
+  }
 }
