@@ -35,12 +35,6 @@
   text-align: left;
 }
 
-.sidebar-accordion-header::before {
-  content: "▸";
-  font-size: 12px;
-  transition: transform 0.2s ease;
-}
-
 .sidebar-accordion.open .sidebar-accordion-header::before {
   transform: rotate(90deg);
 }
@@ -82,4 +76,44 @@
 
 .expandable-panel.active {
   display: block;
+}
+
+.sidebar-accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 12px 0;
+  text-align: left;
+}
+
+.sidebar-accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-accordion-title picture,
+.sidebar-accordion-title img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.sidebar-accordion-title span {
+  font-weight: 700;
+}
+
+.sidebar-accordion-icon {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-accordion.open .sidebar-accordion-icon {
+  transform: rotate(90deg);
 }

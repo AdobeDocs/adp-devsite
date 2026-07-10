@@ -48,10 +48,21 @@ export default async function decorate(block) {
         </svg>
       `;
 
+      const content = document.createElement('span');
+      content.className = 'sidebar-accordion-title';
+
+      const picture = titleEl.querySelector('picture');
+
+      if (picture) {
+        content.append(picture.cloneNode(true));
+      }
+
       const text = document.createElement('span');
       text.textContent = titleEl.textContent.trim();
 
-      header.append(icon, text);
+      content.append(text);
+
+      header.append(icon, content);
 
       currentList = document.createElement('ul');
       currentList.className = 'sidebar-accordion-list';
@@ -59,21 +70,23 @@ export default async function decorate(block) {
       currentAccordion.append(header, currentList);
       sidebar.append(currentAccordion);
 
+      const accordion = currentAccordion;
+
       header.addEventListener('click', () => {
-        const isOpen = currentAccordion.classList.contains('open');
-      
+        const isOpen = accordion.classList.contains('open');
+
         // Close all accordions
-        sidebar.querySelectorAll('.sidebar-accordion').forEach((accordion) => {
-          accordion.classList.remove('open');
+        sidebar.querySelectorAll('.sidebar-accordion').forEach((item) => {
+          item.classList.remove('open');
         });
-      
-        // Open only the clicked accordion if it wasn't already open
+
+        // Open the clicked accordion if it was closed
         if (!isOpen) {
-          currentAccordion.classList.add('open');
+          accordion.classList.add('open');
         }
       });
     }
-    
+
 
     // If no accordion exists yet, skip
     if (!currentList) {
