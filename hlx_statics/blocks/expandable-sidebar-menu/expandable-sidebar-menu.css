@@ -140,8 +140,8 @@ main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title {
 
 main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title picture,
 main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title img {
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
   display: block;
   flex-shrink: 0;
 }
