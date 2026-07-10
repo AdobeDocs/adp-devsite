@@ -1,0 +1,83 @@
+.expandable-sidebar-wrapper {
+  display: flex;
+  gap: 48px;
+}
+
+.expandable-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.expandable-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Accordion */
+
+.sidebar-accordion {
+  margin-bottom: 16px;
+}
+
+.sidebar-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-accordion-header::before {
+  content: "▸";
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-accordion.open .sidebar-accordion-header::before {
+  transform: rotate(90deg);
+}
+
+.sidebar-accordion-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 32px;
+  display: none;
+}
+
+.sidebar-accordion.open .sidebar-accordion-list {
+  display: block;
+}
+
+/* Child items */
+
+.sidebar-accordion-list li {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.sidebar-accordion-list li:hover {
+  background: #f5f5f5;
+}
+
+.sidebar-accordion-list li.active {
+  background: #ececec;
+  font-weight: 500;
+}
+
+/* Content Panels */
+
+.expandable-panel {
+  display: none;
+}
+
+.expandable-panel.active {
+  display: block;
+}
