@@ -26,6 +26,10 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   border-color: rgb(235, 235, 235);
 }
 
+main :is(div.info-card-wrapper div.info-card.narrow, div.infocard-wrapper div.infocard.narrow)>ul>li {
+  max-width: 222px;
+}
+
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li:hover {
   border-color: rgb(177, 177, 177);
 }
@@ -56,6 +60,10 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   width: 400px;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+main :is(div.info-card-wrapper div.info-card.narrow, div.infocard-wrapper div.infocard.narrow)>ul>li img {
+  width: 222px;
 }
 
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) div.icon-div p.icon-p {
