@@ -48,6 +48,14 @@ main div.cards-wrapper div.cards > div {
   display: table-cell;
 }
 
+main div.cards-wrapper.start div.cards > div {
+  text-align: start;
+}
+
+main div.cards-wrapper.end div.cards > div {
+  text-align: end;
+}
+
 main div.cards-wrapper div.cards > div.three-cards {
   width: 33.33vw;
 }
