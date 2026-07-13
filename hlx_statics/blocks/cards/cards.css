@@ -48,11 +48,11 @@ main div.cards-wrapper div.cards > div {
   display: table-cell;
 }
 
-main div.cards-wrapper.start div.cards > div {
+main div.cards-wrapper div.cards.start > div {
   text-align: start;
 }
 
-main div.cards-wrapper.end div.cards > div {
+main div.cards-wrapper div.cards.end > div {
   text-align: end;
 }
 
