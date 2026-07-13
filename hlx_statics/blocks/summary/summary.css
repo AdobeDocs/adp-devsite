@@ -32,6 +32,10 @@ main div.summary-wrapper  div.summary.no-image > div {
   /* margin: 32px; */
 }
 
+main div.summary-wrapper div.summary.left > div {
+ left: 30%;
+}
+
 @media screen and (max-width: 1280px) {
   main div.summary-wrapper  div.summary picture {
     height: 350px;
