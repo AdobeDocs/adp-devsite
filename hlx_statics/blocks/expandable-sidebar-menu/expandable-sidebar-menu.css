@@ -1,0 +1,192 @@
+main div.expandable-sidebar-menu-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.block {
+  margin: auto;
+  max-width: 1280px;
+  padding: 20px;
+  width: 100%;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-gray,
+main div.expandable-sidebar-menu.background-color-gray > .expandable-sidebar-wrapper {
+  background-color: rgb(245, 245, 245);
+}
+
+main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-white),
+main div.expandable-sidebar-menu-wrapper.background-color-white,
+main div.expandable-sidebar-menu.background-color-white,
+main div.expandable-sidebar-menu.background-color-white > .expandable-sidebar-wrapper {
+  background-color: white;
+}
+
+main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-navy),
+main div.expandable-sidebar-menu-wrapper.background-color-navy,
+main div.expandable-sidebar-menu.background-color-navy,
+main div.expandable-sidebar-menu.background-color-navy > .expandable-sidebar-wrapper {
+  background-color: rgb(15, 55, 95);
+}
+
+main div.expandable-sidebar-menu-wrapper:has(.expandable-sidebar-menu.background-color-dark-gray),
+main div.expandable-sidebar-menu-wrapper.background-color-dark-gray,
+main div.expandable-sidebar-menu.background-color-dark-gray,
+main div.expandable-sidebar-menu.background-color-dark-gray > .expandable-sidebar-wrapper {
+  background-color: #323232;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray .sidebar-accordion-header,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray p,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy .sidebar-accordion-header,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy p {
+  color: white;
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy .sidebar-accordion-list li:hover,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray .sidebar-accordion-list li:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-navy .sidebar-accordion-list li.active,
+main div.expandable-sidebar-menu-wrapper div.expandable-sidebar-menu.background-color-dark-gray .sidebar-accordion-list li.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+main div.expandable-sidebar-menu-wrapper .expandable-sidebar-wrapper {
+  width: 100%;
+  max-width: 1280px;
+  margin: auto;
+  display: flex;
+  gap: 48px;
+}
+
+main div.expandable-sidebar-menu-wrapper .expandable-sidebar {
+  width: calc(var(--spectrum-global-dimension-size-1000) + var(--spectrum-global-dimension-size-3000));
+  flex-shrink: 0;
+}
+
+main div.expandable-sidebar-menu-wrapper .expandable-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Accordion */
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion {
+  margin-bottom: 16px;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 32px;
+  display: none;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion.has-header-image .sidebar-accordion-list {
+  padding: 0 0 0 80px;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion.open .sidebar-accordion-list {
+  display: block;
+}
+
+/* Child items */
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list li {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list li:hover {
+  background: #f5f5f5;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list li.active {
+  background: #ececec;
+  font-weight: 500;
+}
+
+/* Content Panels */
+
+main div.expandable-sidebar-menu-wrapper .expandable-panel {
+  display: none;
+}
+
+main div.expandable-sidebar-menu-wrapper .expandable-panel.active {
+  display: block;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title picture,
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title img {
+  width: 40px;
+  height: 40px;
+  display: block;
+  flex-shrink: 0;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title span {
+  font-weight: 700;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-icon {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion.open .sidebar-accordion-icon {
+  transform: rotate(90deg);
+}
+
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-list-item ,
+main div.expandable-sidebar-menu-wrapper .sidebar-accordion-title span {
+  font-size : 16px;
+}
+
+main div.expandable-sidebar-menu-wrapper h1,
+main div.expandable-sidebar-menu-wrapper h2,
+main div.expandable-sidebar-menu-wrapper p,
+main div.expandable-sidebar-menu-wrapper ul,
+main div.expandable-sidebar-menu-wrapper ol {
+  margin-bottom: 18px !important;
+}
+
+main div.expandable-sidebar-menu-wrapper ul,
+main div.expandable-sidebar-menu-wrapper ol {
+  margin-top: 18px !important;
+}
+
+@media screen and (max-width: 768px) {
+  main div.expandable-sidebar-menu-wrapper .expandable-sidebar {
+    width: 100%;
+  }
+
+  main div.expandable-sidebar-menu-wrapper .expandable-sidebar-wrapper {
+    flex-direction: column;
+  }
+}
