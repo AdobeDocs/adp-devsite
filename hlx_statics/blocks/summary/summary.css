@@ -33,7 +33,7 @@ main div.summary-wrapper  div.summary.no-image > div {
 }
 
 main div.summary-wrapper div.summary.left > div {
- left: 30%;
+ left: 30% !important;
 }
 
 @media screen and (max-width: 1280px) {
