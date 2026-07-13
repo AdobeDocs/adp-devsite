@@ -85,7 +85,7 @@ export default async function decorate(block) {
 
     const repeatRows = block.children;
 
-    if(slotNames.includes('video')) {
+    if(slotNames.includes('video') || block.classList.contains('video')) {
       Array.from(repeatRows).forEach((repeatRow) => {
         const slotElements = Object.fromEntries(
           Array.from(repeatRow.children).map((child, index) => [slotNames[index], child])
