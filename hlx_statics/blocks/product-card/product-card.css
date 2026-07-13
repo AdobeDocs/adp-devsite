@@ -10,6 +10,10 @@ main div.product-card-wrapper div.product-card {
     grid-gap: 50px;
 }
 
+main div.product-card-wrapper div.product-card.narrow {
+    max-width: 1000px;
+}
+
 main div.product-card-wrapper div.product-card>div {
     background-color: #ffffff;
     border: 1px solid #e6e6e6;
