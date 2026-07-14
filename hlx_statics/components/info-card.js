@@ -115,6 +115,7 @@ export default async function decorateInfoCard(block, options = {}) {
         autoplay: true,
         muted: true,
         loop: true,
+        controls: true,
       });
       imageDiv.appendChild(wrapperVideo);
       card.appendChild(imageDiv);
