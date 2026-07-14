@@ -39,9 +39,9 @@ export default async function decorate(block) {
   const container = getBlockSectionContainer(block);
   const variant = block.getAttribute('data-variant')
   const isReversed = block.getAttribute('data-isreversed') === 'true';
+  const isControls = block.classList.contains('controls');
   isReversed && block.classList.add('isReversed');
   const isDocs = IS_DEV_DOCS;
-  const isControls = block.classList.contains('controls');
 
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
@@ -68,9 +68,9 @@ export default async function decorate(block) {
     } else if (hasIcons.length > 0) {
       p.classList.add('icon-container');
       // Wraps non-hyperlinked text after icon in a paragraph tag
-      p.childNodes.forEach((child) => {
+      p.childNodes.forEach( (child) => {
         if (child.nodeType === Node.TEXT_NODE) {
-          const textParagraph = createTag('p', { class: 'icon-text' });
+          const textParagraph = createTag('p', {class:'icon-text'});
           textParagraph.innerText = child.textContent;
           p.replaceChild(textParagraph, child);
         }
@@ -86,7 +86,7 @@ export default async function decorate(block) {
 
     const repeatRows = block.children;
 
-    if (slotNames.includes('video') || block.classList.contains('video')) {
+    if(slotNames.includes('video') || block.classList.contains('video')) {
       Array.from(repeatRows).forEach((repeatRow) => {
         const slotElements = Object.fromEntries(
           Array.from(repeatRow.children).map((child, index) => [slotNames[index], child])
@@ -103,31 +103,11 @@ export default async function decorate(block) {
             loop: true,
           });
           slotElements.video?.replaceWith(wrapperVideo);
-
+  
           const newWrapper = createTag('div');
-          Array.from(repeatRow.children).forEach((child) => child !== wrapperVideo && newWrapper.appendChild(child));
+          Array.from(repeatRow.children).forEach((child) => child !== wrapperVideo && newWrapper.appendChild(child) );
           repeatRow.appendChild(newWrapper);
         }
-      });
-    }
-    else if (block.classList.contains('video')) {
-      Array.from(block.children).forEach((row) => {
-        const firstColumn = row.children[0];
-        if (!firstColumn) return;
-
-        const videoSource = parseVideoSource(firstColumn);
-        if (!videoSource) return;
-
-        const wrapperVideo = createTag('div');
-        applyVideoContainer(wrapperVideo, {
-          url: videoSource.url,
-          title: getVideoTitle(videoSource.url, videoSource.linkText),
-          autoplay: true,
-          muted: true,
-          loop: true,
-          controls: isControls ? true : false,
-        });
-        firstColumn.replaceChildren(wrapperVideo);
       });
     }
     else {
@@ -137,11 +117,30 @@ export default async function decorate(block) {
           const wrapperImage = imageSlot.parentElement.closest('div');
 
           const newWrapper = createTag('div');
-          Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child));
+          Array.from(data.children).forEach((child) => child !== wrapperImage && newWrapper.appendChild(child) );
           data.appendChild(newWrapper);
         }
       });
     }
+  } else if (block.classList.contains('video')) {
+    Array.from(block.children).forEach((row) => {
+      const firstColumn = row.children[0];
+      if (!firstColumn) return;
+
+      const videoSource = parseVideoSource(firstColumn);
+      if (!videoSource) return;
+
+      const wrapperVideo = createTag('div');
+      applyVideoContainer(wrapperVideo, {
+        url: videoSource.url,
+        title: getVideoTitle(videoSource.url, videoSource.linkText),
+        autoplay: true,
+        muted: true,
+        loop: true,
+        controls: isControls ? true : false,
+      });
+      firstColumn.replaceChildren(wrapperVideo);
+    });
   }
 
   const columnList = block.querySelectorAll('.columns > div');
@@ -226,7 +225,8 @@ export default async function decorate(block) {
   block.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
     const prevElement = secondColumn.querySelector('p.icon-container')?.previousElementSibling;
     // Only wrap in prdouct link container div if element container icon container
-    if (prevElement) {
+    if (prevElement)
+    {
       const productLinkContainer = createTag('div', { class: 'product-link-container' });
       secondColumn.querySelectorAll('p.icon-container').forEach((innerSecond) => {
         productLinkContainer.append(innerSecond);
@@ -247,14 +247,14 @@ export default async function decorate(block) {
     // in devdocs , slot have the lists
     block.querySelectorAll('div.listing').forEach(data => {
       data.closest('div')?.classList.add('button-group-container');
-
+    
       const a = data.querySelector('a');
       if (!a) return;
-
+    
       a.className = '';
       const p = createTag('p', { class: 'button-container' });
       p.append(a);
-
+    
       data.replaceChildren(p);
     });
 
