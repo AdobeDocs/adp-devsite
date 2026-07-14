@@ -4,7 +4,6 @@ import decoratePreformattedCode from "../../components/code.js";
 import { ensurePrismLoaded } from "../../scripts/prism-loader.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
-import { createAiAvatar } from "./ai-assistant_chat-ui.js";
 
 export class ChatBubble {
   /**
@@ -387,13 +386,54 @@ export class ChatBubble {
     const wrapper = createTag("div", {
       class: "chat-bubble-sources",
     });
-    const heading = createTag("p", { class: "chat-bubble-sources-heading" });
-    heading.textContent = "Sources:";
+    const heading = createTag("h6", { class: "chat-bubble-sources-heading" });
+    const button = createTag("button", {
+      "aria-expanded": false,
+      "aria-controls": `sources-region-${this.id}`,
+      id: `sources-button-${this.id}`,
+    });
+    const buttonIndicator = createTag("div", {
+      class: "chat-bubble-sources-status-indicator",
+    });
+    buttonIndicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+      <path fill="#222" d="M7.965 5.178C7.978 5.118 8 5.061 8 5s-.021-.118-.034-.178c-.01-.05-.01-.102-.03-.15-.023-.058-.068-.107-.104-.16-.03-.042-.047-.09-.084-.127l-.004-.003-.003-.004L3.615.303a.875.875 0 1 0-1.23 1.244L5.88 5 2.385 8.453a.875.875 0 1 0 1.23 1.244L7.74 5.622l.003-.004.004-.003c.037-.038.055-.085.084-.127.036-.053.08-.102.104-.16.02-.048.02-.1.03-.15"></path>
+    </svg>`;
+    const buttonText = createTag("span", {});
+    buttonText.textContent = "Sources";
+    const faviconsContainer = createTag('div', {class: 'chat-bubble-sources-favicons', 'aria-hidden': true})
+    const faviconImages = createTag('div', { class: 'chat-bubble-sources-favicon-images' });
+    faviconsContainer.appendChild(faviconImages);
+    if (references.length > 3) {
+      const faviconsContainerText = createTag('span', {});
+      faviconsContainerText.innerText = `& ${references.length - 3} more`;
+      faviconsContainer.appendChild(faviconsContainerText);
+    }
+
+    button.appendChild(buttonIndicator);
+    button.appendChild(buttonText);
+    button.appendChild(faviconsContainer);
+    heading.appendChild(button);
     wrapper.appendChild(heading);
 
+    const sourcesRegion = createTag("div", {
+      id: `sources-region-${this.id}`,
+      "aria-labelledby": `sources-button-${this.id}`,
+      role: "region",
+      hidden: true,
+    });
     const list = createTag("ol", { class: "chat-bubble-sources-list" });
-    references.forEach(({ url, title }) => {
+    references.forEach(({ url, title }, idx) => {
+      const host = new URL(url).host;
+      const sourceFavicon = createTag('img', { src: `https://s2.googleusercontent.com/s2/favicons?domain=${host}&sz=16` });
+      if (idx < 3) {
+        faviconImages.appendChild(sourceFavicon);
+      }
       const li = createTag("li", { class: "chat-bubble-sources-item" });
+      const marker = createTag("span", {
+        "aria-hidden": "true",
+        class: "chat-bubble-sources-item-marker",
+      });
+      marker.textContent = String(idx + 1);
       const a = createTag("a", {
         href: url,
         target: "_blank",
@@ -404,10 +444,21 @@ export class ChatBubble {
         "daa-ll",
         `DevsiteAI Assistant:Message:Sources:Link:${a.textContent}|${url}`,
       );
+      li.appendChild(marker);
       li.appendChild(a);
       list.appendChild(li);
     });
-    wrapper.appendChild(list);
+    sourcesRegion.appendChild(list);
+    wrapper.appendChild(sourcesRegion);
+
+    button.addEventListener("click", () => {
+      const isExpanded = button.ariaExpanded === "true";
+      const newState = !isExpanded;
+      sourcesRegion.hidden = newState === false;
+      button.ariaExpanded = String(newState);
+      buttonIndicator.classList.toggle("rotated");
+    });
+
     this.element.appendChild(wrapper);
   }
 }
