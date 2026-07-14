@@ -44,6 +44,7 @@ export default async function decorateInfoCard(block, options = {}) {
   block.setAttribute('daa-lh', daaLh);
   const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
   const isVideoCard = block.classList.contains('video');
+  const isControls = block.classList.contains('controls');
   const isWide = block.getAttribute('data-wide') === 'true';
   if (isWide) {
     block.classList.add('wide');
@@ -115,7 +116,7 @@ export default async function decorateInfoCard(block, options = {}) {
         autoplay: true,
         muted: true,
         loop: true,
-        controls: true,
+        controls: isControls ? true : false,
       });
       imageDiv.appendChild(wrapperVideo);
       card.appendChild(imageDiv);
