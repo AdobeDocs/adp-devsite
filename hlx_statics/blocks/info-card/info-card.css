@@ -59,7 +59,7 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   width: 100%;
   max-width: none;
   flex: none;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
 }
 
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image .video-embed::before {
@@ -67,7 +67,7 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
 }
 
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image .video-embed :is(iframe, video) {
-  object-fit: cover;
+  object-fit: contain;
 }
 
 main :is(div.info-card-wrapper div.info-card.wide, div.infocard-wrapper div.infocard.wide) .cards-card-image .video-embed {
