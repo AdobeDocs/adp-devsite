@@ -43,8 +43,8 @@ export default async function decorateInfoCard(block, options = {}) {
   const { daaLh = 'info-card' } = options;
   block.setAttribute('daa-lh', daaLh);
   const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
-  const isVideoCard = block.classList.contains('video');
-  const isControls = block.classList.contains('controls');
+  const isVideoCard = block.classList.contains('video') || block.getAttribute('data-slots')?.split(',')?.includes('video');
+  const isControls = block.classList.contains('controls') || block.getAttribute('data-controls') === 'true';
   const isWide = block.getAttribute('data-wide') === 'true';
   if (isWide) {
     block.classList.add('wide');
