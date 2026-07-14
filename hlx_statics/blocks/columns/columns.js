@@ -90,7 +90,7 @@ export default async function decorate(block) {
         const slotElements = Object.fromEntries(
           Array.from(repeatRow.children).map((child, index) => [slotNames[index], child])
         );
-        
+
         const videoSource = parseVideoSource(slotElements.video);
         if (videoSource) {
           const wrapperVideo = createTag('div');
@@ -121,6 +121,24 @@ export default async function decorate(block) {
         }
       });
     }
+  } else if (block.classList.contains('video')) {
+    Array.from(block.children).forEach((row) => {
+      const firstColumn = row.children[0];
+      if (!firstColumn) return;
+
+      const videoSource = parseVideoSource(firstColumn);
+      if (!videoSource) return;
+
+      const wrapperVideo = createTag('div');
+      applyVideoContainer(wrapperVideo, {
+        url: videoSource.url,
+        title: getVideoTitle(videoSource.url, videoSource.linkText),
+        autoplay: true,
+        muted: true,
+        loop: true,
+      });
+      firstColumn.replaceChildren(wrapperVideo);
+    });
   }
 
   const columnList = block.querySelectorAll('.columns > div');
