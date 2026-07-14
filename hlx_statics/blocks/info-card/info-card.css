@@ -48,6 +48,32 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   line-height: 0;
 }
 
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image .video-container {
+  display: block;
+  width: 400px;
+  max-width: 100%;
+  margin: 0;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image .video-embed {
+  width: 100%;
+  max-width: none;
+  flex: none;
+  aspect-ratio: 16 / 9;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image .video-embed::before {
+  display: none;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image .video-embed :is(iframe, video) {
+  object-fit: cover;
+}
+
+main :is(div.info-card-wrapper div.info-card.wide, div.infocard-wrapper div.infocard.wide) .cards-card-image .video-embed {
+  aspect-ratio: 16 / 9;
+}
+
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body>*:first-child {
   margin-top: 0;
 }
@@ -101,6 +127,10 @@ main :is(div.info-card-wrapper div.info-card.wide, div.infocard-wrapper div.info
   main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li img {
     width: 100%;
     object-fit: cover;
+  }
+
+  main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-image .video-container {
+    width: 100%;
   }
 }
 
