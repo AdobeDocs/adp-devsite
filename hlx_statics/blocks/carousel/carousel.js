@@ -135,10 +135,22 @@ export default async function decorate(block) {
       );
       if (p.classList.contains("button-container")) {
         button_div.classList.add('carousel-button-container');
-        const anchor = p.querySelector('a');
-        if(anchor){
-          anchor.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button');
-        }
+        p.querySelectorAll('a').forEach((a) => {
+          const isStrong = a.parentElement.tagName === 'STRONG'
+            || a.classList.contains('spectrum-Button--accent');
+          a.classList.remove(
+            'spectrum-Button--secondary',
+            'spectrum-Button--outline',
+            'spectrum-Button--accent',
+            'spectrum-Button--fill',
+          );
+          a.classList.add('spectrum-Button', 'spectrum-Button--sizeM');
+          if (isStrong) {
+            a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill');
+          } else {
+            a.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
+          }
+        });
         button_div.append(p);
       } else {
         let flex_div = block.querySelector(
