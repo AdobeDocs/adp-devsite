@@ -118,6 +118,14 @@ main div.cards-wrapper div.cards .cards-button-container {
   margin-bottom: 12px;
 }
 
+main div.cards-wrapper div.cards.start .cards-button-container  {
+  justify-content: start;
+}
+
+main div.cards-wrapper div.cards.end .cards-button-container  {
+  justify-content: end;
+}
+
 main div.cards-wrapper div.cards .cards-button-container a.card-button {
   margin-top: 0;
   margin-bottom: 0;
