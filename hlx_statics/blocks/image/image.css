@@ -4,6 +4,10 @@ main div.image-wrapper {
   background-color: #fff;
 }
 
+main div.image-container {
+  background-color: #fff;
+}
+
 main div.image-wrapper div.image {
   display: flex;
   justify-content: center;
