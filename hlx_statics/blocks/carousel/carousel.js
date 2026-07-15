@@ -130,10 +130,15 @@ export default async function decorate(block) {
     if (p.classList.contains("IMAGE")) {
       p.classList.add("image-container");
     } else {
-      let button_div = block.querySelector(
-        "[id=button-div-" + p.parentElement.id + "]"
-      );
-      if (p.classList.contains("button-container")) {
+      const slide = p.closest('.carousel-container');
+      const slideId = slide?.id;
+      const button_div = slideId
+        ? block.querySelector(`#button-div-${slideId}`)
+        : null;
+      const isButtonParagraph = p.classList.contains('button-container')
+        || (p.matches(':scope > a, :scope > strong > a') && !p.querySelector('span'));
+      if (isButtonParagraph) {
+        if (!button_div) return;
         button_div.classList.add('carousel-button-container');
         p.querySelectorAll('a').forEach((a) => {
           const isStrong = a.parentElement.tagName === 'STRONG'
@@ -153,9 +158,10 @@ export default async function decorate(block) {
         });
         button_div.append(p);
       } else {
-        let flex_div = block.querySelector(
-          "[id=text-flex-div-" + p.parentElement.id + "]"
-        );
+        const flex_div = slideId
+          ? block.querySelector(`#text-flex-div-${slideId}`)
+          : null;
+        if (!flex_div || !button_div) return;
         //changing class list of p tags for icons
         if (p.querySelector("span")) {
           // Add a class to the <p> tag
