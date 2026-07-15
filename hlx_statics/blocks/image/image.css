@@ -1,16 +1,31 @@
 main div.image-wrapper {
   width: 50%;
   margin: auto;
-  background-color: #fff;
-}
-
-main div.image-container {
-  background-color: #fff;
 }
 
 main div.image-wrapper div.image {
   display: flex;
   justify-content: center;
+}
+
+main div.section.image-container {
+  background-color: #fff;
+}
+
+main div.section.image-container:has(.image.background-color-gray) {
+  background-color: rgb(245, 245, 245);
+}
+
+main div.section.image-container:has(.image.background-color-white) {
+  background-color: #fff;
+}
+
+main div.section.image-container:has(.image.background-color-navy) {
+  background-color: rgb(15, 55, 95);
+}
+
+main div.section.image-container:has(.image.background-color-dark-gray) {
+  background-color: #323232;
 }
 
 main div.image-wrapper div.image.medium img {
