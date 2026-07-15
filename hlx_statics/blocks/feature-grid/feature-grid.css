@@ -8,16 +8,13 @@ main div.feature-grid-wrapper div.feature-grid {
   max-width: 1280px;
 }
 
-main div.feature-grid-wrapper div.feature-grid > ul.feature-grid-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list {
   display: grid;
   grid-template-columns: repeat(var(--grid-columns, 4), minmax(0, 1fr));
   gap: 16px;
 }
 
-main div.feature-grid-wrapper div.feature-grid > ul > li.feature-grid-card {
+main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.feature-grid-card {
   border-radius: 4px;
   box-sizing: border-box;
   padding: 24px;
@@ -27,9 +24,17 @@ main div.feature-grid-wrapper div.feature-grid > ul > li.feature-grid-card {
   min-height: 320px;
 }
 
-main div.feature-grid-wrapper div.feature-grid > ul > li.feature-grid-card--light {
+main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.feature-grid-card--light {
   color: rgb(0, 0, 0);
   border: 1px solid rgb(235, 235, 235);
+}
+
+main div.feature-grid-wrapper div.feature-grid.white {
+  color: #fff;
+}
+
+main div.feature-grid-wrapper div.feature-grid.narrow {
+  max-width: 1000px;
 }
 
 main div.feature-grid-wrapper div.feature-grid-card-image {
@@ -47,6 +52,7 @@ main div.feature-grid-wrapper div.feature-grid-card-body {
   flex-direction: column;
   flex: 1;
   margin-top: 16px;
+  gap: 20px;
 }
 
 main div.feature-grid-wrapper div.feature-grid-card-heading {
@@ -91,13 +97,13 @@ main div.feature-grid-wrapper a.feature-grid-card-cta {
 }
 
 @media screen and (max-width: 1024px) {
-  main div.feature-grid-wrapper div.feature-grid > ul.feature-grid-list {
+  main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media screen and (max-width: 640px) {
-  main div.feature-grid-wrapper div.feature-grid > ul.feature-grid-list {
+  main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list {
     grid-template-columns: 1fr;
   }
 }

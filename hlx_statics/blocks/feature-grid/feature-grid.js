@@ -39,16 +39,16 @@ export default async function decorate(block) {
   removeEmptyPTags(block);
   decorateButtons(block);
 
-  const ul = createTag('ul', { class: 'feature-grid-list' });
+  const grid = createTag('div', { class: 'feature-grid-list' });
 
   [...block.children].forEach((row) => {
     const [imageSlot, contentSlot, bgSlot] = row.children;
     if (!contentSlot) return;
 
     const { background, isLight } = getCardBackground(bgSlot);
-    const li = createTag('li', { class: 'feature-grid-card' });
-    if (isLight) li.classList.add('feature-grid-card--light');
-    li.style.background = background;
+    const card = createTag('div', { class: 'feature-grid-card' });
+    if (isLight) card.classList.add('feature-grid-card--light');
+    card.style.background = background;
 
     const imageDiv = createTag('div', { class: 'feature-grid-card-image' });
     const image = imageSlot?.querySelector('picture img, img');
@@ -58,7 +58,7 @@ export default async function decorate(block) {
         createOptimizedPicture(image.src, image.alt, false, [{ width: picWidth }]),
       );
     }
-    li.appendChild(imageDiv);
+    card.appendChild(imageDiv);
 
     const bodyDiv = createTag('div', { class: 'feature-grid-card-body' });
 
@@ -82,12 +82,12 @@ export default async function decorate(block) {
     });
     if (buttonWrap.childElementCount) bodyDiv.appendChild(buttonWrap);
 
-    li.appendChild(bodyDiv);
-    ul.appendChild(li);
+    card.appendChild(bodyDiv);
+    grid.appendChild(card);
   });
 
-  ul.style.setProperty('--grid-columns', Math.min(ul.children.length, 4) || 1);
+  grid.style.setProperty('--grid-columns', Math.min(grid.children.length, 4) || 1);
 
   block.textContent = '';
-  block.appendChild(ul);
+  block.appendChild(grid);
 }
