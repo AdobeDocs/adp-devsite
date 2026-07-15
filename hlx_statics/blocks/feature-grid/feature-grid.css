@@ -24,12 +24,38 @@ main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.fea
   min-height: 320px;
 }
 
+main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.feature-grid-card:not(.feature-grid-card--light) :is(
+  .feature-grid-card-heading,
+  .feature-grid-card-description,
+  .spectrum-Heading,
+  .spectrum-Body
+) {
+  color: #fff;
+}
+
 main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.feature-grid-card--light {
   color: rgb(0, 0, 0);
   border: 1px solid rgb(235, 235, 235);
 }
 
-main div.feature-grid-wrapper div.feature-grid.white {
+main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.feature-grid-card--light :is(
+  .feature-grid-card-heading,
+  .spectrum-Heading
+) {
+  color: rgb(0, 0, 0);
+}
+
+main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.feature-grid-card--light .feature-grid-card-description,
+main div.feature-grid-wrapper div.feature-grid > div.feature-grid-list > div.feature-grid-card--light .spectrum-Body {
+  color: rgb(71, 71, 71);
+}
+
+main div.feature-grid-wrapper div.feature-grid.white > div.feature-grid-list > div.feature-grid-card :is(
+  .feature-grid-card-heading,
+  .feature-grid-card-description,
+  .spectrum-Heading,
+  .spectrum-Body
+) {
   color: #fff;
 }
 
@@ -57,16 +83,10 @@ main div.feature-grid-wrapper div.feature-grid-card-body {
 
 main div.feature-grid-wrapper div.feature-grid-card-heading {
   margin: 0 0 12px;
-  color: inherit;
 }
 
 main div.feature-grid-wrapper div.feature-grid-card-description {
   margin: 0;
-  color: inherit;
-}
-
-main div.feature-grid-wrapper div.feature-grid-card--light .feature-grid-card-description {
-  color: rgb(71, 71, 71);
 }
 
 main div.feature-grid-wrapper div.feature-grid-card-button {
