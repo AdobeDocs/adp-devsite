@@ -1,0 +1,103 @@
+main div.feature-grid-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+main div.feature-grid-wrapper div.feature-grid {
+  width: 100%;
+  max-width: 1280px;
+}
+
+main div.feature-grid-wrapper div.feature-grid > ul.feature-grid-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns, 4), minmax(0, 1fr));
+  gap: 16px;
+}
+
+main div.feature-grid-wrapper div.feature-grid > ul > li.feature-grid-card {
+  border-radius: 4px;
+  box-sizing: border-box;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  min-height: 320px;
+}
+
+main div.feature-grid-wrapper div.feature-grid > ul > li.feature-grid-card--light {
+  color: rgb(0, 0, 0);
+  border: 1px solid rgb(235, 235, 235);
+}
+
+main div.feature-grid-wrapper div.feature-grid-card-image {
+  line-height: 0;
+}
+
+main div.feature-grid-wrapper div.feature-grid-card-image img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+main div.feature-grid-wrapper div.feature-grid-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-top: 16px;
+}
+
+main div.feature-grid-wrapper div.feature-grid-card-heading {
+  margin: 0 0 12px;
+  color: inherit;
+}
+
+main div.feature-grid-wrapper div.feature-grid-card-description {
+  margin: 0;
+  color: inherit;
+}
+
+main div.feature-grid-wrapper div.feature-grid-card--light .feature-grid-card-description {
+  color: rgb(71, 71, 71);
+}
+
+main div.feature-grid-wrapper div.feature-grid-card-button {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+main div.feature-grid-wrapper div.feature-grid-card-button p {
+  margin: 0;
+}
+
+main div.feature-grid-wrapper a.feature-grid-card-cta.feature-grid-card-cta--on-dark {
+  background-color: #fff;
+  border-color: #fff;
+  color: rgb(0, 0, 0);
+  border-radius: 999px;
+}
+
+main div.feature-grid-wrapper a.feature-grid-card-cta.feature-grid-card-cta--on-dark:hover,
+main div.feature-grid-wrapper a.feature-grid-card-cta.feature-grid-card-cta--on-dark:focus {
+  background-color: rgb(245, 245, 245);
+  border-color: rgb(245, 245, 245);
+  color: rgb(0, 0, 0);
+}
+
+main div.feature-grid-wrapper a.feature-grid-card-cta {
+  text-decoration: none;
+}
+
+@media screen and (max-width: 1024px) {
+  main div.feature-grid-wrapper div.feature-grid > ul.feature-grid-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 640px) {
+  main div.feature-grid-wrapper div.feature-grid > ul.feature-grid-list {
+    grid-template-columns: 1fr;
+  }
+}
