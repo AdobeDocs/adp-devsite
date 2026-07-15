@@ -58,23 +58,11 @@ export default async function decorate(block) {
         a.classList.add('spectrum-Link', 'spectrum-Button--secondary');
       });
     } else {
-      const buttonPs = [...card.querySelectorAll('p > a, p > strong > a')].map((a) => {
-        const isStrong = a.parentElement.tagName === 'STRONG'
-          || a.classList.contains('spectrum-Button--accent');
-        a.classList.remove(
-          'spectrum-Button--secondary',
-          'spectrum-Button--outline',
-          'spectrum-Button--accent',
-          'spectrum-Button--fill',
-        );
-        a.classList.add('spectrum-Button', 'card-button');
-        if (isStrong) {
-          a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill');
-        } else {
-          a.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
-        }
-        return a.closest('p');
-      }).filter(Boolean);
+      const buttonPs = [...card.querySelectorAll('p > a')].map((a) => {
+        a.classList.remove('spectrum-Button--secondary', 'spectrum-Button--outline');
+        a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button', 'card-button');
+        return a.parentElement;
+      });
 
       if (buttonPs.length > 1) {
         const buttonWrap = createTag('div', { class: 'cards-button-container' });
