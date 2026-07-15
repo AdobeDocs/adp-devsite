@@ -134,7 +134,11 @@ export default async function decorate(block) {
         "[id=button-div-" + p.parentElement.id + "]"
       );
       if (p.classList.contains("button-container")) {
-        button_div.classList.add('carousel-button-container', 'spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button');
+        button_div.classList.add('carousel-button-container');
+        const anchor = p.querySelector('a');
+        if(anchor){
+          anchor.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button');
+        }
         button_div.append(p);
       } else {
         let flex_div = block.querySelector(
