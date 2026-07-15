@@ -1,0 +1,15 @@
+main div.image-wrapper {
+  width: 50%;
+  margin: auto;
+  background-color: #fff;
+}
+
+main div.image-wrapper div.image {
+  display: flex;
+  justify-content: center;
+}
+
+main div.image-wrapper div.image.medium img {
+  width: 500px;
+  height: 100%;
+}
