@@ -1,4 +1,4 @@
-import { decorateButtons } from '../../scripts/lib-adobeio.js';
+import { createTag, decorateButtons } from '../../scripts/lib-adobeio.js';
 import { createOptimizedPicture, decorateLightOrDark } from '../../scripts/lib-helix.js';
 
 /**
@@ -58,10 +58,21 @@ export default async function decorate(block) {
         a.classList.add('spectrum-Link', 'spectrum-Button--secondary');
       });
     } else {
-      card.querySelectorAll('p > a').forEach((a) => {
+      const buttonPs = [...card.querySelectorAll('p > a')].map((a) => {
         a.classList.remove('spectrum-Button--secondary', 'spectrum-Button--outline');
         a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button', 'card-button');
+        return a.parentElement;
       });
+
+      if (buttonPs.length > 1) {
+        const buttonWrap = createTag('div', { class: 'cards-button-container' });
+        buttonPs.forEach((p, key) => {
+          if (key === 0) {
+            p.previousElementSibling?.insertAdjacentElement('afterend', buttonWrap);
+          }
+          buttonWrap.appendChild(p);
+        });
+      }
     }
 
     if (array.length === 3) {

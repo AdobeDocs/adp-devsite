@@ -109,6 +109,20 @@ main div.cards-wrapper div.cards a.card-button {
   margin-bottom: 12px;
 }
 
+main div.cards-wrapper div.cards .cards-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+main div.cards-wrapper div.cards .cards-button-container a.card-button {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 main div.cards-wrapper div.cards.wide {
   max-width: 80%;
 }
