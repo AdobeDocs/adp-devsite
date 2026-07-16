@@ -818,16 +818,26 @@ export const setExpectedOrigin = (host, suffix = '') => {
   if (isLocalHostEnvironment(host)) {
     return `http://localhost:3000${suffix}`;
   }
-  if (isStageEnvironment(host)) {
+  if (isStageEnvironment(host, true)) {
     return `https://developer-stage.adobe.com${suffix}`;
-  }
-  if (isHlxPath(host)) {
-    return `${window.location.origin}${suffix}`;
   }
   if (isDevEnvironment(host)) {
     return `https://developer-dev.adobe.com${suffix}`;
   }
   return `https://developer.adobe.com${suffix}`;
+};
+
+/**
+ * Returns expected account.adobe.com origin based on the host
+ * @param {*} host The host
+ * @param {*} suffix A suffix to append
+ * @returns The expected account origin
+ */
+export const setExpectedAccountOrigin = (host, suffix = '') => {
+  if (isStageEnvironment(host, true)) {
+    return `https://stage.account.adobe.com${suffix}`;
+  }
+  return `https://account.adobe.com${suffix}`;
 };
 
 /**
@@ -931,7 +941,7 @@ function globalNavProfileTemplate(profile) {
             <div class="nav-profile-popover-divider">
               <hr />
             </div>
-            <a href="https://account.adobe.com/" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit" daa-ll="profile-edit-button">
+            <a href="${setExpectedAccountOrigin(window.location.origin)}" data-prefetch=false class="spectrum-Button spectrum-Button--primary spectrum-Button--quiet spectrum-Button--sizeM nav-profile-popover-edit" daa-ll="profile-edit-button">
               Edit Profile
             </a>
             <a href="#" id="signOut" data-prefetch=false class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM nav-profile-popover-sign-out" daa-ll="profile-sign-out-button">
