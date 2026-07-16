@@ -6,7 +6,8 @@ import {
   getClosestFranklinSubfolder,
   decorateProfile,
   fetchProfileAvatar,
-  LoadingState
+  LoadingState,
+  setExpectedOrigin
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 import { loadFragment } from '../fragment/fragment.js';
@@ -615,7 +616,7 @@ async function initSearch() {
 
 function globalConsoleButton() {
   const div = createTag('div', { class: 'nav-console-button' });
-  div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary  spectrum-Button--sizeM">
+  div.innerHTML = `<a href="${setExpectedOrigin(window.location.origin, '/console/')}" class="spectrum-Button spectrum-Button--outline spectrum-Button--secondary  spectrum-Button--sizeM">
     <span class="spectrum-Button-label">
       Console
     </span>
@@ -805,7 +806,7 @@ function globalMobileDistributeButton() {
 
 function globalMobileConsoleButton() {
   const div = createTag('li', { class: 'nav-mobile-console-button' });
-  div.innerHTML = `<a href="https://developer.adobe.com/console/" class="spectrum-Button spectrum-Button--secondary  spectrum-Button--sizeM">
+  div.innerHTML = `<a href="${setExpectedOrigin(window.location.origin, '/console/')}" class="spectrum-Button spectrum-Button--secondary  spectrum-Button--sizeM">
     <span class="spectrum-Button-label">
       Console
     </span>
@@ -1072,7 +1073,7 @@ export default async function decorate(block) {
   // Add Adobe icon and title
   const iconContainer = createTag('p', { class: 'icon-adobe-container' });
   const title = "Adobe Developer";
-  const siteLink = createTag('a', { class: 'na-console-adobeio-link', href: "https://developer.adobe.com/" });
+  const siteLink = createTag('a', { class: 'na-console-adobeio-link', href: setExpectedOrigin(window.location.origin) });
   const iconLink = createTag('a', { class: 'na-console-adobeio-link', href: siteLink.href });
   iconLink.innerHTML = '<img class="icon icon-adobe" src="/hlx_statics/icons/adobe.svg" alt="adobe icon">';
   iconContainer.appendChild(iconLink);
@@ -1090,13 +1091,13 @@ export default async function decorate(block) {
     // Add Products link for documentation template
     if (isTopLevelNav(window.location.pathname)) {
       const homeLinkLi = createTag('li', {class: 'navigation-home'});
-      const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home', 'fullPath': true});
+      const homeLinkA = createTag('a', {href: setExpectedOrigin(window.location.origin), 'daa-ll': 'Home', 'fullPath': true});
       homeLinkA.innerHTML = 'Products';
       homeLinkLi.append(homeLinkA);
       navigationLinks.append(homeLinkLi);
     } else {
       const productLi = createTag('li', {class: 'navigation-products'});
-      const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products',  'fullPath': true});
+      const productA = createTag('a', {href: setExpectedOrigin(window.location.origin, '/apis'), 'daa-ll': 'Products',  'fullPath': true});
       productA.innerHTML = 'Products';
       productLi.append(productA);
       navigationLinks.append(productLi);
@@ -1148,13 +1149,13 @@ export default async function decorate(block) {
 
     if (isTopLevelNav(window.location.pathname)) {
       const homeLinkLi = createTag('li', {class: 'navigation-home'});
-      const homeLinkA = createTag('a', {href: 'https://developer.adobe.com', 'daa-ll': 'Home'});
+      const homeLinkA = createTag('a', {href: setExpectedOrigin(window.location.origin), 'daa-ll': 'Home'});
       homeLinkA.innerHTML = 'Products';
       homeLinkLi.append(homeLinkA);
       navigationLinks.append(homeLinkLi);
     } else {
       const productLi = createTag('li', {class: 'navigation-products'});
-      const productA = createTag('a', {href: 'https://developer.adobe.com/apis', 'daa-ll': 'Products'});
+      const productA = createTag('a', {href: setExpectedOrigin(window.location.origin, '/apis'), 'daa-ll': 'Products'});
       productA.innerHTML = 'Products';
       productLi.append(productA);
       navigationLinks.append(productLi);

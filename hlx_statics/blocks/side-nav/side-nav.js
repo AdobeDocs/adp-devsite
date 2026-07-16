@@ -2,6 +2,7 @@ import {
   createTag,
   getClosestFranklinSubfolder,
   isTopLevelNav,
+  setExpectedOrigin,
 } from "../../scripts/lib-adobeio.js";
 import {
   fetchSideNavHtml,
@@ -147,7 +148,7 @@ export default async function decorate(block) {
 
   // Add Products link first
   const productLi = createTag('li');
-  productLi.innerHTML = '<a href="https://developer.adobe.com/apis">Products</a>';
+  productLi.innerHTML = `<a href="${setExpectedOrigin(window.location.origin, '/apis')}">Products</a>`;
   menuUl.append(productLi);
 
   if(IS_DEV_DOCS) {
@@ -198,7 +199,7 @@ export default async function decorate(block) {
     });
   }
   if (!buttons.length) {
-    buttons.push({ href: 'https://developer.adobe.com/console/', title: 'Console' });
+    buttons.push({ href: setExpectedOrigin(window.location.origin, '/console/'), title: 'Console' });
   }
 
   buttons.forEach(({ href, title }, index) => {
