@@ -190,7 +190,7 @@ export default async function decorate(block) {
     const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, selector);
     console.log("isTextFallback", isTextFallback);
     const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
-    console.log("selectorParagraphs", selectorParagraphs);
+    console.log("selectorParagraphs", selectorParagraphs.length ? selectorParagraphs[1]?.textContent?.trim() : selector.textContent?.trim());
     return {
       media: mediaContent,
       text: panelText,
