@@ -112,7 +112,7 @@ export default async function decorate(block) {
     const logoWrap = createTag('div', { class: 'partner-showcase-nav-logo' });
     if (partner.logo) logoWrap.appendChild(partner.logo);
 
-    const name = createTag('span', { class: 'partner-showcase-nav-name' });
+    const name = createTag('span', { class: 'partner-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
     name.textContent = partner.label;
 
     navItem.appendChild(logoWrap);
