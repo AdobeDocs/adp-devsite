@@ -1,5 +1,16 @@
-main div.partner-showcase-wrapper:has(.partner-showcase.background-color-white) {
-  background-color: white !important;
+main div.partner-showcase-wrapper:has(.partner-showcase.background-color-white),
+main div.partner-showcase-wrapper div.partner-showcase.background-color-white {
+  background-color: white;
+}
+
+main div.partner-showcase-wrapper:has(.partner-showcase.background-color-gray),
+main div.partner-showcase-wrapper div.partner-showcase.background-color-gray {
+  background-color: rgb(245, 245, 245);
+}
+
+main div.partner-showcase-wrapper:has(.partner-showcase.background-color-navy),
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy {
+  background-color: rgb(15, 55, 95);
 }
 
 main div.partner-showcase-wrapper {
@@ -55,6 +66,26 @@ main div.partner-showcase-wrapper div.partner-showcase-content-panel.active {
   display: block;
 }
 
+main div.partner-showcase-wrapper div.partner-showcase-media-panel.active.is-text-fallback {
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 32px;
+  overflow: auto;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text,
+main div.partner-showcase-wrapper div.partner-showcase-media-text>div {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.is-empty,
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.is-empty.active {
+  display: none;
+}
+
 main div.partner-showcase-wrapper div.partner-showcase-feature picture,
 main div.partner-showcase-wrapper div.partner-showcase-feature img {
   display: block;
@@ -88,10 +119,9 @@ main div.partner-showcase-wrapper div.partner-showcase-content {
 main div.partner-showcase-wrapper div.partner-showcase-text {
   position: relative;
   display: block;
-  min-height: 220px;
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-content-panel > div {
+main div.partner-showcase-wrapper div.partner-showcase-content-panel>div {
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -176,6 +206,28 @@ main div.partner-showcase-wrapper span.partner-showcase-nav-name {
 main div.partner-showcase-wrapper button.partner-showcase-nav-item.active span.partner-showcase-nav-name,
 main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover span.partner-showcase-nav-name {
   color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy h3.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-text p.spectrum-Body,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy span.partner-showcase-nav-name {
+  color: white;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy button.partner-showcase-nav-item.active span.partner-showcase-nav-name,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy button.partner-showcase-nav-item:hover span.partner-showcase-nav-name {
+  color: white;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy .spectrum-Button--secondary {
+  color: white !important;
+  border-color: white !important;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy .spectrum-Link--quiet {
+  color: white;
 }
 
 @media screen and (max-width: 1024px) {

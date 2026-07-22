@@ -46,6 +46,43 @@ function prepareMedia(mediaDiv, block) {
   return mediaDiv.cloneNode(true);
 }
 
+function hasVisualMedia(mediaDiv, block) {
+  if (!mediaDiv) return false;
+  if (block.classList.contains('video') && parseVideoSource(mediaDiv)) return true;
+  return !!mediaDiv.querySelector('picture, img, video, .video-container');
+}
+
+function decorateMediaText(mediaEl) {
+  mediaEl.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((heading) => {
+    heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'partner-showcase-heading');
+    decorateAnchorLink(heading);
+  });
+  mediaEl.querySelectorAll('p').forEach((paragraph) => {
+    paragraph.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+  });
+}
+
+function preparePartnerMedia(mediaDiv, text, block) {
+  if (hasVisualMedia(mediaDiv, block)) {
+    return { media: prepareMedia(mediaDiv, block), text, isTextFallback: false };
+  }
+
+  if (mediaDiv?.textContent?.trim()) {
+    const mediaText = mediaDiv.cloneNode(true);
+    decorateMediaText(mediaText);
+    mediaText.classList.add('partner-showcase-media-text');
+    return { media: mediaText, text, isTextFallback: true };
+  }
+
+  if (text?.textContent?.trim()) {
+    const fallbackText = text.cloneNode(true);
+    fallbackText.classList.add('partner-showcase-media-text');
+    return { media: fallbackText, text: null, isTextFallback: true };
+  }
+
+  return { media: null, text, isTextFallback: false };
+}
+
 function isCtaLink(link, paragraph) {
   if (link.closest('.button-container') || link.parentElement?.tagName === 'STRONG' || link.classList.contains('button')) {
     return true;
@@ -114,10 +151,12 @@ export default async function decorate(block) {
     const [media, content, selector] = row.children;
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
+    const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, block);
     const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
     return {
-      media: prepareMedia(media, block),
-      text,
+      media: mediaContent,
+      text: panelText,
+      isTextFallback,
       label: selectorParagraphs[1]?.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
@@ -130,11 +169,13 @@ export default async function decorate(block) {
   partners.forEach((partner, index) => {
     const mediaPanel = createTag('div', { class: 'partner-showcase-media-panel' });
     if (index === 0) mediaPanel.classList.add('active');
+    if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
     if (partner.media) mediaPanel.append(partner.media);
     feature.append(mediaPanel);
 
     const contentPanel = createTag('div', { class: 'partner-showcase-content-panel' });
     if (index === 0) contentPanel.classList.add('active');
+    if (partner.isTextFallback && !partner.text) contentPanel.classList.add('is-empty');
     if (partner.text) contentPanel.append(partner.text);
     contentArea.append(contentPanel);
   });
