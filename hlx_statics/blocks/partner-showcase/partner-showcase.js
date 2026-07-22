@@ -194,7 +194,6 @@ export default async function decorate(block) {
     return {
       media: mediaContent,
       text: panelText,
-      isTextFallback,
       label: selectorParagraphs.length ? selectorParagraphs[1]?.textContent?.trim() : selector.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
@@ -207,16 +206,13 @@ export default async function decorate(block) {
   partners.forEach((partner, index) => {
     const mediaPanel = createTag('div', { class: 'partner-showcase-media-panel' });
     if (index === 0) mediaPanel.classList.add('active');
-    if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
     if (partner.media) {
-      if (partner.isTextFallback) partner.media.classList.add('partner-showcase-media-text');
       mediaPanel.append(partner.media);
     }
     feature.append(mediaPanel);
 
     const contentPanel = createTag('div', { class: 'partner-showcase-content-panel' });
     if (index === 0) contentPanel.classList.add('active');
-    if (partner.isTextFallback) contentPanel.classList.add('is-media-fallback');
     if (partner.text) contentPanel.append(partner.text);
     contentArea.append(contentPanel);
   });
