@@ -191,12 +191,12 @@ export default async function decorate(block) {
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
     const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, block);
-    const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
+    const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P' || el.tagName === 'DIV');
     return {
       media: mediaContent,
       text: panelText,
       isTextFallback,
-      label: selectorParagraphs[1]?.textContent?.trim(),
+      label: selectorParagraphs[1]?.textContent?.trim() || selectorParagraphs[0]?.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
   });
