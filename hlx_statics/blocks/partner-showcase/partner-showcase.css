@@ -329,11 +329,11 @@ main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div
   }
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-heading .anchor-link {
+main div.partner-showcase-wrapper div.partner-showcase-content-panel h1.partner-showcase-heading .anchor-link{
   visibility: hidden;
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-heading:hover .anchor-link {
+main div.partner-showcase-wrapper div.partner-showcase-content-panel h1.partner-showcase-heading:hover .anchor-link {
   visibility: visible;
 }
 
