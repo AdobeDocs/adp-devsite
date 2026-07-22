@@ -5,8 +5,15 @@ import { ensurePrismLoaded } from "../../scripts/prism-loader.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
 import { createAiAvatar } from "./ai-assistant_chat-ui.js";
+import {
+  CHAT_BUBBLE_AI_LABEL,
+  CHAT_BUBBLE_USER_LABEL,
+} from "./ai-assistant_constants.js";
 
 export class ChatBubble {
+  /** Incrementing id so each bubble's speaker label has a unique DOM id for aria-labelledby. */
+  static #labelCounter = 0;
+
   /**
    * Creates a chat bubble for a single message.
    * @param {Object} options - Constructor options
@@ -33,6 +40,7 @@ export class ChatBubble {
     this.feedback = feedback;
     this.references = null;
     this._actionsContainer = null;
+    this._speakerLabelId = `chat-bubble-speaker-${ChatBubble.#labelCounter++}`;
     /** @type {HTMLElement} */
     this.element = this.#_init();
   }
@@ -41,7 +49,20 @@ export class ChatBubble {
    * Creates the DOM element
    */
   #_init() {
-    const bubble = createTag("div", { class: "chat-bubble" });
+    const bubble = createTag("div", {
+      class: "chat-bubble",
+      role: "article",
+      "aria-labelledby": this._speakerLabelId,
+    });
+    const speakerLabel = createTag("span", {
+      class: "chat-bubble-speaker",
+      id: this._speakerLabelId,
+      "aria-hidden": "true",
+    });
+    speakerLabel.textContent =
+      this.source === "user" ? CHAT_BUBBLE_USER_LABEL : CHAT_BUBBLE_AI_LABEL;
+    bubble.appendChild(speakerLabel);
+
     const contentElement = createTag("div", {
       class: "chat-bubble-content",
     });

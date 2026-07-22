@@ -571,6 +571,7 @@
     --bubble-background-color: #f8f8f8;
     --bubble-text-color: #292929;
 
+    position: relative;
     display: grid;
     grid-template-columns: auto;
     grid-template-rows: auto auto auto;
@@ -606,6 +607,15 @@
         --size: 24px;
         grid-area: avatar;
         align-self: start;
+    }
+
+    .chat-bubble-speaker {
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
     }
 
     .chat-bubble-content {
