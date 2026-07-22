@@ -18,6 +18,7 @@ import {
 import {
   CHAT_BUTTON_ID,
   CHAT_SKIP_BUTTON_LABEL,
+  CHAT_WINDOW_CONTENT_LABEL,
   CHAT_WINDOW_ID,
   CHAT_WINDOW_LABEL_ID,
   ELEMENTS,
@@ -103,7 +104,11 @@ export default async function decorate(block) {
   ELEMENTS.CHAT_WINDOW = chatWindow;
 
   chatWindow.appendChild(createChatWindowHeader());
-  const content = createTag("div", { class: "chat-window-content" });
+  const content = createTag("div", {
+    class: "chat-window-content",
+    role: "region",
+    "aria-label": CHAT_WINDOW_CONTENT_LABEL,
+  });
   ELEMENTS.CHAT_WINDOW_CONTENT = content;
   content.appendChild(createSuggestedQuestionsSection());
   chatWindow.appendChild(content);
