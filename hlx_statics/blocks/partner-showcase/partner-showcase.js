@@ -78,7 +78,6 @@ export default async function decorate(block) {
 
   const showcase = createTag('div', { class: 'partner-showcase-inner' });
   const mediaPanel = createTag('div', { class: 'partner-showcase-media' });
-  const indicator = createTag('div', { class: 'partner-showcase-indicator' });
   const featureImage = createTag('div', { class: 'partner-showcase-feature' });
   const contentPanel = createTag('div', { class: 'partner-showcase-content' });
   const contentArea = createTag('div', { class: 'partner-showcase-text' });
@@ -102,16 +101,6 @@ export default async function decorate(block) {
   };
 
   partners.forEach((partner, index) => {
-    const indicatorCell = createTag('button', {
-      class: 'partner-showcase-indicator-cell',
-      type: 'button',
-      'aria-label': partner.label,
-      'data-partner-index': index,
-    });
-    if (index === 0) indicatorCell.classList.add('active');
-    indicatorCell.addEventListener('click', () => setActivePartner(index));
-    indicator.appendChild(indicatorCell);
-
     const navItem = createTag('button', {
       class: 'partner-showcase-nav-item',
       type: 'button',
@@ -132,7 +121,6 @@ export default async function decorate(block) {
     navArea.appendChild(navItem);
   });
 
-  mediaPanel.appendChild(indicator);
   mediaPanel.appendChild(featureImage);
   contentPanel.appendChild(contentArea);
   contentPanel.appendChild(navArea);

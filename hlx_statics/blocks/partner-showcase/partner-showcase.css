@@ -32,20 +32,6 @@ main div.partner-showcase-wrapper div.partner-showcase-media {
   overflow: hidden;
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-media::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 28px,
-    rgba(0, 0, 0, 0.04) 28px,
-    rgba(0, 0, 0, 0.04) 56px
-  );
-  pointer-events: none;
-}
-
 main div.partner-showcase-wrapper div.partner-showcase-indicator {
   position: relative;
   z-index: 1;
