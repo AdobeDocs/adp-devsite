@@ -89,7 +89,7 @@ export default async function decorate(block) {
     return {
       media: media?.cloneNode(true),
       text,
-      label: selector?.querySelector('.button-container a, a.button')?.textContent?.trim() || `Partner ${index + 1}`,
+      label: selector?.querySelector('.button-container a, a.button')?.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
   });
