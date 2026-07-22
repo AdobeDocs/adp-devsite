@@ -1,0 +1,244 @@
+main div.partner-showcase-wrapper:has(.partner-showcase.background-color-white) {
+  background-color: white !important;
+}
+
+main div.partner-showcase-wrapper {
+  width: 100%;
+  background: rgb(245, 245, 245);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase {
+  max-width: 1280px;
+  box-sizing: border-box;
+  margin: auto;
+  padding: 80px 32px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-inner {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: 50%;
+  min-height: 420px;
+  padding: 32px 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 28px,
+    rgba(0, 0, 0, 0.04) 28px,
+    rgba(0, 0, 0, 0.04) 56px
+  );
+  pointer-events: none;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-indicator {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  flex-shrink: 0;
+  width: 72px;
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-indicator-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 2px;
+  background: rgb(235, 235, 235);
+  cursor: pointer;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-indicator-cell.active {
+  border-color: rgb(44, 44, 44);
+  background: white;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-indicator-cell:focus-visible {
+  outline: 2px solid rgb(20, 115, 230);
+  outline-offset: 2px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-feature {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-feature picture,
+main div.partner-showcase-wrapper div.partner-showcase-feature img {
+  display: block;
+  max-width: 100%;
+  max-height: 520px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 48px;
+  width: 50%;
+  box-sizing: border-box;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-text {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+main div.partner-showcase-wrapper h1.partner-showcase-heading,
+main div.partner-showcase-wrapper h2.partner-showcase-heading,
+main div.partner-showcase-wrapper h3.partner-showcase-heading {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.15;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-text p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-text p.button-container {
+  margin-top: 8px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 72px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:focus-visible {
+  outline: 2px solid rgb(20, 115, 230);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-nav-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-nav-logo picture,
+main div.partner-showcase-wrapper div.partner-showcase-nav-logo img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: grayscale(1) opacity(0.45);
+  transition: filter 0.2s ease;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item.active div.partner-showcase-nav-logo picture,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item.active div.partner-showcase-nav-logo img,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover div.partner-showcase-nav-logo picture,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover div.partner-showcase-nav-logo img {
+  filter: none;
+}
+
+main div.partner-showcase-wrapper span.partner-showcase-nav-name {
+  font-size: 14px;
+  line-height: 1.2;
+  color: rgb(110, 110, 110);
+  transition: color 0.2s ease;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item.active span.partner-showcase-nav-name,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover span.partner-showcase-nav-name {
+  color: rgb(44, 44, 44);
+}
+
+@media screen and (max-width: 1024px) {
+  main div.partner-showcase-wrapper div.partner-showcase {
+    padding: 64px 24px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-inner {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-media,
+  main div.partner-showcase-wrapper div.partner-showcase-content {
+    width: 100%;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-media {
+    min-height: auto;
+  }
+
+  main div.partner-showcase-wrapper h1.partner-showcase-heading,
+  main div.partner-showcase-wrapper h2.partner-showcase-heading,
+  main div.partner-showcase-wrapper h3.partner-showcase-heading {
+    font-size: 28px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  main div.partner-showcase-wrapper div.partner-showcase {
+    padding: 48px 16px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-media {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 16px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-nav {
+    gap: 20px;
+    justify-content: space-between;
+  }
+
+  main div.partner-showcase-wrapper button.partner-showcase-nav-item {
+    min-width: 64px;
+    flex: 1 1 calc(50% - 20px);
+  }
+}
