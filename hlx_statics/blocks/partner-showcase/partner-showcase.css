@@ -23,66 +23,57 @@ main div.partner-showcase-wrapper div.partner-showcase-media {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 24px;
+  justify-content: center;
   width: 50%;
-  min-height: 420px;
-  padding: 32px 24px;
+  height: 350px;
+  min-height: 350px;
+  padding: 0 8px;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-indicator {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  flex-shrink: 0;
-  width: 72px;
-  padding: 12px;
-  background: white;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-main div.partner-showcase-wrapper button.partner-showcase-indicator-cell {
-  width: 100%;
-  aspect-ratio: 1;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 2px;
-  background: rgb(235, 235, 235);
-  cursor: pointer;
-}
-
-main div.partner-showcase-wrapper button.partner-showcase-indicator-cell.active {
-  border-color: rgb(44, 44, 44);
-  background: white;
-}
-
-main div.partner-showcase-wrapper button.partner-showcase-indicator-cell:focus-visible {
-  outline: 2px solid rgb(20, 115, 230);
-  outline-offset: 2px;
-}
-
 main div.partner-showcase-wrapper div.partner-showcase-feature {
   position: relative;
-  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-panel,
+main div.partner-showcase-wrapper div.partner-showcase-content-panel {
+  display: none;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-panel.active {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  min-width: 0;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active {
+  display: block;
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-feature picture,
 main div.partner-showcase-wrapper div.partner-showcase-feature img {
   display: block;
   max-width: 100%;
-  max-height: 520px;
+  max-height: 350px;
   width: auto;
   height: auto;
   object-fit: contain;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-feature video,
+main div.partner-showcase-wrapper div.partner-showcase-feature .video-container {
+  max-width: 100%;
+  max-height: 350px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media.has-video .video-container {
+  width: 100%;
+  max-width: calc(350px * 16 / 9);
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-content {
@@ -95,9 +86,8 @@ main div.partner-showcase-wrapper div.partner-showcase-content {
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-text {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: block;
+  min-height: 220px;
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-text>div {
@@ -203,7 +193,17 @@ main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover span.pa
   }
 
   main div.partner-showcase-wrapper div.partner-showcase-media {
-    min-height: auto;
+    width: 100%;
+    height: 350px;
+    min-height: 350px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-feature picture,
+  main div.partner-showcase-wrapper div.partner-showcase-feature img,
+  main div.partner-showcase-wrapper div.partner-showcase-feature video,
+  main div.partner-showcase-wrapper div.partner-showcase-feature .video-container {
+    max-width: 100%;
+    max-height: 350px;
   }
 
   main div.partner-showcase-wrapper h1.partner-showcase-heading,

@@ -8,6 +8,11 @@ import {
   createOptimizedPicture,
   decorateLightOrDark,
 } from '../../scripts/lib-helix.js';
+import {
+  applyVideoContainer,
+  getVideoTitle,
+  parseVideoSource,
+} from '../../scripts/video.js';
 
 function optimizeImages(container) {
   container.querySelectorAll('picture > img').forEach((img) => {
@@ -17,6 +22,28 @@ function optimizeImages(container) {
     optimized.dataset.optimized = 'true';
     pic.replaceWith(optimized);
   });
+}
+
+function prepareMedia(mediaDiv, block) {
+  if (!mediaDiv) return null;
+
+  if (block.classList.contains('video')) {
+    const videoSource = parseVideoSource(mediaDiv);
+    if (videoSource) {
+      const wrapper = createTag('div');
+      applyVideoContainer(wrapper, {
+        url: videoSource.url,
+        title: getVideoTitle(videoSource.url, videoSource.linkText),
+        autoplay: true,
+        muted: true,
+        loop: true,
+        controls: block.classList.contains('controls'),
+      });
+      return wrapper;
+    }
+  }
+
+  return mediaDiv.cloneNode(true);
 }
 
 function isCtaLink(link, paragraph) {
@@ -79,6 +106,7 @@ export default async function decorate(block) {
   decorateLightOrDark(block);
   removeEmptyPTags(block);
 
+  const isVideo = block.classList.contains('video');
   const rows = [...block.children].filter((child) => child.tagName === 'DIV');
   if (!rows.length) return;
 
@@ -88,7 +116,7 @@ export default async function decorate(block) {
     if (text) decorateContent(text);
     const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
     return {
-      media: media?.cloneNode(true),
+      media: prepareMedia(media, block),
       text,
       label: selectorParagraphs[1]?.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
@@ -99,13 +127,28 @@ export default async function decorate(block) {
   const contentArea = createTag('div', { class: 'partner-showcase-text' });
   const nav = createTag('div', { class: 'partner-showcase-nav' });
 
+  partners.forEach((partner, index) => {
+    const mediaPanel = createTag('div', { class: 'partner-showcase-media-panel' });
+    if (index === 0) mediaPanel.classList.add('active');
+    if (partner.media) mediaPanel.append(partner.media);
+    feature.append(mediaPanel);
+
+    const contentPanel = createTag('div', { class: 'partner-showcase-content-panel' });
+    if (index === 0) contentPanel.classList.add('active');
+    if (partner.text) contentPanel.append(partner.text);
+    contentArea.append(contentPanel);
+  });
+
   const setActive = (index) => {
-    const partner = partners[index];
-    if (!partner) return;
-    feature.replaceChildren(...(partner.media ? [partner.media.cloneNode(true)] : []));
-    contentArea.replaceChildren(...(partner.text ? [partner.text.cloneNode(true)] : []));
-    nav.querySelectorAll('.partner-showcase-nav-item').forEach((btn, i) => btn.classList.toggle('active', i === index));
-    optimizeImages(feature);
+    feature.querySelectorAll('.partner-showcase-media-panel').forEach((panel, i) => {
+      panel.classList.toggle('active', i === index);
+    });
+    contentArea.querySelectorAll('.partner-showcase-content-panel').forEach((panel, i) => {
+      panel.classList.toggle('active', i === index);
+    });
+    nav.querySelectorAll('.partner-showcase-nav-item').forEach((btn, i) => {
+      btn.classList.toggle('active', i === index);
+    });
   };
 
   partners.forEach((partner, index) => {
@@ -129,12 +172,13 @@ export default async function decorate(block) {
   const inner = createTag('div', { class: 'partner-showcase-inner' });
   const media = createTag('div', { class: 'partner-showcase-media' });
   const panel = createTag('div', { class: 'partner-showcase-content' });
+  if (isVideo) media.classList.add('has-video');
   media.append(feature);
   panel.append(contentArea, nav);
   inner.append(media, panel);
   block.replaceChildren(inner);
 
-  setActive(0);
+  optimizeImages(block);
   optimizeImages(nav);
 
   const observer = new IntersectionObserver((entries) => {
