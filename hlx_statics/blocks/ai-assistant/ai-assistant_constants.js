@@ -8,6 +8,9 @@ export const CHAT_BUTTON_ID = "ai-assistant-chat-button";
 export const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
 export const CHAT_WINDOW_CONTENT_LABEL = "Chat messages";
+export const CHAT_BUBBLE_USER_LABEL = "Your message";
+export const CHAT_BUBBLE_AI_LABEL = "Assistant";
+
 /**
  * @type {Record<string, HTMLElement | null>}
  */
