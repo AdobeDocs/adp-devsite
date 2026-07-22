@@ -23,13 +23,18 @@ function isCtaLink(link, paragraph) {
   if (link.closest('.button-container') || link.parentElement?.tagName === 'STRONG' || link.classList.contains('button')) {
     return true;
   }
+
   const links = [...paragraph.querySelectorAll('a')];
-  if (links.length === 1) {
-    const nodes = [...paragraph.childNodes].filter((n) => n.nodeType !== 3 || n.textContent.trim());
-    return nodes.length === 1 && (nodes[0] === link || nodes[0]?.contains?.(link));
+  const nodes = [...paragraph.childNodes].filter((n) => n.nodeType !== 3 || n.textContent.trim());
+
+  if (links.length === 1 && nodes.length === 1 && (nodes[0] === link || nodes[0]?.contains?.(link))) {
+    return true;
   }
-  return link === links.at(-1)
-    && [...paragraph.childNodes].slice(0, [...paragraph.childNodes].indexOf(link)).some((n) => n.nodeName === 'BR');
+
+  if (link !== links.at(-1)) return false;
+
+  const linkIndex = [...paragraph.childNodes].indexOf(link);
+  return linkIndex > -1 && [...paragraph.childNodes].slice(0, linkIndex).some((n) => n.nodeName === 'BR');
 }
 
 function decorateContent(content) {
