@@ -66,6 +66,20 @@ main div.partner-showcase-wrapper div.partner-showcase-content-panel.active {
   display: block;
 }
 
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active h3.partner-showcase-heading {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.15;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
 main div.partner-showcase-wrapper div.partner-showcase-media-panel.active.is-text-fallback {
   align-items: flex-start;
   justify-content: center;
@@ -74,7 +88,13 @@ main div.partner-showcase-wrapper div.partner-showcase-media-panel.active.is-tex
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-inner.has-text-fallback div.partner-showcase-media {
-  overflow: auto;
+  overflow: visible;
+  height: auto;
+  min-height: 350px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media:has(.partner-showcase-media-panel.active.is-text-fallback) {
+  overflow: visible;
   height: auto;
   min-height: 350px;
 }
@@ -115,8 +135,7 @@ main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div
   color: white;
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-content-panel.is-empty,
-main div.partner-showcase-wrapper div.partner-showcase-content-panel.is-empty.active {
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.is-media-fallback {
   display: none;
 }
 
@@ -261,6 +280,13 @@ main div.partner-showcase-wrapper div.partner-showcase.background-color-navy .sp
 }
 
 main div.partner-showcase-wrapper div.partner-showcase.background-color-navy .spectrum-Link--quiet {
+  color: white;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active h3.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active p.spectrum-Body {
   color: white;
 }
 
