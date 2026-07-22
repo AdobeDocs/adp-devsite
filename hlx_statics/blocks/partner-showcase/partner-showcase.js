@@ -82,14 +82,15 @@ export default async function decorate(block) {
   const rows = [...block.children].filter((child) => child.tagName === 'DIV');
   if (!rows.length) return;
 
-  const partners = rows.map((row, index) => {
+  const partners = rows.map((row) => {
     const [media, content, selector] = row.children;
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
+    const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
     return {
       media: media?.cloneNode(true),
       text,
-      label: selector?.querySelectorAll('p')[1]?.textContent?.trim(),
+      label: selectorParagraphs[1]?.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
   });
