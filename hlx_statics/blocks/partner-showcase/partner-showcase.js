@@ -9,129 +9,127 @@ import {
   decorateLightOrDark,
 } from '../../scripts/lib-helix.js';
 
-/**
- * Returns the partner label from the selector column.
- * @param {Element} selectorDiv
- * @param {number} index
- */
-function getPartnerLabel(selectorDiv, index) {
-  const label = selectorDiv?.querySelector('.button-container a, a.button')?.textContent?.trim();
-  return label || `Partner ${index + 1}`;
+function optimizeImages(container) {
+  container.querySelectorAll('picture > img').forEach((img) => {
+    const pic = img.closest('picture');
+    if (!pic || pic.dataset.optimized) return;
+    const optimized = createOptimizedPicture(img.src, img.alt);
+    optimized.dataset.optimized = 'true';
+    pic.replaceWith(optimized);
+  });
 }
 
-/**
- * Applies typography and button styles to the active content panel.
- * @param {Element} contentArea
- */
-function decorateContentArea(contentArea) {
-  contentArea.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
+function isCtaLink(link, paragraph) {
+  if (link.closest('.button-container') || link.parentElement?.tagName === 'STRONG' || link.classList.contains('button')) {
+    return true;
+  }
+  const links = [...paragraph.querySelectorAll('a')];
+  if (links.length === 1) {
+    const nodes = [...paragraph.childNodes].filter((n) => n.nodeType !== 3 || n.textContent.trim());
+    return nodes.length === 1 && (nodes[0] === link || nodes[0]?.contains?.(link));
+  }
+  return link === links.at(-1)
+    && [...paragraph.childNodes].slice(0, [...paragraph.childNodes].indexOf(link)).some((n) => n.nodeName === 'BR');
+}
+
+function decorateContent(content) {
+  content.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((heading) => {
     heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'partner-showcase-heading');
     decorateAnchorLink(heading);
   });
 
-  contentArea.querySelectorAll('p').forEach((paragraph) => {
-    if (!paragraph.classList.contains('button-container')) {
-      paragraph.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+  const buttonGroup = createTag('div', { class: 'partner-showcase-button-container' });
+
+  [...content.querySelectorAll('p')].forEach((paragraph) => {
+    if (paragraph.classList.contains('button-container')) {
+      buttonGroup.append(paragraph);
+      return;
     }
+
+    paragraph.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    [...paragraph.querySelectorAll('a')].filter((link) => isCtaLink(link, paragraph)).forEach((link) => {
+      [...paragraph.childNodes].slice(0, [...paragraph.childNodes].indexOf(link)).reverse().forEach((node) => {
+        if (node.nodeName === 'BR' || (node.nodeType === 3 && !node.textContent.trim())) node.remove();
+      });
+      const buttonParagraph = createTag('p', { class: 'button-container' });
+      buttonParagraph.append(link.parentElement?.tagName === 'STRONG' ? link.parentElement : link);
+      buttonGroup.append(buttonParagraph);
+    });
+
+    paragraph.querySelectorAll('a').forEach((link) => {
+      if (!link.closest('.partner-showcase-button-container')) {
+        link.classList.add('spectrum-Link', 'spectrum-Link--quiet');
+      }
+    });
+
+    if (!paragraph.textContent.trim() && !paragraph.querySelector('img,picture')) paragraph.remove();
   });
 
-  decorateButtons(contentArea);
+  if (buttonGroup.childElementCount) content.append(buttonGroup);
+  decorateButtons(content);
 }
 
-/**
- * Optimizes images inside a container.
- * @param {Element} container
- */
-function optimizeImages(container) {
-  container.querySelectorAll('picture > img').forEach((img) => {
-    const existingPicture = img.closest('picture');
-    if (!existingPicture || existingPicture.dataset.optimized) return;
-    const picture = createOptimizedPicture(img.src, img.alt);
-    picture.dataset.optimized = 'true';
-    existingPicture.replaceWith(picture);
-  });
-}
-
-/**
- * Decorates the partner showcase block.
- * @param {Element} block
- */
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'partner-showcase');
   decorateLightOrDark(block);
   removeEmptyPTags(block);
 
-  const partnerRows = [...block.children].filter((child) => child.tagName === 'DIV');
-  if (partnerRows.length === 0) return;
+  const rows = [...block.children].filter((child) => child.tagName === 'DIV');
+  if (!rows.length) return;
 
-  const partners = partnerRows.map((row, index) => {
-    const [mediaDiv, contentDiv, selectorDiv] = row.children;
+  const partners = rows.map((row, index) => {
+    const [media, content, selector] = row.children;
+    const text = content?.cloneNode(true);
+    if (text) decorateContent(text);
     return {
-      mediaDiv,
-      contentDiv,
-      selectorDiv,
-      label: getPartnerLabel(selectorDiv, index),
-      logo: selectorDiv?.querySelector('picture')?.cloneNode(true),
-      index,
+      media: media?.cloneNode(true),
+      text,
+      label: selector?.querySelector('.button-container a, a.button')?.textContent?.trim() || `Partner ${index + 1}`,
+      logo: selector?.querySelector('picture')?.cloneNode(true),
     };
   });
 
-  const showcase = createTag('div', { class: 'partner-showcase-inner' });
-  const mediaPanel = createTag('div', { class: 'partner-showcase-media' });
-  const featureImage = createTag('div', { class: 'partner-showcase-feature' });
-  const contentPanel = createTag('div', { class: 'partner-showcase-content' });
+  const feature = createTag('div', { class: 'partner-showcase-feature' });
   const contentArea = createTag('div', { class: 'partner-showcase-text' });
-  const navArea = createTag('div', { class: 'partner-showcase-nav' });
+  const nav = createTag('div', { class: 'partner-showcase-nav' });
 
-  const setActivePartner = (index) => {
+  const setActive = (index) => {
     const partner = partners[index];
     if (!partner) return;
-
-    featureImage.innerHTML = '';
-    featureImage.appendChild(partner.mediaDiv.cloneNode(true));
-
-    contentArea.innerHTML = '';
-    contentArea.appendChild(partner.contentDiv.cloneNode(true));
-    decorateContentArea(contentArea);
-    optimizeImages(featureImage);
-
-    block.querySelectorAll('.partner-showcase-indicator-cell, .partner-showcase-nav-item').forEach((element) => {
-      element.classList.toggle('active', Number(element.dataset.partnerIndex) === index);
-    });
+    feature.replaceChildren(...(partner.media ? [partner.media.cloneNode(true)] : []));
+    contentArea.replaceChildren(...(partner.text ? [partner.text.cloneNode(true)] : []));
+    nav.querySelectorAll('.partner-showcase-nav-item').forEach((btn, i) => btn.classList.toggle('active', i === index));
+    optimizeImages(feature);
   };
 
   partners.forEach((partner, index) => {
-    const navItem = createTag('button', {
+    const item = createTag('button', {
       class: 'partner-showcase-nav-item',
       type: 'button',
       'aria-label': partner.label,
-      'data-partner-index': index,
     });
-    if (index === 0) navItem.classList.add('active');
+    if (!index) item.classList.add('active');
 
-    const logoWrap = createTag('div', { class: 'partner-showcase-nav-logo' });
-    if (partner.logo) logoWrap.appendChild(partner.logo);
+    const logo = createTag('div', { class: 'partner-showcase-nav-logo' });
+    if (partner.logo) logo.append(partner.logo);
 
     const name = createTag('span', { class: 'partner-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
     name.textContent = partner.label;
-
-    navItem.appendChild(logoWrap);
-    navItem.appendChild(name);
-    navItem.addEventListener('click', () => setActivePartner(index));
-    navArea.appendChild(navItem);
+    item.append(logo, name);
+    item.addEventListener('click', () => setActive(index));
+    nav.append(item);
   });
 
-  mediaPanel.appendChild(featureImage);
-  contentPanel.appendChild(contentArea);
-  contentPanel.appendChild(navArea);
-  showcase.appendChild(mediaPanel);
-  showcase.appendChild(contentPanel);
+  const inner = createTag('div', { class: 'partner-showcase-inner' });
+  const media = createTag('div', { class: 'partner-showcase-media' });
+  const panel = createTag('div', { class: 'partner-showcase-content' });
+  media.append(feature);
+  panel.append(contentArea, nav);
+  inner.append(media, panel);
+  block.replaceChildren(inner);
 
-  block.innerHTML = '';
-  block.appendChild(showcase);
-
-  setActivePartner(0);
-  optimizeImages(navArea);
+  setActive(0);
+  optimizeImages(nav);
 
   const observer = new IntersectionObserver((entries) => {
     if (entries.some((entry) => entry.isIntersecting)) {
