@@ -49,7 +49,11 @@ function prepareMedia(mediaDiv, block) {
 function hasVisualMedia(mediaDiv, block) {
   if (!mediaDiv) return false;
   if (block.classList.contains('video') && parseVideoSource(mediaDiv)) return true;
-  return !!mediaDiv.querySelector('picture, img, video, .video-container');
+
+  const img = mediaDiv.querySelector('picture img, img');
+  if (img?.getAttribute('src')?.trim()) return true;
+
+  return !!mediaDiv.querySelector('video, .video-container');
 }
 
 function decorateMediaText(mediaEl) {
@@ -58,7 +62,9 @@ function decorateMediaText(mediaEl) {
     decorateAnchorLink(heading);
   });
   mediaEl.querySelectorAll('p').forEach((paragraph) => {
-    paragraph.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    if (!paragraph.classList.contains('button-container')) {
+      paragraph.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    }
   });
 }
 
@@ -67,17 +73,18 @@ function preparePartnerMedia(mediaDiv, text, block) {
     return { media: prepareMedia(mediaDiv, block), text, isTextFallback: false };
   }
 
+  if (text?.textContent?.trim()) {
+    return {
+      media: text.cloneNode(true),
+      text: null,
+      isTextFallback: true,
+    };
+  }
+
   if (mediaDiv?.textContent?.trim()) {
     const mediaText = mediaDiv.cloneNode(true);
     decorateMediaText(mediaText);
-    mediaText.classList.add('partner-showcase-media-text');
-    return { media: mediaText, text, isTextFallback: true };
-  }
-
-  if (text?.textContent?.trim()) {
-    const fallbackText = text.cloneNode(true);
-    fallbackText.classList.add('partner-showcase-media-text');
-    return { media: fallbackText, text: null, isTextFallback: true };
+    return { media: mediaText, text: null, isTextFallback: true };
   }
 
   return { media: null, text, isTextFallback: false };
@@ -170,7 +177,10 @@ export default async function decorate(block) {
     const mediaPanel = createTag('div', { class: 'partner-showcase-media-panel' });
     if (index === 0) mediaPanel.classList.add('active');
     if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
-    if (partner.media) mediaPanel.append(partner.media);
+    if (partner.media) {
+      partner.media.classList.add('partner-showcase-media-text');
+      mediaPanel.append(partner.media);
+    }
     feature.append(mediaPanel);
 
     const contentPanel = createTag('div', { class: 'partner-showcase-content-panel' });
@@ -214,6 +224,9 @@ export default async function decorate(block) {
   const media = createTag('div', { class: 'partner-showcase-media' });
   const panel = createTag('div', { class: 'partner-showcase-content' });
   if (isVideo) media.classList.add('has-video');
+  if (partners.some((partner) => partner.isTextFallback)) {
+    inner.classList.add('has-text-fallback');
+  }
   media.append(feature);
   panel.append(contentArea, nav);
   inner.append(media, panel);

@@ -73,12 +73,46 @@ main div.partner-showcase-wrapper div.partner-showcase-media-panel.active.is-tex
   overflow: auto;
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-media-text,
-main div.partner-showcase-wrapper div.partner-showcase-media-text>div {
+main div.partner-showcase-wrapper div.partner-showcase-inner.has-text-fallback div.partner-showcase-media {
+  overflow: auto;
+  height: auto;
+  min-height: 350px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text {
   display: flex;
   flex-direction: column;
   gap: 22px;
   width: 100%;
+  text-align: left;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-media-text h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-media-text h3.partner-showcase-heading {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.15;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text .partner-showcase-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text h3.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text p.spectrum-Body {
+  color: white;
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-content-panel.is-empty,
@@ -261,7 +295,10 @@ main div.partner-showcase-wrapper div.partner-showcase.background-color-navy .sp
 
   main div.partner-showcase-wrapper h1.partner-showcase-heading,
   main div.partner-showcase-wrapper h2.partner-showcase-heading,
-  main div.partner-showcase-wrapper h3.partner-showcase-heading {
+  main div.partner-showcase-wrapper h3.partner-showcase-heading,
+  main div.partner-showcase-wrapper div.partner-showcase-media-text h1.partner-showcase-heading,
+  main div.partner-showcase-wrapper div.partner-showcase-media-text h2.partner-showcase-heading,
+  main div.partner-showcase-wrapper div.partner-showcase-media-text h3.partner-showcase-heading {
     font-size: 28px;
   }
 }
