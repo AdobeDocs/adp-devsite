@@ -193,6 +193,7 @@ export default async function decorate(block) {
   };
 
   partners.forEach((partner, index) => {
+    console.log(partner);
     const item = createTag('button', {
       class: 'partner-showcase-nav-item',
       type: 'button',
