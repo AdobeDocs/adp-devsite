@@ -157,7 +157,7 @@ export default async function decorate(block) {
       media: mediaContent,
       text: panelText,
       isTextFallback,
-      label: selectorParagraphs[1]?.textContent?.trim(),
+      label: selectorParagraphs[1]?.textContent?.trim() || selector?.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
   });
@@ -205,7 +205,14 @@ export default async function decorate(block) {
 
     const name = createTag('span', { class: 'partner-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
     name.textContent = partner.label;
-    item.append(logo, name);
+    if (partner.logo && partner.label) {
+      item.append(logo, name);
+    }
+    else if (partner.logo) {
+      item.append(logo);
+    } else {
+      item.append(name);
+    }
     item.addEventListener('click', () => setActive(index));
     nav.append(item);
   });
