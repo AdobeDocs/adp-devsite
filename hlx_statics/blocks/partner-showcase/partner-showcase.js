@@ -46,42 +46,13 @@ function prepareMedia(mediaDiv, block) {
   return mediaDiv.cloneNode(true);
 }
 
-function getPartnerRows(block) {
-  const isRow = (row) => [...row.children].filter((el) => el.tagName === 'DIV').length >= 2;
-  const topLevel = [...block.children].filter((el) => el.tagName === 'DIV');
-  if (topLevel.length > 1 && topLevel.every(isRow)) return topLevel;
-
-  if (topLevel.length === 1) {
-    const nested = [...topLevel[0].children].filter((el) => el.tagName === 'DIV');
-    if (nested.length > 1 && nested.every(isRow)) return nested;
-    if (nested.length >= 2) return topLevel;
-  }
-
-  return topLevel;
-}
-
-function getPartnerColumns(row) {
-  const columns = [...row.children].filter((el) => el.tagName === 'DIV');
-  const content = columns.find((col) => col.querySelector('h1,h2,h3,h4,h5,h6'));
-  const selector = columns.find((col) => col !== content && col.querySelector('picture') && col.querySelectorAll('p').length > 1);
-  const media = columns.find((col) => col !== content && col !== selector) || columns[0];
-  return {
-    media,
-    content: content || columns[1],
-    selector: selector || columns[2],
-  };
-}
-
-function hasValidImage(mediaDiv) {
-  const img = mediaDiv?.querySelector('picture img, img');
-  if (!img) return false;
-  return !!(img.getAttribute('src')?.trim() || img.getAttribute('srcset')?.trim() || img.currentSrc);
-}
-
 function hasVisualMedia(mediaDiv, block) {
   if (!mediaDiv) return false;
   if (block.classList.contains('video') && parseVideoSource(mediaDiv)) return true;
-  if (hasValidImage(mediaDiv)) return true;
+
+  const img = mediaDiv.querySelector('picture img, img');
+  if (img?.getAttribute('src')?.trim()) return true;
+
   return !!mediaDiv.querySelector('video, .video-container');
 }
 
@@ -180,21 +151,20 @@ export default async function decorate(block) {
   removeEmptyPTags(block);
 
   const isVideo = block.classList.contains('video');
-  const rows = getPartnerRows(block);
+  const rows = [...block.children].filter((child) => child.tagName === 'DIV');
   if (!rows.length) return;
 
   const partners = rows.map((row) => {
-    const { media, content, selector } = getPartnerColumns(row);
+    const [media, content, selector] = row.children;
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
-    const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, selector);
-    console.log("isTextFallback", isTextFallback);
+    const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, block);
     const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
-    console.log("selectorParagraphs", selectorParagraphs.length ? selectorParagraphs[1]?.textContent?.trim() : selector.textContent?.trim());
     return {
       media: mediaContent,
       text: panelText,
-      label: selectorParagraphs.length ? selectorParagraphs[1]?.textContent?.trim() : selector.textContent?.trim(),
+      isTextFallback,
+      label: selectorParagraphs[1]?.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
   });
@@ -206,13 +176,15 @@ export default async function decorate(block) {
   partners.forEach((partner, index) => {
     const mediaPanel = createTag('div', { class: 'partner-showcase-media-panel' });
     if (index === 0) mediaPanel.classList.add('active');
+    if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
     if (partner.media) {
+      partner.media.classList.add('partner-showcase-media-text');
       mediaPanel.append(partner.media);
     }
     feature.append(mediaPanel);
-
     const contentPanel = createTag('div', { class: 'partner-showcase-content-panel' });
     if (index === 0) contentPanel.classList.add('active');
+    if (partner.isTextFallback && !partner.text) contentPanel.classList.add('is-empty');
     if (partner.text) contentPanel.append(partner.text);
     contentArea.append(contentPanel);
   });
@@ -242,14 +214,7 @@ export default async function decorate(block) {
 
     const name = createTag('span', { class: 'partner-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
     name.textContent = partner.label;
-    if (partner.logo && partner.label) {
-      item.append(logo, name);
-    }
-    else if (partner.logo) {
-      item.append(logo);
-    } else {
-      item.append(name);
-    }
+    item.append(logo, name);
     item.addEventListener('click', () => setActive(index));
     nav.append(item);
   });
