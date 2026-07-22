@@ -146,8 +146,8 @@ main div.partner-showcase-wrapper div.partner-showcase-nav-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-nav-logo picture,
@@ -204,7 +204,7 @@ main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover span.pa
   main div.partner-showcase-wrapper div.partner-showcase-feature video,
   main div.partner-showcase-wrapper div.partner-showcase-feature .video-container {
     max-width: 100%;
-    max-height: 350px;
+    max-height: 400px;
   }
 
   main div.partner-showcase-wrapper h1.partner-showcase-heading,
