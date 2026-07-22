@@ -185,22 +185,17 @@ export default async function decorate(block) {
 
   const partners = rows.map((row) => {
     const { media, content, selector } = getPartnerColumns(row);
-    console.log("media", media);
-    console.log("content", content);
-    console.log("selector", selector);
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
     const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, selector);
-    console.log("mediaContent", mediaContent);
-    console.log("panelText", panelText);
     console.log("isTextFallback", isTextFallback);
-    const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P' || el.tagName === 'DIV');
+    const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
     console.log("selectorParagraphs", selectorParagraphs);
     return {
       media: mediaContent,
       text: panelText,
       isTextFallback,
-      label: selectorParagraphs[1]?.textContent?.trim() || selectorParagraphs[0]?.textContent?.trim(),
+      label: selectorParagraphs.length ? selectorParagraphs[1]?.textContent?.trim() : selector.textContent?.trim(),
       logo: selector?.querySelector('picture')?.cloneNode(true),
     };
   });
