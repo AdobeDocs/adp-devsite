@@ -86,11 +86,12 @@ main div.partner-showcase-wrapper div.partner-showcase-content {
 }
 
 main div.partner-showcase-wrapper div.partner-showcase-text {
+  position: relative;
   display: block;
   min-height: 220px;
 }
 
-main div.partner-showcase-wrapper div.partner-showcase-text>div {
+main div.partner-showcase-wrapper div.partner-showcase-content-panel > div {
   display: flex;
   flex-direction: column;
   gap: 22px;
