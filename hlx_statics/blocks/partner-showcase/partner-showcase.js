@@ -191,7 +191,11 @@ export default async function decorate(block) {
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
     const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, block);
+    console.log("mediaContent", mediaContent);
+    console.log("panelText", panelText);
+    console.log("isTextFallback", isTextFallback);
     const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P' || el.tagName === 'DIV');
+    console.log("selectorParagraphs", selectorParagraphs);
     return {
       media: mediaContent,
       text: panelText,
@@ -235,7 +239,6 @@ export default async function decorate(block) {
   };
 
   partners.forEach((partner, index) => {
-    console.log("partner", partner);
     const item = createTag('button', {
       class: 'partner-showcase-nav-item',
       type: 'button',
