@@ -190,7 +190,7 @@ export default async function decorate(block) {
     console.log("selector", selector);
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
-    const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, block);
+    const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, selector);
     console.log("mediaContent", mediaContent);
     console.log("panelText", panelText);
     console.log("isTextFallback", isTextFallback);
