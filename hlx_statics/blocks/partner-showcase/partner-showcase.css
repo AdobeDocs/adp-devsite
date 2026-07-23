@@ -1,0 +1,364 @@
+main div.partner-showcase-wrapper:has(.partner-showcase.background-color-white),
+main div.partner-showcase-wrapper div.partner-showcase.background-color-white {
+  background-color: white;
+}
+
+main div.partner-showcase-wrapper:has(.partner-showcase.background-color-gray),
+main div.partner-showcase-wrapper div.partner-showcase.background-color-gray {
+  background-color: rgb(245, 245, 245);
+}
+
+main div.partner-showcase-wrapper:has(.partner-showcase.background-color-navy),
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy {
+  background-color: rgb(15, 55, 95);
+}
+
+main div.partner-showcase-wrapper {
+  width: 100%;
+  background: rgb(245, 245, 245);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase {
+  max-width: 1280px;
+  box-sizing: border-box;
+  margin: auto;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-inner {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 350px;
+  min-height: 350px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-feature {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-panel,
+main div.partner-showcase-wrapper div.partner-showcase-content-panel {
+  display: none;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-panel.active {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active {
+  display: block;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active h3.partner-showcase-heading {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.15;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.active p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-panel.active.is-text-fallback {
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 32px;
+  overflow: auto;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-inner.has-text-fallback div.partner-showcase-media {
+  overflow: visible;
+  height: auto;
+  min-height: 350px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media:has(.partner-showcase-media-panel.active.is-text-fallback) {
+  overflow: visible;
+  height: auto;
+  min-height: 350px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+  text-align: left;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-media-text h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase-media-text h3.partner-showcase-heading {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.15;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media-text .partner-showcase-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text h3.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-media-text p.spectrum-Body {
+  color: white;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel.is-media-fallback {
+  display: none;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-feature picture,
+main div.partner-showcase-wrapper div.partner-showcase-feature img {
+  display: block;
+  max-width: 100%;
+  max-height: 400px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-feature video,
+main div.partner-showcase-wrapper div.partner-showcase-feature .video-container {
+  max-width: 100%;
+  max-height: 350px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-media.has-video .video-container {
+  width: 100%;
+  max-width: calc(350px * 16 / 9);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 48px;
+  width: 50%;
+  box-sizing: border-box;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-text {
+  position: relative;
+  display: block;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel>div {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-text p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-text p.button-container {
+  margin-top: 8px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-button-container p.button-container {
+  margin: 0;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  min-width: 72px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:focus-visible {
+  outline: 2px solid rgb(20, 115, 230);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-nav-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-nav-logo picture,
+main div.partner-showcase-wrapper div.partner-showcase-nav-logo img {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+  filter: grayscale(1) opacity(0.45);
+  transition: filter 0.2s ease;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item.active div.partner-showcase-nav-logo picture,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item.active div.partner-showcase-nav-logo img,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover div.partner-showcase-nav-logo picture,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover div.partner-showcase-nav-logo img {
+  filter: none;
+}
+
+main div.partner-showcase-wrapper span.partner-showcase-nav-name {
+  font-size: 14px;
+  line-height: 1.2;
+  color: rgb(110, 110, 110);
+  transition: color 0.2s ease;
+}
+
+main div.partner-showcase-wrapper button.partner-showcase-nav-item.active span.partner-showcase-nav-name,
+main div.partner-showcase-wrapper button.partner-showcase-nav-item:hover span.partner-showcase-nav-name {
+  color: rgb(44, 44, 44);
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy h3.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-text p.spectrum-Body,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy span.partner-showcase-nav-name {
+  color: white;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy button.partner-showcase-nav-item.active span.partner-showcase-nav-name,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy button.partner-showcase-nav-item:hover span.partner-showcase-nav-name {
+  color: white;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy .spectrum-Button--secondary {
+  color: white !important;
+  border-color: white !important;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy .spectrum-Link--quiet {
+  color: white;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active h1.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active h2.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active h3.partner-showcase-heading,
+main div.partner-showcase-wrapper div.partner-showcase.background-color-navy div.partner-showcase-content-panel.active p.spectrum-Body {
+  color: white;
+}
+
+@media screen and (max-width: 1024px) {
+  main div.partner-showcase-wrapper div.partner-showcase {
+    padding: 64px 24px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-inner {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-content {
+    padding: 0px 25px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-media,
+  main div.partner-showcase-wrapper div.partner-showcase-content {
+    width: 100%;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-media {
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-feature picture,
+  main div.partner-showcase-wrapper div.partner-showcase-feature img,
+  main div.partner-showcase-wrapper div.partner-showcase-feature video,
+  main div.partner-showcase-wrapper div.partner-showcase-feature .video-container {
+    max-width: 100%;
+    max-height: 400px;
+  }
+
+  main div.partner-showcase-wrapper h1.partner-showcase-heading,
+  main div.partner-showcase-wrapper h2.partner-showcase-heading,
+  main div.partner-showcase-wrapper h3.partner-showcase-heading,
+  main div.partner-showcase-wrapper div.partner-showcase-media-text h1.partner-showcase-heading,
+  main div.partner-showcase-wrapper div.partner-showcase-media-text h2.partner-showcase-heading,
+  main div.partner-showcase-wrapper div.partner-showcase-media-text h3.partner-showcase-heading {
+    font-size: 28px;
+  }
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel h1.partner-showcase-heading .anchor-link {
+  visibility: hidden;
+}
+
+main div.partner-showcase-wrapper div.partner-showcase-content-panel h1.partner-showcase-heading:hover .anchor-link {
+  visibility: visible;
+}
+
+@media screen and (max-width: 640px) {
+  main div.partner-showcase-wrapper div.partner-showcase {
+    padding: 48px 16px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-media {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 16px;
+  }
+
+  main div.partner-showcase-wrapper div.partner-showcase-nav {
+    gap: 35px;
+    justify-content: space-between;
+  }
+
+  main div.partner-showcase-wrapper button.partner-showcase-nav-item {
+    min-width: 64px;
+    flex: 1 1 calc(50% - 20px);
+  }
+}
