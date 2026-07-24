@@ -7,6 +7,7 @@ export const CHAT_SKIP_BUTTON_LABEL = "Skip to AI Assistant";
 export const CHAT_BUTTON_ID = "ai-assistant-chat-button";
 export const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
+export const CHAT_WINDOW_CONTENT_LABEL = "Chat messages";
 /**
  * @type {Record<string, HTMLElement | null>}
  */
