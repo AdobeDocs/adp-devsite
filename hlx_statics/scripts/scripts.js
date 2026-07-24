@@ -337,7 +337,6 @@ async function loadEager(doc) {
   if (!main.classList.contains('no-layout')) {
     buildSideNav(main);
   }
-  buildSiteWideBanner(main);
 
   document.body.classList.add('appear');
   loadConfig();
@@ -364,9 +363,9 @@ function setIMSParams(client_id, scope, environment, logsEnabled, resolve, rejec
           window.adobeid.profile.avatarUrl = '/hlx_statics/icons/avatar.svg';
           window.dispatchEvent(imsGetProfileSuccess);
         })
-        .catch((ex) => {
-          window.dispatchEvent(imsGetProfileError, ex);
-        });
+          .catch((ex) => {
+            window.dispatchEvent(imsGetProfileError, ex);
+          });
       } else {
         window.dispatchEvent(imsGetProfileError);
       }
@@ -399,7 +398,7 @@ function debouncePromise(fn, time) {
 }
 
 export async function loadSearch() {
-// load algolia scripts
+  // load algolia scripts
   // sources: https://www.jsdelivr.com/package/npm/algoliasearch
   // sources: https://www.jsdelivr.com/package/npm/instantsearch.js
   addExtraScriptWithLoad(
@@ -449,8 +448,8 @@ export async function loadSearch() {
       // Iterate over the product_index_map array and populate the Map
       window.adp_search.product_index_map.forEach((product) => {
         window.adp_search.index_mapping.set(product.indexName, {
-            productName: product.productName,
-            indexPathPrefix: product.indexPathPrefix
+          productName: product.productName,
+          indexPathPrefix: product.indexPathPrefix
         });
       });
       window.adp_search.completeProductMap = Object.fromEntries(window.adp_search.index_mapping);
@@ -476,10 +475,10 @@ export async function loadSearch() {
       Object.entries(window.adp_search.completeProductMap).map(([indexName, { productName }]) => [indexName, productName])
     );
     window.adp_search.path_prefix_to_product = Object.fromEntries(
-        Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
+      Object.values(window.adp_search.completeProductMap).map(({ indexPathPrefix, productName }) => [indexPathPrefix, productName])
     );
     window.adp_search.products = Array.from(
-        new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
+      new Set(Object.values(window.adp_search.completeProductMap).map(data => data.productName))
     );
 
     // Validate indices using listIndices() and cross-reference with JSON map
@@ -492,7 +491,7 @@ export async function loadSearch() {
       try {
         // Create Algolia search client
         const searchClient = window.algoliasearch.algoliasearch(
-          window.adp_search.APP_KEY, 
+          window.adp_search.APP_KEY,
           window.adp_search.API_KEY
         );
 
@@ -515,7 +514,7 @@ export async function loadSearch() {
         }
 
         // Cross-validate: Only keep indices that exist in BOTH Algolia AND product index JSON map
-        const validIndices = allIndices.filter(indexName => 
+        const validIndices = allIndices.filter(indexName =>
           algoliaIndexNames.includes(indexName)
         );
 
@@ -577,43 +576,43 @@ export async function loadAep() {
 
       whenFirstVisible.then(() => {
         addExtraScriptWithLoad(document.body, 'https://www.adobe.com/marketingtech/main.standard.min.js', () => {
-        console.log('Adobe Experience Platform loaded');
+          console.log('Adobe Experience Platform loaded');
 
-        // Track page view when _satellite is available
-        const timeout = setTimeout(() => {
-          // Resolve even if _satellite never becomes available
-          resolve();
-        }, 5000);
+          // Track page view when _satellite is available
+          const timeout = setTimeout(() => {
+            // Resolve even if _satellite never becomes available
+            resolve();
+          }, 5000);
 
-        const trackPageView = () => {
-          // eslint-disable-next-line no-undef
-          if (typeof window._satellite !== 'undefined') {
-            clearTimeout(timeout);
-            console.log(`Route tracking page name as: ${location.href}`);
+          const trackPageView = () => {
             // eslint-disable-next-line no-undef
-            _satellite.track('state',
-              {
-                xdm: {},
-                data: {
-                  _adobe_corpnew: {
-                    web: {
-                      webPageDetails: {
-                        customPageName: location.href
+            if (typeof window._satellite !== 'undefined') {
+              clearTimeout(timeout);
+              console.log(`Route tracking page name as: ${location.href}`);
+              // eslint-disable-next-line no-undef
+              _satellite.track('state',
+                {
+                  xdm: {},
+                  data: {
+                    _adobe_corpnew: {
+                      web: {
+                        webPageDetails: {
+                          customPageName: location.href
+                        }
                       }
                     }
                   }
                 }
-              }
-            );
-            resolve();
-          } else {
-            // If _satellite not ready yet, check again after a short delay
-            setTimeout(trackPageView, 100);
-          }
-        };
+              );
+              resolve();
+            } else {
+              // If _satellite not ready yet, check again after a short delay
+              setTimeout(trackPageView, 100);
+            }
+          };
 
-        trackPageView();
-      });
+          trackPageView();
+        });
       });
     });
   return window.aepLoaded;
@@ -799,6 +798,15 @@ async function loadLazy(doc) {
     if (hasResources) {
       buildResources(main);
     }
+
+    buildSiteWideBanner(main);
+
+    const bannerBlock = document.querySelector('.site-wide-banner.block');
+
+    if (bannerBlock) {
+      decorateBlock(bannerBlock);
+      await loadBlock(bannerBlock);
+    }
   }
 
   if (IS_AI_ASSISTANT_ENABLED) {
@@ -836,29 +844,29 @@ function loadDelayed() {
 }
 
 function loadTitle() {
-    if (!IS_DEV_DOCS) {
-      // Use the first H1 that doesn't contain an image as the title
-      const h1Elements = document.querySelectorAll('h1');
-      let titleFromH1 = null;
+  if (!IS_DEV_DOCS) {
+    // Use the first H1 that doesn't contain an image as the title
+    const h1Elements = document.querySelectorAll('h1');
+    let titleFromH1 = null;
 
-      for (const h1 of h1Elements) {
-        // Skip H1 inside the nav profile dropdown popover
-        if (h1.closest('#nav-profile-dropdown-popover')) continue;
-        // Check if this H1 contains an image
-        const hasImage = h1.querySelector('img');
-        if (!hasImage) {
-          // Use the text content of this H1 (no HTML tags)
-          titleFromH1 = h1.textContent.trim();
-          break; // Use the first H1 without an image
-        }
+    for (const h1 of h1Elements) {
+      // Skip H1 inside the nav profile dropdown popover
+      if (h1.closest('#nav-profile-dropdown-popover')) continue;
+      // Check if this H1 contains an image
+      const hasImage = h1.querySelector('img');
+      if (!hasImage) {
+        // Use the text content of this H1 (no HTML tags)
+        titleFromH1 = h1.textContent.trim();
+        break; // Use the first H1 without an image
       }
-      if (titleFromH1) {
-        document.title = titleFromH1;
-      }
-    } else if (!document.title || document.title === '') {
-      // Fallback to URL if no suitable H1 found
-      document.title = window.location.href;
     }
+    if (titleFromH1) {
+      document.title = titleFromH1;
+    }
+  } else if (!document.title || document.title === '') {
+    // Fallback to URL if no suitable H1 found
+    document.title = window.location.href;
+  }
 }
 
 async function loadPrism(document) {
@@ -969,7 +977,7 @@ async function loadPrism(document) {
             observer.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
           } catch (e) {
             console.error('Error loading Prism:', e);
-           }
+          }
         }).catch(console.error);
       }
 
@@ -990,7 +998,7 @@ async function loadPrism(document) {
 function scrollToHash(doc) {
   const { hash } = window.location;
   const element = hash ? doc.getElementById(hash.substring(1)) : false;
-  if (element) {    
+  if (element) {
     if (document.readyState === 'complete') {
       scrollWithLayoutAdjustment(element);
     } else {
