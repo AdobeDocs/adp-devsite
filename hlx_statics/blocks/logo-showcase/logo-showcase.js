@@ -53,7 +53,7 @@ function hasVisualMedia(mediaDiv, block) {
 // shared by both the content column and the "text as media" fallback
 function decorateTypography(container) {
   container.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((heading) => {
-    heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'partner-showcase-heading');
+    heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'logo-showcase-heading');
     decorateAnchorLink(heading);
   });
   container.querySelectorAll('p').forEach((p) => p.classList.add('spectrum-Body', 'spectrum-Body--sizeM'));
@@ -66,12 +66,12 @@ function preparePartnerMedia(mediaDiv, text, block) {
   if (mediaDiv?.textContent?.trim()) {
     const mediaText = mediaDiv.cloneNode(true);
     decorateTypography(mediaText);
-    mediaText.classList.add('partner-showcase-media-text');
+    mediaText.classList.add('logo-showcase-media-text');
     return { media: mediaText, text, isTextFallback: true };
   }
   if (text?.textContent?.trim()) {
     const fallbackText = text.cloneNode(true);
-    fallbackText.classList.add('partner-showcase-media-text');
+    fallbackText.classList.add('logo-showcase-media-text');
     return { media: fallbackText, text: null, isTextFallback: true };
   }
   return { media: null, text, isTextFallback: false };
@@ -96,7 +96,7 @@ function isCtaLink(link, paragraph) {
 
 function decorateContent(content) {
   decorateTypography(content);
-  const buttonGroup = createTag('div', { class: 'partner-showcase-button-container' });
+  const buttonGroup = createTag('div', { class: 'logo-showcase-button-container' });
 
   [...content.querySelectorAll('p')].forEach((paragraph) => {
     if (paragraph.classList.contains('button-container')) {
@@ -115,7 +115,7 @@ function decorateContent(content) {
     });
 
     paragraph.querySelectorAll('a').forEach((link) => {
-      if (!link.closest('.partner-showcase-button-container')) link.classList.add('spectrum-Link', 'spectrum-Link--quiet');
+      if (!link.closest('.logo-showcase-button-container')) link.classList.add('spectrum-Link', 'spectrum-Link--quiet');
     });
 
     if (!paragraph.textContent.trim() && !paragraph.querySelector('img,picture')) paragraph.remove();
@@ -127,16 +127,16 @@ function decorateContent(content) {
 
 function buildNavItem(partner, index, onSelect) {
   const item = createTag('button', {
-    class: 'partner-showcase-nav-item',
+    class: 'logo-showcase-nav-item',
     type: 'button',
     'aria-label': partner.label,
   });
   if (!index) item.classList.add('active');
 
-  const logo = createTag('div', { class: 'partner-showcase-nav-logo' });
+  const logo = createTag('div', { class: 'logo-showcase-nav-logo' });
   if (partner.logo) logo.append(partner.logo);
 
-  const name = createTag('span', { class: 'partner-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
+  const name = createTag('span', { class: 'logo-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
   name.textContent = partner.label;
 
   if (partner.logo && partner.label) item.append(logo, name);
@@ -147,7 +147,7 @@ function buildNavItem(partner, index, onSelect) {
 }
 
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'partner-showcase');
+  block.setAttribute('daa-lh', 'logo-showcase');
   decorateLightOrDark(block);
   removeEmptyPTags(block);
 
@@ -170,18 +170,18 @@ export default async function decorate(block) {
     };
   });
 
-  const feature = createTag('div', { class: 'partner-showcase-feature' });
-  const contentArea = createTag('div', { class: 'partner-showcase-text' });
-  const nav = createTag('div', { class: 'partner-showcase-nav' });
+  const feature = createTag('div', { class: 'logo-showcase-feature' });
+  const contentArea = createTag('div', { class: 'logo-showcase-text' });
+  const nav = createTag('div', { class: 'logo-showcase-nav' });
 
   partners.forEach((partner, index) => {
-    const mediaPanel = createTag('div', { class: 'partner-showcase-media-panel' });
+    const mediaPanel = createTag('div', { class: 'logo-showcase-media-panel' });
     if (index === 0) mediaPanel.classList.add('active');
     if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
     if (partner.media) mediaPanel.append(partner.media);
     feature.append(mediaPanel);
 
-    const contentPanel = createTag('div', { class: 'partner-showcase-content-panel' });
+    const contentPanel = createTag('div', { class: 'logo-showcase-content-panel' });
     if (index === 0) contentPanel.classList.add('active');
     if (partner.isTextFallback && !partner.text) contentPanel.classList.add('is-empty');
     if (partner.text) contentPanel.append(partner.text);
@@ -189,16 +189,16 @@ export default async function decorate(block) {
   });
 
   const setActive = (index) => {
-    feature.querySelectorAll('.partner-showcase-media-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
-    contentArea.querySelectorAll('.partner-showcase-content-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
-    nav.querySelectorAll('.partner-showcase-nav-item').forEach((btn, i) => btn.classList.toggle('active', i === index));
+    feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
+    contentArea.querySelectorAll('.logo-showcase-content-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
+    nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => btn.classList.toggle('active', i === index));
   };
 
   partners.forEach((partner, index) => nav.append(buildNavItem(partner, index, setActive)));
 
-  const inner = createTag('div', { class: 'partner-showcase-inner' });
-  const media = createTag('div', { class: 'partner-showcase-media' });
-  const panel = createTag('div', { class: 'partner-showcase-content' });
+  const inner = createTag('div', { class: 'logo-showcase-inner' });
+  const media = createTag('div', { class: 'logo-showcase-media' });
+  const panel = createTag('div', { class: 'logo-showcase-content' });
   if (isVideo) media.classList.add('has-video');
   media.append(feature);
   panel.append(contentArea, nav);
