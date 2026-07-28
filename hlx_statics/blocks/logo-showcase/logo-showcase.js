@@ -34,6 +34,37 @@ function optimizeImages(container) {
   });
 }
 
+function ensureYoutubeJsApi(iframe) {
+  const src = iframe.getAttribute('src');
+  if (!src) return;
+  const url = new URL(src, window.location.href);
+  if (!/youtube(-nocookie)?\.com$/.test(url.hostname.replace(/^www\./, ''))) return;
+  if (!url.searchParams.has('enablejsapi')) {
+    url.searchParams.set('enablejsapi', '1');
+    iframe.setAttribute('src', url.toString());
+  }
+}
+
+function postYoutubeCommand(iframe, func) {
+  iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args: [] }), '*');
+}
+
+function pauseIframeVideo(iframe) {
+  postYoutubeCommand(iframe, 'pauseVideo');
+  if (!iframe.dataset.logoShowcaseLoadBound) {
+    iframe.dataset.logoShowcaseLoadBound = 'true';
+    iframe.addEventListener('load', () => {
+      if (iframe.dataset.logoShowcasePendingPause === 'true') postYoutubeCommand(iframe, 'pauseVideo');
+    });
+  }
+  iframe.dataset.logoShowcasePendingPause = 'true';
+}
+
+function playIframeVideo(iframe) {
+  iframe.dataset.logoShowcasePendingPause = 'false';
+  postYoutubeCommand(iframe, 'playVideo');
+}
+
 function prepareMedia(mediaDiv, block) {
   if (!mediaDiv) return null;
   if (block.classList.contains('video')) {
@@ -51,6 +82,7 @@ function prepareMedia(mediaDiv, block) {
       });
       wrapper.setAttribute('role', 'region');
       wrapper.setAttribute('aria-label', title || 'Video');
+      wrapper.querySelectorAll('iframe').forEach((iframe) => ensureYoutubeJsApi(iframe));
       return wrapper;
     }
   }
@@ -63,7 +95,6 @@ function hasVisualMedia(mediaDiv, block) {
   return !!mediaDiv.querySelector('picture, img, video, .video-container');
 }
 
-// shared by both the content column and the "text as media" fallback
 function decorateTypography(container) {
   container.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((heading) => {
     heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'logo-showcase-heading');
@@ -134,23 +165,29 @@ function decorateContent(content) {
   decorateButtons(content);
 }
 
-function getNavItemLabel(partner) {
-  if (partner.label) return partner.label;
+function getNavItemLabel(partner, index) {
+  if (partner.label) {
+    return partner.label;
+  }
   const img = partner.logo?.querySelector('img');
-  if (img?.alt) return img.alt;
-  return '';
+  if (img?.alt) {
+    return img.alt.trim();
+  }
+  return `Partner ${index + 1}`;
 }
 
 function buildNavItem(partner, index, onSelect) {
-  const label = getNavItemLabel(partner);
+  const label = getNavItemLabel(partner, index);
   const item = createTag('button', {
     class: 'logo-showcase-nav-item',
     type: 'button',
-    'aria-label': label || undefined,
+    'aria-label': label,
   });
   if (!index) {
     item.classList.add('active');
     item.setAttribute('aria-current', 'true');
+  } else {
+    item.setAttribute('aria-current', 'false');
   }
 
   const logo = createTag('div', { class: 'logo-showcase-nav-logo' });
@@ -174,6 +211,8 @@ export default async function decorate(block) {
   const isVideo = block.classList.contains('video');
   const rows = [...block.children].filter((child) => child.tagName === 'DIV');
   if (!rows.length) return;
+
+  rows.forEach((row) => decorateLightOrDark(row));
 
   const partners = rows.map((row) => {
     const [media, content, selector] = row.children;
@@ -208,25 +247,24 @@ export default async function decorate(block) {
     contentArea.append(contentPanel);
   });
 
+  feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => {
+    if (i === 0) return;
+    panel.querySelectorAll('video').forEach((v) => v.pause?.());
+    panel.querySelectorAll('iframe').forEach((iframe) => pauseIframeVideo(iframe));
+  });
+
   const setActive = (index) => {
     feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => {
       const becomingActive = i === index;
       panel.classList.toggle('active', becomingActive);
-      if (!becomingActive) {
-        panel.querySelectorAll('video').forEach((v) => { v.pause(); });
-        panel.querySelectorAll('iframe').forEach((iframe) => {
-          const src = iframe.getAttribute('src');
-          if (src) {
-            iframe.dataset.src = src;
-            iframe.removeAttribute('src');
-          }
-        });
-      } else {
-        panel.querySelectorAll('iframe[data-src]').forEach((iframe) => {
-          iframe.setAttribute('src', iframe.dataset.src);
-          delete iframe.dataset.src;
-        });
-      }
+      panel.querySelectorAll('video').forEach((v) => {
+        if (becomingActive) v.play?.().catch(() => { });
+        else v.pause?.();
+      });
+      panel.querySelectorAll('iframe').forEach((iframe) => {
+        if (becomingActive) playIframeVideo(iframe);
+        else pauseIframeVideo(iframe);
+      });
     });
     contentArea.querySelectorAll('.logo-showcase-content-panel').forEach((panel, i) => { panel.classList.toggle('active', i === index) });
     nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => {
@@ -260,5 +298,4 @@ export default async function decorate(block) {
   contentArea.querySelector('.logo-showcase-content-panel').classList.add('active');
 
   optimizeImages(block);
-
 }
