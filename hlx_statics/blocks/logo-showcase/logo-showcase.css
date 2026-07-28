@@ -183,6 +183,23 @@ main div.logo-showcase-wrapper button.logo-showcase-nav-item {
   border: none;
   background: transparent;
   cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, filter 160ms ease;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item {
+  color: white;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active:hover {
+  background-color: rgba(255, 255, 255, 0.16);
 }
 
 main div.logo-showcase-wrapper button.logo-showcase-nav-item:focus-visible {
