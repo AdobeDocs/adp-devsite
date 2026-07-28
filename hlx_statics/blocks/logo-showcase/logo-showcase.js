@@ -208,11 +208,4 @@ export default async function decorate(block) {
   optimizeImages(block);
   optimizeImages(nav);
 
-  // const observer = new IntersectionObserver((entries) => {
-  //   if (entries.some((entry) => entry.isIntersecting)) {
-  //     observer.disconnect();
-  //     optimizeImages(block);
-  //   }
-  // });
-  // observer.observe(block);
 }
