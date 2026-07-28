@@ -56,7 +56,7 @@ function decorateTypography(container) {
     heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'logo-showcase-heading');
     decorateAnchorLink(heading);
   });
-  container.querySelectorAll('p').forEach((p) => p.classList.add('spectrum-Body', 'spectrum-Body--sizeM'));
+  container.querySelectorAll('p').forEach((p) => { p.classList.add('spectrum-Body', 'spectrum-Body--sizeM') });
 }
 
 function preparePartnerMedia(mediaDiv, text, block) {
@@ -189,12 +189,12 @@ export default async function decorate(block) {
   });
 
   const setActive = (index) => {
-    feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
-    contentArea.querySelectorAll('.logo-showcase-content-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
-    nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => btn.classList.toggle('active', i === index));
+    feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => { panel.classList.toggle('active', i === index) });
+    contentArea.querySelectorAll('.logo-showcase-content-panel').forEach((panel, i) => { panel.classList.toggle('active', i === index) });
+    nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => { btn.classList.toggle('active', i === index) });
   };
 
-  partners.forEach((partner, index) => nav.append(buildNavItem(partner, index, setActive)));
+  partners.forEach((partner, index) => { nav.append(buildNavItem(partner, index, setActive)) });
 
   const inner = createTag('div', { class: 'logo-showcase-inner' });
   const media = createTag('div', { class: 'logo-showcase-media' });
@@ -208,11 +208,11 @@ export default async function decorate(block) {
   optimizeImages(block);
   optimizeImages(nav);
 
-  const observer = new IntersectionObserver((entries) => {
-    if (entries.some((entry) => entry.isIntersecting)) {
-      observer.disconnect();
-      optimizeImages(block);
-    }
-  });
-  observer.observe(block);
+  // const observer = new IntersectionObserver((entries) => {
+  //   if (entries.some((entry) => entry.isIntersecting)) {
+  //     observer.disconnect();
+  //     optimizeImages(block);
+  //   }
+  // });
+  // observer.observe(block);
 }
