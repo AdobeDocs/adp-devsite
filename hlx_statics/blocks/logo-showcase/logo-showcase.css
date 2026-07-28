@@ -194,12 +194,14 @@ main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.lo
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active {
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active:hover {
   background-color: rgba(255, 255, 255, 0.16);
 }
 
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active:hover {
-  background-color: rgba(255, 255, 255, 0.16);
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item:not(:has(.logo-showcase-nav-logo)) {
+  padding: 5px;
+  border-radius: 4px;
 }
 
 main div.logo-showcase-wrapper button.logo-showcase-nav-item:focus-visible {
