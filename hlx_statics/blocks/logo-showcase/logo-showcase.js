@@ -14,10 +14,20 @@ import {
   parseVideoSource,
 } from '../../scripts/video.js';
 
+function isAnimatedGif(src) {
+  try {
+    const url = new URL(src, window.location.href);
+    return url.pathname.toLowerCase().endsWith('.gif');
+  } catch {
+    return false;
+  }
+}
+
 function optimizeImages(container) {
   container.querySelectorAll('picture > img').forEach((img) => {
     const pic = img.closest('picture');
     if (!pic || pic.dataset.optimized) return;
+    if (isAnimatedGif(img.src)) return;
     const optimized = createOptimizedPicture(img.src, img.alt);
     optimized.dataset.optimized = 'true';
     pic.replaceWith(optimized);
@@ -30,14 +40,17 @@ function prepareMedia(mediaDiv, block) {
     const videoSource = parseVideoSource(mediaDiv);
     if (videoSource) {
       const wrapper = createTag('div');
+      const title = getVideoTitle(videoSource.url, videoSource.linkText);
       applyVideoContainer(wrapper, {
         url: videoSource.url,
-        title: getVideoTitle(videoSource.url, videoSource.linkText),
+        title,
         autoplay: true,
         muted: true,
         loop: true,
         controls: block.classList.contains('controls'),
       });
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', title || 'Video');
       return wrapper;
     }
   }
@@ -83,7 +96,7 @@ function isCtaLink(link, paragraph) {
   }
   const childNodes = [...paragraph.childNodes];
   const links = [...paragraph.querySelectorAll('a')];
-  const nodes = childNodes.filter((n) => n.nodeType !== 3 || n.textContent.trim());
+  const nodes = childNodes.filter((n) => n.nodeType !== Node.TEXT_NODE || n.textContent.trim());
 
   if (links.length === 1 && nodes.length === 1 && (nodes[0] === link || nodes[0]?.contains?.(link))) {
     return true;
@@ -107,15 +120,11 @@ function decorateContent(content) {
     [...paragraph.querySelectorAll('a')].filter((link) => isCtaLink(link, paragraph)).forEach((link) => {
       const childNodes = [...paragraph.childNodes];
       childNodes.slice(0, childNodes.indexOf(link)).reverse().forEach((node) => {
-        if (node.nodeName === 'BR' || (node.nodeType === 3 && !node.textContent.trim())) node.remove();
+        if (node.nodeName === 'BR' || (node.nodeType === Node.TEXT_NODE && !node.textContent.trim())) node.remove();
       });
       const buttonParagraph = createTag('p', { class: 'button-container' });
       buttonParagraph.append(link.parentElement?.tagName === 'STRONG' ? link.parentElement : link);
       buttonGroup.append(buttonParagraph);
-    });
-
-    paragraph.querySelectorAll('a').forEach((link) => {
-      if (!link.closest('.logo-showcase-button-container')) link.classList.add('spectrum-Link', 'spectrum-Link--quiet');
     });
 
     if (!paragraph.textContent.trim() && !paragraph.querySelector('img,picture')) paragraph.remove();
@@ -125,19 +134,30 @@ function decorateContent(content) {
   decorateButtons(content);
 }
 
+function getNavItemLabel(partner) {
+  if (partner.label) return partner.label;
+  const img = partner.logo?.querySelector('img');
+  if (img?.alt) return img.alt;
+  return '';
+}
+
 function buildNavItem(partner, index, onSelect) {
+  const label = getNavItemLabel(partner);
   const item = createTag('button', {
     class: 'logo-showcase-nav-item',
     type: 'button',
-    'aria-label': partner.label,
+    'aria-label': label || undefined,
   });
-  if (!index) item.classList.add('active');
+  if (!index) {
+    item.classList.add('active');
+    item.setAttribute('aria-current', 'true');
+  }
 
   const logo = createTag('div', { class: 'logo-showcase-nav-logo' });
   if (partner.logo) logo.append(partner.logo);
 
   const name = createTag('span', { class: 'logo-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
-  name.textContent = partner.label;
+  name.textContent = partner.label || '';
 
   if (partner.logo && partner.label) item.append(logo, name);
   else item.append(partner.logo ? logo : name);
@@ -189,9 +209,30 @@ export default async function decorate(block) {
   });
 
   const setActive = (index) => {
-    feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => { panel.classList.toggle('active', i === index) });
+    feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => {
+      const becomingActive = i === index;
+      panel.classList.toggle('active', becomingActive);
+      if (!becomingActive) {
+        panel.querySelectorAll('video').forEach((v) => { v.pause(); });
+        panel.querySelectorAll('iframe').forEach((iframe) => {
+          const src = iframe.getAttribute('src');
+          if (src) {
+            iframe.dataset.src = src;
+            iframe.removeAttribute('src');
+          }
+        });
+      } else {
+        panel.querySelectorAll('iframe[data-src]').forEach((iframe) => {
+          iframe.setAttribute('src', iframe.dataset.src);
+          delete iframe.dataset.src;
+        });
+      }
+    });
     contentArea.querySelectorAll('.logo-showcase-content-panel').forEach((panel, i) => { panel.classList.toggle('active', i === index) });
-    nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => { btn.classList.toggle('active', i === index) });
+    nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => {
+      btn.classList.toggle('active', i === index);
+      btn.setAttribute('aria-current', i === index ? 'true' : 'false');
+    });
   };
 
   partners.forEach((partner, index) => { nav.append(buildNavItem(partner, index, setActive)) });
@@ -205,7 +246,19 @@ export default async function decorate(block) {
   inner.append(media, panel);
   block.replaceChildren(inner);
 
+  const maxContentHeight = Math.max(
+    ...contentArea.querySelectorAll('.logo-showcase-content-panel').length
+      ? [...contentArea.querySelectorAll('.logo-showcase-content-panel')].map((p) => {
+        p.classList.add('active');
+        const height = p.offsetHeight;
+        p.classList.remove('active');
+        return height;
+      })
+      : [0],
+  );
+  if (maxContentHeight) contentArea.style.minHeight = `${maxContentHeight}px`;
+  contentArea.querySelector('.logo-showcase-content-panel').classList.add('active');
+
   optimizeImages(block);
-  optimizeImages(nav);
 
 }
