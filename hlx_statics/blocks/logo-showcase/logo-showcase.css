@@ -275,8 +275,8 @@ main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.lo
 }
 
 main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .spectrum-Button--secondary {
-  color: white !important;
-  border-color: white !important;
+  color: white;
+  border-color: white;
 }
 
 main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .spectrum-Link--quiet {
