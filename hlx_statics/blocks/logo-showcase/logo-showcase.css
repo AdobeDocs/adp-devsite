@@ -68,14 +68,18 @@ main div.logo-showcase-wrapper div.logo-showcase-content-panel.active {
 
 main div.logo-showcase-wrapper div.logo-showcase-content-panel.active h1.logo-showcase-heading,
 main div.logo-showcase-wrapper div.logo-showcase-content-panel.active h2.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase-content-panel.active h3.logo-showcase-heading {
+main div.logo-showcase-wrapper div.logo-showcase-content-panel.active h3.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-media-text h1.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-media-text h2.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-media-text h3.logo-showcase-heading {
   margin: 0;
   font-size: 36px;
   line-height: 1.15;
   color: rgb(44, 44, 44);
 }
 
-main div.logo-showcase-wrapper div.logo-showcase-content-panel.active p.spectrum-Body {
+main div.logo-showcase-wrapper div.logo-showcase-content-panel.active p.spectrum-Body,
+main div.logo-showcase-wrapper div.logo-showcase-media-text p.spectrum-Body {
   margin: 0;
   color: rgb(44, 44, 44);
 }
@@ -85,12 +89,6 @@ main div.logo-showcase-wrapper div.logo-showcase-media-panel.active.is-text-fall
   justify-content: center;
   padding: 0 32px;
   overflow: auto;
-}
-
-main div.logo-showcase-wrapper div.logo-showcase-inner.has-text-fallback div.logo-showcase-media {
-  overflow: visible;
-  height: auto;
-  min-height: 350px;
 }
 
 main div.logo-showcase-wrapper div.logo-showcase-media:has(.logo-showcase-media-panel.active.is-text-fallback) {
@@ -105,38 +103,6 @@ main div.logo-showcase-wrapper div.logo-showcase-media-text {
   gap: 22px;
   width: 100%;
   text-align: left;
-}
-
-main div.logo-showcase-wrapper div.logo-showcase-media-text h1.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase-media-text h2.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase-media-text h3.logo-showcase-heading {
-  margin: 0;
-  font-size: 36px;
-  line-height: 1.15;
-  color: rgb(44, 44, 44);
-}
-
-main div.logo-showcase-wrapper div.logo-showcase-media-text p.spectrum-Body {
-  margin: 0;
-  color: rgb(44, 44, 44);
-}
-
-main div.logo-showcase-wrapper div.logo-showcase-media-text .logo-showcase-button-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-media-text h1.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-media-text h2.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-media-text h3.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-media-text p.spectrum-Body {
-  color: white;
-}
-
-main div.logo-showcase-wrapper div.logo-showcase-content-panel.is-media-fallback {
-  display: none;
 }
 
 main div.logo-showcase-wrapper div.logo-showcase-feature picture,
@@ -265,29 +231,16 @@ main div.logo-showcase-wrapper div.logo-showcase.background-color-navy h1.logo-s
 main div.logo-showcase-wrapper div.logo-showcase.background-color-navy h2.logo-showcase-heading,
 main div.logo-showcase-wrapper div.logo-showcase.background-color-navy h3.logo-showcase-heading,
 main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-text p.spectrum-Body,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy span.logo-showcase-nav-name {
-  color: white;
-}
-
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active span.logo-showcase-nav-name,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item:hover span.logo-showcase-nav-name {
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-media-text p.spectrum-Body,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy span.logo-showcase-nav-name,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .logo-showcase-content-panel a,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .spectrum-Link--quiet {
   color: white;
 }
 
 main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .spectrum-Button--secondary {
   color: white;
   border-color: white;
-}
-
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .spectrum-Link--quiet {
-  color: white;
-}
-
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-content-panel.active h1.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-content-panel.active h2.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-content-panel.active h3.logo-showcase-heading,
-main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-content-panel.active p.spectrum-Body {
-  color: white;
 }
 
 @media screen and (max-width: 1024px) {
