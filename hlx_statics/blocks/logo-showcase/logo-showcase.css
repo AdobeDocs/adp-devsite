@@ -327,4 +327,10 @@ main div.logo-showcase-wrapper div.logo-showcase-content-panel h1.logo-showcase-
     min-width: 64px;
     flex: 1 1 calc(50% - 20px);
   }
+
+  main div.logo-showcase-wrapper div.logo-showcase-media {
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+  }
 }
