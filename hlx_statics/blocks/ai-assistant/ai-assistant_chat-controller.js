@@ -362,7 +362,7 @@ export const handleUserQuery = async (
   const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
     targetBubble.hideThinking();
     targetBubble.hideStreamingCursor();
-    targetBubble.updateContent(message);
+    targetBubble.updateContent(message, { alert: true });
     return;
   };
 

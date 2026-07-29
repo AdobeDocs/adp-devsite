@@ -278,11 +278,17 @@ export class ChatBubble {
   /**
    * Updates the content of the chat bubble
    * @param {string} content
+   * @param {Object} [options]
+   * @param {boolean} [options.alert=false] - When true, marks the content element
+   * `role="alert"` so screen readers announce it immediately (APG Alert pattern / WCAG 4.1.3).
    */
-  updateContent(content) {
+  updateContent(content, { alert = false } = {}) {
     this.content = content;
     const contentElement = this.element.querySelector(".chat-bubble-content");
     if (contentElement) {
+      if (alert) {
+        contentElement.setAttribute("role", "alert");
+      }
       this.#_renderContent(contentElement);
     }
   }
