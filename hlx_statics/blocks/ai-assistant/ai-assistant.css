@@ -1,6 +1,26 @@
 /* Ai Assistant Floating Chat Bot */
 
 /*
+ * MARK: Screen-reader announcer
+ * Visually-hidden live regions (role="log" + role="status") used to announce
+ * completed assistant replies and the "responding…" state to screen readers.
+ * Kept 1px (not display:none) so the regions remain in the accessibility tree
+ * and can announce; decoupled from the visible transcript.
+ */
+.chat-announcer {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/*
  * MARK: Skip Link
  * Visually hidden "Skip to AI Assistant" link. Kept 1px (not display:none) so it
  * stays in the accessibility tree and tab order; revealed on keyboard focus.
