@@ -17,6 +17,7 @@ import {
   showSuggestedQuestions,
   updateSuggestedQuestions,
 } from "./ai-assistant_suggested-questions.js";
+import { announce, setResponding } from "./ai-assistant_announcer.js";
 
 let userScrolledUp = false;
 let lastScrollTop = 0;
@@ -358,8 +359,11 @@ export const handleUserQuery = async (
 
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
   targetBubble.showThinking();
+  // a11y: announce the "responding" state while thinking/streaming is active,
+  setResponding(true);
 
   const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
+    setResponding(false);
     targetBubble.hideThinking();
     targetBubble.hideStreamingCursor();
     targetBubble.updateContent(message, { alert: true });
@@ -428,10 +432,14 @@ export const handleUserQuery = async (
       },
       onComplete: async () => {
         hideStopButton();
+        setResponding(false);
         if (!responseContent) {
           targetBubble.hideThinking();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
+          // a11y: announce the completed reply once, as plain text, 
+          // from the final content only 
+          announce(targetBubble.getPlainText());
           updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
           window.setTimeout(
             () =>
@@ -441,6 +449,8 @@ export const handleUserQuery = async (
           return;
         }
         targetBubble.completeBubble();
+        // a11y: announce the completed reply once, as plain text.
+        announce(targetBubble.getPlainText());
         chatHistory.updateLast({
           content: responseContent,
           references: accumulatedReferences,

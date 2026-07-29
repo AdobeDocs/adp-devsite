@@ -293,6 +293,16 @@ export class ChatBubble {
     }
   }
 
+  /**
+   * Returns the rendered message as plain text.
+   *
+   * @returns {string}
+   */
+  getPlainText() {
+    const contentElement = this.element.querySelector(".chat-bubble-content");
+    return contentElement?.textContent?.trim() ?? "";
+  }
+
   scrollIntoView() {
     this.element.scrollIntoView({
       behavior: "smooth",
@@ -427,10 +437,7 @@ export class ChatBubble {
         rel: "noopener noreferrer",
       });
       a.textContent = title || url;
-      a.setAttribute(
-        "daa-ll",
-        `DevsiteAI Assistant:Message:Sources:Link`,
-      );
+      a.setAttribute("daa-ll", `DevsiteAI Assistant:Message:Sources:Link`);
       li.appendChild(a);
       list.appendChild(li);
     });
