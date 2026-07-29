@@ -24,6 +24,7 @@ import {
   ELEMENTS,
 } from "./ai-assistant_constants.js";
 import { createSuggestedQuestionsSection } from "./ai-assistant_suggested-questions.js";
+import { createAnnouncerRegions } from "./ai-assistant_announcer.js";
 
 /**
  * Decorates the ai-assistant block
@@ -116,6 +117,11 @@ export default async function decorate(block) {
 
   panel.appendChild(createChatButton());
   panel.appendChild(chatWindow);
+
+  // a11y: visually-hidden live regions for screen-reader announcements, kept
+  // outside the toggled chat-window so they stay in the DOM (a live region
+  // inside a `display:none` ancestor won't announce).
+  panel.appendChild(createAnnouncerRegions());
 
   block.appendChild(panel);
 
