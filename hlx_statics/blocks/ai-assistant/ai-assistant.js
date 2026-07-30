@@ -18,6 +18,7 @@ import {
 import {
   CHAT_BUTTON_ID,
   CHAT_SKIP_BUTTON_LABEL,
+  CHAT_WINDOW_CONTENT_LABEL,
   CHAT_WINDOW_ID,
   CHAT_WINDOW_LABEL_ID,
   ELEMENTS,
@@ -40,6 +41,7 @@ export default async function decorate(block) {
     document.body.prepend(skipLink);
   }
 
+  const headingSizes = ["XL", "M", "S", "XS", "XXS", "XXS"];
   addExtraScriptWithLoad(
     document.body,
     "https://unpkg.com/marked@18.0.5/lib/marked.umd.js",
@@ -49,12 +51,23 @@ export default async function decorate(block) {
         renderer: {
           /**
            * @param {Object} options
+           * @param {Array<unknown>} options.tokens
+           * @param {number} options.depth
+           */
+          heading({ tokens, depth }) {
+            /** @type {string} **/
+            const text = this.parser.parseInline(tokens);
+            const newDepth = Math.min(depth + 2, 6);
+            return `<h${newDepth} class="spectrum-Heading spectrum-Heading--size${headingSizes[newDepth - 1]}">${text}</h${newDepth}>\n`;
+          },
+          /**
+           * @param {Object} options
            * @param {string} options.href
            * @param {string} options.title
            * @param {string} options.text
            */
           link({ href, title, text }) {
-            const analyticsLabel = `DevsiteAI Assistant:Message:Link:${title || text}|${href}`;
+            const analyticsLabel = `DevsiteAI Assistant:Message:Link`;
             return `<a href="${href}" title="${title || text}" data-ll="${analyticsLabel}" target="_blank" rel="noopener noreferrer">${text}</a>`;
           },
         },
@@ -69,7 +82,6 @@ export default async function decorate(block) {
           });
           // @ts-expect-error - DOMPurify is not on the Window object
           window.DOMPurify.addHook("afterSanitizeAttributes", (node) => {
-            console.log("afterSanitizeAttributes");
             if (node.hasAttribute("data-ll")) {
               node.setAttribute("daa-ll", node.getAttribute("data-ll"));
             }
@@ -92,7 +104,11 @@ export default async function decorate(block) {
   ELEMENTS.CHAT_WINDOW = chatWindow;
 
   chatWindow.appendChild(createChatWindowHeader());
-  const content = createTag("div", { class: "chat-window-content" });
+  const content = createTag("div", {
+    class: "chat-window-content",
+    role: "region",
+    "aria-label": CHAT_WINDOW_CONTENT_LABEL,
+  });
   ELEMENTS.CHAT_WINDOW_CONTENT = content;
   content.appendChild(createSuggestedQuestionsSection());
   chatWindow.appendChild(content);

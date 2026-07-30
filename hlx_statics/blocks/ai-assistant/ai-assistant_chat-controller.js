@@ -26,6 +26,51 @@ const escapeKeyHandler = (e) => {
   if (e.key === 'Escape') minimizeChatWindow();
 };
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Returns the currently visible, focusable descendants of a container, in DOM order.
+ * @param {HTMLElement} container
+ * @returns {HTMLElement[]}
+ */
+export const getFocusableElements = (container) =>
+  Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+    (/** @type {HTMLElement} */ el) => el.offsetParent !== null,
+  );
+
+/**
+ * Wraps Tab/Shift-Tab at the boundaries of a container's focusable elements,
+ * so focus cycles within it instead of escaping. Call this from a keydown
+ * listener scoped to whatever should currently own the tab order (the chat
+ * window, or an overlay like the clear-confirmation dialog).
+ * @param {KeyboardEvent} e
+ * @param {HTMLElement} container
+ */
+export const trapTabFocus = (e, container) => {
+  if (e.key !== 'Tab') return;
+
+  const focusable = getFocusableElements(container);
+  if (focusable.length === 0) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+};
+
+/** @param {KeyboardEvent} e */
+const trapFocusHandler = (e) => {
+  if (!ELEMENTS.CHAT_WINDOW) return;
+  trapTabFocus(e, /** @type {HTMLElement} */ (ELEMENTS.CHAT_WINDOW));
+};
+
 /**
  * Handles scroll events in the chat window to detect when the user scrolls up or back to the bottom.
  * Sets/resets a flag to pause or resume auto-scrolling during streaming.
@@ -114,6 +159,7 @@ export const openChatWindow = () => {
   }
 
   ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', escapeKeyHandler);
+  ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', trapFocusHandler);
 
   ELEMENTS.CHAT_TEXTAREA.focus();
 };
@@ -126,6 +172,7 @@ export const minimizeChatWindow = () => {
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 
   ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', escapeKeyHandler);
+  ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', trapFocusHandler);
 
   focusChatButtonAfterClose();
   restoreBadgeAfterClose();

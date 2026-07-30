@@ -4,6 +4,7 @@ import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
   clearConversation,
   handleUserQuery,
+  trapTabFocus,
 } from "./ai-assistant_chat-controller.js";
 
 import {
@@ -83,14 +84,17 @@ export const createChatWindowHeader = () => {
  * Creates the input section
  */
 export const createInputSection = () => {
+  const TEXTAREA_MAX_HEIGHT = 66;
+
   const inputSection = createTag("div", {
     class: "chat-window-input-section",
   });
   const textarea = /** @type {HTMLTextAreaElement} */ (
     createTag("textarea", {
       placeholder: "What question would you like to ask today?",
-      rows: "4",
+      rows: "2",
       "aria-label": "Enter a question for the AI Assistant",
+      style: `--max-height: ${TEXTAREA_MAX_HEIGHT}px`,
     })
   );
   const disclaimerText = createTag("div", { class: "chat-disclaimer-text" });
@@ -116,9 +120,12 @@ export const createInputSection = () => {
   sendButton.appendChild(sendButtonLabel);
   sendButton.disabled = true;
 
+  const inputFooter = createTag("div", { class: "chat-input-footer" });
+  inputFooter.appendChild(sendButton);
+
   const textareaWrapper = createTag("div", { class: "chat-textarea-wrapper" });
   textareaWrapper.appendChild(textarea);
-  textareaWrapper.appendChild(sendButton);
+  textareaWrapper.appendChild(inputFooter);
 
   inputSection.appendChild(textareaWrapper);
   inputSection.appendChild(disclaimerText);
@@ -132,7 +139,11 @@ export const createInputSection = () => {
       handleUserQuery();
     }
   });
+
   textarea.addEventListener("input", () => {
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, TEXTAREA_MAX_HEIGHT)}px`;
+
     sendButton.disabled = textarea.value.trim() === "";
   });
   textarea.addEventListener("keydown", (e) => {
@@ -176,10 +187,18 @@ export const createChatButton = () => {
 export const createClearDialog = () => {
   const dialog = createTag("div", { class: "chat-window-dialog" });
   dialog.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      dialog.remove();
+      /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+      return;
+    }
+
+    if (e.key !== "Tab") return;
+    // Stop the outer chat-window focus trap from also reacting: this dialog
+    // owns tabbing while it's open, since it overlays the rest of the window.
     e.stopPropagation();
-    dialog.remove();
-    /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+    trapTabFocus(e, dialog);
   });
 
   const card = createTag("section", {

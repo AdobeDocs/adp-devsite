@@ -2,6 +2,11 @@ import { createTag, removeEmptyPTags, decorateButtons } from '../scripts/lib-ado
 import {
   createOptimizedPicture,
 } from '../scripts/lib-helix.js';
+import {
+  applyVideoContainer,
+  getVideoTitle,
+  parseVideoSource,
+} from '../scripts/video.js';
 
 /** @param {Document} doc */
 function getOpenGraphMeta(doc) {
@@ -38,6 +43,8 @@ export default async function decorateInfoCard(block, options = {}) {
   const { daaLh = 'info-card' } = options;
   block.setAttribute('daa-lh', daaLh);
   const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
+  const isVideoCard = block.classList.contains('video') || block.getAttribute('data-slots')?.split(',')?.includes('video');
+  const isControls = block.classList.contains('controls') || block.getAttribute('data-controls') === 'true';
   const isWide = block.getAttribute('data-wide') === 'true';
   if (isWide) {
     block.classList.add('wide');
@@ -87,16 +94,32 @@ export default async function decorateInfoCard(block, options = {}) {
   const ul = document.createElement('ul');
   [...block.children].forEach((row) => {
     const li = document.createElement('li');
-    const a = document.createElement('a');
+    const videoSource = isVideoCard ? parseVideoSource(row) : null;
+    const cardHref = [...row.querySelectorAll('a[href]')].find((l) => l !== videoSource?.anchor)?.href;
+    const card = createTag(cardHref ? 'a' : 'div', cardHref ? { href: cardHref } : {});
 
     const image = row.querySelector('img') || row.querySelector('picture img');
+
     if (image) {
       const imageDiv = createTag('div', { class: 'cards-card-image' });
       const picWidth = image.naturalWidth > 0 ? String(image.naturalWidth) : '1200';
       imageDiv.appendChild(
         createOptimizedPicture(image.src, image.alt, false, [{ width: picWidth }]),
       );
-      a.appendChild(imageDiv);
+      card.appendChild(imageDiv);
+    } else if (videoSource) {
+      const imageDiv = createTag('div', { class: 'cards-card-image' });
+      const wrapperVideo = createTag('div');
+      applyVideoContainer(wrapperVideo, {
+        url: videoSource.url,
+        title: getVideoTitle(videoSource.url, videoSource.linkText),
+        autoplay: true,
+        muted: true,
+        loop: true,
+        controls: isControls ? true : false,
+      });
+      imageDiv.appendChild(wrapperVideo);
+      card.appendChild(imageDiv);
     }
 
     const textDiv = createTag('div', { class: 'cards-card-body' });
@@ -109,7 +132,6 @@ export default async function decorateInfoCard(block, options = {}) {
         h3.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'card-heading');
         h3.textContent = headingElement.textContent.trim();
         textDiv.appendChild(h3);
-        headingElement.href ? a.href = headingElement.href : a.href = anchorHref.href;
       } else {
         headingElement.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'card-heading');
         textDiv.appendChild(headingElement);
@@ -126,8 +148,8 @@ export default async function decorateInfoCard(block, options = {}) {
       textDiv.appendChild(p);
     }
 
-    a.appendChild(textDiv);
-    li.appendChild(a);
+    card.appendChild(textDiv);
+    li.appendChild(card);
     ul.appendChild(li);
   });
 
