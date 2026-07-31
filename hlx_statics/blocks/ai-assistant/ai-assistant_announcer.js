@@ -13,7 +13,7 @@ import {
  * long enough for the screen reader to read it, short enough that the log
  * doesn't grow unbounded.
  */
-const ANNOUNCEMENT_TIMEOUT_MS = 7000;
+const ANNOUNCEMENT_TIMEOUT_MS = 30_000;
 
 /**
  * Creates the visually-hidden live regions used to announce assistant activity
