@@ -3,6 +3,8 @@ import { aiApiClient } from "./ai-assistant_api-client.js";
 import { ChatBubble } from "./ai-assistant_chat-bubble.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
 import {
+  CHAT_BUBBLE_AI_LABEL,
+  CHAT_BUBBLE_USER_LABEL,
   CHAT_BUTTON_LABEL_MINIMIZE,
   CHAT_BUTTON_LABEL_OPEN,
   ELEMENTS,
@@ -353,9 +355,20 @@ export const handleUserQuery = async (
 
   hideSuggestedQuestions();
 
+  // Clicking a suggested-question button then hides that button, which would
+  // otherwise drop focus to the document body (the main browser window). Move
+  // focus back into the chat window's input so keyboard/screen-reader users stay
+  // oriented and can immediately type a follow-up. This mirrors where focus
+  // already sits after a typed submission.
+  textarea.focus();
+
   const suggestedQuestionsDelayMs = 600;
 
   sendMessage({ content: messageContent, source: "user" });
+  // a11y: confirm the message that was just sent. This matters most for
+  // suggested-question clicks, where the sent text differs from the button's
+  // short label and the user never typed it themselves.
+  announce(`${CHAT_BUBBLE_USER_LABEL}: ${messageContent}`);
 
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
   targetBubble.showThinking();
@@ -437,9 +450,9 @@ export const handleUserQuery = async (
           targetBubble.hideThinking();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-          // a11y: announce the completed reply once, as plain text, 
-          // from the final content only 
-          announce(targetBubble.getPlainText());
+          // a11y: announce the completed reply once, as plain text,
+          // from the final content only
+          announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
           updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
           window.setTimeout(
             () =>
@@ -450,7 +463,7 @@ export const handleUserQuery = async (
         }
         targetBubble.completeBubble();
         // a11y: announce the completed reply once, as plain text.
-        announce(targetBubble.getPlainText());
+        announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
         chatHistory.updateLast({
           content: responseContent,
           references: accumulatedReferences,
