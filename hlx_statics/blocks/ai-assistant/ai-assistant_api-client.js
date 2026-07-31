@@ -6,6 +6,7 @@ import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
  * @typedef {Object} RequestBody
  * @property {string} query
  * @property {string} [collectionId]
+ * @property {string} [sessionId]
  */
 
 /**
@@ -379,20 +380,21 @@ export class AiApiClient {
   }
 
   /**
-   * Makes a query request with conversation history
+   * Makes a streaming query request.
+   *
    * @param {Object} options - Query options
    * @param {string} options.query - The user's query
-   * @param {string} [options.context] - Optional conversation context/history
    * @param {string} [options.systemPrompt] - Optional system prompt instructions
    * @param {string|null} [options.collectionId] - Optional collection ID for the query
+   * @param {string|null} [options.sessionId] - Bedrock session id from a prior response; omitted on the first request
    * @param {Partial<StreamRequestCallbacks>} options.callbacks
    * @returns {Promise<void>}
    */
   async query({
     query,
-    context = "",
     systemPrompt = "",
     collectionId = null,
+    sessionId = null,
     callbacks = {},
   }) {
     const defaultSystemPrompt = `
@@ -405,7 +407,6 @@ export class AiApiClient {
         <system>
           ${systemPrompt || defaultSystemPrompt}
         </system>
-        ${context ? `<history>\n${context}\n</history>` : ""}
         <question>
           ${query}
         </question>
@@ -413,6 +414,9 @@ export class AiApiClient {
     };
     if (collectionId) {
       body.collectionId = collectionId;
+    }
+    if (sessionId) {
+      body.sessionId = sessionId;
     }
 
     return this.streamRequest({
