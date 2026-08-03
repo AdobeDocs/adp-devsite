@@ -32,6 +32,10 @@ main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover {
     color: white !important;
 }
 
+main div.tab-wrapper > div.background-color-navy .tab-content {
+    color: white;
+}
+
 main div.tab-wrapper div.tab-content:has(.sub-content-wrapper) .code-toolbar pre {
     border-radius: 0 0 2vh 2vh;
 }
