@@ -226,9 +226,25 @@ export class AiApiClient {
    * @param {'THUMBS_UP_DOWN'} [options.type]
    * @param {number} options.score
    * @param {string} options.requestId
+   * @param {string} [options.query] - The user query that triggered the rated response
+   * @param {string|null} [options.collectionId] - The collection the query was run against
+   * @param {string} [options.comment] - Optional free-text feedback comment
    */
-  async submitFeedback({ type = "THUMBS_UP_DOWN", score, requestId }) {
+  async submitFeedback({
+    type = "THUMBS_UP_DOWN",
+    score,
+    requestId,
+    query,
+    collectionId,
+    comment,
+  }) {
     try {
+      /** @type {Record<string, unknown>} */
+      const payload = { scoreType: type, score };
+      if (query !== undefined) payload.query = query;
+      if (collectionId !== undefined) payload.collectionId = collectionId;
+      if (comment !== undefined) payload.comment = comment;
+
       const response = await fetch(
         `${this.baseUrl}${AiApiClient.FEEDBACK_ENDPOINT}/${requestId}`,
         {
@@ -237,7 +253,7 @@ export class AiApiClient {
             "Content-Type": "application/json",
             "X-Api-Key": this.apiKey,
           },
-          body: JSON.stringify({ scoreType: type, score }),
+          body: JSON.stringify(payload),
         },
       );
 

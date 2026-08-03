@@ -245,9 +245,13 @@ export class ChatBubble {
     // don't unselect on click
     if (button.dataset.selected === "true") return;
 
+    const message = chatHistory.findById(requestId);
+
     const success = await aiApiClient.submitFeedback({
       score,
       requestId,
+      query: message?.context?.query,
+      collectionId: message?.context?.collectionId,
     });
 
     if (success) {

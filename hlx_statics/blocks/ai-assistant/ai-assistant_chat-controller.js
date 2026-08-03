@@ -419,7 +419,13 @@ export const handleUserQuery = async (
           chatHistory.setSessionId(data.sessionId);
         }
         if (data.requestId) {
-          chatHistory.updateLast({ id: data.requestId });
+          chatHistory.updateLast({
+            id: data.requestId,
+            context: {
+              query: messageContent,
+              collectionId: data.collectionId ?? null,
+            },
+          });
           targetBubble.setMessageId(data.requestId);
         }
       },
