@@ -33,7 +33,8 @@ main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover {
 }
 
 main div.tab-wrapper div.tab-content:has(.sub-content-wrapper) .code-toolbar pre {
-  border-radius: 0;
+  border-bottom-left-radius: 2vh;
+  border-bottom-right-radius: 2vh;
 }
 
 main div.tab-wrapper div.code-toolbar pre.line-numbers {
