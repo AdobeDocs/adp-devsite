@@ -7,6 +7,14 @@
  */
 
 /**
+ * The request context that produced an AI response. 
+ * Used to enrich feedback submissions.
+ * @typedef {Object} ChatMessageContext
+ * @property {string} query - The user query that triggered this response
+ * @property {string|null} collectionId - The collection the query ran agains
+ */
+
+/**
  * @typedef {Object} ChatMessage
  * @property {string} [id]
  * @property {string} content
@@ -14,6 +22,7 @@
  * @property {ChatReference[]} [references]
  * @property {string|null|number} [timestamp]
  * @property {{type: 'THUMBS_UP_DOWN'; score: 0|1}} [feedback]
+ * @property {ChatMessageContext} [context] - For AI messages: how the response was generated
  */
 
 /**
@@ -222,13 +231,14 @@ export class ChatHistory {
    */
   _sanitizeMessages(messages) {
     return messages.map(
-      ({ id, content, source, references, timestamp, feedback }) => ({
+      ({ id, content, source, references, timestamp, feedback, context }) => ({
         ...(id && { id }),
         content,
         source,
         ...(references?.length && { references }),
         ...(timestamp && { timestamp }),
         ...(feedback && { feedback }),
+        ...(context && { context }),
       }),
     );
   }
