@@ -123,7 +123,7 @@ app.use(async (req, res) => {
   console.log(`Fetching upstream url: ${upstreamUrl}`);
 
   // For font files, request uncompressed data to avoid decoding issues
-  const fetchOptions = {};
+  const fetchOptions = {redirect: 'manual'};
   if (req.path.includes('.otf') || req.path.includes('.woff2') || req.path.includes('.ttf')) {
     fetchOptions.headers = {
       'Accept-Encoding': 'identity'
