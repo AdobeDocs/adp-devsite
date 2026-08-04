@@ -14,14 +14,55 @@ import {
   parseVideoSource,
 } from '../../scripts/video.js';
 
+function isAnimatedGif(src) {
+  try {
+    const url = new URL(src, window.location.href);
+    return url.pathname.toLowerCase().endsWith('.gif');
+  } catch {
+    return false;
+  }
+}
+
 function optimizeImages(container) {
   container.querySelectorAll('picture > img').forEach((img) => {
     const pic = img.closest('picture');
     if (!pic || pic.dataset.optimized) return;
+    if (isAnimatedGif(img.src)) return;
     const optimized = createOptimizedPicture(img.src, img.alt);
     optimized.dataset.optimized = 'true';
     pic.replaceWith(optimized);
   });
+}
+
+function ensureYoutubeJsApi(iframe) {
+  const src = iframe.getAttribute('src');
+  if (!src) return;
+  const url = new URL(src, window.location.href);
+  if (!/youtube(-nocookie)?\.com$/.test(url.hostname.replace(/^www\./, ''))) return;
+  if (!url.searchParams.has('enablejsapi')) {
+    url.searchParams.set('enablejsapi', '1');
+    iframe.setAttribute('src', url.toString());
+  }
+}
+
+function postYoutubeCommand(iframe, func) {
+  iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args: [] }), '*');
+}
+
+function pauseIframeVideo(iframe) {
+  postYoutubeCommand(iframe, 'pauseVideo');
+  if (!iframe.dataset.logoShowcaseLoadBound) {
+    iframe.dataset.logoShowcaseLoadBound = 'true';
+    iframe.addEventListener('load', () => {
+      if (iframe.dataset.logoShowcasePendingPause === 'true') postYoutubeCommand(iframe, 'pauseVideo');
+    });
+  }
+  iframe.dataset.logoShowcasePendingPause = 'true';
+}
+
+function playIframeVideo(iframe) {
+  iframe.dataset.logoShowcasePendingPause = 'false';
+  postYoutubeCommand(iframe, 'playVideo');
 }
 
 function prepareMedia(mediaDiv, block) {
@@ -30,14 +71,18 @@ function prepareMedia(mediaDiv, block) {
     const videoSource = parseVideoSource(mediaDiv);
     if (videoSource) {
       const wrapper = createTag('div');
+      const title = getVideoTitle(videoSource.url, videoSource.linkText);
       applyVideoContainer(wrapper, {
         url: videoSource.url,
-        title: getVideoTitle(videoSource.url, videoSource.linkText),
+        title,
         autoplay: true,
         muted: true,
         loop: true,
         controls: block.classList.contains('controls'),
       });
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', title || 'Video');
+      wrapper.querySelectorAll('iframe').forEach((iframe) => ensureYoutubeJsApi(iframe));
       return wrapper;
     }
   }
@@ -50,13 +95,12 @@ function hasVisualMedia(mediaDiv, block) {
   return !!mediaDiv.querySelector('picture, img, video, .video-container');
 }
 
-// shared by both the content column and the "text as media" fallback
 function decorateTypography(container) {
   container.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((heading) => {
-    heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'partner-showcase-heading');
+    heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'logo-showcase-heading');
     decorateAnchorLink(heading);
   });
-  container.querySelectorAll('p').forEach((p) => p.classList.add('spectrum-Body', 'spectrum-Body--sizeM'));
+  container.querySelectorAll('p').forEach((p) => { p.classList.add('spectrum-Body', 'spectrum-Body--sizeM') });
 }
 
 function preparePartnerMedia(mediaDiv, text, block) {
@@ -66,12 +110,12 @@ function preparePartnerMedia(mediaDiv, text, block) {
   if (mediaDiv?.textContent?.trim()) {
     const mediaText = mediaDiv.cloneNode(true);
     decorateTypography(mediaText);
-    mediaText.classList.add('partner-showcase-media-text');
+    mediaText.classList.add('logo-showcase-media-text');
     return { media: mediaText, text, isTextFallback: true };
   }
   if (text?.textContent?.trim()) {
     const fallbackText = text.cloneNode(true);
-    fallbackText.classList.add('partner-showcase-media-text');
+    fallbackText.classList.add('logo-showcase-media-text');
     return { media: fallbackText, text: null, isTextFallback: true };
   }
   return { media: null, text, isTextFallback: false };
@@ -83,7 +127,7 @@ function isCtaLink(link, paragraph) {
   }
   const childNodes = [...paragraph.childNodes];
   const links = [...paragraph.querySelectorAll('a')];
-  const nodes = childNodes.filter((n) => n.nodeType !== 3 || n.textContent.trim());
+  const nodes = childNodes.filter((n) => n.nodeType !== Node.TEXT_NODE || n.textContent.trim());
 
   if (links.length === 1 && nodes.length === 1 && (nodes[0] === link || nodes[0]?.contains?.(link))) {
     return true;
@@ -96,7 +140,7 @@ function isCtaLink(link, paragraph) {
 
 function decorateContent(content) {
   decorateTypography(content);
-  const buttonGroup = createTag('div', { class: 'partner-showcase-button-container' });
+  const buttonGroup = createTag('div', { class: 'logo-showcase-button-container' });
 
   [...content.querySelectorAll('p')].forEach((paragraph) => {
     if (paragraph.classList.contains('button-container')) {
@@ -107,15 +151,11 @@ function decorateContent(content) {
     [...paragraph.querySelectorAll('a')].filter((link) => isCtaLink(link, paragraph)).forEach((link) => {
       const childNodes = [...paragraph.childNodes];
       childNodes.slice(0, childNodes.indexOf(link)).reverse().forEach((node) => {
-        if (node.nodeName === 'BR' || (node.nodeType === 3 && !node.textContent.trim())) node.remove();
+        if (node.nodeName === 'BR' || (node.nodeType === Node.TEXT_NODE && !node.textContent.trim())) node.remove();
       });
       const buttonParagraph = createTag('p', { class: 'button-container' });
       buttonParagraph.append(link.parentElement?.tagName === 'STRONG' ? link.parentElement : link);
       buttonGroup.append(buttonParagraph);
-    });
-
-    paragraph.querySelectorAll('a').forEach((link) => {
-      if (!link.closest('.partner-showcase-button-container')) link.classList.add('spectrum-Link', 'spectrum-Link--quiet');
     });
 
     if (!paragraph.textContent.trim() && !paragraph.querySelector('img,picture')) paragraph.remove();
@@ -125,19 +165,36 @@ function decorateContent(content) {
   decorateButtons(content);
 }
 
-function buildNavItem(partner, index, onSelect) {
-  const item = createTag('button', {
-    class: 'partner-showcase-nav-item',
-    type: 'button',
-    'aria-label': partner.label,
-  });
-  if (!index) item.classList.add('active');
+function getNavItemLabel(partner, index) {
+  if (partner.label) {
+    return partner.label;
+  }
+  const img = partner.logo?.querySelector('img');
+  if (img?.alt) {
+    return img.alt.trim();
+  }
+  return `Partner ${index + 1}`;
+}
 
-  const logo = createTag('div', { class: 'partner-showcase-nav-logo' });
+function buildNavItem(partner, index, onSelect) {
+  const label = getNavItemLabel(partner, index);
+  const item = createTag('button', {
+    class: 'logo-showcase-nav-item',
+    type: 'button',
+    'aria-label': label,
+  });
+  if (!index) {
+    item.classList.add('active');
+    item.setAttribute('aria-current', 'true');
+  } else {
+    item.setAttribute('aria-current', 'false');
+  }
+
+  const logo = createTag('div', { class: 'logo-showcase-nav-logo' });
   if (partner.logo) logo.append(partner.logo);
 
-  const name = createTag('span', { class: 'partner-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
-  name.textContent = partner.label;
+  const name = createTag('span', { class: 'logo-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
+  name.textContent = partner.label || '';
 
   if (partner.logo && partner.label) item.append(logo, name);
   else item.append(partner.logo ? logo : name);
@@ -147,13 +204,15 @@ function buildNavItem(partner, index, onSelect) {
 }
 
 export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'partner-showcase');
+  block.setAttribute('daa-lh', 'logo-showcase');
   decorateLightOrDark(block);
   removeEmptyPTags(block);
 
   const isVideo = block.classList.contains('video');
   const rows = [...block.children].filter((child) => child.tagName === 'DIV');
   if (!rows.length) return;
+
+  rows.forEach((row) => decorateLightOrDark(row));
 
   const partners = rows.map((row) => {
     const [media, content, selector] = row.children;
@@ -170,49 +229,73 @@ export default async function decorate(block) {
     };
   });
 
-  const feature = createTag('div', { class: 'partner-showcase-feature' });
-  const contentArea = createTag('div', { class: 'partner-showcase-text' });
-  const nav = createTag('div', { class: 'partner-showcase-nav' });
+  const feature = createTag('div', { class: 'logo-showcase-feature' });
+  const contentArea = createTag('div', { class: 'logo-showcase-text' });
+  const nav = createTag('div', { class: 'logo-showcase-nav' });
 
   partners.forEach((partner, index) => {
-    const mediaPanel = createTag('div', { class: 'partner-showcase-media-panel' });
+    const mediaPanel = createTag('div', { class: 'logo-showcase-media-panel' });
     if (index === 0) mediaPanel.classList.add('active');
     if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
     if (partner.media) mediaPanel.append(partner.media);
     feature.append(mediaPanel);
 
-    const contentPanel = createTag('div', { class: 'partner-showcase-content-panel' });
+    const contentPanel = createTag('div', { class: 'logo-showcase-content-panel' });
     if (index === 0) contentPanel.classList.add('active');
     if (partner.isTextFallback && !partner.text) contentPanel.classList.add('is-empty');
     if (partner.text) contentPanel.append(partner.text);
     contentArea.append(contentPanel);
   });
 
+  feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => {
+    if (i === 0) return;
+    panel.querySelectorAll('video').forEach((v) => v.pause?.());
+    panel.querySelectorAll('iframe').forEach((iframe) => pauseIframeVideo(iframe));
+  });
+
   const setActive = (index) => {
-    feature.querySelectorAll('.partner-showcase-media-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
-    contentArea.querySelectorAll('.partner-showcase-content-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
-    nav.querySelectorAll('.partner-showcase-nav-item').forEach((btn, i) => btn.classList.toggle('active', i === index));
+    feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => {
+      const becomingActive = i === index;
+      panel.classList.toggle('active', becomingActive);
+      panel.querySelectorAll('video').forEach((v) => {
+        if (becomingActive) v.play?.().catch(() => { });
+        else v.pause?.();
+      });
+      panel.querySelectorAll('iframe').forEach((iframe) => {
+        if (becomingActive) playIframeVideo(iframe);
+        else pauseIframeVideo(iframe);
+      });
+    });
+    contentArea.querySelectorAll('.logo-showcase-content-panel').forEach((panel, i) => { panel.classList.toggle('active', i === index) });
+    nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => {
+      btn.classList.toggle('active', i === index);
+      btn.setAttribute('aria-current', i === index ? 'true' : 'false');
+    });
   };
 
-  partners.forEach((partner, index) => nav.append(buildNavItem(partner, index, setActive)));
+  partners.forEach((partner, index) => { nav.append(buildNavItem(partner, index, setActive)) });
 
-  const inner = createTag('div', { class: 'partner-showcase-inner' });
-  const media = createTag('div', { class: 'partner-showcase-media' });
-  const panel = createTag('div', { class: 'partner-showcase-content' });
+  const inner = createTag('div', { class: 'logo-showcase-inner' });
+  const media = createTag('div', { class: 'logo-showcase-media' });
+  const panel = createTag('div', { class: 'logo-showcase-content' });
   if (isVideo) media.classList.add('has-video');
   media.append(feature);
   panel.append(contentArea, nav);
   inner.append(media, panel);
   block.replaceChildren(inner);
 
-  optimizeImages(block);
-  optimizeImages(nav);
+  const maxContentHeight = Math.max(
+    ...contentArea.querySelectorAll('.logo-showcase-content-panel').length
+      ? [...contentArea.querySelectorAll('.logo-showcase-content-panel')].map((p) => {
+        p.classList.add('active');
+        const height = p.offsetHeight;
+        p.classList.remove('active');
+        return height;
+      })
+      : [0],
+  );
+  if (maxContentHeight) contentArea.style.minHeight = `${maxContentHeight}px`;
+  contentArea.querySelector('.logo-showcase-content-panel').classList.add('active');
 
-  const observer = new IntersectionObserver((entries) => {
-    if (entries.some((entry) => entry.isIntersecting)) {
-      observer.disconnect();
-      optimizeImages(block);
-    }
-  });
-  observer.observe(block);
+  optimizeImages(block);
 }

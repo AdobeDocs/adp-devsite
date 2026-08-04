@@ -1,0 +1,336 @@
+main div.logo-showcase-wrapper:has(.logo-showcase.background-color-white),
+main div.logo-showcase-wrapper div.logo-showcase.background-color-white {
+  background-color: white;
+}
+
+main div.logo-showcase-wrapper:has(.logo-showcase.background-color-gray),
+main div.logo-showcase-wrapper div.logo-showcase.background-color-gray {
+  background-color: rgb(245, 245, 245);
+}
+
+main div.logo-showcase-wrapper:has(.logo-showcase.background-color-navy),
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy {
+  background-color: rgb(15, 55, 95);
+}
+
+main div.logo-showcase-wrapper {
+  width: 100%;
+  background: rgb(245, 245, 245);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase {
+  max-width: 1280px;
+  box-sizing: border-box;
+  margin: auto;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-inner {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 350px;
+  min-height: 350px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-feature {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-media-panel,
+main div.logo-showcase-wrapper div.logo-showcase-content-panel {
+  display: none;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-media-panel.active {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-content-panel.active {
+  display: block;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-content-panel.active h1.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-content-panel.active h2.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-content-panel.active h3.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-media-text h1.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-media-text h2.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase-media-text h3.logo-showcase-heading {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.15;
+  color: rgb(44, 44, 44);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-content-panel.active p.spectrum-Body,
+main div.logo-showcase-wrapper div.logo-showcase-media-text p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-media-panel.active.is-text-fallback {
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 32px;
+  overflow: auto;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-media:has(.logo-showcase-media-panel.active.is-text-fallback) {
+  overflow: visible;
+  height: auto;
+  min-height: 350px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-media-text {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+  text-align: left;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-feature picture,
+main div.logo-showcase-wrapper div.logo-showcase-feature img {
+  display: block;
+  max-width: 100%;
+  max-height: 400px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-feature video,
+main div.logo-showcase-wrapper div.logo-showcase-feature .video-container {
+  max-width: 100%;
+  max-height: 350px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-media.has-video .video-container {
+  width: 100%;
+  max-width: calc(350px * 16 / 9);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 48px;
+  width: 50%;
+  box-sizing: border-box;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-text {
+  position: relative;
+  display: block;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-content-panel>div {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-text p.spectrum-Body {
+  margin: 0;
+  color: rgb(44, 44, 44);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-text p.button-container {
+  margin-top: 8px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-button-container p.button-container {
+  margin: 0;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+main div.logo-showcase-wrapper button.logo-showcase-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  min-width: 72px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, filter 160ms ease;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item {
+  color: white;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item.active:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy button.logo-showcase-nav-item:not(:has(.logo-showcase-nav-logo)) {
+  padding: 5px;
+  border-radius: 4px;
+}
+
+main div.logo-showcase-wrapper button.logo-showcase-nav-item:focus-visible {
+  outline: 2px solid rgb(20, 115, 230);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-nav-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-nav-logo picture,
+main div.logo-showcase-wrapper div.logo-showcase-nav-logo img {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+  filter: grayscale(1) opacity(0.45);
+  transition: filter 0.2s ease;
+}
+
+main div.logo-showcase-wrapper button.logo-showcase-nav-item.active div.logo-showcase-nav-logo picture,
+main div.logo-showcase-wrapper button.logo-showcase-nav-item.active div.logo-showcase-nav-logo img,
+main div.logo-showcase-wrapper button.logo-showcase-nav-item:hover div.logo-showcase-nav-logo picture,
+main div.logo-showcase-wrapper button.logo-showcase-nav-item:hover div.logo-showcase-nav-logo img {
+  filter: none;
+}
+
+main div.logo-showcase-wrapper span.logo-showcase-nav-name {
+  font-size: 14px;
+  line-height: 1.2;
+  color: rgb(110, 110, 110);
+  transition: color 0.2s ease;
+}
+
+main div.logo-showcase-wrapper button.logo-showcase-nav-item.active span.logo-showcase-nav-name,
+main div.logo-showcase-wrapper button.logo-showcase-nav-item:hover span.logo-showcase-nav-name {
+  color: rgb(44, 44, 44);
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy h1.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy h2.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy h3.logo-showcase-heading,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-text p.spectrum-Body,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy div.logo-showcase-media-text p.spectrum-Body,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy span.logo-showcase-nav-name,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .logo-showcase-content-panel a,
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .spectrum-Link--quiet {
+  color: white;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase.background-color-navy .spectrum-Button--secondary {
+  color: white;
+  border-color: white;
+}
+
+@media screen and (max-width: 1024px) {
+  main div.logo-showcase-wrapper div.logo-showcase {
+    padding: 64px 24px;
+  }
+
+  main div.logo-showcase-wrapper div.logo-showcase-inner {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  main div.logo-showcase-wrapper div.logo-showcase-content {
+    padding: 0px 25px;
+  }
+
+  main div.logo-showcase-wrapper div.logo-showcase-media,
+  main div.logo-showcase-wrapper div.logo-showcase-content {
+    width: 100%;
+  }
+
+  main div.logo-showcase-wrapper div.logo-showcase-feature picture,
+  main div.logo-showcase-wrapper div.logo-showcase-feature img,
+  main div.logo-showcase-wrapper div.logo-showcase-feature video,
+  main div.logo-showcase-wrapper div.logo-showcase-feature .video-container {
+    max-width: 100%;
+    max-height: 400px;
+  }
+
+  main div.logo-showcase-wrapper h1.logo-showcase-heading,
+  main div.logo-showcase-wrapper h2.logo-showcase-heading,
+  main div.logo-showcase-wrapper h3.logo-showcase-heading,
+  main div.logo-showcase-wrapper div.logo-showcase-media-text h1.logo-showcase-heading,
+  main div.logo-showcase-wrapper div.logo-showcase-media-text h2.logo-showcase-heading,
+  main div.logo-showcase-wrapper div.logo-showcase-media-text h3.logo-showcase-heading {
+    font-size: 28px;
+  }
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-content-panel h1.logo-showcase-heading .anchor-link {
+  visibility: hidden;
+}
+
+main div.logo-showcase-wrapper div.logo-showcase-content-panel h1.logo-showcase-heading:hover .anchor-link {
+  visibility: visible;
+}
+
+@media screen and (max-width: 640px) {
+  main div.logo-showcase-wrapper div.logo-showcase {
+    padding: 48px 16px;
+  }
+
+  main div.logo-showcase-wrapper div.logo-showcase-media {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 16px;
+  }
+
+  main div.logo-showcase-wrapper div.logo-showcase-nav {
+    gap: 35px;
+    justify-content: space-between;
+  }
+
+  main div.logo-showcase-wrapper button.logo-showcase-nav-item {
+    min-width: 64px;
+    flex: 1 1 calc(50% - 20px);
+  }
+
+  main div.logo-showcase-wrapper div.logo-showcase-media {
+    width: 100%;
+    height: 200px;
+    min-height: 200px;
+  }
+}
