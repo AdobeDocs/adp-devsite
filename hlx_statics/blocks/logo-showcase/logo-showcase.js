@@ -236,7 +236,6 @@ function bindTablistKeyboard(tablist, activate) {
 
     event.preventDefault();
     tabs[nextIndex].focus();
-    activate(nextIndex);
   });
 }
 
