@@ -176,19 +176,21 @@ function getNavItemLabel(partner, index) {
   return `Partner ${index + 1}`;
 }
 
-function buildNavItem(partner, index, onSelect) {
+let logoShowcaseInstanceId = 0;
+
+function buildTab(partner, index, idPrefix, onSelect) {
   const label = getNavItemLabel(partner, index);
   const item = createTag('button', {
     class: 'logo-showcase-nav-item',
     type: 'button',
+    role: 'tab',
+    id: `${idPrefix}-tab-${index}`,
+    'aria-controls': `${idPrefix}-panel-${index}`,
+    'aria-selected': index ? 'false' : 'true',
+    tabindex: index ? '-1' : '0',
     'aria-label': label,
   });
-  if (!index) {
-    item.classList.add('active');
-    item.setAttribute('aria-current', 'true');
-  } else {
-    item.setAttribute('aria-current', 'false');
-  }
+  if (!index) item.classList.add('active');
 
   const logo = createTag('div', { class: 'logo-showcase-nav-logo' });
   if (partner.logo) logo.append(partner.logo);
@@ -201,6 +203,35 @@ function buildNavItem(partner, index, onSelect) {
 
   item.addEventListener('click', () => onSelect(index));
   return item;
+}
+
+function bindTablistKeyboard(tablist, activate) {
+  tablist.addEventListener('keydown', (event) => {
+    const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+    const currentIndex = tabs.indexOf(document.activeElement);
+    if (currentIndex === -1) return;
+
+    let nextIndex = -1;
+    if (event.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % tabs.length;
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = tabs.length - 1;
+    } else if (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Enter') {
+      event.preventDefault();
+      activate(currentIndex);
+      return;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    tabs[nextIndex].focus();
+    activate(nextIndex);
+  });
 }
 
 export default async function decorate(block) {
@@ -229,34 +260,47 @@ export default async function decorate(block) {
     };
   });
 
-  const feature = createTag('div', { class: 'logo-showcase-feature' });
-  const contentArea = createTag('div', { class: 'logo-showcase-text' });
-  const nav = createTag('div', { class: 'logo-showcase-nav' });
+  logoShowcaseInstanceId += 1;
+  const idPrefix = `logo-showcase-${logoShowcaseInstanceId}`;
 
-  partners.forEach((partner, index) => {
-    const mediaPanel = createTag('div', { class: 'logo-showcase-media-panel' });
-    if (index === 0) mediaPanel.classList.add('active');
-    if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
-    if (partner.media) mediaPanel.append(partner.media);
-    feature.append(mediaPanel);
-
-    const contentPanel = createTag('div', { class: 'logo-showcase-content-panel' });
-    if (index === 0) contentPanel.classList.add('active');
-    if (partner.isTextFallback && !partner.text) contentPanel.classList.add('is-empty');
-    if (partner.text) contentPanel.append(partner.text);
-    contentArea.append(contentPanel);
+  const tablist = createTag('div', {
+    class: 'logo-showcase-tablist',
+    role: 'tablist',
+    'aria-label': 'Partners',
   });
 
-  feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => {
+  const tabPanels = partners.map((partner, index) => {
+    const panel = createTag('div', {
+      class: 'logo-showcase-tabpanel',
+      role: 'tabpanel',
+      id: `${idPrefix}-panel-${index}`,
+      'aria-labelledby': `${idPrefix}-tab-${index}`,
+    });
+    if (index) panel.hidden = true;
+
+    const mediaPanel = createTag('div', { class: 'logo-showcase-media-panel' });
+    if (isVideo) mediaPanel.classList.add('has-video');
+    if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
+    if (partner.media) mediaPanel.append(partner.media);
+
+    const contentPanel = createTag('div', { class: 'logo-showcase-content-panel' });
+    if (partner.isTextFallback && !partner.text) contentPanel.classList.add('is-empty');
+    if (partner.text) contentPanel.append(partner.text);
+
+    panel.append(mediaPanel, contentPanel);
+    return panel;
+  });
+
+  tabPanels.forEach((panel, i) => {
     if (i === 0) return;
     panel.querySelectorAll('video').forEach((v) => v.pause?.());
     panel.querySelectorAll('iframe').forEach((iframe) => pauseIframeVideo(iframe));
   });
 
   const setActive = (index) => {
-    feature.querySelectorAll('.logo-showcase-media-panel').forEach((panel, i) => {
+    tabPanels.forEach((panel, i) => {
       const becomingActive = i === index;
-      panel.classList.toggle('active', becomingActive);
+      panel.hidden = !becomingActive;
       panel.querySelectorAll('video').forEach((v) => {
         if (becomingActive) v.play?.().catch(() => { });
         else v.pause?.();
@@ -266,36 +310,17 @@ export default async function decorate(block) {
         else pauseIframeVideo(iframe);
       });
     });
-    contentArea.querySelectorAll('.logo-showcase-content-panel').forEach((panel, i) => { panel.classList.toggle('active', i === index) });
-    nav.querySelectorAll('.logo-showcase-nav-item').forEach((btn, i) => {
-      btn.classList.toggle('active', i === index);
-      btn.setAttribute('aria-current', i === index ? 'true' : 'false');
+    tablist.querySelectorAll('[role="tab"]').forEach((tab, i) => {
+      const active = i === index;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.setAttribute('tabindex', active ? '0' : '-1');
     });
   };
 
-  partners.forEach((partner, index) => { nav.append(buildNavItem(partner, index, setActive)) });
+  partners.forEach((partner, index) => { tablist.append(buildTab(partner, index, idPrefix, setActive)) });
+  bindTablistKeyboard(tablist, setActive);
 
-  const inner = createTag('div', { class: 'logo-showcase-inner' });
-  const media = createTag('div', { class: 'logo-showcase-media' });
-  const panel = createTag('div', { class: 'logo-showcase-content' });
-  if (isVideo) media.classList.add('has-video');
-  media.append(feature);
-  panel.append(contentArea, nav);
-  inner.append(media, panel);
-  block.replaceChildren(inner);
-
-  const maxContentHeight = Math.max(
-    ...contentArea.querySelectorAll('.logo-showcase-content-panel').length
-      ? [...contentArea.querySelectorAll('.logo-showcase-content-panel')].map((p) => {
-        p.classList.add('active');
-        const height = p.offsetHeight;
-        p.classList.remove('active');
-        return height;
-      })
-      : [0],
-  );
-  if (maxContentHeight) contentArea.style.minHeight = `${maxContentHeight}px`;
-  contentArea.querySelector('.logo-showcase-content-panel').classList.add('active');
-
+  block.replaceChildren(tablist, ...tabPanels);
   optimizeImages(block);
 }
