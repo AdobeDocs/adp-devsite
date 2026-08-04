@@ -193,13 +193,19 @@ function buildTab(partner, index, idPrefix, onSelect) {
   if (!index) item.classList.add('active');
 
   const logo = createTag('div', { class: 'logo-showcase-nav-logo' });
-  if (partner.logo) logo.append(partner.logo);
+  if (partner.logo) {
+    logo.append(partner.logo);
+  }
 
   const name = createTag('span', { class: 'logo-showcase-nav-name spectrum-Body spectrum-Body--sizeM' });
   name.textContent = partner.label || '';
 
-  if (partner.logo && partner.label) item.append(logo, name);
-  else item.append(partner.logo ? logo : name);
+  if (partner.logo && partner.label) {
+    item.append(logo, name);
+  }
+  else {
+    item.append(partner.logo ? logo : name);
+  }
 
   item.addEventListener('click', () => onSelect(index));
   return item;
@@ -250,7 +256,9 @@ export default async function decorate(block) {
     const text = content?.cloneNode(true);
     if (text) decorateContent(text);
     const { media: mediaContent, text: panelText, isTextFallback } = preparePartnerMedia(media, text, block);
-    const selectorParagraphs = [...selector?.children || []].filter((el) => el.tagName === 'P');
+    const selectorParagraphs = [...selector?.children || []].filter((el) => {
+      return el.tagName === 'P';
+    });
     return {
       media: mediaContent,
       text: panelText,
@@ -276,16 +284,27 @@ export default async function decorate(block) {
       id: `${idPrefix}-panel-${index}`,
       'aria-labelledby': `${idPrefix}-tab-${index}`,
     });
-    if (index) panel.hidden = true;
+    if (index) {
+      panel.hidden = true;
+    }
 
     const mediaPanel = createTag('div', { class: 'logo-showcase-media-panel' });
-    if (isVideo) mediaPanel.classList.add('has-video');
-    if (partner.isTextFallback) mediaPanel.classList.add('is-text-fallback');
-    if (partner.media) mediaPanel.append(partner.media);
-
+    if (isVideo) {
+      mediaPanel.classList.add('has-video');
+    }
+    if (partner.isTextFallback) {
+      mediaPanel.classList.add('is-text-fallback');
+    }
+    if (partner.media) {
+      mediaPanel.append(partner.media);
+    }
     const contentPanel = createTag('div', { class: 'logo-showcase-content-panel' });
-    if (partner.isTextFallback && !partner.text) contentPanel.classList.add('is-empty');
-    if (partner.text) contentPanel.append(partner.text);
+    if (partner.isTextFallback && !partner.text) {
+      contentPanel.classList.add('is-empty');
+    }
+    if (partner.text) {
+      contentPanel.append(partner.text);
+    }
 
     panel.append(mediaPanel, contentPanel);
     return panel;
@@ -293,8 +312,12 @@ export default async function decorate(block) {
 
   tabPanels.forEach((panel, i) => {
     if (i === 0) return;
-    panel.querySelectorAll('video').forEach((v) => v.pause?.());
-    panel.querySelectorAll('iframe').forEach((iframe) => pauseIframeVideo(iframe));
+    panel.querySelectorAll('video').forEach((v) => {
+      v.pause?.()
+    });
+    panel.querySelectorAll('iframe').forEach((iframe) => {
+      pauseIframeVideo(iframe)
+    });
   });
 
   const setActive = (index) => {
@@ -302,12 +325,20 @@ export default async function decorate(block) {
       const becomingActive = i === index;
       panel.hidden = !becomingActive;
       panel.querySelectorAll('video').forEach((v) => {
-        if (becomingActive) v.play?.().catch(() => { });
-        else v.pause?.();
+        if (becomingActive) {
+          v.play?.().catch(() => { });
+        }
+        else {
+          v.pause?.();
+        }
       });
       panel.querySelectorAll('iframe').forEach((iframe) => {
-        if (becomingActive) playIframeVideo(iframe);
-        else pauseIframeVideo(iframe);
+        if (becomingActive) {
+          playIframeVideo(iframe);
+        }
+        else {
+          pauseIframeVideo(iframe);
+        }
       });
     });
     tablist.querySelectorAll('[role="tab"]').forEach((tab, i) => {
