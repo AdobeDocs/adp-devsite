@@ -431,9 +431,7 @@ export const handleUserQuery = async (
             .filter((r) => !!r);
           if (references?.length) {
             // Accumulate references but defer rendering until the response
-            // finishes streaming (see onComplete). Citation events can arrive
-            // mid-stream, so rendering here would make the sources section
-            // flash in before the answer is done.
+            // finishes streaming (see onComplete).
             accumulatedReferences = references;
             chatHistory.updateLast({
               content: responseContent,
@@ -461,7 +459,6 @@ export const handleUserQuery = async (
           return;
         }
         targetBubble.completeBubble();
-        // Now that streaming is complete, render the sources section.
         if (accumulatedReferences?.length) {
           targetBubble.appendReferences(accumulatedReferences);
         }
