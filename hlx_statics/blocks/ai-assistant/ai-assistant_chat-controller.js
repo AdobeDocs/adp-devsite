@@ -430,16 +430,15 @@ export const handleUserQuery = async (
             })
             .filter((r) => !!r);
           if (references?.length) {
+            // Accumulate references but defer rendering until the response
+            // finishes streaming (see onComplete). Citation events can arrive
+            // mid-stream, so rendering here would make the sources section
+            // flash in before the answer is done.
             accumulatedReferences = references;
-            targetBubble.appendReferences(references);
             chatHistory.updateLast({
               content: responseContent,
               references,
             });
-            if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-              ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-                ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-            }
           }
         }
       },
@@ -462,6 +461,10 @@ export const handleUserQuery = async (
           return;
         }
         targetBubble.completeBubble();
+        // Now that streaming is complete, render the sources section.
+        if (accumulatedReferences?.length) {
+          targetBubble.appendReferences(accumulatedReferences);
+        }
         // a11y: announce the completed reply once, as plain text.
         announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
         chatHistory.updateLast({
