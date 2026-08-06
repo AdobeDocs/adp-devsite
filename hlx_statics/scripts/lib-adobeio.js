@@ -1222,7 +1222,7 @@ function toggleTrailingSlash(path) {
  */
 async function redirectOnTrailingSlashMismatch() {
   const candidate = toggleTrailingSlash(window.location.pathname);
-  const resp = await fetch(candidate);
+  const resp = await fetch(candidate, { method: 'HEAD' });
   if (resp.ok) {
     window.location.pathname = candidate;
     return true;
