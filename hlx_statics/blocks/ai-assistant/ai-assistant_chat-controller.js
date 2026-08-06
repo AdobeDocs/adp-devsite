@@ -383,10 +383,6 @@ export const handleUserQuery = async (
     return;
   };
 
-  // TODO: We'll have to decide how much context to send to the AI.
-  // -2 because we want to exclude the current user message and the thinking message
-  const queryContext = chatHistory.getContextForAI({ excludeLast: 2 });
-
   let responseContent = "";
   /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
   let accumulatedReferences = [];
@@ -395,10 +391,14 @@ export const handleUserQuery = async (
 
   await aiApiClient.query({
     query: messageContent,
-    context: queryContext,
     collectionId,
+    sessionId: chatHistory.getSessionId(),
     callbacks: {
       onMetadata: (data) => {
+        // Persist the session id so the next request continues the same Bedrock session.
+        if (data.sessionId) {
+          chatHistory.setSessionId(data.sessionId);
+        }
         if (data.requestId) {
           chatHistory.updateLast({ id: data.requestId });
           targetBubble.setMessageId(data.requestId);

@@ -30,6 +30,7 @@
  * @typedef {Object} Conversation
  * @property {ChatMessage[]} messages
  * @property {SuggestedQuestion[]|null} suggestedQuestions
+ * @property {string|null} sessionId - Bedrock session id for the conversation
  */
 
 export class ChatHistory {
@@ -56,6 +57,7 @@ export class ChatHistory {
       this._cache = {
         messages: this._sanitizeMessages(parsed?.messages ?? []),
         suggestedQuestions: parsed?.suggestedQuestions ?? null,
+        sessionId: parsed?.sessionId ?? null,
       };
       return this._cache;
     } catch (error) {
@@ -70,7 +72,7 @@ export class ChatHistory {
    * @private
    */
   _emptyConversation() {
-    return { messages: [], suggestedQuestions: null };
+    return { messages: [], suggestedQuestions: null, sessionId: null };
   }
 
   /**
@@ -152,6 +154,26 @@ export class ChatHistory {
   }
 
   /**
+   * Gets the Bedrock session id for the current conversation.
+   * @returns {string|null}
+   */
+  getSessionId() {
+    return this._getConversation().sessionId ?? null;
+  }
+
+  /**
+   * Stores the Bedrock session id for the current conversation. Overwrites any
+   * existing value, so a fresh id minted after an expiry-triggered reset is
+   * reused transparently on subsequent requests. No-ops when unchanged.
+   * @param {string|null} sessionId
+   */
+  setSessionId(sessionId) {
+    const conversation = this._getConversation();
+    if (conversation.sessionId === sessionId) return;
+    this._save({ ...conversation, sessionId });
+  }
+
+  /**
    * Gets messages formatted for AI context
    * @param {Object} [options]
    * @param {number} [options.excludeLast=2] - Number of recent messages to exclude (0 = include all)
@@ -203,6 +225,7 @@ export class ChatHistory {
       const serializable = {
         messages: this._sanitizeMessages(conversation.messages),
         suggestedQuestions: conversation.suggestedQuestions ?? null,
+        sessionId: conversation.sessionId ?? null,
       };
       sessionStorage.setItem(
         ChatHistory.STORAGE_KEY,
