@@ -35,6 +35,64 @@ function splitArticleRowsOneLinkEach(block) {
 }
 
 /**
+ * Turns an info-card list into a horizontal carousel when it holds more than `visible` cards.
+ * Only the first few cards are shown; prev/next arrows slide one card at a time.
+ * @param {Element} block
+ * @param {Element} ul
+ */
+function enableInfoCardCarousel(block, ul) {
+  block.classList.add('info-card-carousel-mode');
+
+  const slider = createTag('div', { class: 'info-card-slider' });
+  const carousel = createTag('div', { class: 'info-card-carousel' });
+
+  const prev = createTag('button', {
+    class: 'slide-arrow info-card-carousel-arrow info-card-carousel-prev',
+    'aria-label': 'Previous cards',
+    type: 'button',
+  });
+  prev.innerHTML = '&#8249;';
+  const next = createTag('button', {
+    class: 'slide-arrow info-card-carousel-arrow info-card-carousel-next',
+    'aria-label': 'Next cards',
+    type: 'button',
+  });
+  next.innerHTML = '&#8250;';
+
+  block.replaceChild(carousel, ul);
+  carousel.append(prev, slider, next);
+  slider.append(ul);
+
+  const getStep = () => {
+    const li = ul.querySelector('li');
+    if (!li) return 0;
+    const gap = parseFloat(getComputedStyle(ul).columnGap) || 0;
+    return li.getBoundingClientRect().width + gap;
+  };
+
+  const updateArrows = () => {
+    const { scrollLeft, clientWidth, scrollWidth } = ul;
+    prev.disabled = scrollLeft < 5;
+    next.disabled = scrollLeft + clientWidth >= scrollWidth - 5;
+  };
+
+  prev.addEventListener('click', () => {
+    ul.scrollLeft = Math.max(0, ul.scrollLeft - getStep());
+  });
+  next.addEventListener('click', () => {
+    ul.scrollLeft += getStep();
+  });
+
+  ul.addEventListener('scroll', updateArrows, { passive: true });
+  window.addEventListener('resize', updateArrows, { passive: true });
+  if (window.ResizeObserver) {
+    new ResizeObserver(updateArrows).observe(ul);
+  }
+
+  updateArrows();
+}
+
+/**
  * Shared info-card decoration — used by DevBiz (`info-card` block) and DevDocs (`infocard` block).
  * @param {Element} block
  * @param {{ daaLh?: string }} [options]
@@ -155,6 +213,10 @@ export default async function decorateInfoCard(block, options = {}) {
 
   block.textContent = '';
   block.appendChild(ul);
+
+  if (ul.children.length > 3) {
+    enableInfoCardCarousel(block, ul);
+  }
 
   block.querySelectorAll('.icon').forEach((s) => {
     const p_parent = s.parentElement;
