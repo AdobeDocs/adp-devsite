@@ -140,53 +140,17 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   text-decoration: none;
 }
 
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode {
+  position: relative;
+  padding-left: 48px;
+  padding-right: 48px;
 }
 
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel > .info-card-slider {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel > .info-card-slider > ul {
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel > .info-card-slider > ul::-webkit-scrollbar {
-  display: none;
-}
-
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel > .info-card-slider > ul > li {
-  flex: 0 0 100%;
-  max-width: none;
-}
-
-@media screen and (min-width: 700px) {
-  main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel > .info-card-slider > ul > li {
-    flex: 0 0 calc((100% - 40px) / 2);
-  }
-}
-
-@media screen and (min-width: 1000px) {
-  main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel > .info-card-slider > ul > li {
-    flex: 0 0 calc((100% - 80px) / 3);
-  }
-}
-
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel > .info-card-slider > ul > li img {
-  width: 100%;
-}
-
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel .slide-arrow {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
   flex: 0 0 auto;
   background-color: transparent;
   border: none;
@@ -196,12 +160,54 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   cursor: pointer;
 }
 
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel .slide-arrow:hover:not(:disabled),
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel .slide-arrow:focus-visible {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel-prev {
+  left: 0;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel-next {
+  right: 0;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel-arrow:hover:not(:disabled),
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel-arrow:focus-visible {
   color: #003e7a;
 }
 
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel .slide-arrow:disabled {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > .info-card-carousel-arrow:disabled {
   color: #c6c6c6;
   cursor: default;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > ul {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > ul::-webkit-scrollbar {
+  display: none;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > ul > li {
+  flex: 0 0 100%;
+  max-width: none;
+}
+
+@media screen and (min-width: 700px) {
+  main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > ul > li {
+    flex: 0 0 calc((100% - 40px) / 2);
+  }
+}
+
+@media screen and (min-width: 1000px) {
+  main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > ul > li {
+    flex: 0 0 calc((100% - 80px) / 3);
+  }
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard).info-card-carousel-mode > ul > li img {
+  width: 100%;
 }

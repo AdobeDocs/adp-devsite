@@ -35,16 +35,11 @@ function splitArticleRowsOneLinkEach(block) {
 }
 
 /**
- * Turns an info-card list into a horizontal carousel when it holds more than `visible` cards.
- * Only the first few cards are shown; prev/next arrows slide one card at a time.
  * @param {Element} block
  * @param {Element} ul
  */
 function enableInfoCardCarousel(block, ul) {
   block.classList.add('info-card-carousel-mode');
-
-  const slider = createTag('div', { class: 'info-card-slider' });
-  const carousel = createTag('div', { class: 'info-card-carousel' });
 
   const prev = createTag('button', {
     class: 'slide-arrow info-card-carousel-arrow info-card-carousel-prev',
@@ -59,9 +54,8 @@ function enableInfoCardCarousel(block, ul) {
   });
   next.innerHTML = '&#8250;';
 
-  block.replaceChild(carousel, ul);
-  carousel.append(prev, slider, next);
-  slider.append(ul);
+  block.insertBefore(prev, ul);
+  block.insertBefore(next, ul.nextSibling);
 
   const getStep = () => {
     const li = ul.querySelector('li');
@@ -85,6 +79,7 @@ function enableInfoCardCarousel(block, ul) {
 
   ul.addEventListener('scroll', updateArrows, { passive: true });
   window.addEventListener('resize', updateArrows, { passive: true });
+  window.addEventListener('load', updateArrows, { passive: true });
   if (window.ResizeObserver) {
     new ResizeObserver(updateArrows).observe(ul);
   }
@@ -103,6 +98,7 @@ export default async function decorateInfoCard(block, options = {}) {
   const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
   const isVideoCard = block.classList.contains('video') || block.getAttribute('data-slots')?.split(',')?.includes('video');
   const isControls = block.classList.contains('controls') || block.getAttribute('data-controls') === 'true';
+  const isNavigation =  block.classList.contains('navigation') || block.getAttribute('data-navigation') === 'true';
   const isWide = block.getAttribute('data-wide') === 'true';
   if (isWide) {
     block.classList.add('wide');
@@ -214,7 +210,7 @@ export default async function decorateInfoCard(block, options = {}) {
   block.textContent = '';
   block.appendChild(ul);
 
-  if (ul.children.length > 3) {
+  if (isNavigation && ul.children.length > 3) {
     enableInfoCardCarousel(block, ul);
   }
 
