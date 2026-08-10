@@ -1,12 +1,85 @@
 import { createTag, removeEmptyPTags, decorateButtons } from '../scripts/lib-adobeio.js';
 import {
   createOptimizedPicture,
+  getMetadata,
 } from '../scripts/lib-helix.js';
 import {
   applyVideoContainer,
   getVideoTitle,
   parseVideoSource,
 } from '../scripts/video.js';
+
+function initializeNavigation(block, ul) {
+  const cards = [...ul.children];
+  if (cards.length <= 3) return;
+
+  block.querySelectorAll('.info-card-nav').forEach((btn) => btn.remove());
+
+  const createNav = (direction, path) => {
+    const btn = createTag('button', {
+      class: `info-card-nav info-card-nav-${direction}`,
+      'aria-label': direction === 'prev' ? 'Previous' : 'Next',
+    });
+
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+      <path d="${path}" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    return btn;
+  };
+
+  const prevBtn = createNav('prev', 'M15 18L9 12L15 6');
+  const nextBtn = createNav('next', 'M9 18L15 12L9 6');
+
+  block.prepend(prevBtn);
+  block.append(nextBtn);
+
+  let visible = window.innerWidth <= 1024 ? 1 : 3;
+  let page = 0;
+
+  const update = () => {
+    const maxPage = Math.ceil(cards.length / visible) - 1;
+    const start = Math.min(page * visible, cards.length - visible);
+    const shown = cards.slice(start, start + visible);
+
+    cards.forEach((card) => {
+      card.classList.add('hide');
+      card.style.display = 'none';
+    });
+
+    setTimeout(() => {
+      shown.forEach((card) => {
+        card.style.display = '';
+        requestAnimationFrame(() => card.classList.remove('hide'));
+      });
+    }, 0);
+
+    prevBtn.disabled = page === 0;
+    nextBtn.disabled = page >= maxPage;
+  };
+
+  const changePage = (step) => {
+    const maxPage = Math.ceil(cards.length / visible) - 1;
+    page = Math.max(0, Math.min(page + step, maxPage));
+    update();
+  };
+
+  prevBtn.onclick = () => changePage(-1);
+  nextBtn.onclick = () => changePage(1);
+
+  window.onresize = () => {
+    const newVisible = window.innerWidth <= 1024 ? 1 : 3;
+
+    if (newVisible !== visible) {
+      visible = newVisible;
+      page = 0;
+      update();
+    }
+  };
+
+  update();
+}
 
 /** @param {Document} doc */
 function getOpenGraphMeta(doc) {
@@ -45,9 +118,21 @@ export default async function decorateInfoCard(block, options = {}) {
   const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
   const isVideoCard = block.classList.contains('video') || block.getAttribute('data-slots')?.split(',')?.includes('video');
   const isControls = block.classList.contains('controls') || block.getAttribute('data-controls') === 'true';
+  const isNavigation = block.classList.contains('navigation') || block.getAttribute('data-navigation') === 'true';
+  const isReverse = block.classList.contains('reverse') || block.getAttribute('data-reverse') === 'true';
   const isWide = block.getAttribute('data-wide') === 'true';
+  const isCompact = block.classList.contains('compact') || block.getAttribute('data-compact') === 'true';
   if (isWide) {
     block.classList.add('wide');
+  }
+  if (isNavigation && getMetadata('template') === 'documentation') {
+    block.classList.add('navigation');
+  }
+  if (isReverse && getMetadata('template') === 'documentation') {
+    block.classList.add('reverse');
+  }
+  if (isCompact && getMetadata('template') === 'documentation') {
+    block.classList.add('compact');
   }
   removeEmptyPTags(block);
 
@@ -155,6 +240,9 @@ export default async function decorateInfoCard(block, options = {}) {
 
   block.textContent = '';
   block.appendChild(ul);
+  if (isNavigation) {
+    initializeNavigation(block, ul);
+  }
 
   block.querySelectorAll('.icon').forEach((s) => {
     const p_parent = s.parentElement;
