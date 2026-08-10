@@ -2,6 +2,7 @@ import { createTag, removeEmptyPTags, decorateButtons } from '../scripts/lib-ado
 import {
   createOptimizedPicture,
   getMetadata,
+  IS_DEV_DOCS,
 } from '../scripts/lib-helix.js';
 import {
   applyVideoContainer,
@@ -35,7 +36,7 @@ function initializeNavigation(block, ul) {
   block.prepend(prevBtn);
   block.append(nextBtn);
 
-  let visible = window.innerWidth <= 1024 ? 1 : 3;
+  let visible = window.innerWidth <= 1024 ? 1 : IS_DEV_DOCS ? 2 : 3;
   let page = 0;
 
   const update = () => {
@@ -125,13 +126,13 @@ export default async function decorateInfoCard(block, options = {}) {
   if (isWide) {
     block.classList.add('wide');
   }
-  if (isNavigation && getMetadata('template') === 'documentation') {
+  if (isNavigation && IS_DEV_DOCS) {
     block.classList.add('navigation');
   }
-  if (isReverse && getMetadata('template') === 'documentation') {
+  if (isReverse && IS_DEV_DOCS) {
     block.classList.add('reverse');
   }
-  if (isCompact && getMetadata('template') === 'documentation') {
+  if (isCompact && IS_DEV_DOCS) {
     block.classList.add('compact');
   }
   removeEmptyPTags(block);
