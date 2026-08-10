@@ -80,7 +80,7 @@ function initializeNavigation(block, ul) {
     ul.style.setProperty('--info-card-visible', visible);
   };
 
-  const ARROW_GAP = 12; 
+  const ARROW_GAP = 12;
 
   const positionArrows = () => {
     const blockRect = block.getBoundingClientRect();

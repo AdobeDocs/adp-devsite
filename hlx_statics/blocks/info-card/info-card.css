@@ -148,8 +148,9 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul {
+  --info-card-visible: 3;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--info-card-visible), 1fr);
   gap: 40px;
   width: fit-content;
   max-width: 1300px;
