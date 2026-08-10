@@ -154,6 +154,12 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   max-width: 1300px;
 }
 
+/* main.dev-docs :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+} */
+
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li {
   width: 100%;
   opacity: 1;
@@ -258,6 +264,10 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compa
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li{
+  max-width: 100%;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li {
