@@ -36,7 +36,7 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   background-color: white;
 }
 
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body > :is(h1, h2, h3, h4, h5, h6) {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body> :is(h1, h2, h3, h4, h5, h6) {
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -107,7 +107,7 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
   color: rgb(0, 0, 0);
 }
 
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body > p {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) .cards-card-body>p {
   overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -138,4 +138,179 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) a:hover,
 main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) a:focus {
   text-decoration: none;
+}
+
+/* navigation */
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation {
+  position: relative;
+  margin: auto;
+  padding: 0 56px;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li {
+  width: 100%;
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li.hide {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #d0d0d0;
+  border-radius: 50%;
+  background: #fff;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav:hover {
+  color: #000;
+  border-color: #999;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-prev {
+  left: -8%;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-next {
+  right: -8%;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard)>ul>li>a {
+  display: flex;
+  flex-direction: column;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).reverse>ul>li>a {
+  flex-direction: column-reverse;
+}
+
+@media (max-width: 1024px) {
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation {
+    padding: 0 48px;
+  }
+
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    justify-items: center;
+  }
+
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li img {
+    width: 100%;
+  }
+
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-prev {
+    left: 0;
+  }
+
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-next {
+    right: 0;
+  }
+}
+
+@media (min-width: 767px) and (max-width: 1024px) {
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-prev {
+    left: 10%;
+  }
+
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-next {
+    right: 10%;
+  }
+}
+
+/* compact */
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 18px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li {
+  width: 100%;
+  border: 1px solid #ebebeb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li:hover {
+  border-color: #b1b1b1;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li>a,
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li>div {
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact .cards-card-body {
+  height: auto;
+  padding: 0;
+  line-height: 1.4;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact .cards-card-body .card-heading {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact .cards-card-body>p {
+  display: inline;
+  margin: 5px;
+  padding: 0;
+}
+
+@media (max-width: 767px) {
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul {
+    grid-template-columns: 1fr;
+  }
 }
