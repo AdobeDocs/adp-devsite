@@ -318,6 +318,15 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compa
   padding: 0;
 }
 
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact {
+  max-width: 1280px;
+  margin: auto;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact > ul >li {
+  max-width: 100%;
+}
+
 @media (max-width: 767px) {
   main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul {
     grid-template-columns: 1fr;
