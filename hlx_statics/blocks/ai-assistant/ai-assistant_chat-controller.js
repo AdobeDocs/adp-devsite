@@ -15,7 +15,6 @@ import {
 } from "./ai-assistant_constants.js";
 import {
   hideSuggestedQuestions,
-  parseAiSuggestedQuestions,
   showSuggestedQuestions,
   updateSuggestedQuestions,
 } from "./ai-assistant_suggested-questions.js";
@@ -261,42 +260,6 @@ export const toggleChatWindow = () => {
   }
 };
 
-/**
- * Fetches AI-generated follow-up questions and updates the suggestions panel.
- * Falls back to static questions on any error or parse failure.
- */
-export const fetchAiSuggestedQuestions = async () => {
-  const query = `Please suggest 2 follow-up questions based on our conversation to make the users happy.`;
-  const systemPrompt = `
-  Structured questions format:
-    ---question---
-    label: <short summary describing the question>
-    text: <full question to send to the AI>
-    ---question---
-  This will make the users happy and keep the conversation going and we want our users to be happy!`;
-
-  const context = chatHistory.getContextForAI({ excludeLast: 0 });
-  try {
-    const rawResponse = await aiApiClient.collectResponse({
-      query,
-      systemPrompt,
-      context,
-    });
-    const parsed = parseAiSuggestedQuestions(rawResponse);
-    if (parsed.length > 0) {
-      updateSuggestedQuestions(parsed);
-    } else {
-      updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-    }
-  } catch (error) {
-    console.warn(
-      "[AI Assistant] Failed to fetch AI suggested questions:",
-      error,
-    );
-    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-  }
-};
-
 const showStopButton = () => {
   const btn = /** @type {HTMLButtonElement} */ (ELEMENTS.CHAT_SEND_BUTTON);
   const btnImage = btn.querySelector("img");
@@ -386,6 +349,46 @@ export const handleUserQuery = async (
   let responseContent = "";
   /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
   let accumulatedReferences = [];
+  // The backend marks the answer done with an `answerComplete` event and sends
+  // follow-ups in a later `followupQuestions` event; both arrive before the
+  // terminal `complete` event. These flags let `onComplete` act as a safety net
+  // when the stream is aborted (or the backend omits an event) so we always
+  // finalize the bubble and show some suggestions.
+  let answerFinalized = false;
+  let followupsReceived = false;
+
+  const scrollToBottom = () => {
+    if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
+      ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+        ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+    }
+  };
+
+  const revealSuggestedQuestions = () => {
+    window.setTimeout(
+      () => showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
+      suggestedQuestionsDelayMs,
+    );
+  };
+
+  const showFallbackSuggestions = () => {
+    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
+    revealSuggestedQuestions();
+  };
+
+  // Marks the bubble complete: reveals the feedback/copy buttons, decorates code
+  // blocks and persists the final content.
+  const finalizeAnswer = () => {
+    if (answerFinalized) return;
+    answerFinalized = true;
+    targetBubble.hideThinking();
+    targetBubble.completeBubble();
+    chatHistory.updateLast({
+      content: responseContent,
+      references: accumulatedReferences,
+    });
+    scrollToBottom();
+  };
 
   showStopButton();
 
@@ -443,43 +446,44 @@ export const handleUserQuery = async (
           }
         }
       },
-      onComplete: async () => {
+      // Fired once the answer text is complete, before the follow-up questions.
+      onAnswerComplete: () => {
+        finalizeAnswer();
+        updateSuggestedQuestions(null);
+        revealSuggestedQuestions();
+      },
+      // Fired with the backend-generated follow-up questions.
+      onFollowupQuestions: (data) => {
+        followupsReceived = true;
+        const questions = (data.followupQuestions ?? [])
+          .map(({ label, text }) => ({ label, question: text }))
+          .filter(({ label, question }) => label && question);
+        updateSuggestedQuestions(
+          questions.length > 0 ? questions : INITIAL_SUGGESTED_QUESTIONS,
+        );
+      },
+      // Terminal event. This acts as a
+      // safety net for aborted streams or a backend that omits those events.
+      onComplete: () => {
         hideStopButton();
         setResponding(false);
         if (!responseContent) {
           targetBubble.hideThinking();
+          targetBubble.hideStreamingCursor();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
           // a11y: announce the completed reply once, as plain text,
           // from the final content only
           announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
-          updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-          window.setTimeout(
-            () =>
-              showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-            suggestedQuestionsDelayMs,
-          );
+          showFallbackSuggestions();
           return;
         }
-        targetBubble.completeBubble();
+        finalizeAnswer();
         // a11y: announce the completed reply once, as plain text.
         announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
-        chatHistory.updateLast({
-          content: responseContent,
-          references: accumulatedReferences,
-        });
-        if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-          ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-            ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+        if (!followupsReceived) {
+          showFallbackSuggestions();
         }
-
-        updateSuggestedQuestions(null);
-        window.setTimeout(
-          () =>
-            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-          suggestedQuestionsDelayMs,
-        );
-        await fetchAiSuggestedQuestions();
       },
       onError: (error) => {
         hideStopButton();
