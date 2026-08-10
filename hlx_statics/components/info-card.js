@@ -36,28 +36,64 @@ function initializeNavigation(block, ul) {
   block.prepend(prevBtn);
   block.append(nextBtn);
 
-  let visible = window.innerWidth <= 1024 ? 1 : IS_DEV_DOCS ? 2 : 3;
+  const getVisibleCount = () => {
+    if (window.innerWidth <= 1024) {
+      return 1;
+    }
+    return IS_DEV_DOCS ? 2 : 3;
+  };
+
+  let visible = getVisibleCount();
   let page = 0;
+  let rafId = null;
 
   const update = () => {
     const maxPage = Math.ceil(cards.length / visible) - 1;
     const start = Math.min(page * visible, cards.length - visible);
     const shown = cards.slice(start, start + visible);
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
 
     cards.forEach((card) => {
       card.classList.add('hide');
       card.style.display = 'none';
     });
 
-    setTimeout(() => {
+    rafId = requestAnimationFrame(() => {
       shown.forEach((card) => {
         card.style.display = '';
-        requestAnimationFrame(() => card.classList.remove('hide'));
       });
-    }, 0);
+      requestAnimationFrame(() => {
+        shown.forEach((card) => card.classList.remove('hide'));
+        positionArrows();
+      });
+      rafId = null;
+    });
 
     prevBtn.disabled = page === 0;
     nextBtn.disabled = page >= maxPage;
+  };
+
+  const syncGridToVisible = () => {
+    ul.style.setProperty('--info-card-visible', visible);
+  };
+
+  const ARROW_GAP = 12; 
+
+  const positionArrows = () => {
+    const blockRect = block.getBoundingClientRect();
+    const ulRect = ul.getBoundingClientRect();
+
+    const leftOffset = Math.max(0, ulRect.left - blockRect.left - prevBtn.offsetWidth - ARROW_GAP);
+    const rightOffset = Math.max(0, blockRect.right - ulRect.right - nextBtn.offsetWidth - ARROW_GAP);
+    const topOffset = (ulRect.top - blockRect.top) + (ulRect.height / 2);
+
+    prevBtn.style.left = `${leftOffset}px`;
+    nextBtn.style.right = `${rightOffset}px`;
+    prevBtn.style.top = `${topOffset}px`;
+    nextBtn.style.top = `${topOffset}px`;
   };
 
   const changePage = (step) => {
@@ -69,16 +105,30 @@ function initializeNavigation(block, ul) {
   prevBtn.onclick = () => changePage(-1);
   nextBtn.onclick = () => changePage(1);
 
-  window.onresize = () => {
-    const newVisible = window.innerWidth <= 1024 ? 1 : 3;
-
-    if (newVisible !== visible) {
-      visible = newVisible;
-      page = 0;
-      update();
-    }
+  let resizeRaf = null;
+  const handleResize = () => {
+    if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = null;
+      const newVisible = getVisibleCount();
+      if (newVisible !== visible) {
+        visible = newVisible;
+        page = 0;
+        syncGridToVisible();
+        update();
+      } else {
+        positionArrows();
+      }
+    });
   };
 
+  if (block._infoCardResizeHandler) {
+    window.removeEventListener('resize', block._infoCardResizeHandler);
+  }
+  block._infoCardResizeHandler = handleResize;
+  window.addEventListener('resize', handleResize);
+
+  syncGridToVisible();
   update();
 }
 
