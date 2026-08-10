@@ -151,6 +151,7 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 40px;
+  max-width: 1300px;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li {
@@ -189,11 +190,11 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-prev {
-  left: -8%;
+  left: 12%;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-next {
-  right: -8%;
+  right: 12%;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav:disabled {
