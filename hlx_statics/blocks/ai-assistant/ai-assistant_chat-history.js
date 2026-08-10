@@ -174,20 +174,6 @@ export class ChatHistory {
   }
 
   /**
-   * Gets messages formatted for AI context
-   * @param {Object} [options]
-   * @param {number} [options.excludeLast=2] - Number of recent messages to exclude (0 = include all)
-   * @returns {string} Formatted context string
-   */
-  getContextForAI({ excludeLast = 2 } = {}) {
-    const messages = this.getAll();
-    const sliced = excludeLast > 0 ? messages.slice(0, -excludeLast) : messages;
-    return sliced
-      .map(({ source, content }) => JSON.stringify({ source, content }))
-      .join("\n");
-  }
-
-  /**
    * Clears all history
    */
   clear() {
