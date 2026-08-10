@@ -151,14 +151,11 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 40px;
+  width: fit-content;
   max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
 }
-
-/* main.dev-docs :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 40px;
-} */
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li {
   width: 100%;
@@ -188,6 +185,10 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav[style*="top"] {
+  transform: none;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav:hover {
@@ -264,10 +265,6 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compa
   padding: 0;
   margin: 0;
   list-style: none;
-}
-
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul>li{
-  max-width: 100%;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li {
