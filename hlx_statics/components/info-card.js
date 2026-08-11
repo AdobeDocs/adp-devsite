@@ -15,6 +15,10 @@ function initializeNavigation(block, ul) {
   if (cards.length <= 3) return;
 
   block.querySelectorAll('.info-card-nav').forEach((btn) => btn.remove());
+  block.querySelectorAll('.info-card-viewport').forEach((el) => {
+    el.replaceWith(...el.childNodes);
+  });
+  block.querySelectorAll('.info-card-carousel-nav').forEach((el) => el.remove());
 
   const createNav = (direction, path) => {
     const btn = createTag('button', {
@@ -33,8 +37,14 @@ function initializeNavigation(block, ul) {
   const prevBtn = createNav('prev', 'M15 18L9 12L15 6');
   const nextBtn = createNav('next', 'M9 18L15 12L9 6');
 
-  block.prepend(prevBtn);
-  block.append(nextBtn);
+  const viewport = createTag('div', { class: 'info-card-viewport' });
+  const navWrapper = createTag('div', { class: 'info-card-carousel-nav' });
+
+  ul.parentNode.insertBefore(navWrapper, ul);
+  viewport.appendChild(ul);
+  navWrapper.appendChild(prevBtn);
+  navWrapper.appendChild(viewport);
+  navWrapper.appendChild(nextBtn);
 
   const getVisibleCount = () => {
     if (window.innerWidth <= 1024) {
@@ -44,13 +54,15 @@ function initializeNavigation(block, ul) {
   };
 
   let visible = getVisibleCount();
-  let page = 0;
+  let index = 0;
   let rafId = null;
 
+  const getMaxIndex = () => Math.max(0, cards.length - visible);
+
   const update = () => {
-    const maxPage = Math.ceil(cards.length / visible) - 1;
-    const start = Math.min(page * visible, cards.length - visible);
-    const shown = cards.slice(start, start + visible);
+    const maxIndex = getMaxIndex();
+    index = Math.min(index, maxIndex);
+    const shown = cards.slice(index, index + visible);
     if (rafId !== null) {
       cancelAnimationFrame(rafId);
       rafId = null;
@@ -67,43 +79,26 @@ function initializeNavigation(block, ul) {
       });
       requestAnimationFrame(() => {
         shown.forEach((card) => card.classList.remove('hide'));
-        positionArrows();
       });
       rafId = null;
     });
 
-    prevBtn.disabled = page === 0;
-    nextBtn.disabled = page >= maxPage;
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index >= maxIndex;
   };
 
   const syncGridToVisible = () => {
     ul.style.setProperty('--info-card-visible', visible);
   };
 
-  const ARROW_GAP = 12;
-
-  const positionArrows = () => {
-    const blockRect = block.getBoundingClientRect();
-    const ulRect = ul.getBoundingClientRect();
-
-    const leftOffset = Math.max(0, ulRect.left - blockRect.left - prevBtn.offsetWidth - ARROW_GAP);
-    const rightOffset = Math.max(0, blockRect.right - ulRect.right - nextBtn.offsetWidth - ARROW_GAP);
-    const topOffset = (ulRect.top - blockRect.top) + (ulRect.height / 2);
-
-    prevBtn.style.left = `${leftOffset}px`;
-    nextBtn.style.right = `${rightOffset}px`;
-    prevBtn.style.top = `${topOffset}px`;
-    nextBtn.style.top = `${topOffset}px`;
-  };
-
-  const changePage = (step) => {
-    const maxPage = Math.ceil(cards.length / visible) - 1;
-    page = Math.max(0, Math.min(page + step, maxPage));
+  const changeIndex = (step) => {
+    const maxIndex = getMaxIndex();
+    index = Math.max(0, Math.min(index + step, maxIndex));
     update();
   };
 
-  prevBtn.onclick = () => changePage(-1);
-  nextBtn.onclick = () => changePage(1);
+  prevBtn.onclick = () => changeIndex(-1);
+  nextBtn.onclick = () => changeIndex(1);
 
   let resizeRaf = null;
   const handleResize = () => {
@@ -113,11 +108,9 @@ function initializeNavigation(block, ul) {
       const newVisible = getVisibleCount();
       if (newVisible !== visible) {
         visible = newVisible;
-        page = 0;
+        index = Math.min(index, getMaxIndex());
         syncGridToVisible();
         update();
-      } else {
-        positionArrows();
       }
     });
   };
