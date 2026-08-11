@@ -8,6 +8,7 @@ import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
  * @property {string} [collectionId]
  * @property {string} [sessionId]
  * @property {boolean} [includeFollowupQuestions]
+ * @property {number} [followupQuestionsCount=3]
  */
 
 /**
@@ -401,6 +402,7 @@ export class AiApiClient {
         </question>
       `,
       includeFollowupQuestions: true,
+      followupQuestionsCount: 2,
     };
     if (collectionId) {
       body.collectionId = collectionId;
