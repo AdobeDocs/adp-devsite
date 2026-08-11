@@ -179,6 +179,7 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   opacity: 1;
   transform: translateX(0);
   transition: transform 0.4s ease, opacity 0.4s ease;
+  margin: auto;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul>li.hide {
