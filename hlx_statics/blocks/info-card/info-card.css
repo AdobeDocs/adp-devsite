@@ -146,8 +146,6 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   padding: 0;
 }
 
-/* Arrows now live in their own grid columns beside the viewport, instead of
-   being absolutely positioned on top of the card image. */
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-carousel-nav {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -169,6 +167,7 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   display: grid;
   grid-template-columns: repeat(var(--info-card-visible), 1fr);
   gap: 40px;
+  padding: 0;
   width: 100%;
   margin: 0;
   list-style: none;
@@ -292,6 +291,11 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compa
   height: auto;
   padding: 0;
   line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact .cards-card-body .card-heading {
@@ -314,7 +318,7 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compa
   margin: auto;
 }
 
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact > ul >li {
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compact>ul>li {
   max-width: 100%;
 }
 
