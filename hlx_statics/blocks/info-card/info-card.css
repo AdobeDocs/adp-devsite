@@ -171,6 +171,7 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   gap: 40px;
   width: 100%;
   margin: 0;
+  list-style: none;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul>li {
