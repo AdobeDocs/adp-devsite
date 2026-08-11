@@ -16,6 +16,7 @@ function initializeNavigation(block, ul) {
 
   block.querySelectorAll('.info-card-nav').forEach((btn) => btn.remove());
   block.querySelectorAll('.info-card-viewport').forEach((el) => {
+    // unwrap any viewport from a previous initialization run
     el.replaceWith(...el.childNodes);
   });
   block.querySelectorAll('.info-card-carousel-nav').forEach((el) => el.remove());
@@ -37,6 +38,8 @@ function initializeNavigation(block, ul) {
   const prevBtn = createNav('prev', 'M15 18L9 12L15 6');
   const nextBtn = createNav('next', 'M9 18L15 12L9 6');
 
+  // Wrap the viewport + ul so the arrows live in their own grid columns
+  // instead of being absolutely positioned on top of the card content.
   const viewport = createTag('div', { class: 'info-card-viewport' });
   const navWrapper = createTag('div', { class: 'info-card-carousel-nav' });
 
@@ -54,6 +57,8 @@ function initializeNavigation(block, ul) {
   };
 
   let visible = getVisibleCount();
+  // `index` is the position of the first visible card (one-card-step),
+  // not a page multiplier — every arrow click moves the window by 1 card.
   let index = 0;
   let rafId = null;
 

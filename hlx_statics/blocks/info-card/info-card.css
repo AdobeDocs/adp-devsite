@@ -1,4 +1,4 @@
-main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard) ul {
+main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)>ul {
   list-style: none;
   margin-top: 0px;
   margin-bottom: 0px;
@@ -146,6 +146,8 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   padding: 0;
 }
 
+/* Arrows now live in their own grid columns beside the viewport, instead of
+   being absolutely positioned on top of the card image. */
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-carousel-nav {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -176,7 +178,6 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   opacity: 1;
   transform: translateX(0);
   transition: transform 0.4s ease, opacity 0.4s ease;
-  margin: auto;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul>li.hide {
