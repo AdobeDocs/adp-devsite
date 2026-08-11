@@ -151,7 +151,7 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  max-width: 1300px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
   padding: 0 12px;
