@@ -142,39 +142,52 @@ main :is(div.info-card-wrapper div.info-card, div.infocard-wrapper div.infocard)
 
 /* navigation */
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation {
-  position: relative;
   margin: auto;
-  padding: 0 56px;
+  padding: 0;
 }
 
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul {
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-carousel-nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 12px;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul {
   --info-card-visible: 3;
   display: grid;
   grid-template-columns: repeat(var(--info-card-visible), 1fr);
   gap: 40px;
-  width: fit-content;
-  max-width: 1300px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
+  margin: 0;
 }
 
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li {
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul>li {
   width: 100%;
   opacity: 1;
   transform: translateX(0);
   transition: transform 0.4s ease, opacity 0.4s ease;
+  margin: auto;
 }
 
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li.hide {
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul>li.hide {
   opacity: 0;
   transform: translateX(30px);
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
+  position: static;
+  flex-shrink: 0;
+  z-index: 1;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -188,21 +201,9 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   cursor: pointer;
 }
 
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav[style*="top"] {
-  transform: none;
-}
-
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav:hover {
   color: #000;
   border-color: #999;
-}
-
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-prev {
-  left: 12%;
-}
-
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-next {
-  right: 12%;
 }
 
 main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav:disabled {
@@ -210,51 +211,38 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navig
   cursor: not-allowed;
 }
 
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard)>ul>li>a {
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard) ul>li>a {
   display: flex;
   flex-direction: column;
 }
 
-main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).reverse>ul>li>a {
+main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).reverse ul>li>a {
   flex-direction: column-reverse;
 }
 
 @media (max-width: 1024px) {
   main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation {
-    padding: 0 48px;
+    padding: 0;
   }
 
-  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul {
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-carousel-nav {
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul {
     grid-template-columns: 1fr;
     gap: 24px;
     justify-items: center;
   }
 
-  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li {
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul>li {
     width: 100%;
     max-width: 400px;
   }
 
-  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation>ul>li img {
+  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-viewport>ul>li img {
     width: 100%;
-  }
-
-  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-prev {
-    left: 0;
-  }
-
-  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-next {
-    right: 0;
-  }
-}
-
-@media (min-width: 767px) and (max-width: 1024px) {
-  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-prev {
-    left: 10%;
-  }
-
-  main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).navigation .info-card-nav-next {
-    right: 10%;
   }
 }
 
