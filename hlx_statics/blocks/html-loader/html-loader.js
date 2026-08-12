@@ -1,26 +1,29 @@
 /**
- * Decorates the HTML loader block.
- * @param {Element} block The block element
+ * @param {Element} block The HTML loader block
  */
 export default async function decorate(block) {
-  console.log('block:', block);
+  console.log('HTML Loader block:', block);
 
-  // Get the HTML stored inside the block as text
   const htmlContent = block.textContent.trim();
 
   console.log('HTML Content:', htmlContent);
 
-  // Create iframe
+  if (!htmlContent) {
+    console.error('HTML Loader: No HTML content found');
+    return;
+  }
+
   const iframe = document.createElement('iframe');
 
-  iframe.title = 'HTML Preview';
+  iframe.title = 'FaaS Test FaaS Form';
   iframe.style.width = '100%';
-  iframe.style.minHeight = '800px';
+  iframe.style.height = '900px';
   iframe.style.border = '0';
+  iframe.style.display = 'block';
 
-  // Load the HTML content inside the iframe
   iframe.srcdoc = htmlContent;
 
-  // Remove the original content
   block.replaceChildren(iframe);
+
+  console.log('HTML Loader: rendered');
 }
