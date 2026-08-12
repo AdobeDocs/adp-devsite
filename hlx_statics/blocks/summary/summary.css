@@ -137,5 +137,5 @@ main div.summary-wrapper div.summary.background-color-white {
 }
 
 main div.summary-wrapper div.summary.right > div {
- left: 30% ;
+ left: 30% !important;
 }
