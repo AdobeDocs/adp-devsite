@@ -1,10 +1,28 @@
+/**
+ * @param {Element} block The HTML loader block
+ */
 export default async function decorate(block) {
-  const link = block.querySelector('a');
-  const html = await (await fetch(link.href)).text();
+  console.log('block markup:', block.innerHTML);
 
-  const shadowHost = document.createElement('div');
+  const link = block.querySelector('a');
+  const src = link ? link.href : block.textContent.trim();
+
+  console.log('resolved src:', src);
+
+  if (!src) {
+    console.error('html-loader: no src found in block');
+    return;
+  }
+
   block.textContent = '';
-  block.append(shadowHost);
-  const shadow = shadowHost.attachShadow({ mode: 'open' });
-  shadow.innerHTML = html; // still won't execute <script> tags — you'd need to manually re-inject them
+
+  const iframe = document.createElement('iframe');
+  iframe.src = src;
+  iframe.title = 'FaaS Test Form';
+  iframe.style.width = '100%';
+  iframe.style.height = '800px';
+  iframe.style.border = 'none';
+  iframe.loading = 'lazy';
+
+  block.append(iframe);
 }
