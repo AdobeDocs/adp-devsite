@@ -1,27 +1,27 @@
-/**
- * @param {Element} block The HTML loader block
- */
 export default async function decorate(block) {
   const code = block.querySelector('pre code');
-
-  if (!code) {
-    console.error('html-loader: no <pre><code> found in block');
-    return;
-  }
+  if (!code) return;
 
   const html = code.textContent;
 
+  // Parse the HTML string into a document
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
   block.textContent = '';
 
-  const iframe = document.createElement('iframe');
-  iframe.title = 'FaaS Test Form';
-  iframe.style.width = '100%';
-  iframe.style.height = '800px';
-  iframe.style.border = 'none';
+  // Move body content in
+  block.append(...doc.body.childNodes);
 
-  block.append(iframe);
-
-  // srcdoc renders the HTML string directly, scripts included,
-  // in an isolated iframe context — no fetch needed.
-  iframe.srcdoc = html;
+  // Re-create scripts so they actually execute (innerHTML-inserted scripts don't run)
+  const scripts = block.querySelectorAll('script');
+  scripts.forEach((oldScript) => {
+    const newScript = document.createElement('script');
+    if (oldScript.src) {
+      newScript.src = oldScript.src;
+    } else {
+      newScript.textContent = oldScript.textContent;
+    }
+    oldScript.replaceWith(newScript);
+  });
 }
