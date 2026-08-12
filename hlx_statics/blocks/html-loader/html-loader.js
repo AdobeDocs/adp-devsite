@@ -1,26 +1,10 @@
 export default async function decorate(block) {
-  const code = block.querySelector('pre code');
+  const link = block.querySelector('a');
+  const html = await (await fetch(link.href)).text();
 
-  if (!code) return;
-
-  const html = code.textContent;
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-
-  // Load styles
-  doc.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
-    const stylesheet = document.createElement('link');
-    stylesheet.rel = 'stylesheet';
-    stylesheet.href = link.href;
-    document.head.append(stylesheet);
-  });
-
-  // Load inline styles
-  doc.querySelectorAll('style').forEach((style) => {
-    document.head.append(style.cloneNode(true));
-  });
-
-  // Render body
-  block.replaceChildren(...doc.body.childNodes);
+  const shadowHost = document.createElement('div');
+  block.textContent = '';
+  block.append(shadowHost);
+  const shadow = shadowHost.attachShadow({ mode: 'open' });
+  shadow.innerHTML = html; // still won't execute <script> tags — you'd need to manually re-inject them
 }
