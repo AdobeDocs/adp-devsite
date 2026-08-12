@@ -136,4 +136,6 @@ main div.summary-wrapper div.summary.background-color-white {
   background-color: rgb(255, 255, 255);
 }
 
-
+main div.summary-wrapper div.summary.right > div {
+ left: 30% ;
+}
