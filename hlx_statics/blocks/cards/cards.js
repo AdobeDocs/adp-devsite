@@ -30,6 +30,10 @@ export default async function decorate(block) {
     block.classList.add('wide');
   }
 
+   if (block.getAttribute('data-start') === 'true') {
+    block.classList.add('start');
+  }
+
   // for devdocs, the author can put in an attribute width to change the width of the cards.
   const width = block.getAttribute('data-width');
   if (width) {

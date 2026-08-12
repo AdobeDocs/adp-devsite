@@ -150,3 +150,11 @@ main.dev-docs div.cards-wrapper {
   display: inline-flex;
   flex-direction: column;
 }
+
+main div.cards-wrapper div.cards.start > div {
+  text-align: start;
+}
+
+main div.cards-wrapper div.cards.start .cards-button-container  {
+  justify-content: start;
+}
