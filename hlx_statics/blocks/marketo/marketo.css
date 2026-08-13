@@ -21,6 +21,7 @@
   --color-accent-down: #004494;
   --color-accent-focus-ring: #0265DC;
   --color-white: #FFFFFF;
+  --spacing-l: 20px;
 }
 
 /* stylelint-disable selector-class-pattern */
@@ -391,7 +392,7 @@
 }
 
 .marketo .marketo-overlay .retry-button,
-.marketo .mktoForm .mktoButton {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton {
   appearance: button;
   background: var(--color-accent);
   border: 2px solid var(--color-accent);
@@ -409,19 +410,19 @@
 }
 
 .marketo .marketo-overlay .retry-button:hover,
-.marketo .mktoForm .mktoButton:hover {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton:hover {
   background: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
 }
 
 .marketo .marketo-overlay .retry-button:active,
-.marketo .mktoForm .mktoButton:active {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton:active {
   background: var(--color-accent-down);
   border-color: var(--color-accent-down);
 }
 
 .marketo .marketo-overlay .retry-button:focus-visible,
-.marketo .mktoForm .mktoButton:focus-visible {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton:focus-visible {
   border: 2px solid var(--color-white);
   outline: 2px solid var(--color-accent-focus-ring);
 }
@@ -558,11 +559,11 @@
   }
 }
 
-.columns .marketo .mktoForm .mktoField {
+.marketo .mktoForm .mktoField {
   width: 100% !important;
 }
 
-.columns .marketo .mktoForm .mktoLabel {
+.marketo .mktoForm .mktoLabel {
   padding-bottom: 6px;
 }
 
@@ -963,5 +964,21 @@
 }
 
 .marketo .mktoForm .mktoFormRow:not(.msg-error) .mktoHtmlText {
+  display: none !important;
+}
+
+.marketo .mktoFormRow:has(input[name^="Form_Type"]),
+.marketo .mktoFormRow:has(input[name^="Field_Preferences"]),
+.marketo .mktoFormRow:has(input[name^="Form_Subtype"]),
+.marketo .mktoFormRow:has(input[name^="Primary_Product_Interest"]),
+.marketo .mktoFormRow:has(input[name^="Forms_Job_Title"]),
+.marketo .mktoFormRow:has(input[name^="Forms_Functional"]),
+.marketo .mktoFormRow:has(input[name^="Industry_Category"]),
+.marketo .mktoFormRow:has(input[name^="CoPartner_Name"]),
+.marketo .mktoFormRow:has(input[name^="Consent_Notice"]),
+.marketo .mktoFormRow:has(input[name^="Consent_URL"]),
+.marketo .mktoFormRow:has(input[name^="OK_to_Email"]),
+.marketo .mktoFormRow:has(input[name^="OK_to_Mail"]),
+.marketo .mktoFormRow:has(input[name^="OK_to_Call"]) {
   display: none !important;
 }
