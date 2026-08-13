@@ -370,9 +370,9 @@ const readyForm = (form, formData) => {
   const el = formEl.closest('.marketo');
   formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
     const text = htmlText.textContent || '';
-    if (text.includes('FBLD_RULES') || text.includes('.js')) {
+    if (!text.toLowerCase().includes('authorize') && !text.toLowerCase().includes('privacy') && !text.toLowerCase().includes('contact')) {
       const row = htmlText.closest('.mktoFormRow');
-      if (row) row.style.setProperty('display', 'none', 'important');
+      if (row && !row.querySelector('input, select, textarea')) row.style.setProperty('display', 'none', 'important');
     }
   });
   const isDesktop = matchMedia('(min-width: 900px)');

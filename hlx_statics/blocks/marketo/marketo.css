@@ -990,10 +990,6 @@
 .marketo .mktoFormRowTop>.mktoClear {
   display: none !important;
 }
-/* Collapse diagnostic garbage rows but keep Consent Notice */
-.marketo .mktoForm > .mktoFormRow:not(.msg-error):not(:has(input, select, textarea, button, a)) {
-  display: none !important;
-}
 
 /* Ensure error messages and consent text span full width */
 .marketo .mktoForm > .mktoFormRow:not(:has(input, select, textarea, button)) {
@@ -1066,7 +1062,16 @@
   background-repeat: no-repeat !important;
 }
 
-/* Hide the default text error message */
+
+
+/* Style the default text error message gracefully */
 .marketo .mktoForm .mktoError {
+  position: relative !important;
+  color: #D31510 !important;
+  font-size: 12px !important;
+  margin-top: 4px !important;
+  font-weight: 400 !important;
+}
+.marketo .mktoForm .mktoErrorArrowWrap {
   display: none !important;
 }
