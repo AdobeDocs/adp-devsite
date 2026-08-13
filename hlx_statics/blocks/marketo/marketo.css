@@ -165,7 +165,7 @@
 }
 
 .marketo fieldset.mktoFormCol {
-  display: none;
+  display: block;
 }
 
 .marketo fieldset.mktoFormCol.mktoVisible {
@@ -199,9 +199,11 @@
 }
 
 .marketo .mktoForm--fade-in .mktoFieldDescriptor {
-  visibility: hidden;
-  opacity: 0;
-  height: 0;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  height: auto;
+  transition: opacity 0.5s ease-in, height 0.5s ease-in;
 }
 
 .marketo .mktoForm--fade-in .mktoFieldDescriptor.mktoVisible {
@@ -630,6 +632,7 @@
   .marketo form.mktoForm--fade-in.mktoVisible {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    column-gap: 32px;
   }
 
   .marketo .mktoFormRow.mktoFormRowTop.name>.mktoFormCol {
@@ -670,6 +673,8 @@
 
   .marketo .mktoForm .mktoButtonRow {
     grid-column: span 2;
+    display: flex;
+    justify-content: center;
   }
 }
 
@@ -942,9 +947,5 @@
     .resource-form .columns>.row {
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
-  }
-
-  .marketo .mktoForm .mktoHtmlText {
-    display: none !important;
   }
 }
