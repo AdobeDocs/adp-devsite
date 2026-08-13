@@ -139,3 +139,9 @@ main div.summary-wrapper div.summary.background-color-white {
 main div.summary-wrapper div.summary.right > div {
  left: 30% !important;
 }
+
+@media screen and (min-width: 320px) and (max-width: 1024px) {
+  main div.summary-wrapper div.summary.right > div {
+    left: 0% ;
+  }
+}
