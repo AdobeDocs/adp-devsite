@@ -977,10 +977,6 @@
 .marketo .mktoFormRow:has([name*="IndustryCategory"]),
 .marketo .mktoFormRow:has([name*="Industry_Category"]),
 .marketo .mktoFormRow:has([name*="CoPartner"]),
-.marketo .mktoFormRow:has([name*="ConsentNotice"]),
-.marketo .mktoFormRow:has([name*="Consent_Notice"]),
-.marketo .mktoFormRow:has([name*="ConsentURL"]),
-.marketo .mktoFormRow:has([name*="Consent_URL"]),
 .marketo .mktoFormRow:has([name*="OKToEmail"]),
 .marketo .mktoFormRow:has([name*="OK_to_Email"]),
 .marketo .mktoFormRow:has([name*="OKToMail"]),
@@ -992,10 +988,5 @@
 
 .marketo .mktoForm>.mktoClear,
 .marketo .mktoFormRowTop>.mktoClear {
-  display: none !important;
-}
-
-/* Collapse script injection rows that cause grid gaps */
-.marketo .mktoForm>.mktoFormRow:has(script) {
   display: none !important;
 }

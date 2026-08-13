@@ -368,6 +368,13 @@ export const formSuccess = (formEl, formData) => {
 const readyForm = (form, formData) => {
   const formEl = form.getFormElem().get(0);
   const el = formEl.closest('.marketo');
+  formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
+    const text = htmlText.textContent || '';
+    if (text.includes('FBLD_RULES') || text.includes('.js')) {
+      const row = htmlText.closest('.mktoFormRow');
+      if (row) row.style.setProperty('display', 'none', 'important');
+    }
+  });
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
   formEl.style.opacity = '';
