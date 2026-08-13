@@ -1064,112 +1064,72 @@
 }
 
 
-/* Hide the default text error message entirely since target design relies purely on borders and icons */
+/* Restore the default text error message but position it above or inline */
 .marketo .mktoForm .mktoError {
-  display: none !important;
+  /* Let it display normally to show the "field is required" text */
 }
 
-/* Explicitly HIDE the literal input fields that are NOT the consent text */
-.marketo .mktoFormRow:has(input[name*="Locale" i]),
-.marketo .mktoFormRow:has(select[name*="Locale" i]),
-.marketo .mktoFormRow:has(input[name*="Preference" i]),
-.marketo .mktoFormRow:has(select[name*="Preference" i]),
-.marketo .mktoFormRow:has(input[name*="FormType" i]),
-.marketo .mktoFormRow:has(input[name*="Form_Type" i]),
-.marketo .mktoFormRow:has(input[name*="Subtype" i]),
-.marketo .mktoFormRow:has(input[name*="Sub_Type" i]),
-.marketo .mktoFormRow:has(input[name*="JobTitleCategory" i]),
-.marketo .mktoFormRow:has(input[name*="Job_Title_Category" i]),
-.marketo .mktoFormRow:has(input[name*="FunctionalAreaCategory" i]),
-.marketo .mktoFormRow:has(input[name*="Functional_Area_Category" i]),
-.marketo .mktoFormRow:has(input[name*="IndustryCategory" i]),
-.marketo .mktoFormRow:has(input[name*="Industry_Category" i]),
-.marketo .mktoFormRow:has(input[name*="Category" i]),
-.marketo .mktoFormRow:has(input[name*="CoPartner" i]),
-
-
-
-
-.marketo .mktoFormRow:has(input[name*="OKToEmail" i]),
-.marketo .mktoFormRow:has(input[name*="OK_to_Email" i]),
-.marketo .mktoFormRow:has(input[name*="OKToMail" i]),
-.marketo .mktoFormRow:has(input[name*="OK_to_Mail" i]),
-.marketo .mktoFormRow:has(input[name*="OKToCall" i]),
-.marketo .mktoFormRow:has(input[name*="OK_to_Call" i]) {
+/* Explicitly HIDE the literal input fields that are NOT the consent text 
+   We hide .mktoFormCol instead of .mktoFormRow to avoid accidentally hiding consent text
+   that may share the same row wrapper. */
+.marketo .mktoFormCol:has(input[name*="Locale" i]),
+.marketo .mktoFormCol:has(select[name*="Locale" i]),
+.marketo .mktoFormCol:has(input[name*="Preference" i]),
+.marketo .mktoFormCol:has(select[name*="Preference" i]),
+.marketo .mktoFormCol:has(input[name*="FormType" i]),
+.marketo .mktoFormCol:has(input[name*="Form_Type" i]),
+.marketo .mktoFormCol:has(input[name*="Subtype" i]),
+.marketo .mktoFormCol:has(input[name*="Sub_Type" i]),
+.marketo .mktoFormCol:has(input[name*="JobTitleCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Job_Title_Category" i]),
+.marketo .mktoFormCol:has(input[name*="FunctionalAreaCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Functional_Area_Category" i]),
+.marketo .mktoFormCol:has(input[name*="IndustryCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Industry_Category" i]),
+.marketo .mktoFormCol:has(input[name*="Category" i]),
+.marketo .mktoFormCol:has(input[name*="CoPartner" i]),
+.marketo .mktoFormCol:has(input[name*="OKToEmail" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Email" i]),
+.marketo .mktoFormCol:has(input[name*="OKToMail" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Mail" i]),
+.marketo .mktoFormCol:has(input[name*="OKToCall" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Call" i]) {
   display: none !important;
 }
 
 /* Ensure Consent Text ALWAYS shows */
-.marketo .mktoFormRow.adobe-privacy {
+.marketo .mktoFormRow.adobe-privacy,
+.marketo .mktoFormRow:has(.mktoHtmlText) {
   display: block !important;
   grid-column: 1 / -1;
 }
 
-/* Hide Diagnostic garbage rows */
+/* Hide Diagnostic garbage rows - relaxed to ensure consent text isn't hidden */
 .marketo .mktoForm>.mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
-  display: none !important;
+  /* Removed to prevent hiding legitimate consent text without links */
 }
-
 
 /* Hide the Consent inputs but preserve the rich text row */
-.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]) label,
-.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]) .mktoFieldWrap,
-.marketo .mktoFormRow:has(input[name*="Consent_Notice" i]) label,
-.marketo .mktoFormRow:has(input[name*="Consent_Notice" i]) .mktoFieldWrap,
-.marketo .mktoFormRow:has(input[name*="ConsentURL" i]) label,
-.marketo .mktoFormRow:has(input[name*="ConsentURL" i]) .mktoFieldWrap,
-.marketo .mktoFormRow:has(input[name*="Consent_URL" i]) label,
-.marketo .mktoFormRow:has(input[name*="Consent_URL" i]) .mktoFieldWrap {
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]) label,
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="Consent_Notice" i]) label,
+.marketo .mktoFormCol:has(input[name*="Consent_Notice" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]) label,
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="Consent_URL" i]) label,
+.marketo .mktoFormCol:has(input[name*="Consent_URL" i]) .mktoFieldWrap {
   display: none !important;
 }
 
-/* Ensure Consent text takes full width */
-.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]) {
-  grid-column: 1 / -1;
-  display: block !important;
-}
-
-
-/* HIDE UNNECESSARY ROWS COMPLETELY TO PREVENT GRID GAPS */
-.marketo .mktoFormRow:has([name*="Locale" i]),
-.marketo .mktoFormRow:has([name*="Preference" i]),
-.marketo .mktoFormRow:has([name*="FormType" i]),
-.marketo .mktoFormRow:has([name*="Form_Type" i]),
-.marketo .mktoFormRow:has([name*="Subtype" i]),
-.marketo .mktoFormRow:has([name*="Sub_Type" i]),
-.marketo .mktoFormRow:has([name*="JobTitleCategory" i]),
-.marketo .mktoFormRow:has([name*="Job_Title_Category" i]),
-.marketo .mktoFormRow:has([name*="FunctionalAreaCategory" i]),
-.marketo .mktoFormRow:has([name*="Functional_Area_Category" i]),
-.marketo .mktoFormRow:has([name*="IndustryCategory" i]),
-.marketo .mktoFormRow:has([name*="Industry_Category" i]),
-.marketo .mktoFormRow:has([name*="InterestCategory" i]),
-.marketo .mktoFormRow:has([name*="CoPartner" i]),
-.marketo .mktoFormRow:has([name*="OKToEmail" i]),
-.marketo .mktoFormRow:has([name*="OK_to_Email" i]),
-.marketo .mktoFormRow:has([name*="OKToMail" i]),
-.marketo .mktoFormRow:has([name*="OK_to_Mail" i]),
-.marketo .mktoFormRow:has([name*="OKToCall" i]),
-.marketo .mktoFormRow:has([name*="OK_to_Call" i]) {
-  display: none !important;
-}
-
-/* Ensure ConsentURL also takes full width or is hidden if empty */
-.marketo .mktoFormRow:has(input[name*="ConsentURL" i]),
-.marketo .mktoFormRow:has(input[name*="Consent_URL" i]) {
-  grid-column: 1 / -1;
-  display: block !important;
-}
-
-/* Make sure any empty mktoFormRow that we hid the contents of doesn't break the grid */
-.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]):not(:has(.mktoHtmlText)),
-.marketo .mktoFormRow:has(input[name*="ConsentURL" i]):not(:has(.mktoHtmlText)) {
+/* Make sure any empty mktoFormCol that we hid the contents of doesn't break the grid */
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]):not(:has(.mktoHtmlText)),
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]):not(:has(.mktoHtmlText)) {
   display: none !important;
 }
 
 /* ULTIMATE GRID GAP FIX: Destroy any columns/rows that do not contain a visible field, button, or rich text */
-.marketo .mktoFormRow:not(:has(.mktoFieldWrap, .mktoHtmlText, .mktoButtonRow)),
-.marketo .mktoFormCol:not(:has(.mktoFieldWrap, .mktoHtmlText, .mktoButtonRow)) {
+.marketo .mktoFormRow:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)),
+.marketo .mktoFormCol:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)) {
   display: none !important;
 }
 
@@ -1181,3 +1141,35 @@
 .marketo .mktoFormRow {
   width: 100%;
 }
+
+/* ===== GRID LAYOUT FIX: FirstName / LastName pairing ===== */
+/* When the .name row wrapper is NOT present (Full DX Contact template),
+   force FirstName into column 1 and LastName into column 2 on the same row,
+   and push all other field rows to auto-flow below them. */
+@media screen and (min-width: 600px) {
+  /* Place FirstName explicitly at row 1, column 1 */
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([name="FirstName"]) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* Place LastName explicitly at row 1, column 2 — same row as FirstName */
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([name="LastName"]) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* All other top-level field rows auto-flow starting from row 2 */
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:not(:has([name="FirstName"])):not(:has([name="LastName"])) {
+    grid-row: auto;
+  }
+
+  /* If FirstName and LastName share a .name wrapper row, keep it spanning 2 cols */
+  .marketo .mktoFormRow.mktoFormRowTop.name {
+    display: block !important;
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}
+
+
