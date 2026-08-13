@@ -992,12 +992,12 @@
 }
 
 /* Ensure error messages and consent text span full width */
-.marketo .mktoForm > .mktoFormRow:not(:has(input, select, textarea, button)) {
+.marketo .mktoForm>.mktoFormRow:not(:has(input, select, textarea, button)) {
   grid-column: 1 / -1;
 }
 
 /* Ensure Use Case textarea spans full width */
-.marketo .mktoForm > .mktoFormRow:has(textarea) {
+.marketo .mktoForm>.mktoFormRow:has(textarea) {
   grid-column: 1 / -1;
 }
 
@@ -1106,7 +1106,7 @@
 }
 
 /* Hide Diagnostic garbage rows */
-.marketo .mktoForm > .mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
+.marketo .mktoForm>.mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
   display: none !important;
 }
 
@@ -1165,4 +1165,19 @@
 .marketo .mktoFormRow:has(input[name*="ConsentNotice" i]):not(:has(.mktoHtmlText)),
 .marketo .mktoFormRow:has(input[name*="ConsentURL" i]):not(:has(.mktoHtmlText)) {
   display: none !important;
+}
+
+/* ULTIMATE GRID GAP FIX: Destroy any columns/rows that do not contain a visible field, button, or rich text */
+.marketo .mktoFormRow:not(:has(.mktoFieldWrap, .mktoHtmlText, .mktoButtonRow)),
+.marketo .mktoFormCol:not(:has(.mktoFieldWrap, .mktoHtmlText, .mktoButtonRow)) {
+  display: none !important;
+}
+
+/* Ensure no elements have unnecessary span 2 or 100% width unless they are textarea or consent */
+.marketo .mktoFormCol.mktoVisible {
+  width: auto !important;
+}
+
+.marketo .mktoFormRow {
+  width: 100%;
 }
