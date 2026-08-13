@@ -1001,6 +1001,7 @@
   grid-column: 1 / -1;
 }
 
+
 /* --- EXACT TARGET DESIGN UI STYLING --- */
 .marketo .mktoForm input[type="text"],
 .marketo .mktoForm input[type="email"],
@@ -1062,20 +1063,54 @@
   background-repeat: no-repeat !important;
 }
 
-
-
-/* Style the default text error message gracefully */
-.marketo .mktoForm .mktoError {
+/* Force Error Text to show AT THE TOP of the field */
+.marketo .mktoFormRow .mktoFieldWrap {
   position: relative !important;
+}
+
+.marketo .mktoForm .mktoError {
+  clip: auto !important;
+  clip-path: none !important;
+  height: auto !important;
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  left: auto !important;
+  display: block !important;
+  width: auto !important;
+  margin: 0 !important;
   color: #D31510 !important;
   font-size: 12px !important;
-  margin-top: 4px !important;
   font-weight: 400 !important;
 }
-.marketo .mktoForm .mktoErrorArrowWrap {
+
+/* Explicitly HIDE the literal input fields that are NOT the consent text */
+.marketo .mktoFormRow:has([name*="Locale"]),
+.marketo .mktoFormRow:has([name*="Preference"]),
+.marketo .mktoFormRow:has([name*="FormType"]),
+.marketo .mktoFormRow:has([name*="Form_Type"]),
+.marketo .mktoFormRow:has([name*="Subtype"]),
+.marketo .mktoFormRow:has([name*="Sub_Type"]),
+.marketo .mktoFormRow:has([name*="JobTitleCategory"]),
+.marketo .mktoFormRow:has([name*="Job_Title_Category"]),
+.marketo .mktoFormRow:has([name*="FunctionalAreaCategory"]),
+.marketo .mktoFormRow:has([name*="Functional_Area_Category"]),
+.marketo .mktoFormRow:has([name*="IndustryCategory"]),
+.marketo .mktoFormRow:has([name*="Industry_Category"]),
+.marketo .mktoFormRow:has([name*="CoPartner"]),
+.marketo .mktoFormRow:has([name*="ConsentNotice"]),
+.marketo .mktoFormRow:has([name*="Consent_Notice"]),
+.marketo .mktoFormRow:has([name*="ConsentURL"]),
+.marketo .mktoFormRow:has([name*="Consent_URL"]),
+.marketo .mktoFormRow:has([name*="OKToEmail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Email"]),
+.marketo .mktoFormRow:has([name*="OKToMail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Mail"]),
+.marketo .mktoFormRow:has([name*="OKToCall"]),
+.marketo .mktoFormRow:has([name*="OK_to_Call"]) {
   display: none !important;
 }
-
 
 /* Ensure Consent Text ALWAYS shows */
 .marketo .mktoFormRow.adobe-privacy,
@@ -1085,18 +1120,7 @@
   grid-column: 1 / -1;
 }
 
-/* Force Error Text to show even if form has hide-errors class */
-.marketo .mktoForm .mktoError {
-  clip: auto !important;
-  clip-path: none !important;
-  height: auto !important;
-  position: relative !important;
-  display: block !important;
-  width: 100% !important;
-  margin-left: 0 !important;
-}
-
-/* Hide Diagnostic garbage rows (pure CSS fallback if JS is cached) */
+/* Hide Diagnostic garbage rows */
 .marketo .mktoForm > .mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
   display: none !important;
 }
