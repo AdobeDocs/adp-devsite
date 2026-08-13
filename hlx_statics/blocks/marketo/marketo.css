@@ -1128,3 +1128,41 @@
   grid-column: 1 / -1;
   display: block !important;
 }
+
+
+/* HIDE UNNECESSARY ROWS COMPLETELY TO PREVENT GRID GAPS */
+.marketo .mktoFormRow:has([name*="Locale" i]),
+.marketo .mktoFormRow:has([name*="Preference" i]),
+.marketo .mktoFormRow:has([name*="FormType" i]),
+.marketo .mktoFormRow:has([name*="Form_Type" i]),
+.marketo .mktoFormRow:has([name*="Subtype" i]),
+.marketo .mktoFormRow:has([name*="Sub_Type" i]),
+.marketo .mktoFormRow:has([name*="JobTitleCategory" i]),
+.marketo .mktoFormRow:has([name*="Job_Title_Category" i]),
+.marketo .mktoFormRow:has([name*="FunctionalAreaCategory" i]),
+.marketo .mktoFormRow:has([name*="Functional_Area_Category" i]),
+.marketo .mktoFormRow:has([name*="IndustryCategory" i]),
+.marketo .mktoFormRow:has([name*="Industry_Category" i]),
+.marketo .mktoFormRow:has([name*="InterestCategory" i]),
+.marketo .mktoFormRow:has([name*="CoPartner" i]),
+.marketo .mktoFormRow:has([name*="OKToEmail" i]),
+.marketo .mktoFormRow:has([name*="OK_to_Email" i]),
+.marketo .mktoFormRow:has([name*="OKToMail" i]),
+.marketo .mktoFormRow:has([name*="OK_to_Mail" i]),
+.marketo .mktoFormRow:has([name*="OKToCall" i]),
+.marketo .mktoFormRow:has([name*="OK_to_Call" i]) {
+  display: none !important;
+}
+
+/* Ensure ConsentURL also takes full width or is hidden if empty */
+.marketo .mktoFormRow:has(input[name*="ConsentURL" i]),
+.marketo .mktoFormRow:has(input[name*="Consent_URL" i]) {
+  grid-column: 1 / -1;
+  display: block !important;
+}
+
+/* Make sure any empty mktoFormRow that we hid the contents of doesn't break the grid */
+.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]):not(:has(.mktoHtmlText)),
+.marketo .mktoFormRow:has(input[name*="ConsentURL" i]):not(:has(.mktoHtmlText)) {
+  display: none !important;
+}
