@@ -85,7 +85,7 @@ export const showSuggestedQuestions = ({
   shouldScrollIntoView = true,
 } = {}) => {
   const el = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
-  if (el) {
+  if (el?.classList.contains("hidden")) {
     el.classList.remove("hidden");
     el.classList.remove("animate-fade-in");
     requestAnimationFrame(() => {

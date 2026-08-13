@@ -99,6 +99,22 @@ export const onUserScroll = (event) => {
 };
 
 /**
+ * Scrolls the chat content area to the bottom.
+ * @param {Object} [options]
+ * @param {boolean} [options.force=false] - Scroll even if the user has scrolled up
+ */
+const scrollToBottom = ({ force = false } = {}) => {
+  if (!ELEMENTS.CHAT_WINDOW_CONTENT) {
+    return;
+  }
+
+  if (force || !userScrolledUp) {
+    ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+      ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+  }
+};
+
+/**
  * @param {Partial<{delay: number}>} [options]
  */
 const sendInitialMessages = ({ delay = 250 } = {}) => {
@@ -350,19 +366,12 @@ export const handleUserQuery = async (
   /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
   let accumulatedReferences = [];
   // The backend marks the answer done with an `answerComplete` event and sends
-  // follow-ups in a later `followupQuestions` event; both arrive before the
-  // terminal `complete` event. These flags let `onComplete` act as a safety net
-  // when the stream is aborted (or the backend omits an event) so we always
+  // follow-ups in a later `followupQuestions` event; 
+  // These flags let `onComplete` act as a safety net
+  // when the stream is aborted so we always
   // finalize the bubble and show some suggestions.
   let answerFinalized = false;
   let followupsReceived = false;
-
-  const scrollToBottom = () => {
-    if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-      ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-        ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-    }
-  };
 
   const revealSuggestedQuestions = () => {
     window.setTimeout(
@@ -413,10 +422,7 @@ export const handleUserQuery = async (
           targetBubble.hideThinking();
           targetBubble.showStreamingCursor();
           targetBubble.updateContent(responseContent);
-          if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-            ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-              ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-          }
+          scrollToBottom();
         }
       },
       onCitation: (data) => {
@@ -439,10 +445,7 @@ export const handleUserQuery = async (
               content: responseContent,
               references,
             });
-            if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-              ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-                ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-            }
+            scrollToBottom();
           }
         }
       },
@@ -462,8 +465,6 @@ export const handleUserQuery = async (
           questions.length > 0 ? questions : INITIAL_SUGGESTED_QUESTIONS,
         );
       },
-      // Terminal event. This acts as a
-      // safety net for aborted streams or a backend that omits those events.
       onComplete: () => {
         hideStopButton();
         setResponding(false);
@@ -483,6 +484,8 @@ export const handleUserQuery = async (
         announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
         if (!followupsReceived) {
           showFallbackSuggestions();
+        } else {
+          revealSuggestedQuestions();
         }
       },
       onError: (error) => {
@@ -490,12 +493,7 @@ export const handleUserQuery = async (
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
-        updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-        window.setTimeout(
-          () =>
-            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-          suggestedQuestionsDelayMs,
-        );
+        showFallbackSuggestions();
       },
     },
   });
@@ -547,7 +545,7 @@ const sendMessage = ({
     } else {
       contentContainer.appendChild(bubble.element);
     }
-    contentContainer.scrollTop = contentContainer.scrollHeight;
+    scrollToBottom({ force: true });
   }
 
   return bubble;
@@ -576,10 +574,7 @@ export const restoreChatHistory = async () => {
         bubble.appendReferences(references);
       }
     }
-    if (ELEMENTS.CHAT_WINDOW_CONTENT) {
-      ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-        ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-    }
+    scrollToBottom({ force: true });
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {
