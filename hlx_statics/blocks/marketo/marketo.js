@@ -368,6 +368,9 @@ const readyForm = (form, formData) => {
   const el = formEl.closest('.marketo');
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
+  formEl.style.opacity = '';
+  formEl.style.visibility = '';
+  formEl.classList.add('mktoForm--fade-in', 'mktoVisible');
 
   const handleIframeReady = (event) => {
     if (event.origin !== 'https://engage.adobe.com') return;
@@ -447,7 +450,7 @@ function decorateForm(el, formData) {
     formWrapper.append(description);
   }
 
-  const marketoForm = createTag('form', { ID: `mktoForm_${formID}`, class: 'hide-errors', style: 'opacity:0;visibility:hidden;' });
+  const marketoForm = createTag('form', { ID: `mktoForm_${formID}`, class: 'hide-errors' });
   const span1 = createTag('span', { id: 'mktoForms2BaseStyle', style: 'display:none;' });
   const span2 = createTag('span', { id: 'mktoForms2ThemeStyle', style: 'display:none;' });
   formWrapper.append(span1, span2, marketoForm);
