@@ -1106,7 +1106,7 @@
 
 /* Hide Diagnostic garbage rows - relaxed to ensure consent text isn't hidden */
 .marketo .mktoForm>.mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
-  /* Removed to prevent hiding legitimate consent text without links */
+  display: none !important;
 }
 
 /* Hide the Consent inputs but preserve the rich text row */
