@@ -1,6 +1,6 @@
 :root {
   --marketo-form-text: #535353;
-  --marketo-form-background: #FAFAFA;
+  --marketo-form-background: #FFFFFF;
   --marketo-form-border: #6E6E6E;
   --marketo-form-error: #D31510;
   --marketo-form-selected: #0265DC;
@@ -16,6 +16,11 @@
   /* 1 row + submit */
   --marketo-form-min-height: 215px;
   --marketo-form-max-height: 10000px;
+  --color-accent: #0265DC;
+  --color-accent-hover: #0054B6;
+  --color-accent-down: #004494;
+  --color-accent-focus-ring: #0265DC;
+  --color-white: #FFFFFF;
 }
 
 /* stylelint-disable selector-class-pattern */
@@ -92,6 +97,12 @@
 .marketo .mktoFormRow {
   transition: height 0.5s ease-in;
   height: auto;
+  width: 100% !important;
+}
+
+.marketo .mktoFieldWrap,
+.marketo .mktoFieldDescriptor {
+  width: 100% !important;
 }
 
 .marketo .mktoFormRowTop {
@@ -681,6 +692,7 @@
 @media screen and (min-width: 900px) {
   .marketo .marketo-form-wrapper {
     padding: 56px var(--spacing-l);
+    max-width: 800px;
   }
 
   .columns .marketo .mktoForm .mktoField {
@@ -948,4 +960,8 @@
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
   }
+}
+
+.marketo .mktoForm .mktoFormRow:not(.msg-error) .mktoHtmlText {
+  display: none !important;
 }
