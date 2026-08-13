@@ -1,7 +1,27 @@
-import { createTag, getConfig } from '../../utils/utils.js';
-import { debounce } from '../../utils/action.js';
-import { replaceKey, replaceKeyArray } from '../../features/placeholders.js';
+import { createTag } from '../../scripts/lib-adobeio.js';
 
+const getConfig = () => ({ base: '/hlx_statics', htmlExclude: [] });
+
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
+const replaceKey = async (key) => key;
+const replaceKeyArray = async (keys) => {
+  const defaults = {
+    'step-1-of-2': 'Step 1 of 2',
+    'step-2-of-2': 'Step 2 of 2',
+    'step-1-of-3': 'Step 1 of 3',
+    'step-2-of-3': 'Step 2 of 3',
+    'step-3-of-3': 'Step 3 of 3',
+    'back': 'Back',
+  };
+  return keys.map((k) => defaults[k] || k);
+};
 const VALIDATION_STEP = {
   2: [
     'name',

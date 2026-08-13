@@ -13,19 +13,72 @@
 /*
  * Marketo Form
  */
-import {
-  parseEncodedConfig,
-  loadScript,
-  loadLink,
-  localizeLinkAsync,
-  createTag,
-  getConfig,
-  getMetadata,
-  createIntersectionObserver,
-  SLD,
-  MILO_EVENTS,
-} from '../../utils/utils.js';
-import { replaceKeyArray } from '../../features/placeholders.js';
+import { getMetadata } from '../../scripts/lib-helix.js';
+import { createTag } from '../../scripts/lib-adobeio.js';
+
+const parseEncodedConfig = (encodedConfig) => {
+  try {
+    return JSON.parse(atob(encodedConfig));
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
+};
+
+const loadScript = (url) => {
+  return new Promise((resolve, reject) => {
+    const head = document.querySelector('head');
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = resolve;
+    script.onerror = reject;
+    head.append(script);
+  });
+};
+
+const loadLink = (url, attrs) => {
+  const head = document.querySelector('head');
+  const link = document.createElement('link');
+  link.href = url;
+  if (attrs) {
+    for (const [key, value] of Object.entries(attrs)) {
+      link.setAttribute(key, value);
+    }
+  }
+  head.append(link);
+  return link;
+};
+
+const localizeLinkAsync = async (href) => href;
+
+const getConfig = () => ({
+  base: 'https://milo.adobe.com/libs',
+  htmlExclude: [],
+});
+
+const createIntersectionObserver = ({ el, callback, options }) => {
+  const io = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        observer.unobserve(entry.target);
+        callback(entry.target, entry);
+      }
+    });
+  }, options);
+  io.observe(el);
+  return io;
+};
+
+const SLD = 'adobe';
+const MILO_EVENTS = { DEFERRED: 'milo:deferred' };
+
+const replaceKeyArray = async (keys) => {
+  const defaults = {
+    'marketo-load-error': 'Marketo form did not render',
+    'marketo-try-again': 'Try again',
+  };
+  return keys.map((k) => defaults[k] || k);
+};
 
 const ROOT_MARGIN = 50;
 const FAILURE_TIMEOUT = 10000;
