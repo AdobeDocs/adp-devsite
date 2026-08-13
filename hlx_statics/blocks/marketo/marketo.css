@@ -967,20 +967,29 @@
   display: none !important;
 }
 
-.marketo .mktoFormRow:has([name^="Form_Type"]),
-.marketo .mktoFormRow:has([name^="Field_Preferences"]),
-.marketo .mktoFormRow:has([name^="Form_Subtype"]),
-.marketo .mktoFormRow:has([name^="Primary_Product_Interest"]),
-.marketo .mktoFormRow:has([name^="Forms_Job_Title"]),
-.marketo .mktoFormRow:has([name^="Forms_Functional"]),
-.marketo .mktoFormRow:has([name^="Industry_Category"]),
-.marketo .mktoFormRow:has([name^="CoPartner_Name"]),
-.marketo .mktoFormRow:has([name^="Consent_Notice"]),
-.marketo .mktoFormRow:has([name^="Consent_URL"]),
-.marketo .mktoFormRow:has([name^="OK_to_Email"]),
-.marketo .mktoFormRow:has([name^="OK_to_Mail"]),
-.marketo .mktoFormRow:has([name^="OK_to_Call"]),
-.marketo .mktoFormRow:has([name^="Forms_Locale"]) {
+.marketo .mktoFormRow:has([name*="Locale"]),
+.marketo .mktoFormRow:has([name*="Preference"]),
+.marketo .mktoFormRow:has([name*="FormType"]),
+.marketo .mktoFormRow:has([name*="Form_Type"]),
+.marketo .mktoFormRow:has([name*="Subtype"]),
+.marketo .mktoFormRow:has([name*="Sub_Type"]),
+.marketo .mktoFormRow:has([name*="JobTitleCategory"]),
+.marketo .mktoFormRow:has([name*="Job_Title_Category"]),
+.marketo .mktoFormRow:has([name*="FunctionalAreaCategory"]),
+.marketo .mktoFormRow:has([name*="Functional_Area_Category"]),
+.marketo .mktoFormRow:has([name*="IndustryCategory"]),
+.marketo .mktoFormRow:has([name*="Industry_Category"]),
+.marketo .mktoFormRow:has([name*="CoPartner"]),
+.marketo .mktoFormRow:has([name*="ConsentNotice"]),
+.marketo .mktoFormRow:has([name*="Consent_Notice"]),
+.marketo .mktoFormRow:has([name*="ConsentURL"]),
+.marketo .mktoFormRow:has([name*="Consent_URL"]),
+.marketo .mktoFormRow:has([name*="OKToEmail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Email"]),
+.marketo .mktoFormRow:has([name*="OKToMail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Mail"]),
+.marketo .mktoFormRow:has([name*="OKToCall"]),
+.marketo .mktoFormRow:has([name*="OK_to_Call"]) {
   display: none !important;
 }
 
