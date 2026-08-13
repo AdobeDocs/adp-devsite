@@ -1064,9 +1064,9 @@
 }
 
 
-/* Restore the default text error message but position it above or inline */
+/* Hide the default text error message entirely since target design relies purely on borders and icons */
 .marketo .mktoForm .mktoError {
-  /* Let it display normally to show the "field is required" text */
+  display: none !important;
 }
 
 /* Explicitly HIDE the literal input fields that are NOT the consent text 
@@ -1101,10 +1101,10 @@
 .marketo .mktoFormRow.adobe-privacy,
 .marketo .mktoFormRow:has(.mktoHtmlText) {
   display: block !important;
-  grid-column: 1 / -1;
+  grid-column: 1 / -1 !important;
 }
 
-/* Hide Diagnostic garbage rows - relaxed to ensure consent text isn't hidden */
+/* Hide Diagnostic garbage rows - restored rule to hide red diagnostic text */
 .marketo .mktoForm>.mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
   display: none !important;
 }
@@ -1148,28 +1148,28 @@
    and push all other field rows to auto-flow below them. */
 @media screen and (min-width: 600px) {
   /* Place FirstName explicitly at row 1, column 1 */
-  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([name="FirstName"]) {
-    grid-column: 1;
-    grid-row: 1;
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([name="FirstName"]),
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([data-mktofield="FirstName"]) {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
   }
 
   /* Place LastName explicitly at row 1, column 2 — same row as FirstName */
-  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([name="LastName"]) {
-    grid-column: 2;
-    grid-row: 1;
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([name="LastName"]),
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:has([data-mktofield="LastName"]) {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
   }
 
   /* All other top-level field rows auto-flow starting from row 2 */
-  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:not(:has([name="FirstName"])):not(:has([name="LastName"])) {
-    grid-row: auto;
+  .marketo .mktoForm.mktoForm--fade-in.mktoVisible > .mktoFormRow.mktoFormRowTop:not(:has([name="FirstName"])):not(:has([name="LastName"])):not(:has([data-mktofield="FirstName"])):not(:has([data-mktofield="LastName"])) {
+    grid-row: auto !important;
   }
 
   /* If FirstName and LastName share a .name wrapper row, keep it spanning 2 cols */
   .marketo .mktoFormRow.mktoFormRowTop.name {
     display: block !important;
-    grid-column: 1 / -1;
-    grid-row: 1;
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
   }
 }
-
-
