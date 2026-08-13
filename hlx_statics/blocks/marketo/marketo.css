@@ -990,3 +990,83 @@
 .marketo .mktoFormRowTop>.mktoClear {
   display: none !important;
 }
+/* Collapse diagnostic garbage rows but keep Consent Notice */
+.marketo .mktoForm > .mktoFormRow:not(.msg-error):not(:has(input, select, textarea, button, a)) {
+  display: none !important;
+}
+
+/* Ensure error messages and consent text span full width */
+.marketo .mktoForm > .mktoFormRow:not(:has(input, select, textarea, button)) {
+  grid-column: 1 / -1;
+}
+
+/* Ensure Use Case textarea spans full width */
+.marketo .mktoForm > .mktoFormRow:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+/* --- EXACT TARGET DESIGN UI STYLING --- */
+.marketo .mktoForm input[type="text"],
+.marketo .mktoForm input[type="email"],
+.marketo .mktoForm input[type="tel"],
+.marketo .mktoForm input[type="url"],
+.marketo .mktoForm select,
+.marketo .mktoForm textarea {
+  border: 1px solid #757575 !important;
+  border-radius: 4px !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #333 !important;
+  background-color: #fff !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-height: 40px !important;
+}
+
+.marketo .mktoForm .mktoLabel {
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  color: #757575 !important;
+  margin-bottom: 4px !important;
+}
+
+.marketo .mktoForm .mktoAsterix {
+  color: #757575 !important;
+}
+
+/* Custom Select Dropdown Arrow */
+.marketo .mktoForm select {
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='12' height='12'%3E%3Cpath fill='%23757575' d='M12 3l4 6H8l4-6zm0 18l-4-6h8l-4 6z'/%3E%3C/svg%3E") !important;
+  background-position: right 12px center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Submit Button */
+.marketo .mktoForm .mktoButtonRow .mktoButton {
+  background-color: #0265DC !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 20px !important;
+  padding: 10px 32px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+
+/* Error State styling matching target */
+.marketo .mktoForm input.mktoInvalid,
+.marketo .mktoForm select.mktoInvalid,
+.marketo .mktoForm textarea.mktoInvalid {
+  border-color: #D31510 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath data-name='Path 356676' d='m10.564 2.206-9.249 16.55a.5.5 0 0 0 .436.744h18.5a.5.5 0 0 0 .436-.744l-9.251-16.55a.5.5 0 0 0-.872 0ZM12 17.25a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1-.25-.25v-1.5a.25.25 0 0 1 .25-.25h1.5a.25.25 0 0 1 .25.25Zm0-3.5a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1-.25-.25v-6a.25.25 0 0 1 .25-.25h1.5a.25.25 0 0 1 .25.25Z' fill='%23D31510'/%3E%3C/svg%3E") !important;
+  background-position: right 12px center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Hide the default text error message */
+.marketo .mktoForm .mktoError {
+  display: none !important;
+}
