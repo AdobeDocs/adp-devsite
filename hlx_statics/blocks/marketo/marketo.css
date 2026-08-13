@@ -1137,26 +1137,7 @@
 .marketo .mktoFormCol.mktoVisible {
   width: auto !important;
 }
-min-height: var(--marketo-form-placeholder-height-multi-desktop);
-    }
 
-    .marketo .mktoForm {
-      max-height: var(--marketo-form-placeholder-height-desktop);
-    }
-
-    .marketo.multi-step .mktoForm {
-      max-height: var(--marketo-form-placeholder-height-multi-desktop);
-    }
-
-    .resource-form.section.two-up {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .resource-form .columns>.row {
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-  }
-}
 
 
 .marketo .mktoFormRow:has([name*="Locale"]),
