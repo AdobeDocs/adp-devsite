@@ -1086,10 +1086,10 @@
 .marketo .mktoFormRow:has(input[name*="Industry_Category" i]),
 .marketo .mktoFormRow:has(input[name*="Category" i]),
 .marketo .mktoFormRow:has(input[name*="CoPartner" i]),
-.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]),
-.marketo .mktoFormRow:has(input[name*="Consent_Notice" i]),
-.marketo .mktoFormRow:has(input[name*="ConsentURL" i]),
-.marketo .mktoFormRow:has(input[name*="Consent_URL" i]),
+
+
+
+
 .marketo .mktoFormRow:has(input[name*="OKToEmail" i]),
 .marketo .mktoFormRow:has(input[name*="OK_to_Email" i]),
 .marketo .mktoFormRow:has(input[name*="OKToMail" i]),
@@ -1108,4 +1108,23 @@
 /* Hide Diagnostic garbage rows */
 .marketo .mktoForm > .mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
   display: none !important;
+}
+
+
+/* Hide the Consent inputs but preserve the rich text row */
+.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]) label,
+.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]) .mktoFieldWrap,
+.marketo .mktoFormRow:has(input[name*="Consent_Notice" i]) label,
+.marketo .mktoFormRow:has(input[name*="Consent_Notice" i]) .mktoFieldWrap,
+.marketo .mktoFormRow:has(input[name*="ConsentURL" i]) label,
+.marketo .mktoFormRow:has(input[name*="ConsentURL" i]) .mktoFieldWrap,
+.marketo .mktoFormRow:has(input[name*="Consent_URL" i]) label,
+.marketo .mktoFormRow:has(input[name*="Consent_URL" i]) .mktoFieldWrap {
+  display: none !important;
+}
+
+/* Ensure Consent text takes full width */
+.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]) {
+  grid-column: 1 / -1;
+  display: block !important;
 }
