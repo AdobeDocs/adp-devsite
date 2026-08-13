@@ -963,9 +963,6 @@
   }
 }
 
-.marketo .mktoForm .mktoFormRow:not(.msg-error) .mktoHtmlText {
-  display: none !important;
-}
 
 .marketo .mktoFormRow:has([name*="Locale"]),
 .marketo .mktoFormRow:has([name*="Preference"]),
@@ -993,7 +990,12 @@
   display: none !important;
 }
 
-.marketo .mktoForm > .mktoClear,
-.marketo .mktoFormRowTop > .mktoClear {
+.marketo .mktoForm>.mktoClear,
+.marketo .mktoFormRowTop>.mktoClear {
+  display: none !important;
+}
+
+/* Collapse script injection rows that cause grid gaps */
+.marketo .mktoForm>.mktoFormRow:has(script) {
   display: none !important;
 }
