@@ -119,8 +119,9 @@ const isVisible = (el) => !!el && (typeof el.checkVisibility === 'function'
 
 export const setDataLayer = (key = '', value = '') => {
   window.mcz_marketoForm_pref = window.mcz_marketoForm_pref || {};
-  if (!value || !key.includes('.')) return;
-  const keyParts = key.split('.');
+  const dotKey = key.replace(/\s+/g, '.');
+  if (!value || !dotKey.includes('.')) return;
+  const keyParts = dotKey.split('.');
   const lastKey = keyParts.pop();
   const formDataObject = keyParts.reduce((obj, part) => {
     obj[part] = obj[part] || {};
