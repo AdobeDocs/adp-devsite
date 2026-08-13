@@ -1075,3 +1075,28 @@
 .marketo .mktoForm .mktoErrorArrowWrap {
   display: none !important;
 }
+
+
+/* Ensure Consent Text ALWAYS shows */
+.marketo .mktoFormRow.adobe-privacy,
+.marketo .mktoFormRow:has([name*="Consent"]),
+.marketo .mktoFormRow:has([name*="Privacy"]) {
+  display: block !important;
+  grid-column: 1 / -1;
+}
+
+/* Force Error Text to show even if form has hide-errors class */
+.marketo .mktoForm .mktoError {
+  clip: auto !important;
+  clip-path: none !important;
+  height: auto !important;
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+}
+
+/* Hide Diagnostic garbage rows (pure CSS fallback if JS is cached) */
+.marketo .mktoForm > .mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
+  display: none !important;
+}
