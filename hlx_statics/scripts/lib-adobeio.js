@@ -1202,6 +1202,35 @@ export async function getdevsitePathFile() {
 };
 
 /**
+ * Toggles the trailing slash on a path: strips it if present, adds it if absent.
+ * @param {string} path
+ * @returns {string}
+ */
+function toggleTrailingSlash(path) {
+  return path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : `${path}/`;
+}
+
+/**
+ * Checks whether the sibling trailing-slash form of the current path resolves
+ * to a real page, and redirects to it if so. EDS treats a folder-index page
+ * (needs a trailing slash) and a direct-file page (no trailing slash) as two
+ * distinct resources, unlike Gatsby which tolerated either form for the same
+ * page. External links/bookmarks predating the migration often use the
+ * "wrong" form for a given page, which otherwise 404s even though the page
+ * exists under the other form.
+ * @returns {Promise<boolean>} true if a redirect was performed
+ */
+async function redirectOnTrailingSlashMismatch() {
+  const candidate = toggleTrailingSlash(window.location.pathname);
+  const resp = await fetch(candidate, { method: 'HEAD' });
+  if (resp.ok) {
+    window.location.pathname = candidate;
+    return true;
+  }
+  return false;
+}
+
+/**
  * @returns Fetches and redirects page based on redirects.json
  */
 export async function redirect() {
@@ -1248,16 +1277,22 @@ export async function redirect() {
       if (resp.ok) {
         const redirectList = await resp.json();
         // apply redirect
+        let matched = false;
         redirectList.data.forEach((redirect) => {
           if(window.location.pathname === redirect?.Source) {
-            window.location.pathname = redirect?.Destination
+            window.location.pathname = redirect?.Destination;
+            matched = true;
           }
         });
-      } else {
-        return null;
+        if (matched) {
+          return;
+        }
       }
     }
   }
+
+  // no curated redirect applied - fall back to a trailing-slash mismatch check
+  await redirectOnTrailingSlashMismatch();
 }
 
 /**
