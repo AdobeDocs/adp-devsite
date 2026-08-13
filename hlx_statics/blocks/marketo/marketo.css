@@ -1063,59 +1063,44 @@
   background-repeat: no-repeat !important;
 }
 
-/* Force Error Text to show AT THE TOP of the field */
-.marketo .mktoFormRow .mktoFieldWrap {
-  position: relative !important;
-}
 
+/* Hide the default text error message entirely since target design relies purely on borders and icons */
 .marketo .mktoForm .mktoError {
-  clip: auto !important;
-  clip-path: none !important;
-  height: auto !important;
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: auto !important;
-  left: auto !important;
-  display: block !important;
-  width: auto !important;
-  margin: 0 !important;
-  color: #D31510 !important;
-  font-size: 12px !important;
-  font-weight: 400 !important;
+  display: none !important;
 }
 
 /* Explicitly HIDE the literal input fields that are NOT the consent text */
-.marketo .mktoFormRow:has([name*="Locale"]),
-.marketo .mktoFormRow:has([name*="Preference"]),
-.marketo .mktoFormRow:has([name*="FormType"]),
-.marketo .mktoFormRow:has([name*="Form_Type"]),
-.marketo .mktoFormRow:has([name*="Subtype"]),
-.marketo .mktoFormRow:has([name*="Sub_Type"]),
-.marketo .mktoFormRow:has([name*="JobTitleCategory"]),
-.marketo .mktoFormRow:has([name*="Job_Title_Category"]),
-.marketo .mktoFormRow:has([name*="FunctionalAreaCategory"]),
-.marketo .mktoFormRow:has([name*="Functional_Area_Category"]),
-.marketo .mktoFormRow:has([name*="IndustryCategory"]),
-.marketo .mktoFormRow:has([name*="Industry_Category"]),
-.marketo .mktoFormRow:has([name*="CoPartner"]),
-.marketo .mktoFormRow:has([name*="ConsentNotice"]),
-.marketo .mktoFormRow:has([name*="Consent_Notice"]),
-.marketo .mktoFormRow:has([name*="ConsentURL"]),
-.marketo .mktoFormRow:has([name*="Consent_URL"]),
-.marketo .mktoFormRow:has([name*="OKToEmail"]),
-.marketo .mktoFormRow:has([name*="OK_to_Email"]),
-.marketo .mktoFormRow:has([name*="OKToMail"]),
-.marketo .mktoFormRow:has([name*="OK_to_Mail"]),
-.marketo .mktoFormRow:has([name*="OKToCall"]),
-.marketo .mktoFormRow:has([name*="OK_to_Call"]) {
+.marketo .mktoFormRow:has(input[name*="Locale" i]),
+.marketo .mktoFormRow:has(select[name*="Locale" i]),
+.marketo .mktoFormRow:has(input[name*="Preference" i]),
+.marketo .mktoFormRow:has(select[name*="Preference" i]),
+.marketo .mktoFormRow:has(input[name*="FormType" i]),
+.marketo .mktoFormRow:has(input[name*="Form_Type" i]),
+.marketo .mktoFormRow:has(input[name*="Subtype" i]),
+.marketo .mktoFormRow:has(input[name*="Sub_Type" i]),
+.marketo .mktoFormRow:has(input[name*="JobTitleCategory" i]),
+.marketo .mktoFormRow:has(input[name*="Job_Title_Category" i]),
+.marketo .mktoFormRow:has(input[name*="FunctionalAreaCategory" i]),
+.marketo .mktoFormRow:has(input[name*="Functional_Area_Category" i]),
+.marketo .mktoFormRow:has(input[name*="IndustryCategory" i]),
+.marketo .mktoFormRow:has(input[name*="Industry_Category" i]),
+.marketo .mktoFormRow:has(input[name*="Category" i]),
+.marketo .mktoFormRow:has(input[name*="CoPartner" i]),
+.marketo .mktoFormRow:has(input[name*="ConsentNotice" i]),
+.marketo .mktoFormRow:has(input[name*="Consent_Notice" i]),
+.marketo .mktoFormRow:has(input[name*="ConsentURL" i]),
+.marketo .mktoFormRow:has(input[name*="Consent_URL" i]),
+.marketo .mktoFormRow:has(input[name*="OKToEmail" i]),
+.marketo .mktoFormRow:has(input[name*="OK_to_Email" i]),
+.marketo .mktoFormRow:has(input[name*="OKToMail" i]),
+.marketo .mktoFormRow:has(input[name*="OK_to_Mail" i]),
+.marketo .mktoFormRow:has(input[name*="OKToCall" i]),
+.marketo .mktoFormRow:has(input[name*="OK_to_Call" i]) {
   display: none !important;
 }
 
 /* Ensure Consent Text ALWAYS shows */
-.marketo .mktoFormRow.adobe-privacy,
-.marketo .mktoFormRow:has([name*="Consent"]),
-.marketo .mktoFormRow:has([name*="Privacy"]) {
+.marketo .mktoFormRow.adobe-privacy {
   display: block !important;
   grid-column: 1 / -1;
 }
