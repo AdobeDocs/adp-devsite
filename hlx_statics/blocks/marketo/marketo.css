@@ -6,10 +6,14 @@
   --marketo-form-selected: #0265DC;
   --marketo-form-focus: #147AF3;
   --marketo-form-overlay-background: #FAFAFAD9;
-  --marketo-form-placeholder-height: calc(78px * 7 + 57px); /* 7 rows + submit */
-  --marketo-form-placeholder-height-desktop: calc(78px * 4 + 57px); /* 4 rows + submit */
-  --marketo-form-placeholder-height-multi: calc(78px * 2 + 57px); /* 2 rows + submit */
-  --marketo-form-placeholder-height-multi-desktop: calc(78px + 57px); /* 1 row + submit */
+  --marketo-form-placeholder-height: calc(78px * 7 + 57px);
+  /* 7 rows + submit */
+  --marketo-form-placeholder-height-desktop: calc(78px * 4 + 57px);
+  /* 4 rows + submit */
+  --marketo-form-placeholder-height-multi: calc(78px * 2 + 57px);
+  /* 2 rows + submit */
+  --marketo-form-placeholder-height-multi-desktop: calc(78px + 57px);
+  /* 1 row + submit */
   --marketo-form-min-height: 215px;
   --marketo-form-max-height: 10000px;
 }
@@ -54,7 +58,7 @@
   overflow: hidden;
   font-size: 16px;
   font-weight: bold;
-  width: 100%!important;
+  width: 100% !important;
   visibility: hidden;
   opacity: 0;
 }
@@ -174,7 +178,7 @@
   padding: 0;
 }
 
-.marketo > .mktoFormRow.mktoFormRowTop > .mktoFormCol > .mktoFormRow > .mktoFormCol.mktoVisible > .mktoFieldWrap {
+.marketo>.mktoFormRow.mktoFormRowTop>.mktoFormCol>.mktoFormRow>.mktoFormCol.mktoVisible>.mktoFieldWrap {
   width: auto;
 }
 
@@ -211,7 +215,7 @@
 .marketo .mktoForm .mktoLabel {
   color: var(--marketo-form-text);
   padding-bottom: 4px;
-  width: auto!important;
+  width: auto !important;
   font-size: var(--type-body-xs-size);
   line-height: var(--type-body-xs-lh);
 }
@@ -221,7 +225,7 @@
 }
 
 .marketo .mktoForm .mktoField {
-  width: 100%!important;
+  width: 100% !important;
   padding: 9px var(--spacing-xs);
   font-size: 16px;
   font-family: var(--body-font-family);
@@ -251,7 +255,7 @@
 .marketo .mktoForm select {
   appearance: none;
   /* stylelint-disable-next-line property-no-vendor-prefix */
-  -webkit-appearance:none;
+  -webkit-appearance: none;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-58 29 32 34' style='enable-background:new -58 29 32 34' xml:space='preserve'%3E%3Cpath d='m-56 43 6-12 6 12h-12zm12 6-6 12-6-12h12z' fill='%23535353'/%3E%3C/svg%3E") no-repeat 97% 50%;
   background-size: 1em 1em;
 }
@@ -297,8 +301,8 @@
   margin-right: 10px;
 }
 
-.marketo .mktoForm .mktoCheckboxList label + input,
-.marketo .mktoForm .mktoRadioList label + input {
+.marketo .mktoForm .mktoCheckboxList label+input,
+.marketo .mktoForm .mktoRadioList label+input {
   margin-left: 6px;
 }
 
@@ -341,11 +345,11 @@
 
 .marketo .mktoForm .mktoGutter {
   flex: 1 1 auto;
-  width: auto!important;
+  width: auto !important;
 }
 
 .marketo .mktoForm .mktoHtmlText {
-  width: 100%!important;
+  width: 100% !important;
   font-size: 14px;
   line-height: 20px;
   font-weight: normal;
@@ -528,7 +532,7 @@
 }
 
 .dialog-modal .marketo .mktoForm .mktoField {
-  width: 100%!important;
+  width: 100% !important;
 }
 
 @media screen and (min-width: 1200px) {
@@ -542,7 +546,7 @@
 }
 
 .columns .marketo .mktoForm .mktoField {
-  width: 100%!important;
+  width: 100% !important;
 }
 
 .columns .marketo .mktoForm .mktoLabel {
@@ -628,7 +632,7 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .marketo .mktoFormRow.mktoFormRowTop.name > .mktoFormCol {
+  .marketo .mktoFormRow.mktoFormRowTop.name>.mktoFormCol {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-areas: "salutation ." "firstName lastName";
@@ -655,11 +659,11 @@
   .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="Salutation"] {
     grid-area: salutation;
   }
-  
+
   .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="FirstName"] {
     grid-area: firstName;
   }
-  
+
   .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="LastName"] {
     grid-area: lastName;
   }
@@ -675,7 +679,7 @@
   }
 
   .columns .marketo .mktoForm .mktoField {
-    width: 50%!important;
+    width: 50% !important;
   }
 
   .columns .marketo .mktoForm .mktoLabel {
@@ -708,7 +712,7 @@
 }
 
 .resource-form.section.two-up,
-.resource-form .columns > .row {
+.resource-form .columns>.row {
   grid-template-columns: 1fr;
 }
 
@@ -735,12 +739,212 @@
   .marketo.multi-step .mktoForm {
     max-height: var(--marketo-form-placeholder-height-multi-desktop);
   }
-  
-  .resource-form.section.two-up {
-    grid-template-columns: repeat(2, 1fr);
+
+  .columns .marketo .mktoForm .mktoField {
+    width: 100% !important;
   }
 
-  .resource-form .columns > .row {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  .columns .marketo .mktoForm .mktoLabel {
+    padding-bottom: 6px;
+  }
+
+  .columns .marketo .mktoForm.show-warnings .mktoError {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .marketo .mktoFormRowTop[class*="adobe-privacy"] {
+    display: flex;
+    width: 100%;
+  }
+
+  .marketo:has(.marketo-overlay) {
+    position: relative;
+  }
+
+  .marketo .marketo-overlay {
+    position: absolute;
+    max-width: 600px;
+    margin: 0 auto;
+    inset: 0;
+    background: var(--marketo-form-overlay-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
+
+  .marketo .marketo-overlay .error-container {
+    max-width: 420px;
+    width: 100%;
+    background: var(--marketo-form-background);
+    box-shadow: 0 4px 24px #00000014;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .marketo .marketo-overlay .error {
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--marketo-form-text);
+    margin-bottom: 12px;
+  }
+
+  .marketo .marketo-overlay .debug-info {
+    font-size: 14px;
+    text-align: center;
+    color: var(--marketo-form-text);
+  }
+
+  @media screen and (min-width: 600px) {
+    .marketo .marketo-form-wrapper {
+      padding: var(--spacing-xxl);
+    }
+
+    .marketo .mktoFormRowTop[class*="adobe-privacy"] {
+      display: grid;
+      width: 100%;
+    }
+
+    .marketo [class*="adobe-privacy"],
+    .marketo .msg-error .mktoFormCol.mktoVisible,
+    .marketo .mktoFormCol.mktoVisible .mktoFormCol.mktoVisible {
+      width: 100%;
+      grid-column: span 2;
+    }
+
+    .marketo .mktoForm.show-warnings .mktoError {
+      width: 50%;
+      margin-left: 50%;
+    }
+
+    .marketo form.mktoForm--fade-in.mktoVisible {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name>.mktoFormCol {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas: "salutation ." "firstName lastName";
+      column-gap: 4.6%;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.comments,
+    .marketo .mktoFormRow.mktoFormRowTop.demo,
+    .marketo .mktoFormRow.mktoFormRowTop.name {
+      display: block;
+      grid-column: span 2;
+    }
+
+    .marketo.multi-step .mktoForm[data-step="2"] .mktoFormRow.mktoFormRowTop[data-validate="2"].comments,
+    .marketo.multi-step .mktoForm[data-step="2"] .mktoFormRow.mktoFormRowTop[data-validate="2"].demo,
+    .marketo.multi-step .mktoForm[data-step="2"] .mktoFormRow.mktoFormRowTop[data-validate="2"].name,
+    .marketo.multi-step .mktoForm[data-step="3"] .mktoFormRow.mktoFormRowTop[data-validate="3"].comments,
+    .marketo.multi-step .mktoForm[data-step="3"] .mktoFormRow.mktoFormRowTop[data-validate="3"].demo,
+    .marketo.multi-step .mktoForm[data-step="3"] .mktoFormRow.mktoFormRowTop[data-validate="3"].name {
+      display: block;
+      grid-column: span 2;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="Salutation"] {
+      grid-area: salutation;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="FirstName"] {
+      grid-area: firstName;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="LastName"] {
+      grid-area: lastName;
+    }
+
+    .marketo .mktoForm .mktoButtonRow {
+      grid-column: span 2;
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    .marketo .marketo-form-wrapper {
+      padding: 56px var(--spacing-l);
+    }
+
+    .columns .marketo .mktoForm .mktoField {
+      width: 50% !important;
+    }
+
+    .columns .marketo .mktoForm .mktoLabel {
+      padding-bottom: 0;
+    }
+
+    .columns .marketo .mktoForm.show-warnings .mktoError {
+      width: 50%;
+      margin-left: 50%;
+    }
+  }
+
+  /* Required for successive loading without timeouts */
+  /* stylelint-disable-next-line selector-id-pattern */
+  #mktoStyleLoaded {
+    background-color: #123456
+  }
+
+  .resource-form.section.two-up .marketo {
+    margin-left: calc(var(--grid-margins-width) * -1);
+    margin-right: calc(var(--grid-margins-width) * -1);
+  }
+
+  .resource-form .columns {
+    max-width: unset;
+  }
+
+  .resource-form .columns.contained {
+    max-width: initial;
+  }
+
+  .resource-form.section.two-up,
+  .resource-form .columns>.row {
+    grid-template-columns: 1fr;
+  }
+
+  @media screen and (min-width: 600px) {
+    .resource-form.section.two-up .marketo {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+
+  @media screen and (min-width: 1200px) {
+    .marketo.loading form {
+      min-height: var(--marketo-form-placeholder-height-desktop);
+    }
+
+    .marketo.multi-step.loading form {
+      min-height: var(--marketo-form-placeholder-height-multi-desktop);
+    }
+
+    .marketo .mktoForm {
+      max-height: var(--marketo-form-placeholder-height-desktop);
+    }
+
+    .marketo.multi-step .mktoForm {
+      max-height: var(--marketo-form-placeholder-height-multi-desktop);
+    }
+
+    .resource-form.section.two-up {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .resource-form .columns>.row {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+  }
+
+  .marketo .mktoForm .mktoHtmlText {
+    display: none !important;
   }
 }
