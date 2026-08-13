@@ -1305,7 +1305,8 @@
 
 /* ULTIMATE GRID GAP FIX: Destroy any columns/rows that do not contain a visible field, button, or rich text */
 .marketo .mktoFormRow:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)),
-.marketo .mktoFormCol:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)) {
+.marketo .mktoFormCol:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)),
+.marketo form.mktoForm > *:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)) {
   display: none !important;
 }
 
@@ -1350,7 +1351,8 @@
   }
 
   /* Handle grouped FirstName + LastName if Marketo wraps them in a single row */
-  .marketo form.mktoForm > *:has([name*="FirstName" i]):has([name*="LastName" i]) {
+  .marketo form.mktoForm > *:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]):has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]),
+  .marketo form.mktoForm > .name {
     grid-column: 1 / -1 !important;
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -1358,46 +1360,27 @@
     order: 1 !important;
   }
   
-  .marketo form.mktoForm > *:has([name*="FirstName" i]):has([name*="LastName" i]) .mktoFormCol {
+  .marketo form.mktoForm > *:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]):has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]) .mktoFormCol,
+  .marketo form.mktoForm > .name .mktoFormCol,
+  .marketo form.mktoForm > *:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]):has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]) .mktoFieldWrap,
+  .marketo form.mktoForm > .name .mktoFieldWrap {
     width: 100% !important;
     margin-bottom: 0 !important;
   }
 
   /* Explicit Field Ordering */
-  .marketo form.mktoForm > *:has([name*="FirstName" i]),
-  .marketo form.mktoForm > *:has([id*="FirstName" i]) { order: 1 !important; }
-
-  .marketo form.mktoForm > *:has([name*="LastName" i]),
-  .marketo form.mktoForm > *:has([id*="LastName" i]) { order: 2 !important; }
-
-  .marketo form.mktoForm > *:has([name*="Email" i]),
-  .marketo form.mktoForm > *:has([id*="Email" i]) { order: 3 !important; }
-
-  .marketo form.mktoForm > *:has([name*="Phone" i]),
-  .marketo form.mktoForm > *:has([id*="Phone" i]) { order: 4 !important; }
-
-  .marketo form.mktoForm > *:has([name*="Title" i]),
-  .marketo form.mktoForm > *:has([id*="Title" i]) { order: 5 !important; }
-
-  .marketo form.mktoForm > *:has([name*="Industry" i]),
-  .marketo form.mktoForm > *:has([id*="Industry" i]) { order: 6 !important; }
-
-  .marketo form.mktoForm > *:has([name*="Department" i]),
-  .marketo form.mktoForm > *:has([id*="Department" i]) { order: 7 !important; }
+  .marketo form.mktoForm > *:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]) { order: 1 !important; }
+  .marketo form.mktoForm > *:has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]) { order: 2 !important; }
+  .marketo form.mktoForm > *:has([name*="Email" i]) { order: 3 !important; }
+  .marketo form.mktoForm > *:has([name*="Phone" i]) { order: 4 !important; }
+  .marketo form.mktoForm > *:has([name*="Title" i]) { order: 5 !important; }
+  .marketo form.mktoForm > *:has([name*="Industry" i]) { order: 6 !important; }
+  .marketo form.mktoForm > *:has([name*="Department" i], [name*="Dept" i]) { order: 7 !important; }
+  .marketo form.mktoForm > *:has([name*="Company" i]) { order: 8 !important; }
+  .marketo form.mktoForm > *:has([name*="Country" i]) { order: 9 !important; }
   
-  .marketo form.mktoForm > *:has([name*="Company" i]),
-  .marketo form.mktoForm > *:has([id*="Company" i]) { order: 8 !important; }
-
-  .marketo form.mktoForm > *:has([name*="Country" i]),
-  .marketo form.mktoForm > *:has([id*="Country" i]) { order: 9 !important; }
-
-  .marketo form.mktoForm > *:has([name*="PostalCode" i]),
-  .marketo form.mktoForm > *:has([id*="PostalCode" i]),
-  .marketo form.mktoForm > *:has([name*="Zip" i]),
-  .marketo form.mktoForm > *:has([id*="Zip" i]) { order: 10 !important; }
-  
-  .marketo form.mktoForm > *:has([name*="Interest" i]),
-  .marketo form.mktoForm > *:has([id*="Interest" i]) { order: 11 !important; }
+  .marketo form.mktoForm > *:has([name*="PostalCode" i], [name*="Zip" i]) { order: 10 !important; }
+  .marketo form.mktoForm > *:has([name*="Interest" i]) { order: 11 !important; }
 
   /* Submit Button Row */
   .marketo form.mktoForm > .mktoButtonRow,
