@@ -346,8 +346,6 @@ export const handleUserQuery = async (
   // already sits after a typed submission.
   textarea.focus();
 
-  const suggestedQuestionsDelayMs = 600;
-
   sendMessage({ content: messageContent, source: "user" });
   // a11y: confirm the message that was just sent. This matters most for
   // suggested-question clicks, where the sent text differs from the button's
@@ -378,16 +376,9 @@ export const handleUserQuery = async (
   let answerFinalized = false;
   let followupsReceived = false;
 
-  const revealSuggestedQuestions = () => {
-    window.setTimeout(
-      () => showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-      suggestedQuestionsDelayMs,
-    );
-  };
-
   const showFallbackSuggestions = () => {
     updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-    revealSuggestedQuestions();
+    showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
   };
 
   // Marks the bubble complete: reveals the feedback/copy buttons, decorates code
@@ -458,7 +449,7 @@ export const handleUserQuery = async (
       onAnswerComplete: () => {
         finalizeAnswer();
         updateSuggestedQuestions(null);
-        revealSuggestedQuestions();
+        showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
       },
       // Fired with the backend-generated follow-up questions.
       onFollowupQuestions: (data) => {
@@ -490,7 +481,7 @@ export const handleUserQuery = async (
         if (!followupsReceived) {
           showFallbackSuggestions();
         } else {
-          revealSuggestedQuestions();
+          showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
         }
       },
       onError: (error) => {
