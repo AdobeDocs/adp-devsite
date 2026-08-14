@@ -379,7 +379,20 @@ const readyForm = (form, formData) => {
   el.classList.remove('loading');
   formEl.style.opacity = '';
   formEl.style.visibility = '';
+  formEl.style.setProperty('width', '100%', 'important');
   formEl.classList.add('mktoForm--fade-in', 'mktoVisible');
+
+  // Prevent Marketo forms2.min.js from setting inline width dynamically
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'style') {
+        if (formEl.style.width && formEl.style.width !== '100%') {
+          formEl.style.setProperty('width', '100%', 'important');
+        }
+      }
+    });
+  });
+  observer.observe(formEl, { attributes: true, attributeFilter: ['style'] });
 
   const handleIframeReady = (event) => {
     if (event.origin !== 'https://engage.adobe.com') return;

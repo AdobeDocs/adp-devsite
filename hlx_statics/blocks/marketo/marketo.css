@@ -1326,6 +1326,7 @@
     grid-template-columns: 1fr 1fr;
     grid-gap: 20px;
     align-items: start;
+    width: 100% !important;
   }
 
   /* Aggressively hide all clear elements so they don't consume grid cells */
