@@ -64,7 +64,7 @@
   overflow: hidden;
   font-size: 16px;
   font-weight: bold;
-  width: 100%;
+  width: 100% !important;
   visibility: hidden;
   opacity: 0;
 }
@@ -1434,7 +1434,6 @@
 .marketo .mktoForm .mktoFieldWrap select.mktoField,
 .marketo .mktoForm .mktoFieldWrap textarea.mktoField {
   float: none !important;
-  width: 100% !important;
   box-sizing: border-box !important;
 }
 
