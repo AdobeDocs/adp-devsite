@@ -1424,3 +1424,34 @@
     margin-top: 10px;
   }
 }
+
+/* --- Target Design Layout Overrides --- */
+.marketo .mktoForm .mktoFieldWrap,
+.marketo .mktoForm .mktoFormCol,
+.marketo .mktoForm .mktoFieldWrap label.mktoLabel,
+.marketo .mktoForm .mktoFieldWrap input.mktoField,
+.marketo .mktoForm .mktoFieldWrap select.mktoField,
+.marketo .mktoForm .mktoFieldWrap textarea.mktoField {
+  float: none !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.marketo .mktoForm .mktoFieldWrap label.mktoLabel {
+  display: block !important;
+  padding-bottom: 6px !important;
+}
+
+.marketo .mktoForm .mktoGutter,
+.marketo .mktoForm .mktoOffset,
+.marketo .mktoForm .mktoClear {
+  display: none !important;
+}
+
+.marketo .mktoFormCol {
+  margin-bottom: 0 !important;
+}
+
+.marketo .mktoFormRow {
+  width: 100% !important;
+}
