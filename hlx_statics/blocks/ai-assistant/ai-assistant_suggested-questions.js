@@ -77,9 +77,10 @@ export const createSuggestedQuestionsSection = () => {
 };
 
 /**
- * Shows the suggested questions section with optional scroll behavior.
+ * Reveals the suggested questions section (fade-in + optional scroll). No-ops
+ * unless the section is currently `hidden`. 
  * @param {Object} [options={}] - Options object
- * @param {boolean} [options.shouldScrollIntoView=true] - Whether to scroll the element into view
+ * @param {boolean} [options.shouldScrollIntoView=true] - Scroll the section into view on reveal. Only applies when the section is `hidden` (i.e. actually being revealed).
  */
 export const showSuggestedQuestions = ({
   shouldScrollIntoView = true,
