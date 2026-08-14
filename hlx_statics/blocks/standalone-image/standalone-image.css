@@ -1,38 +1,38 @@
 main div.standalone-image-wrapper {
   width: 50%;
   margin: auto;
+}
 
-  div.standalone-image {
-    display: flex;
-    justify-content: center;
+main div.standalone-image-wrapper div.standalone-image {
+  display: flex;
+  justify-content: center;
 
-    &.medium img {
-      width: 500px;
-      height: 100%;
-    }
+  .caption {
+    display: none;
   }
 }
 
 main div.section.standalone-image-container {
   background-color: #fff;
+}
 
-  .caption {
-    display: none;
-  }
+main div.section.standalone-image-container:has(.standalone-image.background-color-gray) {
+  background-color: rgb(245, 245, 245);
+}
 
-  &:has(.standalone-image.background-color-gray) {
-    background-color: rgb(245, 245, 245);
-  }
+main div.section.standalone-image-container:has(.standalone-image.background-color-white) {
+  background-color: #fff;
+}
 
-  &:has(.standalone-image.background-color-white) {
-    background-color: #fff;
-  }
+main div.section.standalone-image-container:has(.standalone-image.background-color-navy) {
+  background-color: rgb(15, 55, 95);
+}
 
-  &:has(.standalone-image.background-color-navy) {
-    background-color: rgb(15, 55, 95);
-  }
+main div.section.standalone-image-container:has(.standalone-image.background-color-dark-gray) {
+  background-color: #323232;
+}
 
-  &:has(.standalone-image.background-color-dark-gray) {
-    background-color: #323232;
-  }
+main div.standalone-image-wrapper div.standalone-image.medium img {
+  width: 500px;
+  height: 100%;
 }
