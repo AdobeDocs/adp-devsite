@@ -113,9 +113,6 @@
   pointer-events: auto;
 }
 
-.marketo .mktoFormCol {
-  display: contents !important;
-}
 
 .marketo.multi-step .mktoFormRow.mktoFormRowTop[data-validate="2"],
 .marketo.multi-step .mktoFormRow.mktoFormRowTop[data-validate="3"] {
@@ -1370,6 +1367,7 @@
   .marketo form.mktoForm>.name .mktoFormCol,
   .marketo form.mktoForm>*:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]):has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]) .mktoFieldWrap,
   .marketo form.mktoForm>.name .mktoFieldWrap {
+    display: contents !important;
     width: 100%;
     margin-bottom: 0;
   }
