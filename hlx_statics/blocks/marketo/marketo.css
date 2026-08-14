@@ -483,6 +483,7 @@
   overflow: hidden;
   padding: 0;
   position: absolute;
+  width: 100%;
 }
 
 .marketo .mktoFormRow.reivew-statetranslations,
