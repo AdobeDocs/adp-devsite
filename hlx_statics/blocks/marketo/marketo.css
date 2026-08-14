@@ -365,6 +365,11 @@
   text-decoration: underline;
 }
 
+/* Hide Diagnostic garbage rows - restored rule to hide red diagnostic text */
+.marketo .mktoForm > .mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
+  display: none;
+}
+
 .marketo .mktoForm .mktoButtonWrap {
   display: flex;
   justify-content: space-between;
