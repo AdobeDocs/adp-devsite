@@ -382,17 +382,29 @@ const readyForm = (form, formData) => {
   formEl.style.setProperty('width', '100%', 'important');
   formEl.classList.add('mktoForm--fade-in', 'mktoVisible');
 
-  // Prevent Marketo forms2.min.js from setting inline width dynamically
+  // Prevent Marketo forms2.min.js from setting inline width dynamically on form and its children
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.attributeName === 'style') {
-        if (formEl.style.width && formEl.style.width !== '100%') {
-          formEl.style.setProperty('width', '100%', 'important');
+        const target = mutation.target;
+        if (target.style.width) {
+          if (target === formEl) {
+            if (target.style.width !== '100%') {
+              target.style.setProperty('width', '100%', 'important');
+            }
+          } else {
+            target.style.width = '';
+          }
         }
       }
     });
   });
-  observer.observe(formEl, { attributes: true, attributeFilter: ['style'] });
+  observer.observe(formEl, { attributes: true, attributeFilter: ['style'], subtree: true });
+
+  // Strip initial widths from all descendants
+  formEl.querySelectorAll('[style*="width"]').forEach((el) => {
+    el.style.width = '';
+  });
 
   const handleIframeReady = (event) => {
     if (event.origin !== 'https://engage.adobe.com') return;
