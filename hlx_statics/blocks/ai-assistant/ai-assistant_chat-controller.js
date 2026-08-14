@@ -395,6 +395,18 @@ export const handleUserQuery = async (
     scrollToBottom();
   };
 
+  // Ends the visible "responding" state: reverts the stop button to send,
+  // clears the a11y busy indicator and announces the finished reply.
+  let respondingEnded = false;
+  const endResponding = () => {
+    if (respondingEnded) return;
+    respondingEnded = true;
+    hideStopButton();
+    setResponding(false);
+    // a11y: announce the completed reply once, as plain text.
+    announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
+  };
+
   showStopButton();
 
   await aiApiClient.query({
@@ -448,6 +460,7 @@ export const handleUserQuery = async (
       // Fired once the answer text is complete, before the follow-up questions.
       onAnswerComplete: () => {
         finalizeAnswer();
+        endResponding();
         updateSuggestedQuestions(null);
         showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
       },
@@ -461,23 +474,20 @@ export const handleUserQuery = async (
           questions.length > 0 ? questions : INITIAL_SUGGESTED_QUESTIONS,
         );
       },
+      // This covers aborted/partial streams where onAnswerComplete
+      // event never fired, and always reveals the suggestions.
       onComplete: () => {
-        hideStopButton();
-        setResponding(false);
         if (!responseContent) {
           targetBubble.hideThinking();
           targetBubble.hideStreamingCursor();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-          // a11y: announce the completed reply once, as plain text,
-          // from the final content only
-          announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
+          endResponding();
           showFallbackSuggestions();
           return;
         }
         finalizeAnswer();
-        // a11y: announce the completed reply once, as plain text.
-        announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
+        endResponding();
         if (!followupsReceived) {
           showFallbackSuggestions();
         } else {
