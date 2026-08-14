@@ -113,6 +113,10 @@
   pointer-events: auto;
 }
 
+.marketo .mktoFormRow .mktoFormCol {
+  display: contents !important;
+}
+
 .marketo.multi-step .mktoFormRow.mktoFormRowTop[data-validate="2"],
 .marketo.multi-step .mktoFormRow.mktoFormRowTop[data-validate="3"] {
   display: block;
