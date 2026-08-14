@@ -162,9 +162,10 @@ export class ChatHistory {
   }
 
   /**
-   * Stores the Bedrock session id for the current conversation. Overwrites any
-   * existing value, so a fresh id minted after an expiry-triggered reset is
-   * reused transparently on subsequent requests. No-ops when unchanged.
+   * Stores the Bedrock session id for the current conversation, overwriting any
+   * existing value. Recovery from an expired id is handled by the backend: it
+   * mints a fresh session and returns the new id in the `metadata` event, which
+   * we simply persist here. No-ops when unchanged.
    * @param {string|null} sessionId
    */
   setSessionId(sessionId) {

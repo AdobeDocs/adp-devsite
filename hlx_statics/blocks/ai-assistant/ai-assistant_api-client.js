@@ -8,7 +8,7 @@ import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
  * @property {string} [collectionId]
  * @property {string} [sessionId]
  * @property {boolean} [includeFollowupQuestions]
- * @property {number} [followupQuestionsCount=3]
+ * @property {number} [followupQuestionsCount=2] - Count the client requests; the backend falls back to 3 when omitted.
  */
 
 /**
