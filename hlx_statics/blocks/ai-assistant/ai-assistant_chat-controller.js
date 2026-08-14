@@ -354,7 +354,7 @@ export const handleUserQuery = async (
 
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
   targetBubble.showThinking();
-  // a11y: announce the "responding" state while thinking/streaming is active,
+  // a11y: announce the "responding" state while thinking/streaming is active.
   setResponding(true);
 
   const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
@@ -368,11 +368,10 @@ export const handleUserQuery = async (
   let responseContent = "";
   /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
   let accumulatedReferences = [];
-  // The backend marks the answer done with an `answerComplete` event and sends
-  // follow-ups in a later `followupQuestions` event; 
-  // These flags let `onComplete` act as a safety net
-  // when the stream is aborted so we always
-  // finalize the bubble and show some suggestions.
+  // The backend sends `answerComplete`, then `followupQuestions`, then the
+  // terminal `complete`. These flags let `onComplete` act as a safety net:
+  // finalizing the bubble and falling back to default suggestions when those
+  // earlier events don't arrive (e.g. an aborted stream).
   let answerFinalized = false;
   let followupsReceived = false;
 
@@ -474,8 +473,8 @@ export const handleUserQuery = async (
           questions.length > 0 ? questions : INITIAL_SUGGESTED_QUESTIONS,
         );
       },
-      // This covers aborted/partial streams where onAnswerComplete
-      // event never fired, and always reveals the suggestions.
+      // Terminal safety net: covers aborted/partial streams where
+      // `answerComplete` never fired, and always reveals the suggestions.
       onComplete: () => {
         if (!responseContent) {
           targetBubble.hideThinking();
