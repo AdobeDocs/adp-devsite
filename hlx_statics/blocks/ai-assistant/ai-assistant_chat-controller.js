@@ -22,6 +22,7 @@ import { announce, setResponding } from "./ai-assistant_announcer.js";
 
 let userScrolledUp = false;
 let lastScrollTop = 0;
+let isResponding = false;
 
 /** @param {KeyboardEvent} e */
 const escapeKeyHandler = (e) => {
@@ -317,6 +318,8 @@ export const handleUserQuery = async (
   messageContentOverride,
   collectionId = null,
 ) => {
+  if (isResponding) return;
+
   userScrolledUp = false;
   lastScrollTop = 0;
   let messageContent = messageContentOverride;
@@ -331,6 +334,8 @@ export const handleUserQuery = async (
   if (!messageContent) {
     return;
   }
+
+  isResponding = true;
 
   hideSuggestedQuestions();
 
@@ -496,6 +501,8 @@ export const handleUserQuery = async (
         showFallbackSuggestions();
       },
     },
+  }).finally(() => {
+    isResponding = false;
   });
 };
 
