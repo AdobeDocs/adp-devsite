@@ -1,6 +1,6 @@
 :root {
   --marketo-form-text: #535353;
-  --marketo-form-background: #FAFAFA;
+  --marketo-form-background: #FFFFFF;
   --marketo-form-border: #6E6E6E;
   --marketo-form-error: #D31510;
   --marketo-form-selected: #0265DC;
@@ -16,6 +16,12 @@
   /* 1 row + submit */
   --marketo-form-min-height: 215px;
   --marketo-form-max-height: 10000px;
+  --color-accent: #0265DC;
+  --color-accent-hover: #0054B6;
+  --color-accent-down: #004494;
+  --color-accent-focus-ring: #0265DC;
+  --color-white: #FFFFFF;
+  --spacing-l: 20px;
 }
 
 /* stylelint-disable selector-class-pattern */
@@ -58,7 +64,7 @@
   overflow: hidden;
   font-size: 16px;
   font-weight: bold;
-  width: 100% !important;
+  width: 100%;
   visibility: hidden;
   opacity: 0;
 }
@@ -92,6 +98,12 @@
 .marketo .mktoFormRow {
   transition: height 0.5s ease-in;
   height: auto;
+  width: 100%;
+}
+
+.marketo .mktoFieldWrap,
+.marketo .mktoFieldDescriptor {
+  width: 100%;
 }
 
 .marketo .mktoFormRowTop {
@@ -165,7 +177,7 @@
 }
 
 .marketo fieldset.mktoFormCol {
-  display: none;
+  display: block;
 }
 
 .marketo fieldset.mktoFormCol.mktoVisible {
@@ -199,9 +211,11 @@
 }
 
 .marketo .mktoForm--fade-in .mktoFieldDescriptor {
-  visibility: hidden;
-  opacity: 0;
-  height: 0;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  height: auto;
+  transition: opacity 0.5s ease-in, height 0.5s ease-in;
 }
 
 .marketo .mktoForm--fade-in .mktoFieldDescriptor.mktoVisible {
@@ -215,7 +229,7 @@
 .marketo .mktoForm .mktoLabel {
   color: var(--marketo-form-text);
   padding-bottom: 4px;
-  width: auto !important;
+  width: auto;
   font-size: var(--type-body-xs-size);
   line-height: var(--type-body-xs-lh);
 }
@@ -225,7 +239,7 @@
 }
 
 .marketo .mktoForm .mktoField {
-  width: 100% !important;
+  width: 100%;
   padding: 9px var(--spacing-xs);
   font-size: 16px;
   font-family: var(--body-font-family);
@@ -277,7 +291,7 @@
 
 .marketo .mktoForm .mktoCheckboxList input,
 .marketo .mktoForm .mktoRadioList input {
-  width: auto !important;
+  width: auto;
   margin: 0 6px 0 0;
 }
 
@@ -345,11 +359,11 @@
 
 .marketo .mktoForm .mktoGutter {
   flex: 1 1 auto;
-  width: auto !important;
+  width: auto;
 }
 
 .marketo .mktoForm .mktoHtmlText {
-  width: 100% !important;
+  width: 100%;
   font-size: 14px;
   line-height: 20px;
   font-weight: normal;
@@ -365,11 +379,6 @@
   text-decoration: underline;
 }
 
-/* Hide Diagnostic garbage rows - restored rule to hide red diagnostic text */
-.marketo .mktoForm > .mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
-  display: none;
-}
-
 .marketo .mktoForm .mktoButtonWrap {
   display: flex;
   justify-content: space-between;
@@ -383,7 +392,7 @@
 }
 
 .marketo .marketo-overlay .retry-button,
-.marketo .mktoForm .mktoButton {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton {
   appearance: button;
   background: var(--color-accent);
   border: 2px solid var(--color-accent);
@@ -401,19 +410,19 @@
 }
 
 .marketo .marketo-overlay .retry-button:hover,
-.marketo .mktoForm .mktoButton:hover {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton:hover {
   background: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
 }
 
 .marketo .marketo-overlay .retry-button:active,
-.marketo .mktoForm .mktoButton:active {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton:active {
   background: var(--color-accent-down);
   border-color: var(--color-accent-down);
 }
 
 .marketo .marketo-overlay .retry-button:focus-visible,
-.marketo .mktoForm .mktoButton:focus-visible {
+.marketo .mktoForm .mktoButtonWrap.mktoSimple .mktoButton:focus-visible {
   border: 2px solid var(--color-white);
   outline: 2px solid var(--color-accent-focus-ring);
 }
@@ -537,7 +546,7 @@
 }
 
 .dialog-modal .marketo .mktoForm .mktoField {
-  width: 100% !important;
+  width: 100%;
 }
 
 @media screen and (min-width: 1200px) {
@@ -550,11 +559,11 @@
   }
 }
 
-.columns .marketo .mktoForm .mktoField {
-  width: 100% !important;
+.marketo .mktoForm .mktoField {
+  width: 100%;
 }
 
-.columns .marketo .mktoForm .mktoLabel {
+.marketo .mktoForm .mktoLabel {
   padding-bottom: 6px;
 }
 
@@ -635,6 +644,7 @@
   .marketo form.mktoForm--fade-in.mktoVisible {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    column-gap: 32px;
   }
 
   .marketo .mktoFormRow.mktoFormRowTop.name>.mktoFormCol {
@@ -675,16 +685,19 @@
 
   .marketo .mktoForm .mktoButtonRow {
     grid-column: span 2;
+    display: flex;
+    justify-content: center;
   }
 }
 
 @media screen and (min-width: 900px) {
   .marketo .marketo-form-wrapper {
     padding: 56px var(--spacing-l);
+    max-width: 800px;
   }
 
   .columns .marketo .mktoForm .mktoField {
-    width: 50% !important;
+    width: 50%;
   }
 
   .columns .marketo .mktoForm .mktoLabel {
@@ -745,11 +758,672 @@
     max-height: var(--marketo-form-placeholder-height-multi-desktop);
   }
 
-  .resource-form.section.two-up {
-    grid-template-columns: repeat(2, 1fr);
+  .columns .marketo .mktoForm .mktoField {
+    width: 100%;
   }
 
+  .columns .marketo .mktoForm .mktoLabel {
+    padding-bottom: 6px;
+  }
+
+  .columns .marketo .mktoForm.show-warnings .mktoError {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .marketo .mktoFormRowTop[class*="adobe-privacy"] {
+    display: flex;
+    width: 100%;
+  }
+
+  .marketo:has(.marketo-overlay) {
+    position: relative;
+  }
+
+  .marketo .marketo-overlay {
+    position: absolute;
+    max-width: 600px;
+    margin: 0 auto;
+    inset: 0;
+    background: var(--marketo-form-overlay-background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
+
+  .marketo .marketo-overlay .error-container {
+    max-width: 420px;
+    width: 100%;
+    background: var(--marketo-form-background);
+    box-shadow: 0 4px 24px #00000014;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .marketo .marketo-overlay .error {
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--marketo-form-text);
+    margin-bottom: 12px;
+  }
+
+  .marketo .marketo-overlay .debug-info {
+    font-size: 14px;
+    text-align: center;
+    color: var(--marketo-form-text);
+  }
+
+  @media screen and (min-width: 600px) {
+    .marketo .marketo-form-wrapper {
+      padding: var(--spacing-xxl);
+    }
+
+    .marketo .mktoFormRowTop[class*="adobe-privacy"] {
+      display: grid;
+      width: 100%;
+    }
+
+    .marketo [class*="adobe-privacy"],
+    .marketo .msg-error .mktoFormCol.mktoVisible,
+    .marketo .mktoFormCol.mktoVisible .mktoFormCol.mktoVisible {
+      width: 100%;
+      grid-column: span 2;
+    }
+
+    .marketo .mktoForm.show-warnings .mktoError {
+      width: 50%;
+      margin-left: 50%;
+    }
+
+    .marketo form.mktoForm--fade-in.mktoVisible {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name>.mktoFormCol {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas: "salutation ." "firstName lastName";
+      column-gap: 4.6%;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.comments,
+    .marketo .mktoFormRow.mktoFormRowTop.demo,
+    .marketo .mktoFormRow.mktoFormRowTop.name {
+      display: block;
+      grid-column: span 2;
+    }
+
+    .marketo.multi-step .mktoForm[data-step="2"] .mktoFormRow.mktoFormRowTop[data-validate="2"].comments,
+    .marketo.multi-step .mktoForm[data-step="2"] .mktoFormRow.mktoFormRowTop[data-validate="2"].demo,
+    .marketo.multi-step .mktoForm[data-step="2"] .mktoFormRow.mktoFormRowTop[data-validate="2"].name,
+    .marketo.multi-step .mktoForm[data-step="3"] .mktoFormRow.mktoFormRowTop[data-validate="3"].comments,
+    .marketo.multi-step .mktoForm[data-step="3"] .mktoFormRow.mktoFormRowTop[data-validate="3"].demo,
+    .marketo.multi-step .mktoForm[data-step="3"] .mktoFormRow.mktoFormRowTop[data-validate="3"].name {
+      display: block;
+      grid-column: span 2;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="Salutation"] {
+      grid-area: salutation;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="FirstName"] {
+      grid-area: firstName;
+    }
+
+    .marketo .mktoFormRow.mktoFormRowTop.name .mktoFormRow[data-mktofield="LastName"] {
+      grid-area: lastName;
+    }
+
+    .marketo .mktoForm .mktoButtonRow {
+      grid-column: span 2;
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    .marketo .marketo-form-wrapper {
+      padding: 56px var(--spacing-l);
+    }
+
+    .columns .marketo .mktoForm .mktoField {
+      width: 50%;
+    }
+
+    .columns .marketo .mktoForm .mktoLabel {
+      padding-bottom: 0;
+    }
+
+    .columns .marketo .mktoForm.show-warnings .mktoError {
+      width: 50%;
+      margin-left: 50%;
+    }
+  }
+
+  /* Required for successive loading without timeouts */
+  /* stylelint-disable-next-line selector-id-pattern */
+  #mktoStyleLoaded {
+    background-color: #123456
+  }
+
+  .resource-form.section.two-up .marketo {
+    margin-left: calc(var(--grid-margins-width) * -1);
+    margin-right: calc(var(--grid-margins-width) * -1);
+  }
+
+  .resource-form .columns {
+    max-width: unset;
+  }
+
+  .resource-form .columns.contained {
+    max-width: initial;
+  }
+
+  .resource-form.section.two-up,
   .resource-form .columns>.row {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  @media screen and (min-width: 600px) {
+    .resource-form.section.two-up .marketo {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+
+  @media screen and (min-width: 1200px) {
+    .marketo.loading form {
+      min-height: var(--marketo-form-placeholder-height-desktop);
+    }
+
+    .marketo.multi-step.loading form {
+      min-height: var(--marketo-form-placeholder-height-multi-desktop);
+    }
+
+    .marketo .mktoForm {
+      max-height: var(--marketo-form-placeholder-height-desktop);
+    }
+
+    .marketo.multi-step .mktoForm {
+      max-height: var(--marketo-form-placeholder-height-multi-desktop);
+    }
+
+    .resource-form.section.two-up {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .resource-form .columns>.row {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+  }
+}
+
+
+.marketo .mktoFormRow:has([name*="Locale"]),
+.marketo .mktoFormRow:has([name*="Preference"]),
+.marketo .mktoFormRow:has([name*="FormType"]),
+.marketo .mktoFormRow:has([name*="Form_Type"]),
+.marketo .mktoFormRow:has([name*="Subtype"]),
+.marketo .mktoFormRow:has([name*="Sub_Type"]),
+.marketo .mktoFormRow:has([name*="JobTitleCategory"]),
+.marketo .mktoFormRow:has([name*="Job_Title_Category"]),
+.marketo .mktoFormRow:has([name*="FunctionalAreaCategory"]),
+.marketo .mktoFormRow:has([name*="Functional_Area_Category"]),
+.marketo .mktoFormRow:has([name*="IndustryCategory"]),
+.marketo .mktoFormRow:has([name*="Industry_Category"]),
+.marketo .mktoFormRow:has([name*="CoPartner"]),
+.marketo .mktoFormRow:has([name*="OKToEmail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Email"]),
+.marketo .mktoFormRow:has([name*="OKToMail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Mail"]),
+.marketo .mktoFormRow:has([name*="OKToCall"]),
+.marketo .mktoFormRow:has([name*="OK_to_Call"]) {
+  display: none;
+}
+
+.marketo .mktoForm>.mktoClear,
+.marketo .mktoFormRowTop>.mktoClear {
+  display: none;
+}
+
+/* Ensure error messages and consent text span full width */
+.marketo .mktoForm>.mktoFormRow:not(:has(input, select, textarea, button)) {
+  grid-column: 1 / -1;
+}
+
+/* Ensure Use Case textarea spans full width */
+.marketo .mktoForm>.mktoFormRow:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+
+/* --- EXACT TARGET DESIGN UI STYLING --- */
+.marketo .mktoForm input[type="text"],
+.marketo .mktoForm input[type="email"],
+.marketo .mktoForm input[type="tel"],
+.marketo .mktoForm input[type="url"],
+.marketo .mktoForm select,
+.marketo .mktoForm textarea {
+  border: 1px solid #757575;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+  box-shadow: none;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+}
+
+.marketo .mktoForm .mktoLabel {
+  font-weight: 400;
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 4px;
+}
+
+.marketo .mktoForm .mktoAsterix {
+  color: #757575;
+}
+
+/* Custom Select Dropdown Arrow */
+.marketo .mktoForm select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='12' height='12'%3E%3Cpath fill='%23757575' d='M12 3l4 6H8l4-6zm0 18l-4-6h8l-4 6z'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+}
+
+/* Submit Button */
+.marketo .mktoForm .mktoButtonRow .mktoButton {
+  background-color: #0265DC;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Error State styling matching target */
+.marketo .mktoForm input.mktoInvalid,
+.marketo .mktoForm select.mktoInvalid,
+.marketo .mktoForm textarea.mktoInvalid {
+  border-color: #D31510;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath data-name='Path 356676' d='m10.564 2.206-9.249 16.55a.5.5 0 0 0 .436.744h18.5a.5.5 0 0 0 .436-.744l-9.251-16.55a.5.5 0 0 0-.872 0ZM12 17.25a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1-.25-.25v-1.5a.25.25 0 0 1 .25-.25h1.5a.25.25 0 0 1 .25.25Zm0-3.5a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1-.25-.25v-6a.25.25 0 0 1 .25-.25h1.5a.25.25 0 0 1 .25.25Z' fill='%23D31510'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+}
+
+
+/* Hide the default text error message entirely since target design relies purely on borders and icons */
+.marketo .mktoForm .mktoError {
+  display: none;
+}
+
+/* Explicitly HIDE the literal input fields that are NOT the consent text 
+   We hide .mktoFormCol instead of .mktoFormRow to avoid accidentally hiding consent text
+   that may share the same row wrapper. */
+.marketo .mktoFormCol:has(input[name*="Locale" i]),
+.marketo .mktoFormCol:has(select[name*="Locale" i]),
+.marketo .mktoFormCol:has(input[name*="Preference" i]),
+.marketo .mktoFormCol:has(select[name*="Preference" i]),
+.marketo .mktoFormCol:has(input[name*="FormType" i]),
+.marketo .mktoFormCol:has(input[name*="Form_Type" i]),
+.marketo .mktoFormCol:has(input[name*="Subtype" i]),
+.marketo .mktoFormCol:has(input[name*="Sub_Type" i]),
+.marketo .mktoFormCol:has(input[name*="JobTitleCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Job_Title_Category" i]),
+.marketo .mktoFormCol:has(input[name*="FunctionalAreaCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Functional_Area_Category" i]),
+.marketo .mktoFormCol:has(input[name*="IndustryCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Industry_Category" i]),
+.marketo .mktoFormCol:has(input[name*="Category" i]),
+.marketo .mktoFormCol:has(input[name*="CoPartner" i]),
+.marketo .mktoFormCol:has(input[name*="OKToEmail" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Email" i]),
+.marketo .mktoFormCol:has(input[name*="OKToMail" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Mail" i]),
+.marketo .mktoFormCol:has(input[name*="OKToCall" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Call" i]) {
+  display: none;
+}
+
+/* Ensure Consent Text ALWAYS shows */
+.marketo .mktoFormRow.adobe-privacy,
+.marketo .mktoFormRow:has(.mktoHtmlText) {
+  display: block;
+  grid-column: 1 / -1;
+}
+
+/* Hide Diagnostic garbage rows - restored rule to hide red diagnostic text */
+.marketo .mktoForm>.mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
+  display: none;
+}
+
+/* Hide the Consent inputs but preserve the rich text row */
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]) label,
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="Consent_Notice" i]) label,
+.marketo .mktoFormCol:has(input[name*="Consent_Notice" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]) label,
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="Consent_URL" i]) label,
+.marketo .mktoFormCol:has(input[name*="Consent_URL" i]) .mktoFieldWrap {
+  display: none;
+}
+
+/* Make sure any empty mktoFormCol that we hid the contents of doesn't break the grid */
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]):not(:has(.mktoHtmlText)),
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]):not(:has(.mktoHtmlText)) {
+  display: none;
+}
+
+/* ULTIMATE GRID GAP FIX: Destroy any columns/rows that do not contain a visible field, button, or rich text */
+.marketo .mktoFormRow:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)),
+.marketo .mktoFormCol:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)) {
+  display: none;
+}
+
+/* Ensure no elements have unnecessary span 2 or 100% width unless they are textarea or consent */
+.marketo .mktoFormCol.mktoVisible {
+  width: auto;
+}
+
+
+
+.marketo .mktoFormRow:has([name*="Locale"]),
+.marketo .mktoFormRow:has([name*="Preference"]),
+.marketo .mktoFormRow:has([name*="FormType"]),
+.marketo .mktoFormRow:has([name*="Form_Type"]),
+.marketo .mktoFormRow:has([name*="Subtype"]),
+.marketo .mktoFormRow:has([name*="Sub_Type"]),
+.marketo .mktoFormRow:has([name*="JobTitleCategory"]),
+.marketo .mktoFormRow:has([name*="Job_Title_Category"]),
+.marketo .mktoFormRow:has([name*="FunctionalAreaCategory"]),
+.marketo .mktoFormRow:has([name*="Functional_Area_Category"]),
+.marketo .mktoFormRow:has([name*="IndustryCategory"]),
+.marketo .mktoFormRow:has([name*="Industry_Category"]),
+.marketo .mktoFormRow:has([name*="CoPartner"]),
+.marketo .mktoFormRow:has([name*="OKToEmail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Email"]),
+.marketo .mktoFormRow:has([name*="OKToMail"]),
+.marketo .mktoFormRow:has([name*="OK_to_Mail"]),
+.marketo .mktoFormRow:has([name*="OKToCall"]),
+.marketo .mktoFormRow:has([name*="OK_to_Call"]) {
+  display: none;
+}
+
+.marketo .mktoForm>.mktoClear,
+.marketo .mktoFormRowTop>.mktoClear {
+  display: none;
+}
+
+/* Ensure error messages and consent text span full width */
+.marketo .mktoForm>.mktoFormRow:not(:has(input, select, textarea, button)) {
+  grid-column: 1 / -1;
+}
+
+/* Ensure Use Case textarea spans full width */
+.marketo .mktoForm>.mktoFormRow:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+
+/* --- EXACT TARGET DESIGN UI STYLING --- */
+.marketo .mktoForm input[type="text"],
+.marketo .mktoForm input[type="email"],
+.marketo .mktoForm input[type="tel"],
+.marketo .mktoForm input[type="url"],
+.marketo .mktoForm select,
+.marketo .mktoForm textarea {
+  border: 1px solid #757575;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+  box-shadow: none;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+}
+
+.marketo .mktoForm .mktoLabel {
+  font-weight: 400;
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 4px;
+}
+
+.marketo .mktoForm .mktoAsterix {
+  color: #757575;
+}
+
+/* Custom Select Dropdown Arrow */
+.marketo .mktoForm select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='12' height='12'%3E%3Cpath fill='%23757575' d='M12 3l4 6H8l4-6zm0 18l-4-6h8l-4 6z'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+}
+
+/* Submit Button */
+.marketo .mktoForm .mktoButtonRow .mktoButton {
+  background-color: #0265DC;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Error State styling matching target */
+.marketo .mktoForm input.mktoInvalid,
+.marketo .mktoForm select.mktoInvalid,
+.marketo .mktoForm textarea.mktoInvalid {
+  border-color: #D31510;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath data-name='Path 356676' d='m10.564 2.206-9.249 16.55a.5.5 0 0 0 .436.744h18.5a.5.5 0 0 0 .436-.744l-9.251-16.55a.5.5 0 0 0-.872 0ZM12 17.25a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1-.25-.25v-1.5a.25.25 0 0 1 .25-.25h1.5a.25.25 0 0 1 .25.25Zm0-3.5a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1-.25-.25v-6a.25.25 0 0 1 .25-.25h1.5a.25.25 0 0 1 .25.25Z' fill='%23D31510'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+}
+
+
+/* Hide the default text error message entirely since target design relies purely on borders and icons */
+.marketo .mktoForm .mktoError {
+  display: none;
+}
+
+/* Explicitly HIDE the literal input fields that are NOT the consent text 
+   We hide .mktoFormCol instead of .mktoFormRow to avoid accidentally hiding consent text
+   that may share the same row wrapper. */
+.marketo .mktoFormCol:has(input[name*="Locale" i]),
+.marketo .mktoFormCol:has(select[name*="Locale" i]),
+.marketo .mktoFormCol:has(input[name*="Preference" i]),
+.marketo .mktoFormCol:has(select[name*="Preference" i]),
+.marketo .mktoFormCol:has(input[name*="FormType" i]),
+.marketo .mktoFormCol:has(input[name*="Form_Type" i]),
+.marketo .mktoFormCol:has(input[name*="Subtype" i]),
+.marketo .mktoFormCol:has(input[name*="Sub_Type" i]),
+.marketo .mktoFormCol:has(input[name*="JobTitleCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Job_Title_Category" i]),
+.marketo .mktoFormCol:has(input[name*="FunctionalAreaCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Functional_Area_Category" i]),
+.marketo .mktoFormCol:has(input[name*="IndustryCategory" i]),
+.marketo .mktoFormCol:has(input[name*="Industry_Category" i]),
+.marketo .mktoFormCol:has(input[name*="Category" i]),
+.marketo .mktoFormCol:has(input[name*="CoPartner" i]),
+.marketo .mktoFormCol:has(input[name*="OKToEmail" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Email" i]),
+.marketo .mktoFormCol:has(input[name*="OKToMail" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Mail" i]),
+.marketo .mktoFormCol:has(input[name*="OKToCall" i]),
+.marketo .mktoFormCol:has(input[name*="OK_to_Call" i]) {
+  display: none;
+}
+
+/* Ensure Consent Text ALWAYS shows */
+.marketo .mktoFormRow.adobe-privacy,
+.marketo .mktoFormRow:has(.mktoHtmlText) {
+  display: block;
+  grid-column: 1 / -1;
+}
+
+/* Hide Diagnostic garbage rows - restored rule to hide red diagnostic text */
+.marketo .mktoForm>.mktoFormRow:not(.msg-error):not(.adobe-privacy):has(.mktoHtmlText):not(:has(input, select, textarea, button, a)) {
+  display: none;
+}
+
+/* Hide the Consent inputs but preserve the rich text row */
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]) label,
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="Consent_Notice" i]) label,
+.marketo .mktoFormCol:has(input[name*="Consent_Notice" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]) label,
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]) .mktoFieldWrap,
+.marketo .mktoFormCol:has(input[name*="Consent_URL" i]) label,
+.marketo .mktoFormCol:has(input[name*="Consent_URL" i]) .mktoFieldWrap {
+  display: none;
+}
+
+/* Make sure any empty mktoFormCol that we hid the contents of doesn't break the grid */
+.marketo .mktoFormCol:has(input[name*="ConsentNotice" i]):not(:has(.mktoHtmlText)),
+.marketo .mktoFormCol:has(input[name*="ConsentURL" i]):not(:has(.mktoHtmlText)) {
+  display: none;
+}
+
+/* ULTIMATE GRID GAP FIX: Destroy any columns/rows that do not contain a visible field, button, or rich text */
+.marketo .mktoFormRow:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)),
+.marketo .mktoFormCol:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)),
+.marketo form.mktoForm>*:not(:has(input:not([type="hidden"]), select, textarea, button, .mktoHtmlText, .mktoButtonRow)) {
+  display: none;
+}
+
+/* Ensure no elements have unnecessary span 2 or 100% width unless they are textarea or consent */
+.marketo .mktoFormCol.mktoVisible {
+  width: auto;
+}
+
+.marketo .mktoFormRow {
+  width: 100%;
+}
+
+/* ===== BULLETPROOF WILDCARD GRID LAYOUT ===== */
+@media screen and (min-width: 600px) {
+
+  .marketo form.mktoForm,
+  .marketo form.mktoForm.mktoForm--fade-in.mktoVisible {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    align-items: start;
+  }
+
+  /* Aggressively hide all clear elements so they don't consume grid cells */
+  .marketo form.mktoForm .mktoClear,
+  .marketo form.mktoForm .mktoOffset {
+    display: none;
+  }
+
+  /* Target ALL direct children to guarantee we format the actual grid items */
+  .marketo form.mktoForm>* {
+    width: 100%;
+    grid-column: span 1;
+    /* default to half width */
+    order: 50;
+    /* push un-targeted fields below */
+  }
+
+  /* Explicit Full Width Overrides */
+  .marketo form.mktoForm>*:has(textarea),
+  .marketo form.mktoForm>*.adobe-privacy,
+  .marketo form.mktoForm>*:has(.mktoHtmlText) {
+    grid-column: 1 / -1;
+    order: 90;
+  }
+
+  /* Handle grouped FirstName + LastName if Marketo wraps them in a single row */
+  .marketo form.mktoForm>*:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]):has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]),
+  .marketo form.mktoForm>.name {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    order: 1;
+  }
+
+  .marketo form.mktoForm>*:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]):has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]) .mktoFormCol,
+  .marketo form.mktoForm>.name .mktoFormCol,
+  .marketo form.mktoForm>*:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]):has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]) .mktoFieldWrap,
+  .marketo form.mktoForm>.name .mktoFieldWrap {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  /* Explicit Field Ordering */
+  .marketo form.mktoForm>*:has([name*="FirstName" i], [name*="FName" i], [name*="first_name" i]) {
+    order: 1;
+  }
+
+  .marketo form.mktoForm>*:has([name*="LastName" i], [name*="LName" i], [name*="last_name" i]) {
+    order: 2;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Email" i]) {
+    order: 3;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Phone" i]) {
+    order: 4;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Title" i]) {
+    order: 5;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Industry" i]) {
+    order: 6;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Department" i], [name*="Dept" i]) {
+    order: 7;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Company" i]) {
+    order: 8;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Country" i]) {
+    order: 9;
+  }
+
+  .marketo form.mktoForm>*:has([name*="PostalCode" i], [name*="Zip" i]) {
+    order: 10;
+  }
+
+  .marketo form.mktoForm>*:has([name*="Interest" i]) {
+    order: 11;
+  }
+
+  /* Submit Button Row */
+  .marketo form.mktoForm>.mktoButtonRow,
+  .marketo form.mktoForm>*:has(.mktoButtonRow),
+  .marketo form.mktoForm>*:has(.mktoButton) {
+    grid-column: 1 / -1;
+    order: 999;
+    text-align: center;
+    width: 100%;
+    margin-top: 10px;
   }
 }
