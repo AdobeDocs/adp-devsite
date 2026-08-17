@@ -54,7 +54,7 @@ main div.banner-wrapper p.button-container a {
   background-color: #fff;
 }
 
-main div.banner-wrapper div.banner > div > div {
+main div.banner-wrapper div.banner>div>div {
   display: inline-flex;
   gap: 10px;
   flex-direction: column;
@@ -62,7 +62,7 @@ main div.banner-wrapper div.banner > div > div {
   justify-content: center;
 }
 
-main div.banner-wrapper div.banner:not(.isH) > div > div {
+main div.banner-wrapper div.banner:not(.isH)>div>div {
   flex-direction: row;
   width: 100%;
   align-items: center;
@@ -111,15 +111,28 @@ main div.section.banner-container:has(.banner.image) {
 }
 
 @media screen and (max-width: 768px) {
-  main div.banner-wrapper.black div.banner:not(.isH) > div > div,
-  main div.banner-wrapper div.banner:not(.isH) > div > div {
+
+  main div.banner-wrapper.black div.banner:not(.isH)>div>div,
+  main div.banner-wrapper div.banner:not(.isH)>div>div {
     flex-direction: column;
     align-items: center;
     text-align: center;
     justify-content: center;
   }
 
-  main div.banner-wrapper div.banner > div > div {
+  main div.banner-wrapper div.banner>div>div {
     align-items: center;
+  }
+}
+
+@media screen and (min-width: 320px) and (max-width : 1024px) {
+  main div.banner-wrapper:has(.banner.image) {
+
+    & div.banner.image {
+      &.medium img {
+        width: 80%;
+        height: 100%;
+      }
+    }
   }
 }
