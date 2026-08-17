@@ -39,11 +39,13 @@ function decorateBackgroundColor(block) {
  */
 function decorateCaption(block) {
   const rows = block.querySelectorAll(':scope > div');
-
+  console.log("rows",rows)
   if (rows.length < 2) return;
 
   const captionRow = rows[1];
+  console.log("captionRow",captionRow)
   const captionText = captionRow.textContent.trim();
+  console.log("captionText",captionText)
 
   const img = rows[0].querySelector('img');
 
