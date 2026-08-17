@@ -17,11 +17,6 @@ function decorateBackgroundColor(block) {
 }
 
 /**
- * When the banner contains an image:
- * - Get the content from the second direct div
- * - Use that content as the image alt text
- * - Remove the entire second div from the UI
- *
  * @param {Element} block The banner block element
  * @returns {boolean} true if a caption row was found and handled
  */
@@ -33,7 +28,7 @@ function decorateCaption(block) {
   const captionRow = rows[1];
 
   const img = imgRow.querySelector('img');
-  if (!img) return false; // not actually an image banner, bail out
+  if (!img) return false;
 
   const captionText = captionRow.textContent.trim();
   if (captionText) {
@@ -49,8 +44,6 @@ export default async function decorate(block) {
 
   decorateBackgroundColor(block);
 
-  // Detect image banners structurally (first row has an <img>),
-  // not just by the presence of an 'image' variation class.
   const firstRow = block.querySelector(':scope > div');
   const looksLikeImageBanner = block.classList.contains('image')
     || (firstRow && firstRow.querySelector('img') && !firstRow.querySelector('h1'));
@@ -58,7 +51,7 @@ export default async function decorate(block) {
   if (looksLikeImageBanner) {
     const handled = decorateCaption(block);
     if (handled) {
-      block.classList.add('image'); // normalize, in case the class was missing
+      block.classList.add('image');
       return;
     }
   }

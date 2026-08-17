@@ -90,7 +90,7 @@ main div.banner-wrapper:has(.banner.image) {
   }
 }
 
-main div.section.banner-container:has(.banner.image) {
+/* main div.section.banner-container:has(.banner.image) {
   background-color: #fff;
 
   &.background-color-gray {
@@ -108,7 +108,7 @@ main div.section.banner-container:has(.banner.image) {
   &.background-color-dark-gray {
     background-color: #323232;
   }
-}
+} */
 
 @media screen and (max-width: 768px) {
 
