@@ -8,6 +8,14 @@ import {
  * decorates the summary
  * @param {Element} block The summary block element
  */
+
+function decorateSummaryPosition(block) {
+  if (!block.classList.contains('right')) return;
+  const content = block.querySelector(':scope > div');
+  if (!content) return;
+  content.style.left = window.innerWidth <= 1024 ? '0%' : '30%';
+}
+
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'summary');
   decorateButtons(block);
@@ -58,6 +66,7 @@ export default async function decorate(block) {
     const overlayStyle = 'position: absolute; display: flex; left: 0%; z-index: 1000;';
     rearrangeHeroPicture(block, overlayStyle);
   }
+
+  // Set position for right-aligned summary.
+  decorateSummaryPosition(block);
 }
-
-

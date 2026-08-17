@@ -135,13 +135,3 @@ main div.summary-wrapper div.summary.background-color-white p a:hover, main div.
 main div.summary-wrapper div.summary.background-color-white {
   background-color: rgb(255, 255, 255);
 }
-
-main div.summary-wrapper div.summary.right > div {
- left: 30% !important;
-}
-
-@media screen and (min-width: 320px) and (max-width: 1024px) {
-  main div.summary-wrapper div.summary.right > div {
-    left: 0% !important;
-  }
-}
