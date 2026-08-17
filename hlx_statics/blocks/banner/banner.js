@@ -30,8 +30,10 @@ function decorateBackgroundColor(block) {
 }
 
 /**
- * When the banner contains an image, use the second row
- * as the image alt text and remove the caption from the UI.
+ * When the banner contains an image:
+ * - Get the content from the second direct div
+ * - Use that content as the image alt text
+ * - Remove the entire second div from the UI
  *
  * @param {Element} block The banner block element
  */
@@ -40,22 +42,17 @@ function decorateCaption(block) {
 
   if (rows.length < 2) return;
 
-  const caption = rows[1].firstElementChild;
-
-  if (!caption) return;
+  const captionRow = rows[1];
+  const captionText = captionRow.textContent.trim();
 
   const img = rows[0].querySelector('img');
 
-  if (!img) return;
-
-  const captionText = caption.textContent.trim();
-
-  if (captionText) {
+  if (img && captionText) {
     img.setAttribute('alt', captionText);
   }
 
-  // Caption is now used as alt text, so remove it from the UI.
-  caption.remove();
+  // Remove the entire second div from the UI.
+  captionRow.remove();
 }
 
 /**
@@ -69,6 +66,7 @@ export default async function decorate(block) {
   // Apply background color before any early return.
   decorateBackgroundColor(block);
 
+  // Image banner handling.
   if (block.classList.contains('image')) {
     decorateCaption(block);
     return;
