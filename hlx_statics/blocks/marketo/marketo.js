@@ -446,26 +446,144 @@ export const loadMarketo = (el, formData) => {
   const baseURL = formData[BASE_URL];
   const munchkinID = formData[MUNCHKIN_ID];
   const formID = formData[FORM_ID];
-  const { base } = getConfig();
 
-  return loadScript(`${base}/deps/forms2.min.js`)
+  const loaderUrl = new URL('../../scripts/marketo-form-loader.js', import.meta.url).href;
+  return loadScript(loaderUrl)
     .then(() => {
-      const { MktoForms2 } = window;
-      if (!MktoForms2) throw new Error('Marketo forms not loaded');
-
-      formTimeout(el, () => !isVisible(el.querySelector('form')), LANA_MESSAGE.RENDER_FAILED);
-      MktoForms2.loadForm(`//${baseURL}`, munchkinID, formID, () => { setDataLayer(FORM_STATUS, 'loaded'); });
-      MktoForms2.whenReady((form) => { readyForm(form, formData); });
-
-      /* c8 ignore next 3 */
-      if (el.classList.contains('multi-step')) {
-        import('./marketo-multi.js').then(({ default: multiStep }) => multiStep(el));
+      if (typeof window.loadMarketoForm !== 'function') {
+        throw new Error('marketo-form-loader.js did not expose loadMarketoForm');
       }
+
+      const programId = parseInt(formData['program id'] || formData['program.id'] || formID, 10);
+      const isSalesForm = programId === 4061 || formData['sales form'] === 'true' || formData['sales_form'] === 'true';
+
+      const config = {
+        form_config: {
+          form_id_base: parseInt(formID, 10),
+          form_id_program: programId,
+          poi: formData['poi'] || formData['program.poi'] || "",
+          campaignIds: {
+              sfdc: formData['sfdc-campaign-id'] || formData['program.campaignids.sfdc'] || "",
+          },
+          copartnernames: formData['co-partner-names'] || formData['program.copartnernames'] || "",
+          success: {
+              type: formData[SUCCESS_TYPE] || "redirect",
+              content: formData[SUCCESS_CONTENT] || "",
+          },
+          templateOverrides: {},
+          prefillFields: window.mktoPreFillFields || {},
+        },
+        demo_ux: {
+            snippetDestination: null,
+            formDestinationElement: ".marketo-form-wrapper",
+            loadCss: formData['loadCss'] !== 'false',
+            formCss: formData['formCss'] || formData['form css'],
+        },
+        form_architecture: {
+            previewMode: window.location.search.includes('preview='),
+            stage: baseURL.includes('stage') || baseURL.includes('developer-stage'),
+            munchkinId: munchkinID,
+            instanceDomain: baseURL,
+        },
+      };
+
+      return window.loadMarketoForm(config).then((form) => {
+        setDataLayer(FORM_STATUS, 'loaded');
+
+        if (isSalesForm) {
+          sessionStorage.removeItem('mktoPreFillFields');
+          
+          const formEl = form.getFormElem && form.getFormElem()[0];
+          if (formEl) {
+            const style = document.createElement('style');
+            const formIdStr = formEl.id || `mktoForm_${programId}`;
+            style.textContent = `
+                .marketo-form-wrapper { max-width: none !important; width: calc(100% - 40px) !important; margin: 0 auto !important; }
+                #${formIdStr} { width: 100% !important; grid-template-columns: 1fr 1fr !important; }
+                #${formIdStr} .mktoField { width: 100% !important; box-sizing: border-box !important; }
+                #${formIdStr} .mktoFieldWrap { width: 100% !important; }
+                #${formIdStr} .mktoFormRow.by-supplyingmycontac { display: none !important; }
+                #${formIdStr} .mktoFormRow.adobe-privacy { display: none !important; }
+                #${formIdStr} .mktoButtonRow { display: none !important; }
+            `;
+            document.head.appendChild(style);
+
+            formEl.style.setProperty('width', '100%', 'important');
+            formEl.style.setProperty('grid-template-columns', '1fr 1fr', 'important');
+            formEl.setAttribute('autocomplete', 'off');
+
+            form.vals({
+                FirstName: '', LastName: '', Email: '', Phone: '',
+                mktoFormsCompany: '', Website: '', Country: '',
+                State: '', PostalCode: '', mktoCompanySize: '',
+                Industry: '', mktoFormsJobTitle: '', mktoFormsFunctionalArea: '',
+            });
+
+            setTimeout(() => {
+                const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
+                if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
+                const legend = consentRow && consentRow.querySelector('legend');
+
+                const useCaseDiv = document.createElement('div');
+                useCaseDiv.style.cssText = 'margin: 8px 0;';
+                useCaseDiv.innerHTML = `
+                    <label style="display:block;font-size:14px;font-weight:700;margin-bottom:4px;">Use case <span style="color:#d0021b;">*</span></label>
+                    <textarea id="custom-use-case" rows="6" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;"
+                        placeholder="Please describe your intended application of our PDF Services APIs."></textarea>`;
+
+                const submitDiv = document.createElement('div');
+                submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
+                submitDiv.innerHTML = '<button id="custom-submit" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>';
+
+                const consentDiv = document.createElement('div');
+                consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5;';
+                if (legend) consentDiv.innerHTML = legend.innerHTML;
+
+                const container = formEl.parentNode;
+                const after = formEl.nextSibling;
+                container.insertBefore(useCaseDiv, after);
+                container.insertBefore(submitDiv, useCaseDiv.nextSibling);
+                container.insertBefore(consentDiv, submitDiv.nextSibling);
+
+                document.getElementById('custom-submit').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const ta = document.getElementById('custom-use-case');
+                    if (!ta.value.trim()) {
+                        ta.style.borderColor = '#d0021b';
+                        let err = document.getElementById('use-case-error');
+                        if (!err) {
+                            err = document.createElement('div');
+                            err.id = 'use-case-error';
+                            err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px;';
+                            err.textContent = 'This field is required.';
+                            ta.after(err);
+                        }
+                        ta.focus();
+                        return;
+                    }
+                    ta.style.borderColor = '#6e6e6e';
+                    const err = document.getElementById('use-case-error');
+                    if (err) err.remove();
+                    form.addHiddenFields({ mktoQuestionComments: ta.value });
+                    formEl.querySelector('.mktoButton').click();
+                });
+            }, 500);
+          }
+        }
+
+        readyForm(form, formData);
+
+        /* c8 ignore next 3 */
+        if (el.classList.contains('multi-step')) {
+          import('./marketo-multi.js').then(({ default: multiStep }) => multiStep(el));
+        }
+      });
     })
-    .catch(() => {
+    .catch((error) => {
       /* c8 ignore next 2 */
       el.style.display = 'none';
       logFailure(el, LANA_MESSAGE.MARKETO_FORMS_JS);
+      window.lana?.log(`Marketo form error: ${error.message}`, { tags: 'marketo', severity: 'e' });
     });
 };
 
@@ -536,7 +654,9 @@ export default async function init(el) {
 
   /* c8 ignore next 4 */
   if (!formID || !baseURL || !munchkinID) {
-    el.style.display = 'none';
+    const errorMsg = 'Marketo block is missing required fields (form id, marketo host, marketo munckin). Please add the missing fields in Milo.';
+    window.lana?.log(errorMsg, { tags: 'marketo', severity: 'e' });
+    el.innerHTML = `<p class="marketo-error" style="color: red; padding: 20px; border: 1px solid red; margin: 20px 0; font-weight: bold;">${errorMsg}</p>`;
     return;
   }
 
