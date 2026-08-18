@@ -485,8 +485,8 @@ export const loadMarketo = (el, formData) => {
           stage: baseURL.includes('stage') || baseURL.includes('developer-stage'),
           munchkinId: munchkinID,
           instanceDomain: baseURL,
-          // Use the exact path requested by the user, likely proxied through CDN
-          mktoFormJS: "/js/forms2/js/forms2.min.js",
+          // Load directly from the Marketo instance since the AEM edge server does not proxy /js/forms2/...
+          mktoFormJS: `https://${baseURL}/js/forms2/js/forms2.min.js`,
         },
       };
 
