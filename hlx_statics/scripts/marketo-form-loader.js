@@ -109,7 +109,7 @@ async function loadMarketoForm(config) {
 
   // form_architecture — instance identity + plumbing + lifecycle hooks.
   const {
-    mktoFormJS = "/deps/forms2.min.js",
+    mktoFormJS = "/js/forms2/js/forms2.min.js",
     formSubmitPath = "/index.php/leadCapture/save2",
     previewMode = false,
     timeout = 10000,

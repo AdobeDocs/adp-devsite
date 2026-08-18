@@ -484,6 +484,7 @@ export const loadMarketo = (el, formData) => {
             stage: baseURL.includes('stage') || baseURL.includes('developer-stage'),
             munchkinId: munchkinID,
             instanceDomain: baseURL,
+            mktoFormJS: new URL('../../deps/forms2.min.js', import.meta.url).href,
         },
       };
 
