@@ -442,6 +442,7 @@ const readyForm = (form, formData) => {
 };
 
 export const loadMarketo = (el, formData) => {
+  console.log("Marketo Data", formData, el)
   setDataLayer(FORM_STATUS, 'loading');
   const baseURL = formData[BASE_URL];
   const munchkinID = formData[MUNCHKIN_ID];
@@ -463,28 +464,29 @@ export const loadMarketo = (el, formData) => {
           form_id_program: programId,
           poi: formData['poi'] || formData['program.poi'] || "",
           campaignIds: {
-              sfdc: formData['sfdc-campaign-id'] || formData['program.campaignids.sfdc'] || "",
+            sfdc: formData['sfdc-campaign-id'] || formData['program.campaignids.sfdc'] || "",
           },
           copartnernames: formData['co-partner-names'] || formData['program.copartnernames'] || "",
           success: {
-              type: formData[SUCCESS_TYPE] || "redirect",
-              content: formData[SUCCESS_CONTENT] || "",
+            type: formData[SUCCESS_TYPE] || "redirect",
+            content: formData[SUCCESS_CONTENT] || "",
           },
           templateOverrides: {},
           prefillFields: window.mktoPreFillFields || {},
         },
         demo_ux: {
-            snippetDestination: null,
-            formDestinationElement: ".marketo-form-wrapper",
-            loadCss: formData['loadCss'] !== 'false',
-            formCss: formData['formCss'] || formData['form css'] || "https://business.adobe.com/libs/blocks/marketo/marketo.css",
+          snippetDestination: null,
+          formDestinationElement: ".marketo-form-wrapper",
+          loadCss: formData['loadCss'] !== 'false',
+          formCss: formData['formCss'] || formData['form css'] || "https://business.adobe.com/libs/blocks/marketo/marketo.css",
         },
         form_architecture: {
-            previewMode: window.location.search.includes('preview='),
-            stage: baseURL.includes('stage') || baseURL.includes('developer-stage'),
-            munchkinId: munchkinID,
-            instanceDomain: baseURL,
-            mktoFormJS: new URL('../../deps/forms2.min.js', import.meta.url).href,
+          previewMode: window.location.search.includes('preview='),
+          stage: baseURL.includes('stage') || baseURL.includes('developer-stage'),
+          munchkinId: munchkinID,
+          instanceDomain: baseURL,
+          // Use the exact path requested by the user, likely proxied through CDN
+          mktoFormJS: "/js/forms2/js/forms2.min.js",
         },
       };
 
@@ -493,7 +495,7 @@ export const loadMarketo = (el, formData) => {
 
         if (isSalesForm) {
           sessionStorage.removeItem('mktoPreFillFields');
-          
+
           const formEl = form.getFormElem && form.getFormElem()[0];
           if (formEl) {
             const style = document.createElement('style');
@@ -514,60 +516,60 @@ export const loadMarketo = (el, formData) => {
             formEl.setAttribute('autocomplete', 'off');
 
             form.vals({
-                FirstName: '', LastName: '', Email: '', Phone: '',
-                mktoFormsCompany: '', Website: '', Country: '',
-                State: '', PostalCode: '', mktoCompanySize: '',
-                Industry: '', mktoFormsJobTitle: '', mktoFormsFunctionalArea: '',
+              FirstName: '', LastName: '', Email: '', Phone: '',
+              mktoFormsCompany: '', Website: '', Country: '',
+              State: '', PostalCode: '', mktoCompanySize: '',
+              Industry: '', mktoFormsJobTitle: '', mktoFormsFunctionalArea: '',
             });
 
             setTimeout(() => {
-                const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
-                if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
-                const legend = consentRow && consentRow.querySelector('legend');
+              const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
+              if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
+              const legend = consentRow && consentRow.querySelector('legend');
 
-                const useCaseDiv = document.createElement('div');
-                useCaseDiv.style.cssText = 'margin: 8px 0;';
-                useCaseDiv.innerHTML = `
+              const useCaseDiv = document.createElement('div');
+              useCaseDiv.style.cssText = 'margin: 8px 0;';
+              useCaseDiv.innerHTML = `
                     <label style="display:block;font-size:14px;font-weight:700;margin-bottom:4px;">Use case <span style="color:#d0021b;">*</span></label>
                     <textarea id="custom-use-case" rows="6" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;"
                         placeholder="Please describe your intended application of our PDF Services APIs."></textarea>`;
 
-                const submitDiv = document.createElement('div');
-                submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
-                submitDiv.innerHTML = '<button id="custom-submit" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>';
+              const submitDiv = document.createElement('div');
+              submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
+              submitDiv.innerHTML = '<button id="custom-submit" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>';
 
-                const consentDiv = document.createElement('div');
-                consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5;';
-                if (legend) consentDiv.innerHTML = legend.innerHTML;
+              const consentDiv = document.createElement('div');
+              consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5;';
+              if (legend) consentDiv.innerHTML = legend.innerHTML;
 
-                const container = formEl.parentNode;
-                const after = formEl.nextSibling;
-                container.insertBefore(useCaseDiv, after);
-                container.insertBefore(submitDiv, useCaseDiv.nextSibling);
-                container.insertBefore(consentDiv, submitDiv.nextSibling);
+              const container = formEl.parentNode;
+              const after = formEl.nextSibling;
+              container.insertBefore(useCaseDiv, after);
+              container.insertBefore(submitDiv, useCaseDiv.nextSibling);
+              container.insertBefore(consentDiv, submitDiv.nextSibling);
 
-                document.getElementById('custom-submit').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const ta = document.getElementById('custom-use-case');
-                    if (!ta.value.trim()) {
-                        ta.style.borderColor = '#d0021b';
-                        let err = document.getElementById('use-case-error');
-                        if (!err) {
-                            err = document.createElement('div');
-                            err.id = 'use-case-error';
-                            err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px;';
-                            err.textContent = 'This field is required.';
-                            ta.after(err);
-                        }
-                        ta.focus();
-                        return;
-                    }
-                    ta.style.borderColor = '#6e6e6e';
-                    const err = document.getElementById('use-case-error');
-                    if (err) err.remove();
-                    form.addHiddenFields({ mktoQuestionComments: ta.value });
-                    formEl.querySelector('.mktoButton').click();
-                });
+              document.getElementById('custom-submit').addEventListener('click', (e) => {
+                e.preventDefault();
+                const ta = document.getElementById('custom-use-case');
+                if (!ta.value.trim()) {
+                  ta.style.borderColor = '#d0021b';
+                  let err = document.getElementById('use-case-error');
+                  if (!err) {
+                    err = document.createElement('div');
+                    err.id = 'use-case-error';
+                    err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px;';
+                    err.textContent = 'This field is required.';
+                    ta.after(err);
+                  }
+                  ta.focus();
+                  return;
+                }
+                ta.style.borderColor = '#6e6e6e';
+                const err = document.getElementById('use-case-error');
+                if (err) err.remove();
+                form.addHiddenFields({ mktoQuestionComments: ta.value });
+                formEl.querySelector('.mktoButton').click();
+              });
             }, 500);
           }
         }
@@ -604,7 +606,7 @@ function decorateForm(el, formData) {
     formWrapper.append(description);
   }
 
-  const marketoForm = createTag('form', { ID: `mktoForm_${formID}`, class: 'hide-errors' });
+  const marketoForm = createTag('form', { id: `mktoForm_${formID}`, class: 'hide-errors' });
   const span1 = createTag('span', { id: 'mktoForms2BaseStyle', style: 'display:none;' });
   const span2 = createTag('span', { id: 'mktoForms2ThemeStyle', style: 'display:none;' });
   formWrapper.append(span1, span2, marketoForm);
