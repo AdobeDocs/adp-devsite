@@ -501,6 +501,9 @@ export const loadMarketo = (el, formData) => {
             Object.assign(config.demo_ux, parsedValue);
           } else if (key === 'form_architecture') {
             Object.assign(config.form_architecture, parsedValue);
+            if (config.form_architecture.mktoFormJS && config.form_architecture.mktoFormJS.startsWith('/')) {
+              config.form_architecture.mktoFormJS = `https://${config.form_architecture.instanceDomain || baseURL}${config.form_architecture.mktoFormJS}`;
+            }
           } else if (key === 'success') {
             Object.assign(config.form_config.success, parsedValue);
           } else {
