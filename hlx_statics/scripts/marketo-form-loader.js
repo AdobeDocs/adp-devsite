@@ -136,7 +136,7 @@ async function loadMarketoForm(config) {
   const programRequested = Number.isInteger(form_id_program) && form_id_program !== form_id_base;
   const plannedFormId = programRequested ? form_id_program : formId;
   if (document.getElementById(`mktoForm_${plannedFormId}`)) {
-    throw new Error(`Form mktoForm_${plannedFormId} already loaded.`);
+    console.debug(`Form mktoForm_${plannedFormId} DOM element already exists. Re-using it.`);
   }
 
   // Optional preview/QA mode. Mutates the address bar AND turns on the module

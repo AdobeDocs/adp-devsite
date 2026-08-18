@@ -583,6 +583,7 @@ export const loadMarketo = (el, formData) => {
     .catch((error) => {
       /* c8 ignore next 2 */
       el.style.display = 'none';
+      console.error('Marketo form failed to load:', error);
       logFailure(el, LANA_MESSAGE.MARKETO_FORMS_JS);
       window.lana?.log(`Marketo form error: ${error.message}`, { tags: 'marketo', severity: 'e' });
     });
