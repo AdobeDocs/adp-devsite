@@ -574,16 +574,16 @@ function decorateForm(el, formData) {
 export default async function init(el) {
   setDataLayer(FORM_STATUS, 'init');
   const children = Array.from(el.querySelectorAll(':scope > div'));
-  const encodedConfigDiv = children.shift();
-  const link = encodedConfigDiv.querySelector('a');
+  let formData = {};
 
-  if (!link?.href) {
-    el.style.display = 'none';
-    return;
+  // Check if the first row is an encoded config link
+  const firstRow = children[0];
+  const link = firstRow?.querySelector('a');
+  if (link?.href && link.href.includes('#')) {
+    children.shift(); // Remove the config row from children
+    const encodedConfig = link.href.split('#')[1];
+    formData = parseEncodedConfig(encodedConfig) || {};
   }
-
-  const encodedConfig = link.href.split('#')[1];
-  const formData = parseEncodedConfig(encodedConfig);
 
   children.forEach((element) => {
     const key = element.children[0]?.textContent.trim().toLowerCase().replaceAll(' ', '-');
