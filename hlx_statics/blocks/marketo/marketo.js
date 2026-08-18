@@ -477,7 +477,7 @@ export const loadMarketo = (el, formData) => {
             snippetDestination: null,
             formDestinationElement: ".marketo-form-wrapper",
             loadCss: formData['loadCss'] !== 'false',
-            formCss: formData['formCss'] || formData['form css'],
+            formCss: formData['formCss'] || formData['form css'] || "https://business.adobe.com/libs/blocks/marketo/marketo.css",
         },
         form_architecture: {
             previewMode: window.location.search.includes('preview='),

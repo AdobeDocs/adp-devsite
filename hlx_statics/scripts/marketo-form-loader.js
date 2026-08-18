@@ -109,7 +109,7 @@ async function loadMarketoForm(config) {
 
   // form_architecture — instance identity + plumbing + lifecycle hooks.
   const {
-    mktoFormJS = "/js/forms2/js/forms2.min.js",
+    mktoFormJS = "/deps/forms2.min.js",
     formSubmitPath = "/index.php/leadCapture/save2",
     previewMode = false,
     timeout = 10000,
@@ -154,11 +154,18 @@ async function loadMarketoForm(config) {
   // Inject the form CSS only when enabled AND the page is business.adobe.com. Elsewhere
   // (foreign host, bare page) it doesn't try — host string inlined to stay hoisting-safe.
   if (loadCss) {
-    if (window.location.hostname === "business.adobe.com" || window.location.hostname === "adobe.com") {
+    const host = window.location.hostname;
+    const isAllowedHost = host === "business.adobe.com" || 
+                          host === "adobe.com" || 
+                          host.includes(".aem.") || 
+                          host.includes(".hlx.") || 
+                          host === "localhost" || 
+                          host === "127.0.0.1";
+    if (isAllowedHost) {
       injectStylesheetOnce(formCss);
     } else {
       console.info(
-        `Marketo form CSS not injected: host is "${window.location.hostname}", not business.adobe.com or adobe.com.`
+        `Marketo form CSS not injected: host is "${host}", not an allowed production or dev host.`
       );
     }
   }
@@ -184,7 +191,10 @@ async function loadMarketoForm(config) {
 
   // Ensure the Marketo library is present.
   if (!window?.MktoForms2?.processForm) {
-    await loadScriptOnce(`https://${instanceDomain}${mktoFormJS}`, { timeout: 15000 });
+    const scriptUrl = mktoFormJS.startsWith('http') || mktoFormJS.startsWith('/') 
+      ? mktoFormJS 
+      : `https://${instanceDomain}${mktoFormJS}`;
+    await loadScriptOnce(scriptUrl, { timeout: 15000 });
   }
   if (!window?.MktoForms2 || typeof window.MktoForms2.processForm !== "function") {
     throw new Error("MktoForms2.processForm unavailable after loading the library.");
