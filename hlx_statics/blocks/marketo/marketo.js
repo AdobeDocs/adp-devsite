@@ -25,6 +25,15 @@ const parseEncodedConfig = (encodedConfig) => {
   return null;
 };
 
+const parseJSONStr = (str) => {
+  if (typeof str !== 'string') return str;
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return str;
+  }
+};
+
 const loadScript = (url) => {
   return new Promise((resolve, reject) => {
     const head = document.querySelector('head');
@@ -448,15 +457,6 @@ export const loadMarketo = (el, formData) => {
   const munchkinID = formData[MUNCHKIN_ID];
   const formID = formData[FORM_ID];
 
-  const parseJSONStr = (str) => {
-    if (typeof str !== 'string') return str;
-    try {
-      return JSON.parse(str);
-    } catch (e) {
-      return str;
-    }
-  };
-
   const loaderUrl = new URL('../../scripts/marketo-form-loader.js', import.meta.url).href;
   return loadScript(loaderUrl)
     .then(() => {
@@ -628,17 +628,28 @@ export default async function init(el) {
     }
   }
 
-  const formID = formData[FORM_ID];
-  const baseURL = formData[BASE_URL];
-  const munchkinID = formData[MUNCHKIN_ID];
+  let formID = formData[FORM_ID] || formData._dynamicConfig?.['form_id_base'];
+  let baseURL = formData[BASE_URL];
+  let munchkinID = formData[MUNCHKIN_ID];
+
+  if (formData._dynamicConfig?.['form_architecture']) {
+    const arch = parseJSONStr(formData._dynamicConfig['form_architecture']);
+    if (arch.instanceDomain) baseURL = baseURL || arch.instanceDomain;
+    if (arch.munchkinId) munchkinID = munchkinID || arch.munchkinId;
+  }
 
   /* c8 ignore next 4 */
   if (!formID || !baseURL || !munchkinID) {
-    const errorMsg = 'Marketo block is missing required fields (form id, marketo host, marketo munckin). Please add the missing fields in Milo.';
+    const errorMsg = 'Marketo block is missing required fields (form id, marketo host, marketo munckin). Please add the missing fields in Milo or the dynamic JSON.';
     window.lana?.log(errorMsg, { tags: 'marketo', severity: 'e' });
     el.innerHTML = `<p class="marketo-error" style="color: red; padding: 20px; border: 1px solid red; margin: 20px 0; font-weight: bold;">${errorMsg}</p>`;
     return;
   }
+
+  // Update formData so subsequent functions use the dynamically resolved values
+  formData[FORM_ID] = formID;
+  formData[BASE_URL] = baseURL;
+  formData[MUNCHKIN_ID] = munchkinID;
 
   const searchParams = new URLSearchParams(window.location.search);
   const ungated = searchParams.get(FORM_PARAM) === 'off';
