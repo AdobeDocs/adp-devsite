@@ -145,7 +145,7 @@ export const formValidate = (formEl) => {
 };
 
 export const decorateURL = async (destination, baseURL = window.location) => {
-  if (!(destination.startsWith('http') || destination.startsWith('/'))) return null;
+  if (!destination || !(destination.startsWith('http') || destination.startsWith('/'))) return null;
 
   try {
     let destinationUrl = new URL(destination, baseURL.origin);
@@ -599,7 +599,7 @@ export default async function init(el) {
   let formDataUrl = formData['form-data'];
   if (formDataUrl) {
     if (!formDataUrl.endsWith('.json') && !formDataUrl.startsWith('http') && !formDataUrl.startsWith('/')) {
-      formDataUrl = `${formDataUrl}.json`;
+      formDataUrl = `/test/petheanraj/marketo-form/${formDataUrl}.json`;
     }
 
     try {
