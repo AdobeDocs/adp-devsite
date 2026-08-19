@@ -151,10 +151,13 @@ const createProductContent = (table) => {
     listSection.className = 'products-list';
 
     const listHeading = listCell.querySelector('h1, h2, h3, h4');
+    listHeading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'logo-showcase-heading');
     if (listHeading) listSection.appendChild(listHeading.cloneNode(true));
 
     const ul = document.createElement('ul');
     ul.className = 'products-list-items';
+
+    listCell.querySelectorAll('p').forEach((p) => { p.classList.add('spectrum-Body', 'spectrum-Body--sizeM') });
 
     listCell.querySelectorAll(':scope > ul > li, ul > li').forEach((li) => {
       const link = li.querySelector('a');
