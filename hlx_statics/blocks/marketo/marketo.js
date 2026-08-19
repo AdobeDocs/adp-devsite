@@ -410,9 +410,6 @@ const readyForm = (form, formData) => {
 
         const legend = consentRow ? consentRow.querySelector('legend') : null;
 
-        const container = formEl.parentNode;
-        let insertNode = formEl.nextSibling;
-
         // Container for custom fields
         const customFieldsContainer = document.createElement('div');
         customFieldsContainer.className = 'marketo-custom-fields';
@@ -423,7 +420,8 @@ const readyForm = (form, formData) => {
           div.className = 'custom-field-wrapper mktoFormRow mktoFieldWrap mktoRequiredField';
 
           let fieldHTML = '';
-          const requiredMark = field.required ? '<span style="color:#d0021b;">*</span>' : '';
+          const cleanLabel = field.label.replace(/\s*\**\s*$/, '');
+          const requiredMark = field.required ? '<div class="mktoAsterix">*</div>' : '';
           const commonAttrs = `id="custom-${field.name}" class="mktoField" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'data-required="true"' : ''}`;
 
           if (field.type === 'textarea') {
@@ -439,30 +437,27 @@ const readyForm = (form, formData) => {
           }
 
           div.innerHTML = `
-            <label style="display:block;font-size:14px;font-weight:700;margin-bottom:4px;">${field.label} ${requiredMark}</label>
+            <label class="mktoLabel mktoHasWidth" style="display:block;font-size:14px;font-weight:700;margin-bottom:4px;">${requiredMark}${cleanLabel}</label>
             ${fieldHTML}
           `;
           customFieldsContainer.appendChild(div);
         });
 
-        container.insertBefore(customFieldsContainer, insertNode);
-        insertNode = customFieldsContainer.nextSibling;
+        formEl.appendChild(customFieldsContainer);
 
         // Consent Text
         if (legend) {
           const consentDiv = document.createElement('div');
           consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin-bottom: 16px; text-align: left;';
           consentDiv.innerHTML = legend.innerHTML;
-          container.insertBefore(consentDiv, insertNode);
-          insertNode = consentDiv.nextSibling;
+          formEl.appendChild(consentDiv);
         }
 
         // Submit Button
         const submitDiv = document.createElement('div');
         submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
-        submitDiv.innerHTML = `<button id="custom-submit-btn" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>`;
-        container.insertBefore(submitDiv, insertNode);
-        insertNode = submitDiv.nextSibling;
+        submitDiv.innerHTML = `<button type="button" id="custom-submit-btn" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>`;
+        formEl.appendChild(submitDiv);
 
         // Custom Submit Handler
         document.getElementById('custom-submit-btn').addEventListener('click', (e) => {
