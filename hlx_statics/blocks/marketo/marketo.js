@@ -451,10 +451,13 @@ const readyForm = (form, formData) => {
         return;
       }
 
-      // 2. Hide all HTML text rows
+      // Exclude specific Marketo logic/tracking strings if needed, but otherwise let HTML text show
       const htmlText = row.classList.contains('mktoHtmlText') ? row : row.querySelector('.mktoHtmlText');
       if (htmlText) {
-        row.classList.add('hidden-tracking-row');
+        const text = htmlText.textContent || '';
+        if (text.toLowerCase().includes('.js') || text.toLowerCase().includes('resource:resource') || text.toLowerCase().includes('vs_')) {
+          row.classList.add('hidden-tracking-row');
+        }
         return;
       }
 
@@ -479,8 +482,7 @@ const readyForm = (form, formData) => {
   });
   layoutObserver.observe(formEl, { childList: true, subtree: true });
 
-  const styleEl = document.createElement('style');
-  document.head.appendChild(styleEl);
+
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
   formEl.style.opacity = '';
