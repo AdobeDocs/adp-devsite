@@ -129,6 +129,13 @@ const createProductContent = (table) => {
     const paragraphs = introCell.querySelectorAll(':scope > p');
     paragraphs.forEach((p) => intro.appendChild(p.cloneNode(true)));
 
+    // Products-specific: the intro cell may optionally carry its own image.
+    // When it does, the picture becomes part of the intro's two-column
+    // layout, and products-media (below) is hidden via a card modifier
+    // class - the image is never duplicated into products-media.
+    const introPicture = introCell.querySelector('picture');
+    if (introPicture) intro.appendChild(introPicture.cloneNode(true));
+
     card.appendChild(intro);
   }
 
@@ -143,6 +150,15 @@ const createProductContent = (table) => {
     }
 
     card.appendChild(media);
+  }
+
+  // When the intro carries its own image, products-media must be hidden
+  // (it would otherwise duplicate the same visual). This only toggles a
+  // modifier class on the card - products-media stays in the DOM,
+  // products-list is untouched, and normal (non-Products) tabs are
+  // entirely unaffected since this code path only runs for isProducts.
+  if (card.querySelector('.products-intro picture')) {
+    card.classList.add('has-intro-image');
   }
 
   // Column 3 - product list
@@ -199,6 +215,41 @@ const createProductContent = (table) => {
   return productsContent;
 }
 
+/**
+ * Roving-tabindex keyboard navigation for a [role="tablist"].
+ * ArrowRight/ArrowLeft/Home/End move focus between tabs; Enter/Space
+ * activates the focused tab via the supplied callback.
+ */
+const bindTablistKeyboard = (tablist, activate) => {
+  tablist.addEventListener('keydown', (event) => {
+    const tabs = [...tablist.querySelectorAll('[role="tab"]')];
+    const currentIndex = tabs.indexOf(document.activeElement);
+
+    if (currentIndex === -1) return;
+
+    let nextIndex = -1;
+
+    if (event.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % tabs.length;
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = tabs.length - 1;
+    } else if (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Enter') {
+      event.preventDefault();
+      activate(currentIndex);
+      return;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    tabs[nextIndex].focus();
+  });
+};
+
 export default async function decorate(block) {
   block.querySelectorAll(':scope > div > div > pre > code').forEach((code) => {
     const match = code.textContent.trim().match(/^(data-[^=]+)=(.*)$/);
@@ -222,9 +273,33 @@ export default async function decorate(block) {
 
   const tabsWrapper = document.createElement('div');
   tabsWrapper.className = 'tabs-wrapper';
+  tabsWrapper.setAttribute('role', 'tablist');
 
   const contentWrapper = document.createElement('div');
   contentWrapper.className = 'content-wrapper';
+
+  const tabButtons = [];
+  const tabContents = [];
+
+  // Shared by click and keyboard activation so there is a single place
+  // that owns "which tab is active" - avoids duplicating that logic.
+  const activateTab = (index) => {
+    const btn = tabButtons[index];
+    const content = tabContents[index];
+    if (!btn || !content) return;
+
+    tabButtons.forEach((b) => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+      b.setAttribute('tabindex', '-1');
+    });
+    tabContents.forEach((c) => c.classList.remove('active'));
+
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    btn.setAttribute('tabindex', '0');
+    content.classList.add('active');
+  };
 
   let tabCount = 0;
 
@@ -250,11 +325,15 @@ export default async function decorate(block) {
         <span class="tab-title">${tabTitle}</span>
       `;
       tabButton.setAttribute('data-tab', `tab${tabCount}`);
+      tabButton.setAttribute('role', 'tab');
+      tabButton.setAttribute('aria-selected', tabCount === 1 ? 'true' : 'false');
+      tabButton.setAttribute('tabindex', tabCount === 1 ? '0' : '-1');
       if (tabCount === 1) tabButton.classList.add('active');
 
       const contentDiv = document.createElement('div');
       contentDiv.className = 'tab-content';
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
+      contentDiv.setAttribute('role', 'tabpanel');
       contentDiv.innerHTML = tabContent.innerHTML;
 
       decorateButtons(contentDiv);
@@ -279,18 +358,18 @@ export default async function decorate(block) {
 
       if (tabCount === 1) contentDiv.classList.add('active');
 
-      tabButton.addEventListener('click', () => {
-        tabsWrapper.querySelectorAll('.tab-button').forEach((btn) => btn.classList.remove('active'));
-        contentWrapper.querySelectorAll('.tab-content').forEach((content) => content.classList.remove('active'));
+      const tabIndex = tabCount - 1;
+      tabButtons.push(tabButton);
+      tabContents.push(contentDiv);
 
-        tabButton.classList.add('active');
-        contentDiv.classList.add('active');
-      });
+      tabButton.addEventListener('click', () => activateTab(tabIndex));
 
       tabsWrapper.appendChild(tabButton);
       contentWrapper.appendChild(contentDiv);
     }
   });
+
+  bindTablistKeyboard(tabsWrapper, activateTab);
 
   block.innerHTML = '';
   block.appendChild(tabsWrapper);
