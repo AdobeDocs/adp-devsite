@@ -108,7 +108,7 @@ export default async function decorate(block) {
             stage:       false,
             munchkinId:     "360-KCI-804",
             instanceDomain: "engage.adobe.com",
-            mktoFormJS:     "/js/forms2/js/forms2.min.js",
+            mktoFormJS:     "https://engage.adobe.com/js/forms2/js/forms2.min.js",
             formSubmitPath: "/index.php/leadCapture/save2",
             stageSettings: {
                 munchkinId:     "371-GBU-660",
