@@ -441,6 +441,9 @@ const readyForm = (form, formData) => {
   }
   const enforceFormLayout = () => {
     formEl.querySelectorAll('.mktoFormRow').forEach(row => {
+      // 0. Skip our custom additional fields
+      if (row.classList.contains('additional-field-row')) return;
+
       // 1. Hide any tracking input fields
       const field = row.querySelector('[name]');
       if (field && field.name.startsWith('vs_')) {
@@ -460,11 +463,19 @@ const readyForm = (form, formData) => {
           return;
         }
 
-        if (lowerText.includes('authorize') || lowerText.includes('privacy') || lowerText.includes('contact') || lowerText.includes('communication') || lowerText.includes('terms')) {
+        if (lowerText.includes('authorize') || lowerText.includes('privacy') || lowerText.includes('contact') || lowerText.includes('communication') || lowerText.includes('terms') || lowerText.includes('agree')) {
           row.classList.add('consent-row-fixed');
         } else {
           row.classList.add('hidden-tracking-row');
         }
+        return;
+      }
+
+      // 3. Hide rows that contain no visible inputs (e.g., Demandbase hidden fields with stray labels)
+      const allInputs = Array.from(row.querySelectorAll('input, select, textarea'));
+      const hasVisibleInput = allInputs.some(input => input.type !== 'hidden');
+      if (!hasVisibleInput) {
+        row.classList.add('hidden-tracking-row');
       }
     });
   };
