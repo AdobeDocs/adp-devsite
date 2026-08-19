@@ -441,11 +441,24 @@ const readyForm = (form, formData) => {
   }
   formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
     const text = htmlText.textContent || '';
+    const row = htmlText.closest('.mktoFormRow');
     if (!text.toLowerCase().includes('authorize') && !text.toLowerCase().includes('privacy') && !text.toLowerCase().includes('contact')) {
-      const row = htmlText.closest('.mktoFormRow');
       if (row && !row.querySelector('input, select, textarea')) row.style.setProperty('display', 'none', 'important');
+    } else {
+      // Ensure the consent row spans both columns and overrides any custom CSS hiding it
+      if (row) {
+        row.style.setProperty('grid-column', '1 / -1', 'important');
+        row.style.setProperty('display', 'block', 'important');
+      }
     }
   });
+
+  const buttonRow = formEl.querySelector('.mktoButtonRow');
+  if (buttonRow) {
+    buttonRow.style.setProperty('grid-column', '1 / -1', 'important');
+    buttonRow.style.setProperty('text-align', 'center', 'important');
+    buttonRow.style.setProperty('width', '100%', 'important');
+  }
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
   formEl.style.opacity = '';
