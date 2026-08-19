@@ -381,22 +381,74 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
 /* ==========================================================================
    Products variant
    Scoped entirely under main div.tab-wrapper .tab.products so none of this
-   affects the existing code/sub-tab tabs.
+   affects the existing code/sub-tab tabs or their navbar.
    ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Products navbar
+   Only applies inside .tab.products - the default .tabs-wrapper / .tab-button
+   styling elsewhere is untouched.
+   -------------------------------------------------------------------------- */
+
+main div.tab-wrapper .tab.products > .tabs-wrapper {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    max-width: 100%;
+    background: #f1f1f1;
+    border-radius: 12px;
+    padding: 6px;
+    margin: 0 auto 32px;
+}
+
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
+    height: auto;
+    width: auto;
+    margin: 0;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    background: transparent;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active,
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
+    background-color: #1a1a1a !important;
+    color: #fff !important;
+}
+
+/* --------------------------------------------------------------------------
+   Product content - three independent cards
+   -------------------------------------------------------------------------- */
 
 main div.tab-wrapper .tab.products .products-content {
     width: 100%;
 }
 
+/* Layout wrapper only - no border/background of its own, so it never
+   reads as one big outer card. */
 main div.tab-wrapper .tab.products .products-card {
     display: grid;
     grid-template-columns: 1fr 1.1fr 0.9fr;
     align-items: stretch;
-    gap: 32px;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 20px;
-    padding: 32px;
+    gap: 24px;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+/* Each section is its own fully independent card. */
+main div.tab-wrapper .tab.products .products-intro,
+main div.tab-wrapper .tab.products .products-media,
+main div.tab-wrapper .tab.products .products-list {
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    background-color: #fff;
     box-sizing: border-box;
 }
 
@@ -406,6 +458,7 @@ main div.tab-wrapper .tab.products .products-intro {
     flex-direction: column;
     justify-content: center;
     gap: 16px;
+    padding: 40px;
 }
 
 main div.tab-wrapper .tab.products .products-intro h1,
@@ -428,10 +481,9 @@ main div.tab-wrapper .tab.products .products-intro p {
 /* Column 2 - media */
 main div.tab-wrapper .tab.products .products-media {
     position: relative;
-    border-radius: 16px;
     overflow: hidden;
     min-height: 260px;
-    background: #e8e8e8;
+    padding: 0;
 }
 
 main div.tab-wrapper .tab.products .products-media picture {
@@ -453,6 +505,7 @@ main div.tab-wrapper .tab.products .products-list {
     flex-direction: column;
     justify-content: center;
     gap: 16px;
+    padding: 40px;
 }
 
 main div.tab-wrapper .tab.products .products-list h1,
@@ -517,8 +570,18 @@ main div.tab-wrapper .tab.products .product-new {
 }
 
 /* navy background variant support, consistent with existing tabs */
-main div.tab-wrapper > div.background-color-navy.products .products-card {
-    background: rgba(255, 255, 255, 0.04);
+main div.tab-wrapper > div.background-color-navy.products > .tabs-wrapper {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+main div.tab-wrapper > div.background-color-navy.products > .tabs-wrapper .tab-button {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+main div.tab-wrapper > div.background-color-navy.products .products-intro,
+main div.tab-wrapper > div.background-color-navy.products .products-media,
+main div.tab-wrapper > div.background-color-navy.products .products-list {
+    background-color: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.15);
 }
 
@@ -548,11 +611,21 @@ main div.tab-wrapper > div.background-color-navy.products .product-new {
 }
 
 @media only screen and (max-width: 860px) {
+    main div.tab-wrapper .tab.products > .tabs-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        justify-content: flex-start;
+    }
+
     main div.tab-wrapper .tab.products .products-card {
         display: flex;
         flex-direction: column;
+        gap: 20px;
+    }
+
+    main div.tab-wrapper .tab.products .products-intro,
+    main div.tab-wrapper .tab.products .products-list {
         padding: 24px;
-        gap: 24px;
     }
 
     main div.tab-wrapper .tab.products .products-media {
