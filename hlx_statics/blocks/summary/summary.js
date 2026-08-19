@@ -14,6 +14,7 @@ function decorateSummaryPosition(block) {
   const content = block.querySelector(':scope > div');
   if (!content) return;
   content.style.right = window.innerWidth <= 1024 ? '0%' : '10%';
+  
 }
 
 export default async function decorate(block) {
@@ -63,7 +64,7 @@ export default async function decorate(block) {
 
   if (block.querySelector('picture')) {
     //if there is an image as the background set up the overlay style
-    const overlayStyle = 'position: absolute; display: flex; left: 0%; z-index: 1000;';
+    const overlayStyle = 'position: absolute; display: flex; z-index: 1000;';
     rearrangeHeroPicture(block, overlayStyle);
   }
 
