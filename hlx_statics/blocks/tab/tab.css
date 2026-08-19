@@ -575,43 +575,6 @@ main div.tab-wrapper .tab.products .product-new {
     color: rgba(0, 0, 0, 0.55);
 }
 
-/* --------------------------------------------------------------------------
-   Products intro with image
-   When .products-intro contains a picture, it becomes a two-column layout
-   (content + image) and takes the place of the media column; the
-   separate .products-media card is hidden so the image is never shown
-   twice. .products-list is untouched by any of this.
-   -------------------------------------------------------------------------- */
-
-main div.tab-wrapper .tab.products .products-card.has-intro-image {
-    grid-template-columns: 2fr 1fr;
-}
-
-main div.tab-wrapper .tab.products .products-card.has-intro-image .products-intro {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 24px;
-}
-
-main div.tab-wrapper .tab.products .products-card.has-intro-image .products-intro picture {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
-main div.tab-wrapper .tab.products .products-card.has-intro-image .products-intro picture img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    border-radius: 12px;
-}
-
-main div.tab-wrapper .tab.products .products-card.has-intro-image .products-media {
-    display: none;
-}
-
 /* navy background variant support, consistent with existing tabs */
 main div.tab-wrapper > div.background-color-navy.products > .tabs-wrapper {
     background: rgba(255, 255, 255, 0.08);
@@ -651,11 +614,6 @@ main div.tab-wrapper > div.background-color-navy.products .product-new {
     main div.tab-wrapper .tab.products .products-intro { grid-area: intro; }
     main div.tab-wrapper .tab.products .products-media { grid-area: media; }
     main div.tab-wrapper .tab.products .products-list { grid-area: list; }
-
-    main div.tab-wrapper .tab.products .products-card.has-intro-image {
-        grid-template-columns: 2fr 1fr;
-        grid-template-areas: "intro list";
-    }
 }
 
 @media only screen and (max-width: 860px) {
@@ -678,9 +636,5 @@ main div.tab-wrapper > div.background-color-navy.products .product-new {
 
     main div.tab-wrapper .tab.products .products-media {
         min-height: 220px;
-    }
-
-    main div.tab-wrapper .tab.products .products-card.has-intro-image .products-intro {
-        grid-template-columns: 1fr;
     }
 }
