@@ -13,7 +13,7 @@ function decorateSummaryPosition(block) {
   if (!block.classList.contains('right')) return;
   const content = block.querySelector(':scope > div');
   if (!content) return;
-  content.style.left = window.innerWidth <= 1024 ? '0%' : '30%';
+  content.style.right = window.innerWidth <= 1024 ? '0%' : '10%';
 }
 
 export default async function decorate(block) {
