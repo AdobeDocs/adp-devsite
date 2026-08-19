@@ -450,7 +450,7 @@ const readyForm = (form, formData) => {
           return; // Do not hide this row
         } else {
           row.classList.add('hidden-tracking-row');
-          row.style.display = 'none';
+          row.style.setProperty('display', 'none', 'important');
         }
       }
 
@@ -458,7 +458,7 @@ const readyForm = (form, formData) => {
       const field = row.querySelector('[name]');
       if (field && field.name.startsWith('vs_')) {
         row.classList.add('hidden-tracking-row');
-        row.style.display = 'none';
+        row.style.setProperty('display', 'none', 'important');
       }
     });
   };
@@ -493,7 +493,8 @@ const readyForm = (form, formData) => {
       display: block !important;
       width: 100% !important;
     }
-    form.mktoForm .mktoFormRow.hidden-tracking-row {
+    form.mktoForm .mktoFormRow.hidden-tracking-row,
+    form.mktoForm .mktoFormRow[class*="vs_"] {
       display: none !important;
     }
   `;
