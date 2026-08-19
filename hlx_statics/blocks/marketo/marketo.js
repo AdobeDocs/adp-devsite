@@ -399,33 +399,33 @@ const readyForm = (form, formData) => {
   if (formData['additional-fields']) {
     try {
       const additionalFields = JSON.parse(formData['additional-fields']);
-      
+
       setTimeout(() => {
         // Hide internal Marketo elements that we are replacing/bypassing
         const buttonRow = formEl.querySelector('.mktoButtonRow');
         if (buttonRow) buttonRow.style.setProperty('display', 'none', 'important');
-        
+
         const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac') || formEl.querySelector('.mktoFormRow.adobe-privacy');
         if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
-        
+
         const legend = consentRow ? consentRow.querySelector('legend') : null;
-        
+
         const container = formEl.parentNode;
         let insertNode = formEl.nextSibling;
-        
+
         // Container for custom fields
         const customFieldsContainer = document.createElement('div');
         customFieldsContainer.className = 'marketo-custom-fields';
-        
+
         additionalFields.forEach((field) => {
           const div = document.createElement('div');
           div.style.cssText = 'margin: 8px 0; text-align: left;';
           div.className = 'custom-field-wrapper';
-          
+
           let fieldHTML = '';
           const requiredMark = field.required ? '<span style="color:#d0021b;">*</span>' : '';
           const commonAttrs = `id="custom-${field.name}" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'data-required="true"' : ''}`;
-          
+
           if (field.type === 'textarea') {
             fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 6}"></textarea>`;
           } else if (field.type === 'select') {
@@ -437,70 +437,18 @@ const readyForm = (form, formData) => {
           } else {
             fieldHTML = `<input type="${field.type || 'text'}" ${commonAttrs} />`;
           }
-          
+
           div.innerHTML = `
             <label style="display:block;font-size:14px;font-weight:700;margin-bottom:4px;">${field.label} ${requiredMark}</label>
             ${fieldHTML}
           `;
           customFieldsContainer.appendChild(div);
         });
-        
+
         container.insertBefore(customFieldsContainer, insertNode);
         insertNode = customFieldsContainer.nextSibling;
-        
-        // Submit Button
-        const submitDiv = document.createElement('div');
-        submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
-        submitDiv.innerHTML = `<button id="custom-submit-btn" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>`;
-        container.insertBefore(submitDiv, insertNode);
-        insertNode = submitDiv.nextSibling;
-        
-        // Consent Text
-        if (legend) {
-          const consentDiv = document.createElement('div');
-          consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin-top: 16px; text-align: left;';
-          consentDiv.innerHTML = legend.innerHTML;
-          container.insertBefore(consentDiv, insertNode);
-        }
-        
-        // Custom Submit Handler
-        document.getElementById('custom-submit-btn').addEventListener('click', (e) => {
-          e.preventDefault();
-          let isValid = true;
-          const customData = {};
-          
-          additionalFields.forEach((field) => {
-            const el = document.getElementById(`custom-${field.name}`);
-            if (!el) return;
-            const val = el.value.trim();
-            customData[field.name] = val;
-            
-            let err = el.parentNode.querySelector('.custom-field-error');
-            if (field.required && !val) {
-              isValid = false;
-              el.style.borderColor = '#d0021b';
-              if (!err) {
-                err = document.createElement('div');
-                err.className = 'custom-field-error';
-                err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; text-align: left;';
-                err.textContent = 'This field is required.';
-                el.after(err);
-              }
-            } else {
-              el.style.borderColor = '#6e6e6e';
-              if (err) err.remove();
-            }
-          });
-          
-          if (!isValid) return;
-          
-          form.addHiddenFields(customData);
-          const realSubmit = formEl.querySelector('.mktoButton');
-          if (realSubmit) realSubmit.click();
-        });
-        
       }, 500);
-      
+
     } catch (e) {
       window.lana?.log(`Failed to parse additional-fields JSON: ${e.message}`, { tags: 'marketo', severity: 'w' });
     }
