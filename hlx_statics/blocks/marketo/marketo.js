@@ -383,105 +383,128 @@ const readyForm = (form, formData) => {
   const formEl = form.getFormElem().get(0);
   const el = formEl.closest('.marketo');
 
+  // Clear cookie-prefilled fields if configured
+  if (formData.prefillFields) {
+    try {
+      const prefills = typeof formData.prefillFields === 'string' ? JSON.parse(formData.prefillFields) : formData.prefillFields;
+      const clearVals = {};
+      Object.keys(prefills).forEach(key => clearVals[key] = '');
+      form.vals(clearVals);
+    } catch (e) {
+      window.lana?.log(`Failed to parse prefillFields: ${e.message}`, { tags: 'marketo', severity: 'w' });
+    }
+  }
+
+  // Inject additional fields externally
   if (formData['additional-fields']) {
     try {
       const additionalFields = JSON.parse(formData['additional-fields']);
-      let insertBeforeTarget = formEl.querySelector('.mktoButtonRow');
-
-
-      additionalFields.forEach((field) => {
-        const row = document.createElement('div');
-        row.className = 'mktoFormRow additional-field-row';
-        if (field.type === 'textarea') {
-          row.classList.add('additional-field-full-width');
-        }
-
-        let fieldHTML = '';
-        const commonAttrs = `name="${field.name}" id="${field.name}" class="mktoField mktoHasWidth${field.required ? ' mktoRequired' : ''}" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'required' : ''}`;
-
-        if (field.type === 'textarea') {
-          fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 4}"></textarea>`;
-        } else if (field.type === 'select') {
-          const options = Array.isArray(field.options) ? field.options.map(opt => `<option value="${opt.value || opt}">${opt.label || opt}</option>`).join('') : '';
-          fieldHTML = `<select ${commonAttrs}>
-            ${field.placeholder ? `<option value="">${field.placeholder}</option>` : ''}
-            ${options}
-          </select>`;
-        } else {
-          fieldHTML = `<input type="${field.type || 'text'}" ${commonAttrs} />`;
-        }
-
-        row.innerHTML = `
-          <div class="mktoFieldWrap mktoRequiredField">
-            <label for="${field.name}" class="mktoLabel mktoHasWidth">
-              ${field.required ? '<div class="mktoAsterix">*</div>' : ''}${field.label}
-            </label>
-            <div class="mktoGutter mktoHasWidth"></div>
+      
+      setTimeout(() => {
+        // Hide internal Marketo elements that we are replacing/bypassing
+        const buttonRow = formEl.querySelector('.mktoButtonRow');
+        if (buttonRow) buttonRow.style.setProperty('display', 'none', 'important');
+        
+        const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac') || formEl.querySelector('.mktoFormRow.adobe-privacy');
+        if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
+        
+        const legend = consentRow ? consentRow.querySelector('legend') : null;
+        
+        const container = formEl.parentNode;
+        let insertNode = formEl.nextSibling;
+        
+        // Container for custom fields
+        const customFieldsContainer = document.createElement('div');
+        customFieldsContainer.className = 'marketo-custom-fields';
+        
+        additionalFields.forEach((field) => {
+          const div = document.createElement('div');
+          div.style.cssText = 'margin: 8px 0; text-align: left;';
+          div.className = 'custom-field-wrapper';
+          
+          let fieldHTML = '';
+          const requiredMark = field.required ? '<span style="color:#d0021b;">*</span>' : '';
+          const commonAttrs = `id="custom-${field.name}" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'data-required="true"' : ''}`;
+          
+          if (field.type === 'textarea') {
+            fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 6}"></textarea>`;
+          } else if (field.type === 'select') {
+            const options = Array.isArray(field.options) ? field.options.map(opt => `<option value="${opt.value || opt}">${opt.label || opt}</option>`).join('') : '';
+            fieldHTML = `<select ${commonAttrs}>
+              ${field.placeholder ? `<option value="">${field.placeholder}</option>` : ''}
+              ${options}
+            </select>`;
+          } else {
+            fieldHTML = `<input type="${field.type || 'text'}" ${commonAttrs} />`;
+          }
+          
+          div.innerHTML = `
+            <label style="display:block;font-size:14px;font-weight:700;margin-bottom:4px;">${field.label} ${requiredMark}</label>
             ${fieldHTML}
-            <div class="mktoClear"></div>
-          </div>
-        `;
-
-        if (insertBeforeTarget) {
-          insertBeforeTarget.before(row);
-        } else {
-          formEl.appendChild(row);
+          `;
+          customFieldsContainer.appendChild(div);
+        });
+        
+        container.insertBefore(customFieldsContainer, insertNode);
+        insertNode = customFieldsContainer.nextSibling;
+        
+        // Submit Button
+        const submitDiv = document.createElement('div');
+        submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
+        submitDiv.innerHTML = `<button id="custom-submit-btn" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>`;
+        container.insertBefore(submitDiv, insertNode);
+        insertNode = submitDiv.nextSibling;
+        
+        // Consent Text
+        if (legend) {
+          const consentDiv = document.createElement('div');
+          consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin-top: 16px; text-align: left;';
+          consentDiv.innerHTML = legend.innerHTML;
+          container.insertBefore(consentDiv, insertNode);
         }
-      });
+        
+        // Custom Submit Handler
+        document.getElementById('custom-submit-btn').addEventListener('click', (e) => {
+          e.preventDefault();
+          let isValid = true;
+          const customData = {};
+          
+          additionalFields.forEach((field) => {
+            const el = document.getElementById(`custom-${field.name}`);
+            if (!el) return;
+            const val = el.value.trim();
+            customData[field.name] = val;
+            
+            let err = el.parentNode.querySelector('.custom-field-error');
+            if (field.required && !val) {
+              isValid = false;
+              el.style.borderColor = '#d0021b';
+              if (!err) {
+                err = document.createElement('div');
+                err.className = 'custom-field-error';
+                err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; text-align: left;';
+                err.textContent = 'This field is required.';
+                el.after(err);
+              }
+            } else {
+              el.style.borderColor = '#6e6e6e';
+              if (err) err.remove();
+            }
+          });
+          
+          if (!isValid) return;
+          
+          form.addHiddenFields(customData);
+          const realSubmit = formEl.querySelector('.mktoButton');
+          if (realSubmit) realSubmit.click();
+        });
+        
+      }, 500);
+      
     } catch (e) {
       window.lana?.log(`Failed to parse additional-fields JSON: ${e.message}`, { tags: 'marketo', severity: 'w' });
     }
   }
-  const enforceFormLayout = () => {
-    formEl.querySelectorAll('.mktoFormRow').forEach(row => {
-      // 0. Skip our custom additional fields
-      if (row.classList.contains('additional-field-row')) return;
-
-      // Hide Demandbase tracking fields
-      const textContent = row.textContent || '';
-      if (textContent.toLowerCase().includes('demandbase')) {
-        row.classList.add('hidden-tracking-row');
-        return;
-      }
-
-      // 1. Hide any tracking input fields
-      const field = row.querySelector('[name]');
-      if (field && field.name.startsWith('vs_')) {
-        row.classList.add('hidden-tracking-row');
-        return;
-      }
-
-      // Exclude specific Marketo logic/tracking strings if needed, but otherwise let HTML text show
-      const htmlText = row.classList.contains('mktoHtmlText') ? row : row.querySelector('.mktoHtmlText');
-      if (htmlText) {
-        const text = htmlText.textContent || '';
-        if (text.toLowerCase().includes('.js') || text.toLowerCase().includes('resource:resource') || text.toLowerCase().includes('vs_')) {
-          row.classList.add('hidden-tracking-row');
-        }
-        return;
-      }
-
-      const allInputs = Array.from(row.querySelectorAll('input, select, textarea'));
-      const hasVisibleInput = allInputs.some(input => input.type !== 'hidden');
-      if (!hasVisibleInput) {
-        row.classList.add('hidden-tracking-row');
-      }
-
-      if (row.querySelector('textarea')) {
-        row.classList.add('textarea-full-width');
-      }
-    });
-  };
-
-  enforceFormLayout();
-  // Safe layout observer that avoids infinite loops
-  const layoutObserver = new MutationObserver(() => {
-    layoutObserver.disconnect();
-    enforceFormLayout();
-    layoutObserver.observe(formEl, { childList: true, subtree: true });
-  });
-  layoutObserver.observe(formEl, { childList: true, subtree: true });
-
 
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
@@ -490,7 +513,7 @@ const readyForm = (form, formData) => {
   formEl.style.setProperty('width', '100%', 'important');
   formEl.classList.add('mktoForm--fade-in', 'mktoVisible');
 
-  // Strip initial widths defensively (once, without an observer)
+  // Strip initial widths defensively
   formEl.querySelectorAll('[style*="width"]').forEach((element) => {
     element.style.width = '';
   });
@@ -503,7 +526,7 @@ const readyForm = (form, formData) => {
     setDataLayer(FORM_XDFRAME, 'ready');
     const formVisible = isVisible(formEl);
     if (hadFailed && formVisible) {
-      window.lana?.log(LANA_MESSAGE.RENDER_RECOVERED, { tags: 'marketo,render-recovered', severity: 'i', sampleRate: 100 });
+      window.lana?.log(LANA_MESSAGE.RENDER_RECOVERED, { tags: 'marketo', severity: 'i', sampleRate: 100 });
       delete el.dataset.mktoFailed;
       el.querySelector('.marketo-overlay')?.remove();
       formEl.inert = false;
@@ -514,7 +537,6 @@ const readyForm = (form, formData) => {
   formTimeout(el, () => getDataLayer(FORM_XDFRAME) !== 'ready', LANA_MESSAGE.HANDSHAKE_FAILED);
 
   formEl.addEventListener('focus', ({ target }) => {
-    /* c8 ignore next 9 */
     const hasError = formEl.classList.contains('show-warnings');
     const firstInvalidField = formEl.querySelector('.mktoRequired[aria-invalid=true]');
     if (!['text', 'email', 'tel', 'textarea'].includes(target.type)
@@ -526,44 +548,17 @@ const readyForm = (form, formData) => {
     window.scrollTo(0, offsetPosition);
   }, true);
 
-  form.onValidate(() => {
+  form.onValidate((valid) => {
     formValidate(formEl);
-    if (formData['additional-fields']) {
-      try {
-        const additionalFields = JSON.parse(formData['additional-fields']);
-        additionalFields.forEach((field) => {
-          if (field.required) {
-            const fieldEl = formEl.querySelector(`[name="${field.name}"]`);
-            if (fieldEl && !fieldEl.value.trim()) {
-              form.submittable(false);
-              form.showErrorMessage('This field is required.', form.getFormElem().find(`[name="${field.name}"]`));
-            }
-          }
-        });
-      } catch (e) { }
-    }
+    if (valid) form.submittable(true);
   });
 
   form.onSubmit(() => {
     formSubmit(formEl);
-    if (formData['additional-fields']) {
-      try {
-        const additionalFields = JSON.parse(formData['additional-fields']);
-        const customData = {};
-        additionalFields.forEach((field) => {
-          const fieldEl = formEl.querySelector(`[name="${field.name}"]`);
-          if (fieldEl) {
-            customData[field.name] = fieldEl.value;
-          }
-        });
-        form.addHiddenFields(customData);
-      } catch (e) { }
-    }
   });
 
   form.onSuccess(() => formSuccess(formEl, formData));
 };
-
 export const loadMarketo = (el, formData) => {
   console.log("Marketo Data", formData, el)
   setDataLayer(FORM_STATUS, 'loading');
@@ -690,6 +685,7 @@ function decorateForm(el, formData) {
 }
 
 export default async function init(el) {
+  sessionStorage.removeItem('mktoPreFillFields');
   setDataLayer(FORM_STATUS, 'init');
   const children = Array.from(el.querySelectorAll(':scope > div'));
   let formData = {};
