@@ -447,6 +447,58 @@ const readyForm = (form, formData) => {
 
         container.insertBefore(customFieldsContainer, insertNode);
         insertNode = customFieldsContainer.nextSibling;
+
+        // Submit Button
+        const submitDiv = document.createElement('div');
+        submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
+        submitDiv.innerHTML = `<button id="custom-submit-btn" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>`;
+        container.insertBefore(submitDiv, insertNode);
+        insertNode = submitDiv.nextSibling;
+
+        // Consent Text
+        if (legend) {
+          const consentDiv = document.createElement('div');
+          consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin-top: 16px; text-align: left;';
+          consentDiv.innerHTML = legend.innerHTML;
+          container.insertBefore(consentDiv, insertNode);
+        }
+
+        // Custom Submit Handler
+        document.getElementById('custom-submit-btn').addEventListener('click', (e) => {
+          e.preventDefault();
+          let isValid = true;
+          const customData = {};
+
+          additionalFields.forEach((field) => {
+            const el = document.getElementById(`custom-${field.name}`);
+            if (!el) return;
+            const val = el.value.trim();
+            customData[field.name] = val;
+
+            let err = el.parentNode.querySelector('.custom-field-error');
+            if (field.required && !val) {
+              isValid = false;
+              el.style.borderColor = '#d0021b';
+              if (!err) {
+                err = document.createElement('div');
+                err.className = 'custom-field-error';
+                err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; text-align: left;';
+                err.textContent = 'This field is required.';
+                el.after(err);
+              }
+            } else {
+              el.style.borderColor = '#6e6e6e';
+              if (err) err.remove();
+            }
+          });
+
+          if (!isValid) return;
+
+          form.addHiddenFields(customData);
+          const realSubmit = formEl.querySelector('.mktoButton');
+          if (realSubmit) realSubmit.click();
+        });
+
       }, 500);
 
     } catch (e) {
