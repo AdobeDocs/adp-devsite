@@ -439,38 +439,14 @@ const readyForm = (form, formData) => {
       window.lana?.log(`Failed to parse additional-fields JSON: ${e.message}`, { tags: 'marketo', severity: 'w' });
     }
   }
-  const enforceFormLayout = () => {
-    formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
-      const text = htmlText.textContent || '';
+  // Tag the consent row so we can preserve it
+  formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
+    const text = htmlText.textContent || '';
+    if (text.toLowerCase().includes('authorize') || text.toLowerCase().includes('privacy') || text.toLowerCase().includes('contact')) {
       const row = htmlText.closest('.mktoFormRow');
-      if (row) {
-        if (!text.toLowerCase().includes('authorize') && !text.toLowerCase().includes('privacy') && !text.toLowerCase().includes('contact')) {
-          row.classList.add('hidden-tracking-row');
-          row.style.setProperty('display', 'none', 'important');
-        } else {
-          row.classList.add('consent-row-fixed');
-        }
-      }
-    });
-
-    // Hide tracking fields that Marketo might render as visible inputs
-    formEl.querySelectorAll('.mktoFormRow').forEach(row => {
-      const field = row.querySelector('[name]');
-      if (field && field.name.startsWith('vs_')) {
-        row.classList.add('hidden-tracking-row');
-        row.style.setProperty('display', 'none', 'important');
-      }
-    });
-  };
-
-  // Run immediately and keep enforcing if Marketo redraws the form
-  enforceFormLayout();
-  const layoutObserver = new MutationObserver(() => {
-    layoutObserver.disconnect();
-    enforceFormLayout();
-    layoutObserver.observe(formEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+      if (row) row.classList.add('consent-row-fixed');
+    }
   });
-  layoutObserver.observe(formEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
 
   const styleEl = document.createElement('style');
   styleEl.textContent = `
@@ -497,7 +473,9 @@ const readyForm = (form, formData) => {
       display: block !important;
       width: 100% !important;
     }
-    #${formEl.id} .mktoFormRow.hidden-tracking-row {
+    /* Hide all tracking text and hidden inputs rendered as rows */
+    #${formEl.id} .mktoFormRow:has(.mktoHtmlText):not(.consent-row-fixed),
+    #${formEl.id} .mktoFormRow:has([name^="vs_"]) {
       display: none !important;
     }
   `;
