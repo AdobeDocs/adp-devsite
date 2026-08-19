@@ -368,6 +368,11 @@ export const formSuccess = (formEl, formData) => {
     return false;
   }
 
+  if (formData?.[SUCCESS_TYPE] === 'redirect' && formData?.[SUCCESS_CONTENT]) {
+    window.location.assign(formData[SUCCESS_CONTENT]);
+    return false;
+  }
+
   if (formData?.[SUCCESS_TYPE] !== 'section') return true;
   toggleSuccessSection(formData);
   setDataLayer(SUCCESS_TYPE, 'message');
@@ -377,6 +382,51 @@ export const formSuccess = (formEl, formData) => {
 const readyForm = (form, formData) => {
   const formEl = form.getFormElem().get(0);
   const el = formEl.closest('.marketo');
+
+  if (formData['additional-fields']) {
+    try {
+      const additionalFields = JSON.parse(formData['additional-fields']);
+      const buttonRow = formEl.querySelector('.mktoButtonRow');
+      additionalFields.forEach((field) => {
+        const row = document.createElement('div');
+        row.className = 'mktoFormRow additional-field-row';
+
+        let fieldHTML = '';
+        const commonAttrs = `name="${field.name}" id="${field.name}" class="mktoField mktoHasWidth${field.required ? ' mktoRequired' : ''}" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'required' : ''}`;
+        
+        if (field.type === 'textarea') {
+          fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 4}"></textarea>`;
+        } else if (field.type === 'select') {
+          const options = Array.isArray(field.options) ? field.options.map(opt => `<option value="${opt.value || opt}">${opt.label || opt}</option>`).join('') : '';
+          fieldHTML = `<select ${commonAttrs}>
+            ${field.placeholder ? `<option value="">${field.placeholder}</option>` : ''}
+            ${options}
+          </select>`;
+        } else {
+          fieldHTML = `<input type="${field.type || 'text'}" ${commonAttrs} />`;
+        }
+
+        row.innerHTML = `
+          <div class="mktoFieldWrap mktoRequiredField">
+            <label for="${field.name}" class="mktoLabel mktoHasWidth">
+              ${field.required ? '<div class="mktoAsterix">*</div>' : ''}${field.label}
+            </label>
+            <div class="mktoGutter mktoHasWidth"></div>
+            ${fieldHTML}
+            <div class="mktoClear"></div>
+          </div>
+        `;
+
+        if (buttonRow) {
+          buttonRow.before(row);
+        } else {
+          formEl.appendChild(row);
+        }
+      });
+    } catch (e) {
+      window.lana?.log(`Failed to parse additional-fields JSON: ${e.message}`, { tags: 'marketo', severity: 'w' });
+    }
+  }
   formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
     const text = htmlText.textContent || '';
     if (!text.toLowerCase().includes('authorize') && !text.toLowerCase().includes('privacy') && !text.toLowerCase().includes('contact')) {
@@ -445,8 +495,42 @@ const readyForm = (form, formData) => {
     const offsetPosition = targetPosition + window.pageYOffset - pageTop - window.innerHeight / 2;
     window.scrollTo(0, offsetPosition);
   }, true);
-  form.onValidate(() => formValidate(formEl));
-  form.onSubmit(() => formSubmit(formEl));
+
+  form.onValidate(() => {
+    formValidate(formEl);
+    if (formData['additional-fields']) {
+      try {
+        const additionalFields = JSON.parse(formData['additional-fields']);
+        additionalFields.forEach((field) => {
+          if (field.required) {
+            const fieldEl = formEl.querySelector(`[name="${field.name}"]`);
+            if (fieldEl && !fieldEl.value.trim()) {
+              form.submittable(false);
+              form.showErrorMessage('This field is required.', form.getFormElem().find(`[name="${field.name}"]`));
+            }
+          }
+        });
+      } catch (e) { }
+    }
+  });
+
+  form.onSubmit(() => {
+    formSubmit(formEl);
+    if (formData['additional-fields']) {
+      try {
+        const additionalFields = JSON.parse(formData['additional-fields']);
+        const customData = {};
+        additionalFields.forEach((field) => {
+          const fieldEl = formEl.querySelector(`[name="${field.name}"]`);
+          if (fieldEl) {
+            customData[field.name] = fieldEl.value;
+          }
+        });
+        form.addHiddenFields(customData);
+      } catch (e) { }
+    }
+  });
+
   form.onSuccess(() => formSuccess(formEl, formData));
 };
 
@@ -628,6 +712,16 @@ export default async function init(el) {
       }
     } catch (e) {
       window.lana?.log(`Failed to fetch marketo form data: ${e.message}`, { tags: 'marketo', severity: 'e' });
+    }
+  }
+
+  if (formData.success) {
+    try {
+      const parsedSuccess = JSON.parse(formData.success);
+      if (parsedSuccess.type) formData[SUCCESS_TYPE] = parsedSuccess.type;
+      if (parsedSuccess.content) formData[SUCCESS_CONTENT] = parsedSuccess.content;
+    } catch (e) {
+      // Ignore invalid JSON
     }
   }
 
