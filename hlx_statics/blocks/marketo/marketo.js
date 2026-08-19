@@ -386,16 +386,28 @@ const readyForm = (form, formData) => {
   if (formData['additional-fields']) {
     try {
       const additionalFields = JSON.parse(formData['additional-fields']);
-      const buttonRow = formEl.querySelector('.mktoButtonRow');
+      let insertBeforeTarget = formEl.querySelector('.mktoButtonRow');
+      // Attempt to place additional fields before the legal consent text row if it exists
+      formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
+        const text = htmlText.textContent || '';
+        if (text.toLowerCase().includes('authorize') || text.toLowerCase().includes('privacy') || text.toLowerCase().includes('contact')) {
+          const consentRow = htmlText.closest('.mktoFormRow');
+          if (consentRow) insertBeforeTarget = consentRow;
+        }
+      });
+
       additionalFields.forEach((field) => {
         const row = document.createElement('div');
         row.className = 'mktoFormRow additional-field-row';
+        if (field.type === 'textarea') {
+          row.style.cssText = 'grid-column: 1 / -1; width: 100%; margin-bottom: 10px;';
+        }
 
         let fieldHTML = '';
         const commonAttrs = `name="${field.name}" id="${field.name}" class="mktoField mktoHasWidth${field.required ? ' mktoRequired' : ''}" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'required' : ''}`;
         
         if (field.type === 'textarea') {
-          fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 4}"></textarea>`;
+          fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 4}" style="width: 100%; box-sizing: border-box;"></textarea>`;
         } else if (field.type === 'select') {
           const options = Array.isArray(field.options) ? field.options.map(opt => `<option value="${opt.value || opt}">${opt.label || opt}</option>`).join('') : '';
           fieldHTML = `<select ${commonAttrs}>
@@ -407,8 +419,8 @@ const readyForm = (form, formData) => {
         }
 
         row.innerHTML = `
-          <div class="mktoFieldWrap mktoRequiredField">
-            <label for="${field.name}" class="mktoLabel mktoHasWidth">
+          <div class="mktoFieldWrap mktoRequiredField" style="${field.type === 'textarea' ? 'width: 100%;' : ''}">
+            <label for="${field.name}" class="mktoLabel mktoHasWidth" style="${field.type === 'textarea' ? 'width: 100%;' : ''}">
               ${field.required ? '<div class="mktoAsterix">*</div>' : ''}${field.label}
             </label>
             <div class="mktoGutter mktoHasWidth"></div>
@@ -417,8 +429,8 @@ const readyForm = (form, formData) => {
           </div>
         `;
 
-        if (buttonRow) {
-          buttonRow.before(row);
+        if (insertBeforeTarget) {
+          insertBeforeTarget.before(row);
         } else {
           formEl.appendChild(row);
         }
