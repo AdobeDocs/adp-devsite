@@ -444,6 +444,13 @@ const readyForm = (form, formData) => {
       // 0. Skip our custom additional fields
       if (row.classList.contains('additional-field-row')) return;
 
+      // Hide Demandbase tracking fields
+      const textContent = row.textContent || '';
+      if (textContent.toLowerCase().includes('demandbase')) {
+        row.classList.add('hidden-tracking-row');
+        return;
+      }
+
       // 1. Hide any tracking input fields
       const field = row.querySelector('[name]');
       if (field && field.name.startsWith('vs_')) {
