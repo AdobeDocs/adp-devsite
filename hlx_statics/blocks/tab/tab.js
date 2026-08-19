@@ -93,40 +93,6 @@ const createSubTabs = (table) => {
 const isNewBadgeText = (text) => /^\(?\s*new\s*\)?$/i.test(text || '');
 
 /**
- * Standard roving-tabindex keyboard handling for a tablist:
- * ArrowLeft/ArrowRight/Home/End move focus, Enter/Space activate the
- * currently focused tab via the supplied callback.
- */
-const bindTablistKeyboard = (tablist, activate) => {
-  tablist.addEventListener('keydown', (event) => {
-    const tabs = [...tablist.querySelectorAll('[role="tab"]')];
-    const currentIndex = tabs.indexOf(document.activeElement);
-    if (currentIndex === -1) return;
-
-    let nextIndex = -1;
-
-    if (event.key === 'ArrowRight') {
-      nextIndex = (currentIndex + 1) % tabs.length;
-    } else if (event.key === 'ArrowLeft') {
-      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    } else if (event.key === 'Home') {
-      nextIndex = 0;
-    } else if (event.key === 'End') {
-      nextIndex = tabs.length - 1;
-    } else if (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Enter') {
-      event.preventDefault();
-      activate(currentIndex);
-      return;
-    } else {
-      return;
-    }
-
-    event.preventDefault();
-    tabs[nextIndex].focus();
-  });
-};
-
-/**
  * Transforms a "products" authoring table into the product card layout:
  *   column 1 -> intro (heading + paragraph)
  *   column 2 -> media (picture)
@@ -158,30 +124,10 @@ const createProductContent = (table) => {
     intro.className = 'products-intro';
 
     const heading = introCell.querySelector('h1, h2, h3, h4');
-    const paragraphs = [...introCell.querySelectorAll(':scope > p')];
-    // A picture authored directly inside the intro (as opposed to the
-    // dedicated media cell) triggers the two-column intro layout.
-    const introPicture = introCell.querySelector('picture');
+    if (heading) intro.appendChild(heading.cloneNode(true));
 
-    if (introPicture) {
-      intro.classList.add('has-image');
-
-      const textCol = document.createElement('div');
-      textCol.className = 'products-intro-text';
-      if (heading) textCol.appendChild(heading.cloneNode(true));
-      paragraphs
-        .filter((p) => !p.contains(introPicture))
-        .forEach((p) => textCol.appendChild(p.cloneNode(true)));
-
-      const imageCol = document.createElement('div');
-      imageCol.className = 'products-intro-image';
-      imageCol.appendChild(introPicture.cloneNode(true));
-
-      intro.append(textCol, imageCol);
-    } else {
-      if (heading) intro.appendChild(heading.cloneNode(true));
-      paragraphs.forEach((p) => intro.appendChild(p.cloneNode(true)));
-    }
+    const paragraphs = introCell.querySelectorAll(':scope > p');
+    paragraphs.forEach((p) => intro.appendChild(p.cloneNode(true)));
 
     card.appendChild(intro);
   }
@@ -281,7 +227,6 @@ export default async function decorate(block) {
   contentWrapper.className = 'content-wrapper';
 
   let tabCount = 0;
-  const productTabButtons = [];
 
   // Only the direct children of the block are tab containers. Using a
   // recursive selector here would also pick up nested elements (e.g. from
@@ -306,12 +251,6 @@ export default async function decorate(block) {
       `;
       tabButton.setAttribute('data-tab', `tab${tabCount}`);
       if (tabCount === 1) tabButton.classList.add('active');
-
-      if (isProducts) {
-        tabButton.setAttribute('role', 'tab');
-        tabButton.setAttribute('tabindex', tabCount === 1 ? '0' : '-1');
-        productTabButtons.push(tabButton);
-      }
 
       const contentDiv = document.createElement('div');
       contentDiv.className = 'tab-content';
@@ -341,14 +280,10 @@ export default async function decorate(block) {
       if (tabCount === 1) contentDiv.classList.add('active');
 
       tabButton.addEventListener('click', () => {
-        tabsWrapper.querySelectorAll('.tab-button').forEach((btn) => {
-          btn.classList.remove('active');
-          if (isProducts) btn.setAttribute('tabindex', '-1');
-        });
+        tabsWrapper.querySelectorAll('.tab-button').forEach((btn) => btn.classList.remove('active'));
         contentWrapper.querySelectorAll('.tab-content').forEach((content) => content.classList.remove('active'));
 
         tabButton.classList.add('active');
-        if (isProducts) tabButton.setAttribute('tabindex', '0');
         contentDiv.classList.add('active');
       });
 
@@ -356,12 +291,6 @@ export default async function decorate(block) {
       contentWrapper.appendChild(contentDiv);
     }
   });
-
-  if (isProducts && productTabButtons.length) {
-    tabsWrapper.setAttribute('role', 'tablist');
-    // Reuse the existing click-activation logic rather than duplicating it.
-    bindTablistKeyboard(tabsWrapper, (index) => productTabButtons[index].click());
-  }
 
   block.innerHTML = '';
   block.appendChild(tabsWrapper);
