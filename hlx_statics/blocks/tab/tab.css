@@ -2,6 +2,10 @@ main div.tab-wrapper:has(.tab.background-color-navy) {
     background-color: rgb(15, 55, 95);
 }
 
+main div.tab-wrapper:has(.tab.background-color-white) {
+    background-color: #fff;
+}
+
 main div.tab-wrapper {
     background-color: rgb(245, 245, 245);
     padding-right: 3%;
@@ -397,7 +401,6 @@ main div.tab-wrapper .tab.products > .tabs-wrapper {
     gap: 4px;
     width: fit-content;
     max-width: 100%;
-    background: #f1f1f1;
     border-radius: 12px;
     padding: 6px;
     margin: 0 auto 32px;

@@ -36,6 +36,23 @@ const handleCode = (contentDiv) => {
   }
 }
 
+/**
+ * Decorates `<p class="button-container">` content as a button, following
+ * the project's existing button-decoration convention: the anchor gets the
+ * `button` class, with `strong`/`em` wrapping mapped to primary/secondary.
+ * Leaves ordinary <p> elements untouched.
+ */
+const decorateButtons = (container) => {
+  container.querySelectorAll('p.button-container').forEach((p) => {
+    const a = p.querySelector('a');
+    if (!a) return;
+
+    a.classList.add('button');
+    if (p.querySelector('strong')) a.classList.add('primary');
+    if (p.querySelector('em')) a.classList.add('secondary');
+  });
+}
+
 const createSubTabs = (table) => {
   const subTabsWrapper = document.createElement('div');
   subTabsWrapper.className = 'sub-tabs-wrapper';
@@ -232,7 +249,11 @@ export default async function decorate(block) {
   // inside a products table) as if they were separate tabs.
   block.querySelectorAll(':scope > div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
-    const tabImage = tab.querySelector('picture')?.outerHTML || '';
+    // Products tabs carry their own dedicated navbar/content structure, so
+    // the content image (e.g. from inside the products table) must never
+    // be picked up as the tab/header icon. Normal tabs keep the existing
+    // behavior unchanged.
+    const tabImage = isProducts ? '' : (tab.querySelector('picture')?.outerHTML || '');
     const tabContent = tab.querySelector(':scope > div:last-child');
 
     if (tabTitle && tabContent) {
@@ -251,6 +272,8 @@ export default async function decorate(block) {
       contentDiv.className = 'tab-content';
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
       contentDiv.innerHTML = tabContent.innerHTML;
+
+      decorateButtons(contentDiv);
 
       if (isProducts) {
         // Products tables are product data, not code/sub-tab data:
