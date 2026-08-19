@@ -195,6 +195,15 @@ const createProductContent = (table) => {
     card.appendChild(listSection);
   }
 
+  // The grid was authored assuming 3 columns (intro / media / list), but any
+  // of those columns can be missing from the source table. Size the grid to
+  // however many card sections actually got appended instead of leaving a
+  // static 3-column track that would leave an empty gap.
+  const columnCount = card.children.length;
+  if (columnCount > 0) {
+    card.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
+  }
+
   table.remove();
   return productsContent;
 }
