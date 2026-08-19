@@ -416,10 +416,13 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
     white-space: nowrap;
 }
 
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active,
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active{
     background-color: #1a1a1a !important;
     color: #fff !important;
+}
+
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
+    background-color: #F8F8F8 !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -434,7 +437,7 @@ main div.tab-wrapper .tab.products .products-content {
    reads as one big outer card. */
 main div.tab-wrapper .tab.products .products-card {
     display: grid;
-    grid-template-columns: 1fr 1.1fr 0.9fr;
+    grid-template-columns: 1fr 1fr 1fr;
     align-items: stretch;
     gap: 24px;
     border: none;
@@ -456,7 +459,6 @@ main div.tab-wrapper .tab.products .products-list {
 main div.tab-wrapper .tab.products .products-intro {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     gap: 16px;
     padding: 40px;
 }
@@ -523,7 +525,7 @@ main div.tab-wrapper .tab.products .products-list-items {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 5px;
 }
 
 main div.tab-wrapper .tab.products .product-item {
