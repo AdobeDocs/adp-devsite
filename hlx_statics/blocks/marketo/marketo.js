@@ -441,21 +441,30 @@ const readyForm = (form, formData) => {
   }
   const enforceFormLayout = () => {
     formEl.querySelectorAll('.mktoFormRow').forEach(row => {
-      // 1. Tag the consent row, hide other HTML text rows
+      // 1. Hide any tracking input fields
+      const field = row.querySelector('[name]');
+      if (field && field.name.startsWith('vs_')) {
+        row.classList.add('hidden-tracking-row');
+        return;
+      }
+
+      // 2. Tag the consent row, hide other HTML text rows
       const htmlText = row.querySelector('.mktoHtmlText');
       if (htmlText) {
         const text = htmlText.textContent || '';
-        if (text.toLowerCase().includes('authorize') || text.toLowerCase().includes('privacy') || text.toLowerCase().includes('contact')) {
+        const lowerText = text.toLowerCase();
+        
+        // Exclude Marketo logic/tracking strings
+        if (lowerText.includes('.js') || lowerText.includes('resource:resource') || lowerText.includes('vs_')) {
+          row.classList.add('hidden-tracking-row');
+          return;
+        }
+
+        if (lowerText.includes('authorize') || lowerText.includes('privacy') || lowerText.includes('contact') || lowerText.includes('communication') || lowerText.includes('terms')) {
           row.classList.add('consent-row-fixed');
         } else {
           row.classList.add('hidden-tracking-row');
         }
-      }
-
-      // 2. Hide tracking input fields
-      const field = row.querySelector('[name]');
-      if (field && field.name.startsWith('vs_')) {
-        row.classList.add('hidden-tracking-row');
       }
     });
   };
