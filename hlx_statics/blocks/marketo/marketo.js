@@ -21,9 +21,20 @@ export default async function decorate(block) {
     // Clear Marketo's sessionStorage prefill so form starts fresh each load
     sessionStorage.removeItem('mktoPreFillFields');
 
-    if (typeof loadMarketoForm !== 'function') {
-        console.error('loadMarketoForm is not defined. Ensure marketo-form-loader.js is loaded.');
-        return;
+    // Ensure marketo-form-loader.js is loaded
+    if (typeof window.loadMarketoForm !== 'function') {
+        try {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = '/hlx_statics/scripts/marketo-form-loader.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.append(script);
+            });
+        } catch (err) {
+            console.error('Failed to load marketo-form-loader.js', err);
+            return;
+        }
     }
 
     loadMarketoForm({
