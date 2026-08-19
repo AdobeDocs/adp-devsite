@@ -492,9 +492,12 @@ const readyForm = (form, formData) => {
             }
           });
 
-          if (!isValid) return;
+          form.customFieldsValid = isValid;
 
-          form.addHiddenFields(customData);
+          if (isValid) {
+            form.addHiddenFields(customData);
+          }
+
           const realSubmit = formEl.querySelector('.mktoButton');
           if (realSubmit) realSubmit.click();
         });
@@ -550,7 +553,11 @@ const readyForm = (form, formData) => {
 
   form.onValidate((valid) => {
     formValidate(formEl);
-    if (valid) form.submittable(true);
+    if (valid && form.customFieldsValid !== false) {
+      form.submittable(true);
+    } else {
+      form.submittable(false);
+    }
   });
 
   form.onSubmit(() => {
