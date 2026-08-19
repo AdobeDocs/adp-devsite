@@ -1,4 +1,5 @@
 import decoratePreformattedCode, { applyLanguageDirectives, extractLanguageDirectives } from "../../components/code.js";
+import { decorateButtons } from "../../scripts/lib-adobeio.js";
 import { IS_DEV_DOCS } from "../../scripts/lib-helix.js";
 
 /**
@@ -85,6 +86,93 @@ const createSubTabs = (table) => {
   return { subTabsWrapper, subContentWrapper };
 }
 
+const createProductContent = (table) => {
+  const productsContent = document.createElement('div');
+  productsContent.className = 'products-content';
+
+  const card = document.createElement('div');
+  card.className = 'products-card';
+  productsContent.appendChild(card);
+
+  const row = table.querySelector(':scope > tbody > tr, tr');
+  if (row) {
+    const [introCell, mediaCell, listCell] = row.querySelectorAll(':scope > td');
+
+    if (introCell) {
+      const intro = document.createElement('div');
+      intro.className = 'products-intro';
+
+      const heading = introCell.querySelector('h1, h2, h3, h4');
+      if (heading) {
+        heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL');
+        intro.appendChild(heading);
+      }
+
+      introCell.querySelectorAll(':scope > p').forEach((p) => {
+        p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+        intro.appendChild(p);
+      });
+
+      card.appendChild(intro);
+    }
+
+    const picture = mediaCell?.querySelector('picture');
+    if (picture) {
+      const media = document.createElement('div');
+      media.className = 'products-media';
+      media.appendChild(picture);
+      card.appendChild(media);
+    }
+
+    if (listCell) {
+      const listSection = document.createElement('div');
+      listSection.className = 'products-list';
+
+      const heading = listCell.querySelector('h1, h2, h3, h4');
+      if (heading) {
+        heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL');
+        listSection.appendChild(heading);
+      }
+
+      const ul = document.createElement('ul');
+      ul.className = 'products-list-items';
+
+      listCell.querySelectorAll(':scope > ul > li').forEach((li) => {
+        const link = li.querySelector('a');
+        if (!link) return;
+
+        const item = document.createElement('li');
+        item.className = 'product-item';
+
+        const itemPicture = li.querySelector('picture');
+        if (itemPicture) {
+          const icon = document.createElement('span');
+          icon.className = 'product-icon';
+          icon.appendChild(itemPicture);
+          item.appendChild(icon);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'product-info';
+        info.appendChild(link);
+
+        item.appendChild(info);
+        ul.appendChild(item);
+      });
+
+      listSection.appendChild(ul);
+      card.appendChild(listSection);
+    }
+  }
+
+  if (card.children.length) {
+    card.style.gridTemplateColumns = `repeat(${card.children.length}, 1fr)`;
+  }
+
+  table.remove();
+  return productsContent;
+};
+
 export default async function decorate(block) {
   block.querySelectorAll(':scope > div > div > pre > code').forEach((code) => {
     const match = code.textContent.trim().match(/^(data-[^=]+)=(.*)$/);
@@ -96,6 +184,8 @@ export default async function decorate(block) {
       value.trim().split(/\s+/).filter(Boolean).forEach((cls) => block.classList.add(cls));
     }
   });
+
+  const isProducts = block.classList.contains('products');
 
   const dataOrientation = block.getAttribute('data-orientation');
   const orientation = dataOrientation || (block.classList.contains('vertical') ? 'vertical' : 'horizontal');
@@ -112,10 +202,10 @@ export default async function decorate(block) {
 
   let tabCount = 0;
 
-  block.querySelectorAll('div').forEach((tab) => {
+  block.querySelectorAll(':scope > div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
-    const tabImage = tab.querySelector('picture')?.outerHTML || '';
-    const tabContent = tab.querySelector('div:last-child');
+    const tabImage = isProducts ? '' : (tab.querySelector('picture')?.outerHTML || '');
+    const tabContent = tab.querySelector(':scope > div:last-child');
 
     if (tabTitle && tabContent) {
       tabCount++;
@@ -134,13 +224,22 @@ export default async function decorate(block) {
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
       contentDiv.innerHTML = tabContent.innerHTML;
 
-      handleCode(contentDiv);
+      decorateButtons(contentDiv);
 
-      contentDiv.querySelectorAll('table').forEach((table) => {
-        const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
-        contentDiv.appendChild(subTabsWrapper);
-        contentDiv.appendChild(subContentWrapper);
-      });
+      if (isProducts) {
+        contentDiv.querySelectorAll('table').forEach((table) => {
+          const productContent = createProductContent(table);
+          contentDiv.appendChild(productContent);
+        });
+      } else {
+        handleCode(contentDiv);
+
+        contentDiv.querySelectorAll('table').forEach((table) => {
+          const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
+          contentDiv.appendChild(subTabsWrapper);
+          contentDiv.appendChild(subContentWrapper);
+        });
+      }
 
       if (tabCount === 1) contentDiv.classList.add('active');
 
