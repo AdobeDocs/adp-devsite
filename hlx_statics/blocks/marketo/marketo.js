@@ -127,22 +127,6 @@ export default async function decorate(block) {
         const formEl = form.getFormElem && form.getFormElem()[0];
 
         if (formEl) {
-            const style = document.createElement('style');
-            style.textContent = `
-                .marketo-form-wrapper { max-width: none !important; width: calc(100% - 40px) !important; margin: 0 auto !important; }
-                #mktoForm_4061 { width: 100% !important; display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
-                #mktoForm_4061 .mktoField { width: 100% !important; box-sizing: border-box !important; }
-                #mktoForm_4061 .mktoFieldWrap { width: 100% !important; }
-                #mktoForm_4061 .mktoFormRow.by-supplyingmycontac { display: none !important; }
-                #mktoForm_4061 .mktoFormRow.adobe-privacy { display: none !important; }
-                #mktoForm_4061 .mktoButtonRow { display: none !important; }
-            `;
-            document.head.appendChild(style);
-
-            formEl.style.setProperty('width', '100%', 'important');
-            formEl.style.setProperty('display', 'grid', 'important');
-            formEl.style.setProperty('grid-template-columns', '1fr 1fr', 'important');
-            formEl.style.setProperty('gap', '16px', 'important');
             formEl.setAttribute('autocomplete', 'off');
 
             // Clear Marketo cookie-prefilled fields using the proper API

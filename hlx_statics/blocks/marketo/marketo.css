@@ -5,34 +5,71 @@
 .marketo-form-wrapper {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: calc(100% - 40px) !important;
+  max-width: none !important;
+  margin: 0 auto !important;
 }
 
-/* Hide default Form Label */
-.marketo-form-wrapper .mktoLabel {
+/* Ensure the form takes full width and uses a 2-column grid */
+.marketo-form-wrapper .mktoForm {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+/* Force Marketo's row/col wrappers to display contents so fields become direct grid items */
+.marketo-form-wrapper .mktoFormRow,
+.marketo-form-wrapper .mktoFormCol {
+  display: contents !important;
+}
+
+/* Hide spacer/clear elements that disrupt the grid */
+.marketo-form-wrapper .mktoClear {
   display: none !important;
 }
 
+.marketo-form-wrapper .mktoFieldWrap {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Form Labels (Removed display: none so they show above inputs) */
+.marketo-form-wrapper .mktoLabel {
+  display: block !important;
+  font-size: 14px !important;
+  font-weight: normal !important;
+  color: #464646 !important;
+  margin-bottom: 4px !important;
+  width: auto !important;
+}
+
 /* Custom styles for form fields */
+/* We use !important and height: auto to override conflicting styles from sales-styles.css */
 .marketo-form-wrapper .mktoField {
-  width: 100%;
-  border: 1px solid var(--color-grey-300);
-  border-radius: 8px;
-  padding: 14px 16px;
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--color-black);
-  background-color: var(--color-white);
-  transition: border-color 0.2s ease;
+  width: 100% !important;
+  border: 1px solid var(--color-grey-300, #909090) !important;
+  border-radius: 4px !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  line-height: 24px !important;
+  height: auto !important;
+  min-height: 44px !important;
+  color: var(--color-black, #333) !important;
+  background-color: var(--color-white, #fff) !important;
+  transition: border-color 0.2s ease !important;
+  box-sizing: border-box !important;
 }
 
 .marketo-form-wrapper .mktoField:focus {
-  outline: none;
-  border-color: var(--color-aem-blue);
+  outline: none !important;
+  border-color: var(--color-aem-blue, #1473e6) !important;
 }
 
 .marketo-form-wrapper .mktoField.mktoInvalid {
-  border-color: var(--color-status-error);
+  border-color: var(--color-status-error, #d0021b) !important;
 }
 
 /* Use case textarea specific styles */
@@ -51,28 +88,28 @@
   max-width: 280px;
   height: 48px;
   padding: 12px 24px;
-  border-radius: 8px;
-  background-color: var(--color-aem-blue);
-  color: var(--color-white);
-  font-weight: 600;
-  font-size: 16px;
+  border-radius: 24px !important; /* Pill shape like expected image */
+  background-color: var(--color-aem-blue, #1473e6) !important;
+  color: var(--color-white, #fff) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
   line-height: 24px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
+  border: none !important;
 }
 
 .marketo-form-wrapper .custom-submit:hover {
-  background-color: var(--color-aem-blue-hover);
+  background-color: var(--color-aem-blue-hover, #0054b6) !important;
   box-shadow: 0 4px 12px rgba(20, 55, 100, 0.2);
 }
 
 .marketo-form-wrapper .custom-submit:active {
-  background-color: var(--color-aem-blue-active);
+  background-color: var(--color-aem-blue-active, #004494) !important;
 }
 
 .marketo-form-wrapper .custom-submit:disabled {
-  background-color: var(--color-grey-300);
+  background-color: var(--color-grey-300, #c8c8c8) !important;
   cursor: not-allowed;
 }
 
@@ -80,8 +117,8 @@
 .marketo-form-wrapper .success-message {
   display: none;
   padding: 24px;
-  background-color: var(--color-status-success-bg);
-  border: 1px solid var(--color-status-success);
+  background-color: var(--color-status-success-bg, #e6f4e6);
+  border: 1px solid var(--color-status-success, #2e7d32);
   border-radius: 8px;
   text-align: center;
 }
@@ -95,7 +132,8 @@
   display: none !important;
 }
 
-/* Hide Marketo's default consent row */
-.marketo-form-wrapper .mktoFormRow.by-supplyingmycontac {
+/* Hide Marketo's default consent row and privacy text */
+.marketo-form-wrapper .mktoFormRow.by-supplyingmycontac,
+.marketo-form-wrapper .mktoFormRow.adobe-privacy {
   display: none !important;
 }
