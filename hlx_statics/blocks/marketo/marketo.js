@@ -439,43 +439,61 @@ const readyForm = (form, formData) => {
       window.lana?.log(`Failed to parse additional-fields JSON: ${e.message}`, { tags: 'marketo', severity: 'w' });
     }
   }
-  // Tag the consent row so we can preserve it
-  formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
-    const text = htmlText.textContent || '';
-    if (text.toLowerCase().includes('authorize') || text.toLowerCase().includes('privacy') || text.toLowerCase().includes('contact')) {
-      const row = htmlText.closest('.mktoFormRow');
-      if (row) row.classList.add('consent-row-fixed');
-    }
-  });
+  const enforceFormLayout = () => {
+    formEl.querySelectorAll('.mktoFormRow').forEach(row => {
+      // 1. Tag the consent row, hide other HTML text rows
+      const htmlText = row.querySelector('.mktoHtmlText');
+      if (htmlText) {
+        const text = htmlText.textContent || '';
+        if (text.toLowerCase().includes('authorize') || text.toLowerCase().includes('privacy') || text.toLowerCase().includes('contact')) {
+          row.classList.add('consent-row-fixed');
+          return; // Do not hide this row
+        } else {
+          row.classList.add('hidden-tracking-row');
+          row.style.display = 'none';
+        }
+      }
+
+      // 2. Hide tracking input fields
+      const field = row.querySelector('[name]');
+      if (field && field.name.startsWith('vs_')) {
+        row.classList.add('hidden-tracking-row');
+        row.style.display = 'none';
+      }
+    });
+  };
+
+  enforceFormLayout();
+  // Only observe child node additions/removals to prevent attribute loops
+  const layoutObserver = new MutationObserver(() => enforceFormLayout());
+  layoutObserver.observe(formEl, { childList: true, subtree: true });
 
   const styleEl = document.createElement('style');
   styleEl.textContent = `
-    #${formEl.id} .mktoFormRow.additional-field-full-width {
+    form.mktoForm .mktoFormRow.additional-field-full-width {
       grid-column: 1 / -1 !important;
       width: 100% !important;
       flex: 0 0 100% !important;
       clear: both !important;
       margin-bottom: 10px !important;
     }
-    #${formEl.id} .mktoFormRow.additional-field-full-width .mktoFieldWrap,
-    #${formEl.id} .mktoFormRow.additional-field-full-width .mktoLabel,
-    #${formEl.id} .mktoFormRow.additional-field-full-width .mktoField {
+    form.mktoForm .mktoFormRow.additional-field-full-width .mktoFieldWrap,
+    form.mktoForm .mktoFormRow.additional-field-full-width .mktoLabel,
+    form.mktoForm .mktoFormRow.additional-field-full-width .mktoField {
       width: 100% !important;
       box-sizing: border-box !important;
     }
-    #${formEl.id} .mktoButtonRow {
+    form.mktoForm .mktoButtonRow {
       grid-column: 1 / -1 !important;
       width: 100% !important;
       text-align: center !important;
     }
-    #${formEl.id} .mktoFormRow.consent-row-fixed {
+    form.mktoForm .mktoFormRow.consent-row-fixed {
       grid-column: 1 / -1 !important;
       display: block !important;
       width: 100% !important;
     }
-    /* Hide all tracking text and hidden inputs rendered as rows */
-    #${formEl.id} .mktoFormRow:has(.mktoHtmlText):not(.consent-row-fixed),
-    #${formEl.id} .mktoFormRow:has([name^="vs_"]) {
+    form.mktoForm .mktoFormRow.hidden-tracking-row {
       display: none !important;
     }
   `;
