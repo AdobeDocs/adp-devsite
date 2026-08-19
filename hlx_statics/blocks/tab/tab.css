@@ -423,6 +423,7 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active{
 
 main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
     background-color: #F8F8F8 !important;
+    color: #000 !important;
 }
 
 /* --------------------------------------------------------------------------
