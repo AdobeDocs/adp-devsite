@@ -405,7 +405,7 @@ const readyForm = (form, formData) => {
 
         let fieldHTML = '';
         const commonAttrs = `name="${field.name}" id="${field.name}" class="mktoField mktoHasWidth${field.required ? ' mktoRequired' : ''}" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'required' : ''}`;
-        
+
         if (field.type === 'textarea') {
           fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 4}"></textarea>`;
         } else if (field.type === 'select') {
@@ -452,11 +452,11 @@ const readyForm = (form, formData) => {
       }
 
       // 2. Tag the consent row, hide other HTML text rows
-      const htmlText = row.querySelector('.mktoHtmlText');
+      const htmlText = row.classList.contains('mktoHtmlText') ? row : row.querySelector('.mktoHtmlText');
       if (htmlText) {
         const text = htmlText.textContent || '';
         const lowerText = text.toLowerCase();
-        
+
         // Exclude Marketo logic/tracking strings
         if (lowerText.includes('.js') || lowerText.includes('resource:resource') || lowerText.includes('vs_')) {
           row.classList.add('hidden-tracking-row');
@@ -465,13 +465,13 @@ const readyForm = (form, formData) => {
 
         if (lowerText.includes('authorize') || lowerText.includes('privacy') || lowerText.includes('contact') || lowerText.includes('communication') || lowerText.includes('terms') || lowerText.includes('agree')) {
           row.classList.add('consent-row-fixed');
+          row.classList.remove('hidden-tracking-row');
         } else {
           row.classList.add('hidden-tracking-row');
         }
         return;
       }
 
-      // 3. Hide rows that contain no visible inputs (e.g., Demandbase hidden fields with stray labels)
       const allInputs = Array.from(row.querySelectorAll('input, select, textarea'));
       const hasVisibleInput = allInputs.some(input => input.type !== 'hidden');
       if (!hasVisibleInput) {
@@ -510,7 +510,6 @@ const readyForm = (form, formData) => {
     form.mktoForm .mktoFormRow.additional-field-full-width,
     form.mktoForm .mktoFormRow.consent-row-fixed,
     form.mktoForm .mktoButtonRow {
-      grid-column: 1 / -1 !important;
       width: 100% !important;
       display: block !important;
     }
