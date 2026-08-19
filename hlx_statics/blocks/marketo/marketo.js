@@ -484,6 +484,10 @@ const readyForm = (form, formData) => {
       if (!hasVisibleInput) {
         row.classList.add('hidden-tracking-row');
       }
+
+      if (row.querySelector('textarea')) {
+        row.classList.add('textarea-full-width');
+      }
     });
   };
 
@@ -497,44 +501,6 @@ const readyForm = (form, formData) => {
   layoutObserver.observe(formEl, { childList: true, subtree: true });
 
   const styleEl = document.createElement('style');
-  styleEl.textContent = `
-    form.mktoForm {
-      width: 100% !important;
-      display: grid !important;
-      grid-template-columns: repeat(2, 1fr) !important;
-      column-gap: 20px !important;
-      row-gap: 15px !important;
-    }
-    form.mktoForm * {
-      box-sizing: border-box !important;
-    }
-    form.mktoForm .mktoFormRow,
-    form.mktoForm .mktoFieldWrap,
-    form.mktoForm .mktoField {
-      width: 100% !important;
-      margin: 0 !important;
-    }
-    form.mktoForm .mktoFormRow.additional-field-full-width,
-    form.mktoForm .mktoFormRow.consent-row-fixed,
-    form.mktoForm .mktoButtonRow {
-      width: 100% !important;
-      display: block !important;
-    }
-    form.mktoForm .mktoClear,
-    form.mktoForm .mktoOffset,
-    form.mktoForm .mktoGutter {
-      display: none !important;
-    }
-    form.mktoForm .mktoFormRow.hidden-tracking-row,
-    form.mktoForm .mktoFormRow:has(input[name^="vs_"]) {
-      display: none !important;
-    }
-    @media (max-width: 768px) {
-      form.mktoForm {
-        grid-template-columns: 1fr !important;
-      }
-    }
-  `;
   document.head.appendChild(styleEl);
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
