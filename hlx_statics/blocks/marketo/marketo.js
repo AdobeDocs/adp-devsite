@@ -452,6 +452,14 @@ const readyForm = (form, formData) => {
     }
   });
 
+  // Hide tracking fields that Marketo might render as visible inputs
+  formEl.querySelectorAll('.mktoFormRow').forEach(row => {
+    const field = row.querySelector('[name]');
+    if (field && field.name.startsWith('vs_')) {
+      row.classList.add('hidden-tracking-row');
+    }
+  });
+
   const styleEl = document.createElement('style');
   styleEl.textContent = `
     #${formEl.id} .mktoFormRow.additional-field-full-width {
@@ -475,8 +483,11 @@ const readyForm = (form, formData) => {
       display: block !important;
       width: 100% !important;
     }
+    #${formEl.id} .mktoFormRow.hidden-tracking-row {
+      display: none !important;
+    }
   `;
-  formEl.appendChild(styleEl);
+  document.head.appendChild(styleEl);
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
   formEl.style.opacity = '';
