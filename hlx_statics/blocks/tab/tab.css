@@ -529,7 +529,7 @@ main div.tab-wrapper .tab.products .products-list-items {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
 }
 
 main div.tab-wrapper .tab.products .product-item {
