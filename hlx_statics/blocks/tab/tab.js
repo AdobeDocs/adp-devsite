@@ -1,4 +1,5 @@
 import decoratePreformattedCode, { applyLanguageDirectives, extractLanguageDirectives } from "../../components/code.js";
+import { decorateButtons } from "../../scripts/lib-adobeio.js";
 import { IS_DEV_DOCS } from "../../scripts/lib-helix.js";
 
 /**
@@ -34,23 +35,6 @@ const handleCode = (contentDiv) => {
     const preContainer = createCodeBlock(codeBlock, language);
     contentDiv.innerHTML = preContainer.innerHTML;
   }
-}
-
-/**
- * Decorates `<p class="button-container">` content as a button, following
- * the project's existing button-decoration convention: the anchor gets the
- * `button` class, with `strong`/`em` wrapping mapped to primary/secondary.
- * Leaves ordinary <p> elements untouched.
- */
-const decorateButtons = (container) => {
-  container.querySelectorAll('p.button-container').forEach((p) => {
-    const a = p.querySelector('a');
-    if (!a) return;
-
-    a.classList.add('button');
-    if (p.querySelector('strong')) a.classList.add('primary');
-    if (p.querySelector('em')) a.classList.add('secondary');
-  });
 }
 
 const createSubTabs = (table) => {
