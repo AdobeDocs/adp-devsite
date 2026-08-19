@@ -1,17 +1,30 @@
-function getEnvironment() {
-    const host = window.location.host;
-    if (host.indexOf('local') >= 0 || host.indexOf('developer-stage') >= 0) {
-        return 'stage';
-    } else if (host.indexOf('developer.adobe.com') >= 0) {
-        return 'prod';
+export default async function decorate(block) {
+    // Clear the block's default HTML table so it doesn't render on the screen
+    block.innerHTML = '';
+
+    // Create the wrapper for the Marketo form
+    const wrapper = document.createElement('section');
+    wrapper.className = 'marketo-form-wrapper';
+    block.append(wrapper);
+
+    function getEnvironment() {
+        const host = window.location.host;
+        if (host.indexOf('local') >= 0 || host.indexOf('developer-stage') >= 0) {
+            return 'stage';
+        } else if (host.indexOf('developer.adobe.com') >= 0) {
+            return 'prod';
+        }
     }
-}
 
-const env = getEnvironment();
+    const env = getEnvironment();
 
-document.addEventListener('DOMContentLoaded', function () {
     // Clear Marketo's sessionStorage prefill so form starts fresh each load
     sessionStorage.removeItem('mktoPreFillFields');
+
+    if (typeof loadMarketoForm !== 'function') {
+        console.error('loadMarketoForm is not defined. Ensure marketo-form-loader.js is loaded.');
+        return;
+    }
 
     loadMarketoForm({
         form_config: {
@@ -95,7 +108,10 @@ document.addEventListener('DOMContentLoaded', function () {
         },
 
     }).then((form) => {
-        document.querySelector(".faas-header").style.display = "flex";
+        const faasHeader = document.querySelector(".faas-header");
+        if (faasHeader) {
+            faasHeader.style.display = "flex";
+        }
 
         const formEl = form.getFormElem && form.getFormElem()[0];
 
@@ -155,7 +171,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 container.insertBefore(submitDiv, useCaseDiv.nextSibling);
                 container.insertBefore(consentDiv, submitDiv.nextSibling);
 
-                document.getElementById('custom-submit').addEventListener('click', () => {
+                document.getElementById('custom-submit').addEventListener('click', (e) => {
+                    e.preventDefault();
                     const ta = document.getElementById('custom-use-case');
                     if (!ta.value.trim()) {
                         ta.style.borderColor = '#d0021b';
@@ -191,4 +208,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }).catch((error) => {
         console.error("Failed to load Marketo form:", error);
     });
-}); // DOMContentLoaded
+}
