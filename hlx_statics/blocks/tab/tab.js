@@ -137,6 +137,7 @@ export default async function decorate(block) {
       handleCode(contentDiv);
 
       contentDiv.querySelectorAll('table').forEach((table) => {
+        console.log("table",table)
         const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
         contentDiv.appendChild(subTabsWrapper);
         contentDiv.appendChild(subContentWrapper);
