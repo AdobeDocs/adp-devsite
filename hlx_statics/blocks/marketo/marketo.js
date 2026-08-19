@@ -387,14 +387,7 @@ const readyForm = (form, formData) => {
     try {
       const additionalFields = JSON.parse(formData['additional-fields']);
       let insertBeforeTarget = formEl.querySelector('.mktoButtonRow');
-      // Attempt to place additional fields before the legal consent text row if it exists
-      formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
-        const text = htmlText.textContent || '';
-        if (text.toLowerCase().includes('authorize') || text.toLowerCase().includes('privacy') || text.toLowerCase().includes('contact')) {
-          const consentRow = htmlText.closest('.mktoFormRow');
-          if (consentRow) insertBeforeTarget = consentRow;
-        }
-      });
+
 
       additionalFields.forEach((field) => {
         const row = document.createElement('div');
@@ -458,24 +451,10 @@ const readyForm = (form, formData) => {
         return;
       }
 
-      // 2. Tag the consent row, hide other HTML text rows
+      // 2. Hide all HTML text rows
       const htmlText = row.classList.contains('mktoHtmlText') ? row : row.querySelector('.mktoHtmlText');
       if (htmlText) {
-        const text = htmlText.textContent || '';
-        const lowerText = text.toLowerCase();
-
-        // Exclude Marketo logic/tracking strings
-        if (lowerText.includes('.js') || lowerText.includes('resource:resource') || lowerText.includes('vs_')) {
-          row.classList.add('hidden-tracking-row');
-          return;
-        }
-
-        if (lowerText.includes('authorize') || lowerText.includes('privacy') || lowerText.includes('contact') || lowerText.includes('communication') || lowerText.includes('terms') || lowerText.includes('agree')) {
-          row.classList.add('consent-row-fixed');
-          row.classList.remove('hidden-tracking-row');
-        } else {
-          row.classList.add('hidden-tracking-row');
-        }
+        row.classList.add('hidden-tracking-row');
         return;
       }
 
