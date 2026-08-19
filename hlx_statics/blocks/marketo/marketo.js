@@ -400,14 +400,14 @@ const readyForm = (form, formData) => {
         const row = document.createElement('div');
         row.className = 'mktoFormRow additional-field-row';
         if (field.type === 'textarea') {
-          row.style.cssText = 'grid-column: 1 / -1; width: 100%; margin-bottom: 10px;';
+          row.classList.add('additional-field-full-width');
         }
 
         let fieldHTML = '';
         const commonAttrs = `name="${field.name}" id="${field.name}" class="mktoField mktoHasWidth${field.required ? ' mktoRequired' : ''}" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'required' : ''}`;
         
         if (field.type === 'textarea') {
-          fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 4}" style="width: 100%; box-sizing: border-box;"></textarea>`;
+          fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 4}"></textarea>`;
         } else if (field.type === 'select') {
           const options = Array.isArray(field.options) ? field.options.map(opt => `<option value="${opt.value || opt}">${opt.label || opt}</option>`).join('') : '';
           fieldHTML = `<select ${commonAttrs}>
@@ -419,8 +419,8 @@ const readyForm = (form, formData) => {
         }
 
         row.innerHTML = `
-          <div class="mktoFieldWrap mktoRequiredField" style="${field.type === 'textarea' ? 'width: 100%;' : ''}">
-            <label for="${field.name}" class="mktoLabel mktoHasWidth" style="${field.type === 'textarea' ? 'width: 100%;' : ''}">
+          <div class="mktoFieldWrap mktoRequiredField">
+            <label for="${field.name}" class="mktoLabel mktoHasWidth">
               ${field.required ? '<div class="mktoAsterix">*</div>' : ''}${field.label}
             </label>
             <div class="mktoGutter mktoHasWidth"></div>
@@ -447,18 +447,36 @@ const readyForm = (form, formData) => {
     } else {
       // Ensure the consent row spans both columns and overrides any custom CSS hiding it
       if (row) {
-        row.style.setProperty('grid-column', '1 / -1', 'important');
-        row.style.setProperty('display', 'block', 'important');
+        row.classList.add('consent-row-fixed');
       }
     }
   });
 
-  const buttonRow = formEl.querySelector('.mktoButtonRow');
-  if (buttonRow) {
-    buttonRow.style.setProperty('grid-column', '1 / -1', 'important');
-    buttonRow.style.setProperty('text-align', 'center', 'important');
-    buttonRow.style.setProperty('width', '100%', 'important');
-  }
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    #${formEl.id} .mktoFormRow.additional-field-full-width {
+      grid-column: 1 / -1 !important;
+      width: 100% !important;
+      margin-bottom: 10px !important;
+    }
+    #${formEl.id} .mktoFormRow.additional-field-full-width .mktoFieldWrap,
+    #${formEl.id} .mktoFormRow.additional-field-full-width .mktoLabel,
+    #${formEl.id} .mktoFormRow.additional-field-full-width .mktoField {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    #${formEl.id} .mktoButtonRow {
+      grid-column: 1 / -1 !important;
+      width: 100% !important;
+      text-align: center !important;
+    }
+    #${formEl.id} .mktoFormRow.consent-row-fixed {
+      grid-column: 1 / -1 !important;
+      display: block !important;
+      width: 100% !important;
+    }
+  `;
+  formEl.appendChild(styleEl);
   const isDesktop = matchMedia('(min-width: 900px)');
   el.classList.remove('loading');
   formEl.style.opacity = '';
