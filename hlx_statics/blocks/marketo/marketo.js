@@ -420,11 +420,11 @@ const readyForm = (form, formData) => {
         additionalFields.forEach((field) => {
           const div = document.createElement('div');
           div.style.cssText = 'margin: 8px 0; text-align: left;';
-          div.className = 'custom-field-wrapper';
+          div.className = 'custom-field-wrapper mktoFormRow mktoFieldWrap mktoRequiredField';
 
           let fieldHTML = '';
           const requiredMark = field.required ? '<span style="color:#d0021b;">*</span>' : '';
-          const commonAttrs = `id="custom-${field.name}" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'data-required="true"' : ''}`;
+          const commonAttrs = `id="custom-${field.name}" class="mktoField" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;" ${field.placeholder ? `placeholder="${field.placeholder}"` : ''} ${field.required ? 'data-required="true"' : ''}`;
 
           if (field.type === 'textarea') {
             fieldHTML = `<textarea ${commonAttrs} rows="${field.rows || 6}"></textarea>`;
@@ -448,6 +448,15 @@ const readyForm = (form, formData) => {
         container.insertBefore(customFieldsContainer, insertNode);
         insertNode = customFieldsContainer.nextSibling;
 
+        // Consent Text
+        if (legend) {
+          const consentDiv = document.createElement('div');
+          consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin-bottom: 16px; text-align: left;';
+          consentDiv.innerHTML = legend.innerHTML;
+          container.insertBefore(consentDiv, insertNode);
+          insertNode = consentDiv.nextSibling;
+        }
+
         // Submit Button
         const submitDiv = document.createElement('div');
         submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
@@ -455,19 +464,12 @@ const readyForm = (form, formData) => {
         container.insertBefore(submitDiv, insertNode);
         insertNode = submitDiv.nextSibling;
 
-        // Consent Text
-        if (legend) {
-          const consentDiv = document.createElement('div');
-          consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin-top: 16px; text-align: left;';
-          consentDiv.innerHTML = legend.innerHTML;
-          container.insertBefore(consentDiv, insertNode);
-        }
-
         // Custom Submit Handler
         document.getElementById('custom-submit-btn').addEventListener('click', (e) => {
           e.preventDefault();
           let isValid = true;
           const customData = {};
+          let firstInvalidCustom = null;
 
           additionalFields.forEach((field) => {
             const el = document.getElementById(`custom-${field.name}`);
@@ -475,20 +477,16 @@ const readyForm = (form, formData) => {
             const val = el.value.trim();
             customData[field.name] = val;
 
-            let err = el.parentNode.querySelector('.custom-field-error');
             if (field.required && !val) {
               isValid = false;
               el.style.borderColor = '#d0021b';
-              if (!err) {
-                err = document.createElement('div');
-                err.className = 'custom-field-error';
-                err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; text-align: left;';
-                err.textContent = 'This field is required.';
-                el.after(err);
-              }
+              el.classList.add('mktoInvalid');
+              el.setAttribute('aria-invalid', 'true');
+              if (!firstInvalidCustom) firstInvalidCustom = el;
             } else {
               el.style.borderColor = '#6e6e6e';
-              if (err) err.remove();
+              el.classList.remove('mktoInvalid');
+              el.removeAttribute('aria-invalid');
             }
           });
 
@@ -500,6 +498,14 @@ const readyForm = (form, formData) => {
 
           const realSubmit = formEl.querySelector('.mktoButton');
           if (realSubmit) realSubmit.click();
+
+          if (!isValid && firstInvalidCustom) {
+            const nativeInvalid = formEl.querySelector('.mktoInvalid:not([id^="custom-"])');
+            if (!nativeInvalid && typeof form.showErrorMessage === 'function') {
+              const $ = form.getFormElem().constructor;
+              form.showErrorMessage('This field is required.', $(firstInvalidCustom));
+            }
+          }
         });
 
       }, 500);
