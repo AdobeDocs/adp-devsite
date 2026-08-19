@@ -85,6 +85,119 @@ const createSubTabs = (table) => {
   return { subTabsWrapper, subContentWrapper };
 }
 
+/**
+ * Detects whether a <strong> label represents a "(NEW)" style badge.
+ * This is a generic pattern match (not a hardcoded product name).
+ */
+const isNewBadgeText = (text) => /^\(?\s*new\s*\)?$/i.test(text || '');
+
+/**
+ * Transforms a "products" authoring table into the product card layout:
+ *   column 1 -> intro (heading + paragraph)
+ *   column 2 -> media (picture)
+ *   column 3 -> product list (heading + list of product links)
+ *
+ * The table is treated purely as source data - none of the original
+ * table/row/cell markup is kept in the final DOM.
+ */
+const createProductContent = (table) => {
+  const productsContent = document.createElement('div');
+  productsContent.className = 'products-content';
+
+  const card = document.createElement('div');
+  card.className = 'products-card';
+  productsContent.appendChild(card);
+
+  const row = table.querySelector(':scope > tbody > tr') || table.querySelector('tr');
+  if (!row) {
+    table.remove();
+    return productsContent;
+  }
+
+  const cells = row.querySelectorAll(':scope > td');
+  const [introCell, mediaCell, listCell] = cells;
+
+  // Column 1 - intro
+  if (introCell) {
+    const intro = document.createElement('div');
+    intro.className = 'products-intro';
+
+    const heading = introCell.querySelector('h1, h2, h3, h4');
+    if (heading) intro.appendChild(heading.cloneNode(true));
+
+    const paragraphs = introCell.querySelectorAll(':scope > p');
+    paragraphs.forEach((p) => intro.appendChild(p.cloneNode(true)));
+
+    card.appendChild(intro);
+  }
+
+  // Column 2 - media
+  if (mediaCell) {
+    const media = document.createElement('div');
+    media.className = 'products-media';
+
+    const picture = mediaCell.querySelector('picture');
+    if (picture) {
+      media.appendChild(picture.cloneNode(true));
+    }
+
+    card.appendChild(media);
+  }
+
+  // Column 3 - product list
+  if (listCell) {
+    const listSection = document.createElement('div');
+    listSection.className = 'products-list';
+
+    const listHeading = listCell.querySelector('h1, h2, h3, h4');
+    if (listHeading) listSection.appendChild(listHeading.cloneNode(true));
+
+    const ul = document.createElement('ul');
+    ul.className = 'products-list-items';
+
+    listCell.querySelectorAll(':scope > ul > li, ul > li').forEach((li) => {
+      const link = li.querySelector('a');
+      // A product entry needs at least a link/name to be meaningful.
+      if (!link) return;
+
+      const item = document.createElement('li');
+      item.className = 'product-item';
+
+      const picture = li.querySelector('picture');
+      if (picture) {
+        const icon = document.createElement('span');
+        icon.className = 'product-icon';
+        icon.appendChild(picture.cloneNode(true));
+        item.appendChild(icon);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'product-info';
+      info.appendChild(link.cloneNode(true));
+
+      const newLabel = [...li.querySelectorAll('strong')]
+        .map((strong) => strong.textContent.trim())
+        .find(isNewBadgeText);
+
+      if (newLabel) {
+        const badge = document.createElement('span');
+        badge.className = 'product-new';
+        badge.textContent = newLabel;
+        info.appendChild(badge);
+      }
+
+      item.appendChild(info);
+      ul.appendChild(item);
+    });
+
+    listSection.appendChild(ul);
+    card.appendChild(listSection);
+  }
+
+  table.remove();
+  return productsContent;
+}
+
 export default async function decorate(block) {
   block.querySelectorAll(':scope > div > div > pre > code').forEach((code) => {
     const match = code.textContent.trim().match(/^(data-[^=]+)=(.*)$/);
@@ -96,6 +209,8 @@ export default async function decorate(block) {
       value.trim().split(/\s+/).filter(Boolean).forEach((cls) => block.classList.add(cls));
     }
   });
+
+  const isProducts = block.classList.contains('products');
 
   const dataOrientation = block.getAttribute('data-orientation');
   const orientation = dataOrientation || (block.classList.contains('vertical') ? 'vertical' : 'horizontal');
@@ -112,10 +227,13 @@ export default async function decorate(block) {
 
   let tabCount = 0;
 
-  block.querySelectorAll('div').forEach((tab) => {
+  // Only the direct children of the block are tab containers. Using a
+  // recursive selector here would also pick up nested elements (e.g. from
+  // inside a products table) as if they were separate tabs.
+  block.querySelectorAll(':scope > div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
     const tabImage = tab.querySelector('picture')?.outerHTML || '';
-    const tabContent = tab.querySelector('div:last-child');
+    const tabContent = tab.querySelector(':scope > div:last-child');
 
     if (tabTitle && tabContent) {
       tabCount++;
@@ -134,14 +252,23 @@ export default async function decorate(block) {
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
       contentDiv.innerHTML = tabContent.innerHTML;
 
-      handleCode(contentDiv);
+      if (isProducts) {
+        // Products tables are product data, not code/sub-tab data:
+        // they get their own dedicated decoration path and must never
+        // reach handleCode() or createSubTabs().
+        contentDiv.querySelectorAll('table').forEach((table) => {
+          const productContent = createProductContent(table);
+          contentDiv.appendChild(productContent);
+        });
+      } else {
+        handleCode(contentDiv);
 
-      contentDiv.querySelectorAll('table').forEach((table) => {
-        console.log("table",table)
-        const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
-        contentDiv.appendChild(subTabsWrapper);
-        contentDiv.appendChild(subContentWrapper);
-      });
+        contentDiv.querySelectorAll('table').forEach((table) => {
+          const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
+          contentDiv.appendChild(subTabsWrapper);
+          contentDiv.appendChild(subContentWrapper);
+        });
+      }
 
       if (tabCount === 1) contentDiv.classList.add('active');
 

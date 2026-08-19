@@ -377,3 +377,185 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
         width: 100%;
     }
 }
+
+/* ==========================================================================
+   Products variant
+   Scoped entirely under main div.tab-wrapper .tab.products so none of this
+   affects the existing code/sub-tab tabs.
+   ========================================================================== */
+
+main div.tab-wrapper .tab.products .products-content {
+    width: 100%;
+}
+
+main div.tab-wrapper .tab.products .products-card {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 0.9fr;
+    align-items: stretch;
+    gap: 32px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 20px;
+    padding: 32px;
+    box-sizing: border-box;
+}
+
+/* Column 1 - intro */
+main div.tab-wrapper .tab.products .products-intro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+}
+
+main div.tab-wrapper .tab.products .products-intro h1,
+main div.tab-wrapper .tab.products .products-intro h2,
+main div.tab-wrapper .tab.products .products-intro h3,
+main div.tab-wrapper .tab.products .products-intro h4 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+main div.tab-wrapper .tab.products .products-intro p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* Column 2 - media */
+main div.tab-wrapper .tab.products .products-media {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: 260px;
+    background: #e8e8e8;
+}
+
+main div.tab-wrapper .tab.products .products-media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+main div.tab-wrapper .tab.products .products-media picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Column 3 - product list */
+main div.tab-wrapper .tab.products .products-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+}
+
+main div.tab-wrapper .tab.products .products-list h1,
+main div.tab-wrapper .tab.products .products-list h2,
+main div.tab-wrapper .tab.products .products-list h3,
+main div.tab-wrapper .tab.products .products-list h4 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+main div.tab-wrapper .tab.products .products-list-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+main div.tab-wrapper .tab.products .product-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+main div.tab-wrapper .tab.products .product-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+main div.tab-wrapper .tab.products .product-icon picture,
+main div.tab-wrapper .tab.products .product-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+main div.tab-wrapper .tab.products .product-info {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+main div.tab-wrapper .tab.products .product-info a {
+    font-size: 16px;
+    font-weight: 600;
+    color: inherit;
+    text-decoration: underline;
+}
+
+main div.tab-wrapper .tab.products .product-new {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+/* navy background variant support, consistent with existing tabs */
+main div.tab-wrapper > div.background-color-navy.products .products-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+main div.tab-wrapper > div.background-color-navy.products .products-intro p {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+main div.tab-wrapper > div.background-color-navy.products .product-new {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media only screen and (max-width: 1024px) {
+    main div.tab-wrapper .tab.products .products-card {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "intro media"
+            "list list";
+    }
+
+    main div.tab-wrapper .tab.products .products-intro { grid-area: intro; }
+    main div.tab-wrapper .tab.products .products-media { grid-area: media; }
+    main div.tab-wrapper .tab.products .products-list { grid-area: list; }
+}
+
+@media only screen and (max-width: 860px) {
+    main div.tab-wrapper .tab.products .products-card {
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+        gap: 24px;
+    }
+
+    main div.tab-wrapper .tab.products .products-media {
+        min-height: 220px;
+    }
+}
