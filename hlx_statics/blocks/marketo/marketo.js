@@ -439,32 +439,46 @@ const readyForm = (form, formData) => {
       window.lana?.log(`Failed to parse additional-fields JSON: ${e.message}`, { tags: 'marketo', severity: 'w' });
     }
   }
-  formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
-    const text = htmlText.textContent || '';
-    const row = htmlText.closest('.mktoFormRow');
-    if (!text.toLowerCase().includes('authorize') && !text.toLowerCase().includes('privacy') && !text.toLowerCase().includes('contact')) {
-      if (row && !row.querySelector('input, select, textarea')) row.style.setProperty('display', 'none', 'important');
-    } else {
-      // Ensure the consent row spans both columns and overrides any custom CSS hiding it
+  const enforceFormLayout = () => {
+    formEl.querySelectorAll('.mktoHtmlText').forEach(htmlText => {
+      const text = htmlText.textContent || '';
+      const row = htmlText.closest('.mktoFormRow');
       if (row) {
-        row.classList.add('consent-row-fixed');
+        if (!text.toLowerCase().includes('authorize') && !text.toLowerCase().includes('privacy') && !text.toLowerCase().includes('contact')) {
+          row.classList.add('hidden-tracking-row');
+          row.style.setProperty('display', 'none', 'important');
+        } else {
+          row.classList.add('consent-row-fixed');
+        }
       }
-    }
-  });
+    });
 
-  // Hide tracking fields that Marketo might render as visible inputs
-  formEl.querySelectorAll('.mktoFormRow').forEach(row => {
-    const field = row.querySelector('[name]');
-    if (field && field.name.startsWith('vs_')) {
-      row.classList.add('hidden-tracking-row');
-    }
+    // Hide tracking fields that Marketo might render as visible inputs
+    formEl.querySelectorAll('.mktoFormRow').forEach(row => {
+      const field = row.querySelector('[name]');
+      if (field && field.name.startsWith('vs_')) {
+        row.classList.add('hidden-tracking-row');
+        row.style.setProperty('display', 'none', 'important');
+      }
+    });
+  };
+
+  // Run immediately and keep enforcing if Marketo redraws the form
+  enforceFormLayout();
+  const layoutObserver = new MutationObserver(() => {
+    layoutObserver.disconnect();
+    enforceFormLayout();
+    layoutObserver.observe(formEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
   });
+  layoutObserver.observe(formEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
 
   const styleEl = document.createElement('style');
   styleEl.textContent = `
     #${formEl.id} .mktoFormRow.additional-field-full-width {
       grid-column: 1 / -1 !important;
       width: 100% !important;
+      flex: 0 0 100% !important;
+      clear: both !important;
       margin-bottom: 10px !important;
     }
     #${formEl.id} .mktoFormRow.additional-field-full-width .mktoFieldWrap,
@@ -655,7 +669,8 @@ export const loadMarketo = (el, formData) => {
 
         if (formData['custom-css']) {
           const style = document.createElement('style');
-          style.textContent = formData['custom-css'];
+          const formEl = form.getFormElem().get(0);
+          style.textContent = formData['custom-css'].replace(/#mktoForm_\d+/g, `#${formEl.id}`);
           document.head.appendChild(style);
         }
 
