@@ -447,10 +447,8 @@ const readyForm = (form, formData) => {
         const text = htmlText.textContent || '';
         if (text.toLowerCase().includes('authorize') || text.toLowerCase().includes('privacy') || text.toLowerCase().includes('contact')) {
           row.classList.add('consent-row-fixed');
-          return; // Do not hide this row
         } else {
           row.classList.add('hidden-tracking-row');
-          row.style.setProperty('display', 'none', 'important');
         }
       }
 
@@ -458,44 +456,57 @@ const readyForm = (form, formData) => {
       const field = row.querySelector('[name]');
       if (field && field.name.startsWith('vs_')) {
         row.classList.add('hidden-tracking-row');
-        row.style.setProperty('display', 'none', 'important');
       }
     });
   };
 
   enforceFormLayout();
-  // Only observe child node additions/removals to prevent attribute loops
-  const layoutObserver = new MutationObserver(() => enforceFormLayout());
+  // Safe layout observer that avoids infinite loops
+  const layoutObserver = new MutationObserver(() => {
+    layoutObserver.disconnect();
+    enforceFormLayout();
+    layoutObserver.observe(formEl, { childList: true, subtree: true });
+  });
   layoutObserver.observe(formEl, { childList: true, subtree: true });
 
   const styleEl = document.createElement('style');
   styleEl.textContent = `
-    form.mktoForm .mktoFormRow.additional-field-full-width {
-      grid-column: 1 / -1 !important;
+    form.mktoForm {
       width: 100% !important;
-      flex: 0 0 100% !important;
-      clear: both !important;
-      margin-bottom: 10px !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      column-gap: 20px !important;
+      row-gap: 15px !important;
     }
-    form.mktoForm .mktoFormRow.additional-field-full-width .mktoFieldWrap,
-    form.mktoForm .mktoFormRow.additional-field-full-width .mktoLabel,
-    form.mktoForm .mktoFormRow.additional-field-full-width .mktoField {
-      width: 100% !important;
+    form.mktoForm * {
       box-sizing: border-box !important;
     }
+    form.mktoForm .mktoFormRow,
+    form.mktoForm .mktoFieldWrap,
+    form.mktoForm .mktoField {
+      width: 100% !important;
+      margin: 0 !important;
+    }
+    form.mktoForm .mktoFormRow.additional-field-full-width,
+    form.mktoForm .mktoFormRow.consent-row-fixed,
     form.mktoForm .mktoButtonRow {
       grid-column: 1 / -1 !important;
       width: 100% !important;
-      text-align: center !important;
-    }
-    form.mktoForm .mktoFormRow.consent-row-fixed {
-      grid-column: 1 / -1 !important;
       display: block !important;
-      width: 100% !important;
+    }
+    form.mktoForm .mktoClear,
+    form.mktoForm .mktoOffset,
+    form.mktoForm .mktoGutter {
+      display: none !important;
     }
     form.mktoForm .mktoFormRow.hidden-tracking-row,
-    form.mktoForm .mktoFormRow[class*="vs_"] {
+    form.mktoForm .mktoFormRow:has(input[name^="vs_"]) {
       display: none !important;
+    }
+    @media (max-width: 768px) {
+      form.mktoForm {
+        grid-template-columns: 1fr !important;
+      }
     }
   `;
   document.head.appendChild(styleEl);
@@ -506,28 +517,9 @@ const readyForm = (form, formData) => {
   formEl.style.setProperty('width', '100%', 'important');
   formEl.classList.add('mktoForm--fade-in', 'mktoVisible');
 
-  // Prevent Marketo forms2.min.js from setting inline width dynamically on form and its children
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'style') {
-        const target = mutation.target;
-        if (target.style.width) {
-          if (target === formEl) {
-            if (target.style.width !== '100%') {
-              target.style.setProperty('width', '100%', 'important');
-            }
-          } else {
-            target.style.width = '';
-          }
-        }
-      }
-    });
-  });
-  observer.observe(formEl, { attributes: true, attributeFilter: ['style'], subtree: true });
-
-  // Strip initial widths from all descendants
-  formEl.querySelectorAll('[style*="width"]').forEach((el) => {
-    el.style.width = '';
+  // Strip initial widths defensively (once, without an observer)
+  formEl.querySelectorAll('[style*="width"]').forEach((element) => {
+    element.style.width = '';
   });
 
   const handleIframeReady = (event) => {
