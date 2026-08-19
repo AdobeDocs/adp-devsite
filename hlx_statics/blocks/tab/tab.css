@@ -419,7 +419,8 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
     white-space: nowrap;
 }
 
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active{
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active,
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover{
     background-color: #1a1a1a !important;
     color: #fff !important;
 }
