@@ -162,6 +162,12 @@ export default async function decorate(block) {
             // Inject everything outside the form to avoid Marketo's grid/style stripping
             
             const selectColorStyle = document.createElement('style');
+            selectColorStyle.textContent = `
+                form.mktoForm .mktoFormRow.mktoCleanedScript,
+                form.mktoForm .mktoHtmlText span {
+                    display: none !important;
+                }
+            `;
             document.head.appendChild(selectColorStyle);
             document.addEventListener('change', (e) => {
                 if (e.target.tagName !== 'SELECT' || !formEl.contains(e.target)) return;
@@ -239,13 +245,13 @@ export default async function decorate(block) {
                     if (existing) { existing.textContent = msg || 'This field is required.'; return; }
                     const err = document.createElement('div');
                     err.id = id;
-                    err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px;';
+                    err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; display:block; clear:both; width:100%;';
                     err.textContent = msg || 'This field is required.';
                     const wrap = field.closest('.mktoFieldWrap');
                     if (wrap) {
-                        wrap.insertAdjacentElement('afterend', err);
+                        wrap.appendChild(err);
                     } else {
-                        field.insertAdjacentElement('afterend', err);
+                        field.parentNode.appendChild(err);
                     }
                 }
 
