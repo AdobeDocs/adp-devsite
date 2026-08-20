@@ -241,6 +241,11 @@ export default async function decorate(block) {
                 // This interval ensures any wrapper containing a hidden field is also strictly display: none.
                 setInterval(() => {
                     formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
+                        // Ensure textarea fields span both columns (works universally regardless of CSS :has support)
+                        if (wrap.querySelector('textarea')) {
+                            wrap.style.setProperty('grid-column', '1 / -1', 'important');
+                        }
+
                         const input = wrap.querySelector('.mktoField');
                         if (input) {
                             const style = window.getComputedStyle(input);
@@ -253,12 +258,25 @@ export default async function decorate(block) {
                                 }
                             }
                         } else {
-                            // Wrapper has no input (e.g. just empty html text)
+                            // Wrapper has no input (e.g. just html text)
                             const htmlText = wrap.querySelector('.mktoHtmlText');
-                            if (!htmlText || htmlText.innerHTML.trim() === '') {
+                            let isEmptyOrScriptOnly = true;
+                            if (htmlText) {
+                                const clone = htmlText.cloneNode(true);
+                                clone.querySelectorAll('script, style, br').forEach(s => s.remove());
+                                if (clone.innerText.trim() !== '') {
+                                    isEmptyOrScriptOnly = false;
+                                }
+                            }
+                            if (isEmptyOrScriptOnly) {
                                 wrap.style.setProperty('display', 'none', 'important');
                             }
                         }
+                    });
+                    
+                    // Strictly hide rows/cols Marketo tried to hide
+                    formEl.querySelectorAll('.mktoHidden, .mktoCleanedScript').forEach(el => {
+                        el.style.setProperty('display', 'none', 'important');
                     });
                 }, 500);
 
