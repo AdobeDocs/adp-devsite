@@ -23,7 +23,7 @@
 /* Force Marketo's row/col wrappers to display contents so fields become direct grid items */
 .marketo-form-wrapper .mktoFormRow:not(.mktoHidden),
 .marketo-form-wrapper .mktoFormCol:not(.mktoHidden) {
-  display: contents !important;
+  display: contents;
 }
 
 .marketo-form-wrapper .mktoHidden {
@@ -76,11 +76,11 @@
   width: 100% !important;
   border: 1px solid var(--color-grey-300, #909090) !important;
   border-radius: 4px !important;
-  padding: 10px 12px !important;
-  font-size: 16px !important;
-  line-height: 24px !important;
+  padding: 6px 10px !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
   height: auto !important;
-  min-height: 44px !important;
+  min-height: 38px !important;
   color: var(--color-black, #333) !important;
   background-color: var(--color-white, #fff) !important;
   transition: border-color 0.2s ease !important;

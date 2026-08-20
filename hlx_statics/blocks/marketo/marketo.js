@@ -270,6 +270,9 @@ export default async function decorate(block) {
 
                         // Validate all Marketo required fields
                         formEl.querySelectorAll('.mktoRequired').forEach(field => {
+                            // Skip hidden fields (Marketo sometimes hides fields dynamically)
+                            if (field.offsetWidth === 0 && field.offsetHeight === 0) return;
+
                             if (!field.value.trim()) {
                                 showFieldErr(field);
                                 allValid = false;
