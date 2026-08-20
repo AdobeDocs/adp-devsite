@@ -144,11 +144,26 @@ export default async function decorate(block) {
                 if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
                 const legend = consentRow && consentRow.querySelector('legend');
 
+                // Cleanup hidden fields/wrappers that create empty grid gaps
+                formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
+                    const field = wrap.querySelector('.mktoField');
+                    // Hide wrapper if no field, or if field is type hidden, or has inline display:none
+                    if (!field || field.type === 'hidden' || field.style.display === 'none') {
+                        wrap.style.setProperty('display', 'none', 'important');
+                    }
+                });
+                
+                formEl.querySelectorAll('.mktoFormRow').forEach(row => {
+                    if (row.style.display === 'none') {
+                        row.classList.add('mktoHidden');
+                    }
+                });
+
                 // Use case textarea
                 const useCaseDiv = document.createElement('div');
                 useCaseDiv.style.cssText = 'grid-column: 1 / -1; margin: 0;';
                 useCaseDiv.innerHTML = `
-                    <label style="display:block;font-size:14px;font-weight:normal;color:#464646;margin-bottom:4px;">Use case <span style="color:#d0021b;">*</span></label>
+                    <label style="display:block;font-size:14px;font-weight:normal;color:#464646;margin-bottom:4px;">Use case <span>*</span></label>
                     <textarea id="custom-use-case" class="mktoField use-case-textarea" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px 12px;border:1px solid #909090;border-radius:4px;outline:none;"
                         placeholder="Please describe your intended application of our PDF Services APIs."></textarea>`;
 

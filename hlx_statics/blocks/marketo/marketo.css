@@ -68,7 +68,6 @@
 /* Add custom asterisk to required fields */
 .marketo-form-wrapper .mktoRequiredField .mktoLabel::after {
   content: " *";
-  color: #d0021b !important;
 }
 
 /* Custom styles for form fields */
