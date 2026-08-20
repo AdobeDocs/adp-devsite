@@ -14,7 +14,7 @@
 .marketo-form-wrapper .mktoForm {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 16px !important;
+  gap: 8px 16px !important;
   width: 100% !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
@@ -112,7 +112,8 @@
   max-width: 280px;
   height: 48px;
   padding: 12px 24px;
-  border-radius: 24px !important; /* Pill shape like expected image */
+  border-radius: 24px !important;
+  /* Pill shape like expected image */
   background-color: var(--color-aem-blue, #1473e6) !important;
   color: var(--color-white, #fff) !important;
   font-weight: 700 !important;
