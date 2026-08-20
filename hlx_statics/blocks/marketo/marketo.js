@@ -10,10 +10,14 @@ export default async function decorate(block) {
         successRedirect: null
     };
 
-    let fetchUrl = "https://main--adp-devsite-stage--adobedocs.aem.page/test/petheanraj/marketo-form/sales.json";
+    let fetchUrl = "/test/petheanraj/marketo-form/sales.json";
     const configLink = block.querySelector('a[href$=".json"]');
     if (configLink) {
-        fetchUrl = configLink.href;
+        try {
+            fetchUrl = new URL(configLink.href).pathname;
+        } catch (e) {
+            fetchUrl = configLink.getAttribute('href');
+        }
     }
 
     try {
