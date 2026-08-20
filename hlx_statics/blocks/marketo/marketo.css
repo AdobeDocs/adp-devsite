@@ -30,6 +30,27 @@
   display: none !important;
 }
 
+/* Strictly hide grid items if Marketo attempts to hide their parent row/col via inline styles or classes */
+.marketo-form-wrapper .mktoFormRow[style*="display: none"] .mktoFieldWrap,
+.marketo-form-wrapper .mktoFormRow[style*="display:none"] .mktoFieldWrap,
+.marketo-form-wrapper .mktoFormCol[style*="display: none"] .mktoFieldWrap,
+.marketo-form-wrapper .mktoFormCol[style*="display:none"] .mktoFieldWrap {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoFormRow.adobe-privacy,
+.marketo-form-wrapper .mktoFormRow.by-supplyingmycontac {
+  display: none !important;
+}
+
+/* Strictly hide grid items if Marketo hides the input directly via inline styles */
+.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="display: none"]),
+.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="display:none"]),
+.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="visibility: hidden"]),
+.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="visibility:hidden"]) {
+  display: none !important;
+}
+
 /* Hide spacer/clear elements that disrupt the grid */
 .marketo-form-wrapper .mktoClear,
 .marketo-form-wrapper .mktoOffset,
@@ -47,6 +68,11 @@
 
 /* Hide field wraps that don't contain visible inputs to prevent grid shifting and empty gaps at the bottom */
 .marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
+  display: none !important;
+}
+
+/* Hide wrappers that only contain configuration scripts in mktoHtmlText */
+.marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField)):has(.mktoHtmlText script) {
   display: none !important;
 }
 
