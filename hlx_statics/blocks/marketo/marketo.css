@@ -163,4 +163,10 @@
 .marketo-form-wrapper .mktoFormRow:has(.mktoHtmlText) {
   display: none !important;
 }
+
+/* Ensure error messages are red across all fields */
+.marketo-form-wrapper .mktoErrorMsg,
+.marketo-form-wrapper .mktoError {
+  color: var(--color-status-error, #d0021b) !important;
+}
 
