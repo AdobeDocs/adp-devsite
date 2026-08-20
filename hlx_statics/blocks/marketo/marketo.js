@@ -15,7 +15,7 @@ export default async function decorate(block) {
     };
 
     let fetchUrl = "/test/petheanraj/marketo-form/sales.json";
-    
+
     // Check if there is an explicit link authored in the block
     const configLink = block.querySelector('a[href$=".json"]');
     if (configLink) {
@@ -78,7 +78,7 @@ export default async function decorate(block) {
                 if (blockConfig['additional-fields']) {
                     configData.customFields = safeParse(blockConfig['additional-fields'], []);
                 }
-                
+
                 if (blockConfig['submitButton']) {
                     configData.submitButton = safeParse(blockConfig['submitButton'], null);
                 }
@@ -160,7 +160,7 @@ export default async function decorate(block) {
             });
 
             // Inject everything outside the form to avoid Marketo's grid/style stripping
-            
+
             const selectColorStyle = document.createElement('style');
             selectColorStyle.textContent = `
                 form.mktoForm .mktoFormRow.mktoCleanedScript,
@@ -241,11 +241,6 @@ export default async function decorate(block) {
                 // This interval ensures any wrapper containing a hidden field is also strictly display: none.
                 setInterval(() => {
                     formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
-                        // Ensure textarea fields span both columns (works universally regardless of CSS :has support)
-                        if (wrap.querySelector('textarea')) {
-                            wrap.style.setProperty('grid-column', '1 / -1', 'important');
-                        }
-
                         const input = wrap.querySelector('.mktoField');
                         if (input) {
                             const style = window.getComputedStyle(input);
@@ -258,30 +253,17 @@ export default async function decorate(block) {
                                 }
                             }
                         } else {
-                            // Wrapper has no input (e.g. just html text)
+                            // Wrapper has no input (e.g. just empty html text)
                             const htmlText = wrap.querySelector('.mktoHtmlText');
-                            let isEmptyOrScriptOnly = true;
-                            if (htmlText) {
-                                const clone = htmlText.cloneNode(true);
-                                clone.querySelectorAll('script, style, br').forEach(s => s.remove());
-                                if (clone.innerText.trim() !== '') {
-                                    isEmptyOrScriptOnly = false;
-                                }
-                            }
-                            if (isEmptyOrScriptOnly) {
+                            if (!htmlText || htmlText.innerHTML.trim() === '') {
                                 wrap.style.setProperty('display', 'none', 'important');
                             }
                         }
                     });
-                    
-                    // Strictly hide rows/cols Marketo tried to hide
-                    formEl.querySelectorAll('.mktoHidden, .mktoCleanedScript').forEach(el => {
-                        el.style.setProperty('display', 'none', 'important');
-                    });
                 }, 500);
 
                 const customSubmitBtn = document.getElementById('custom-submit');
-                
+
                 function showFieldErr(field, msg) {
                     const id = 'err-' + field.name;
                     field.style.setProperty('border-color', '#d0021b', 'important');

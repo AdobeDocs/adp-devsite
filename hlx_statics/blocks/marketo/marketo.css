@@ -14,7 +14,7 @@
 .marketo-form-wrapper .mktoForm {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 8px 16px !important;
+  gap: 16px !important;
   width: 100% !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
@@ -23,35 +23,10 @@
 /* Force Marketo's row/col wrappers to display contents so fields become direct grid items */
 .marketo-form-wrapper .mktoFormRow:not(.mktoHidden),
 .marketo-form-wrapper .mktoFormCol:not(.mktoHidden) {
-  display: contents;
+  display: contents !important;
 }
 
 .marketo-form-wrapper .mktoHidden {
-  display: none !important;
-}
-
-/* Strictly hide grid items if Marketo attempts to hide their parent row/col via inline styles or classes */
-.marketo-form-wrapper .mktoFormRow[style*="display: none"] .mktoFieldWrap,
-.marketo-form-wrapper .mktoFormRow[style*="display:none"] .mktoFieldWrap,
-.marketo-form-wrapper .mktoFormCol[style*="display: none"] .mktoFieldWrap,
-.marketo-form-wrapper .mktoFormCol[style*="display:none"] .mktoFieldWrap,
-.marketo-form-wrapper .mktoFieldWrap[style*="display: none"],
-.marketo-form-wrapper .mktoFieldWrap[style*="display:none"],
-.marketo-form-wrapper .mktoFieldWrap[style*="visibility: hidden"],
-.marketo-form-wrapper .mktoFieldWrap[style*="visibility:hidden"] {
-  display: none !important;
-}
-
-.marketo-form-wrapper .mktoFormRow.adobe-privacy,
-.marketo-form-wrapper .mktoFormRow.by-supplyingmycontac {
-  display: none !important;
-}
-
-/* Strictly hide grid items if Marketo hides the input directly via inline styles */
-.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="display: none"]),
-.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="display:none"]),
-.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="visibility: hidden"]),
-.marketo-form-wrapper .mktoFieldWrap:has(.mktoField[style*="visibility:hidden"]) {
   display: none !important;
 }
 
@@ -59,12 +34,7 @@
 .marketo-form-wrapper .mktoClear,
 .marketo-form-wrapper .mktoOffset,
 .marketo-form-wrapper .mktoGutter,
-.marketo-form-wrapper .mktoPlaceholder,
 .marketo-form-wrapper .mktoHtmlText:empty {
-  display: none !important;
-}
-
-.marketo-form-wrapper .mktoFieldWrap.mktoHidden {
   display: none !important;
 }
 
@@ -77,11 +47,6 @@
 
 /* Hide field wraps that don't contain visible inputs to prevent grid shifting and empty gaps at the bottom */
 .marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
-  display: none !important;
-}
-
-/* Hide wrappers that only contain configuration scripts in mktoHtmlText */
-.marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField)):has(.mktoHtmlText script) {
   display: none !important;
 }
 
@@ -111,11 +76,11 @@
   width: 100% !important;
   border: 1px solid var(--color-grey-300, #909090) !important;
   border-radius: 4px !important;
-  padding: 6px 10px !important;
-  font-size: 14px !important;
-  line-height: 20px !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  line-height: 24px !important;
   height: auto !important;
-  min-height: 38px !important;
+  min-height: 44px !important;
   color: var(--color-black, #333) !important;
   background-color: var(--color-white, #fff) !important;
   transition: border-color 0.2s ease !important;
@@ -135,11 +100,6 @@
 .marketo-form-wrapper .use-case-textarea {
   height: 120px;
   resize: vertical;
-}
-
-/* Make textarea fields span both columns */
-.marketo-form-wrapper .mktoFieldWrap:has(textarea) {
-  grid-column: 1 / -1;
 }
 
 /* Custom submit button */
@@ -203,3 +163,4 @@
 .marketo-form-wrapper .mktoFormRow:has(.mktoHtmlText) {
   display: none !important;
 }
+
