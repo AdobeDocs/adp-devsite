@@ -181,12 +181,12 @@ export default async function decorate(block) {
                             err.textContent = 'This field is required.';
                             ta.after(err);
                         }
-                        ta.focus();
-                        return;
+                    } else {
+                        ta.style.borderColor = '#6e6e6e';
+                        const err = document.getElementById('use-case-error');
+                        if (err) err.remove();
                     }
-                    ta.style.borderColor = '#6e6e6e';
-                    const err = document.getElementById('use-case-error');
-                    if (err) err.remove();
+                    
                     form.addHiddenFields({ mktoQuestionComments: ta.value });
                     formEl.querySelector('.mktoButton').click();
                 });
@@ -194,7 +194,17 @@ export default async function decorate(block) {
         }
 
         form.onValidate(function (valid) {
-            if (valid) form.submittable(true);
+            const ta = document.getElementById('custom-use-case');
+            const isUseCaseValid = ta ? ta.value.trim() !== '' : true;
+            
+            if (valid && isUseCaseValid) {
+                form.submittable(true);
+            } else {
+                form.submittable(false);
+                if (ta && !isUseCaseValid) {
+                    ta.focus();
+                }
+            }
         });
 
         form.onSuccess(function () {

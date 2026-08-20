@@ -40,9 +40,8 @@
   margin: 0 !important;
 }
 
-/* Hide field wraps that don't contain actual inputs or only contain html text to prevent grid shifting */
-.marketo-form-wrapper .mktoFieldWrap:has(.mktoHtmlText),
-.marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField)) {
+/* Hide field wraps that don't contain visible inputs to prevent grid shifting and empty gaps at the bottom */
+.marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
   display: none !important;
 }
 
@@ -54,6 +53,17 @@
   color: #464646 !important;
   margin-bottom: 4px !important;
   width: auto !important;
+}
+
+/* Ensure Marketo's default asterisk is hidden if present */
+.marketo-form-wrapper .mktoAsterix {
+  display: none !important;
+}
+
+/* Add custom asterisk to required fields */
+.marketo-form-wrapper .mktoRequiredField .mktoLabel::after {
+  content: " *";
+  color: #d0021b !important;
 }
 
 /* Custom styles for form fields */
