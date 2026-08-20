@@ -11,6 +11,7 @@ export default async function decorate(block) {
         customFields: [],
         submitButton: null,
         successRedirect: null,
+        successMessage: null,
         consentPosition: 'after-button'
     };
 
@@ -87,8 +88,13 @@ export default async function decorate(block) {
                     configData.consentPosition = blockConfig['consentPosition'];
                 }
 
-                if (configData.marketoConfig.form_config.success && configData.marketoConfig.form_config.success.type === 'redirect') {
-                    configData.successRedirect = configData.marketoConfig.form_config.success.content;
+                const successConfig = configData.marketoConfig.form_config.success;
+                if (successConfig) {
+                    if (successConfig.type === 'redirect') {
+                        configData.successRedirect = successConfig.content;
+                    } else if (successConfig.type === 'message') {
+                        configData.successMessage = successConfig.content;
+                    }
                 }
 
                 if (blockConfig['custom-css']) {
@@ -383,6 +389,15 @@ export default async function decorate(block) {
         form.onSuccess(function () {
             if (configData.successRedirect) {
                 top.location.href = configData.successRedirect;
+                return false;
+            } else if (configData.successMessage) {
+                Array.from(wrapper.children).forEach(child => child.style.display = 'none');
+                
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message show';
+                successDiv.innerHTML = configData.successMessage;
+                wrapper.appendChild(successDiv);
+                
                 return false;
             }
         });
