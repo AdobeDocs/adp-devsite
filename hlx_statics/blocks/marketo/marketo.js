@@ -271,7 +271,8 @@ export default async function decorate(block) {
                     if (existing) { existing.textContent = msg || 'This field is required.'; return; }
                     const err = document.createElement('div');
                     err.id = id;
-                    err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; display:block; clear:both; width:100%;';
+                    err.className = 'custom-field-error';
+                    err.style.cssText = 'color:#d0021b !important; font-size:12px; margin-top:4px; display:block; clear:both; width:100%;';
                     err.textContent = msg || 'This field is required.';
                     const wrap = field.closest('.mktoFieldWrap');
                     if (wrap) {
@@ -329,7 +330,8 @@ export default async function decorate(block) {
                                 if (!err) {
                                     err = document.createElement('div');
                                     err.id = field.id + '-error';
-                                    err.style.cssText = field.errorCss || 'color:#d0021b; font-size:12px; margin-top:4px;';
+                                    err.className = 'custom-field-error';
+                                    err.style.cssText = field.errorCss || 'color:#d0021b !important; font-size:12px; margin-top:4px;';
                                     err.textContent = field.errorText || 'This field is required.';
                                     inputEl.after(err);
                                 }

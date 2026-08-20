@@ -166,7 +166,8 @@
 
 /* Ensure error messages are red across all fields */
 .marketo-form-wrapper .mktoErrorMsg,
-.marketo-form-wrapper .mktoError {
+.marketo-form-wrapper .mktoError,
+.marketo-form-wrapper .custom-field-error {
   color: var(--color-status-error, #d0021b) !important;
 }
 
