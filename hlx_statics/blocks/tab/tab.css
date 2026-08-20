@@ -382,9 +382,9 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
     }
 }
 
-main div.tab-wrapper > .tabs-wrapper .tab-button .tab-title,
-main div.tab-wrapper > .tabs-wrapper .tab-button:hover .tab-title{
-    color: white !important;
+main .tab-wrapper .tabs-wrapper .tab-button .tab-title,
+main .tab-wrapper .tabs-wrapper .tab-button:hover .tab-title {
+  color: white !important;
 }
 
 main div.tab-wrapper .tab.products > .tabs-wrapper {
