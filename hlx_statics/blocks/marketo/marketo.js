@@ -115,14 +115,70 @@ export default async function decorate(block) {
         return output;
     }
 
-    const rawJsonText = block.textContent.trim().replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
-    if (rawJsonText && rawJsonText.startsWith('{') && rawJsonText.endsWith('}')) {
-        try {
-            const parsedConfig = JSON.parse(rawJsonText);
-            configData = deepMerge(configData, parsedConfig);
-        } catch (e) {
-            console.error("Failed to parse marketo block JSON config:", e);
+    let fetchUrl = "https://main--adp-devsite-stage--adobedocs.aem.page/test/petheanraj/marketo-form/sales.json";
+    
+    // Check if a link to a JSON file is authored in the block
+    const configLink = block.querySelector('a[href$=".json"]');
+    if (configLink) {
+        fetchUrl = configLink.href;
+    }
+
+    try {
+        const resp = await fetch(fetchUrl);
+        if (resp.ok) {
+            const json = await resp.json();
+            if (json && json.data) {
+                const blockConfig = {};
+                json.data.forEach(row => {
+                    // The keys from the spreadsheet might be 'form-data', 'Key', 'key', etc.
+                    // We'll use 'form-data' based on your provided data, but also fallback to standard keys just in case.
+                    const key = row['form-data'] || row['Key'] || row['key'];
+                    const value = row['value'] || row['Value'];
+                    if (key) {
+                        blockConfig[key] = value;
+                    }
+                });
+
+                const safeParse = (str, fallback) => {
+                    if (!str) return fallback;
+                    try {
+                        const cleaned = str.trim().replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+                        return JSON.parse(cleaned);
+                    } catch (e) {
+                        console.error("Failed to parse JSON for config:", str, e);
+                        return fallback;
+                    }
+                };
+
+                if (blockConfig['form_id_base']) configData.marketoConfig.form_config.form_id_base = parseInt(blockConfig['form_id_base'], 10);
+                if (blockConfig['form_id_program']) configData.marketoConfig.form_config.form_id_program = parseInt(blockConfig['form_id_program'], 10);
+                if (blockConfig['poi']) configData.marketoConfig.form_config.poi = blockConfig['poi'];
+                if (blockConfig['campaignIds']) configData.marketoConfig.form_config.campaignIds = safeParse(blockConfig['campaignIds'], configData.marketoConfig.form_config.campaignIds);
+                if (blockConfig['copartnernames'] !== undefined) configData.marketoConfig.form_config.copartnernames = blockConfig['copartnernames'];
+                if (blockConfig['success']) configData.marketoConfig.form_config.success = safeParse(blockConfig['success'], configData.marketoConfig.form_config.success);
+                if (blockConfig['templateOverrides']) configData.marketoConfig.form_config.templateOverrides = safeParse(blockConfig['templateOverrides'], configData.marketoConfig.form_config.templateOverrides);
+                if (blockConfig['prefillFields']) configData.marketoConfig.form_config.prefillFields = safeParse(blockConfig['prefillFields'], configData.marketoConfig.form_config.prefillFields);
+                
+                if (blockConfig['demo_ux']) configData.marketoConfig.demo_ux = safeParse(blockConfig['demo_ux'], configData.marketoConfig.demo_ux);
+                if (blockConfig['form_architecture']) configData.marketoConfig.form_architecture = safeParse(blockConfig['form_architecture'], configData.marketoConfig.form_architecture);
+
+                if (blockConfig['additional-fields']) {
+                    configData.customFields = safeParse(blockConfig['additional-fields'], configData.customFields);
+                }
+
+                if (configData.marketoConfig.form_config.success && configData.marketoConfig.form_config.success.type === 'redirect') {
+                    configData.successRedirect = configData.marketoConfig.form_config.success.content;
+                }
+
+                if (blockConfig['custom-css']) {
+                    const style = document.createElement('style');
+                    style.innerHTML = blockConfig['custom-css'];
+                    document.head.append(style);
+                }
+            }
         }
+    } catch (err) {
+        console.error("Failed to fetch marketo config from:", fetchUrl, err);
     }
 
     // Clear the block's default HTML table so it doesn't render on the screen
