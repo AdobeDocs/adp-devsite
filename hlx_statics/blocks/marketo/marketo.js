@@ -239,14 +239,9 @@ export default async function decorate(block) {
                     if (existing) { existing.textContent = msg || 'This field is required.'; return; }
                     const err = document.createElement('div');
                     err.id = id;
-                    err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px;';
+                    err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; width: 100%;';
                     err.textContent = msg || 'This field is required.';
-                    const wrap = field.closest('.mktoFieldWrap');
-                    if (wrap) {
-                        wrap.insertAdjacentElement('afterend', err);
-                    } else {
-                        field.insertAdjacentElement('afterend', err);
-                    }
+                    field.insertAdjacentElement('afterend', err);
                 }
 
                 function clearFieldErr(field) {
