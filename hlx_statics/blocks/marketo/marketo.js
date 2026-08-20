@@ -423,24 +423,13 @@ export default async function decorate(block) {
         form.onSuccess(function () {
             console.log("Marketo form onSuccess triggered.");
             console.log("configData.successRedirect:", configData.successRedirect);
-            console.log("configData.successMessage:", configData.successMessage);
             
             if (configData.successRedirect) {
                 top.location.href = configData.successRedirect;
                 return false;
-            } else if (configData.successMessage) {
-                // Completely remove the form and any custom fields or Marketo's default injected success messages
-                wrapper.innerHTML = '';
-                
-                const successDiv = document.createElement('div');
-                successDiv.className = 'success-message show';
-                successDiv.innerHTML = configData.successMessage;
-                wrapper.appendChild(successDiv);
-                
-                // Try to stop Marketo from doing anything else
-                return false;
             }
-            console.log("No custom success configuration found, falling back to Marketo default.");
+            
+            console.log("Falling back to Marketo default success behavior.");
         });
 
     }).catch((error) => {
