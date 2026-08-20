@@ -16,6 +16,8 @@
   grid-template-columns: 1fr 1fr !important;
   gap: 16px !important;
   width: 100% !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 /* Force Marketo's row/col wrappers to display contents so fields become direct grid items */
@@ -29,7 +31,10 @@
 }
 
 /* Hide spacer/clear elements that disrupt the grid */
-.marketo-form-wrapper .mktoClear {
+.marketo-form-wrapper .mktoClear,
+.marketo-form-wrapper .mktoOffset,
+.marketo-form-wrapper .mktoGutter,
+.marketo-form-wrapper .mktoHtmlText:empty {
   display: none !important;
 }
 
@@ -154,6 +159,7 @@
 
 /* Hide Marketo's default consent row and privacy text */
 .marketo-form-wrapper .mktoFormRow.by-supplyingmycontac,
-.marketo-form-wrapper .mktoFormRow.adobe-privacy {
+.marketo-form-wrapper .mktoFormRow.adobe-privacy,
+.marketo-form-wrapper .mktoFormRow:has(.mktoHtmlText) {
   display: none !important;
 }
