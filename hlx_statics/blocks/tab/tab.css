@@ -408,7 +408,9 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
 }
 
 main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active,
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover {
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active > .tab-title,
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover,
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover > .tab-title{
     background-color: #1a1a1a !important;
     color: #fff !important;
 }
