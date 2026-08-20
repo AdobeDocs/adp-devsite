@@ -407,15 +407,15 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
     white-space: nowrap;
 }
 
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active,
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover {
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active > .tab-title,
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover > .tab-title{
     background-color: #1a1a1a !important;
     color: #fff !important;
 }
 
 main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
     background-color: #F8F8F8 !important;
-    color: #000 !important;
+    color: #000 !important; 
 }
 
 main div.tab-wrapper .tab.products .products-content {

@@ -214,7 +214,7 @@ export default async function decorate(block) {
       tabButton.className = 'tab-button';
       tabButton.innerHTML = `
         ${tabImage ? `<div class="tab-icon">${tabImage}</div>` : ''}
-        <span style="color:white;" class="tab-title spectrum-Heading spectrum-Heading--sizeS">${tabTitle}</span>
+        <span class="tab-title spectrum-Heading spectrum-Heading--sizeS">${tabTitle}</span>
       `;
       tabButton.setAttribute('data-tab', `tab${tabCount}`);
       if (tabCount === 1) tabButton.classList.add('active');
