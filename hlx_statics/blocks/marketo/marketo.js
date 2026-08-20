@@ -236,6 +236,32 @@ export default async function decorate(block) {
                     container.insertBefore(consentDiv, after);
                 }
 
+                // Aggressive cleanup: Marketo hides fields using various methods (visibility, opacity, display:none on rows).
+                // Because we use display: contents on rows to enable CSS Grid, some wrappers might be left exposed.
+                // This interval ensures any wrapper containing a hidden field is also strictly display: none.
+                setInterval(() => {
+                    formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
+                        const input = wrap.querySelector('.mktoField');
+                        if (input) {
+                            const style = window.getComputedStyle(input);
+                            if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || input.type === 'hidden') {
+                                wrap.style.setProperty('display', 'none', 'important');
+                            } else {
+                                // Only remove if we explicitly set it
+                                if (wrap.style.display === 'none') {
+                                    wrap.style.removeProperty('display');
+                                }
+                            }
+                        } else {
+                            // Wrapper has no input (e.g. just empty html text)
+                            const htmlText = wrap.querySelector('.mktoHtmlText');
+                            if (!htmlText || htmlText.innerHTML.trim() === '') {
+                                wrap.style.setProperty('display', 'none', 'important');
+                            }
+                        }
+                    });
+                }, 500);
+
                 const customSubmitBtn = document.getElementById('custom-submit');
                 
                 function showFieldErr(field, msg) {
