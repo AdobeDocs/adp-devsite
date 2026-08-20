@@ -203,6 +203,7 @@ export default async function decorate(block) {
                     field.id = id;
 
                     const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'aem-injected-element';
                     fieldDiv.style.cssText = field.wrapperCss || 'margin: 8px 0;';
 
                     let html = '';
@@ -226,12 +227,14 @@ export default async function decorate(block) {
                 let submitDiv = null;
                 if (configData.submitButton) {
                     submitDiv = document.createElement('div');
+                    submitDiv.className = 'aem-injected-element';
                     if (configData.submitButton.wrapperCss) submitDiv.style.cssText = configData.submitButton.wrapperCss;
                     submitDiv.innerHTML = `<button id="custom-submit" style="${configData.submitButton.buttonCss || ''}">${configData.submitButton.text || 'Submit'}</button>`;
                 }
 
                 // Setup Consent text
                 const consentDiv = document.createElement('div');
+                consentDiv.className = 'aem-injected-element';
                 consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin: 8px 0;';
                 if (legend) consentDiv.innerHTML = legend.innerHTML;
 
@@ -428,6 +431,9 @@ export default async function decorate(block) {
                 top.location.href = configData.successRedirect;
                 return false;
             }
+            
+            // Hide all custom injected elements (custom fields, submit button, consent)
+            document.querySelectorAll('.aem-injected-element').forEach(el => el.style.display = 'none');
             
             console.log("Falling back to Marketo default success behavior.");
         });
