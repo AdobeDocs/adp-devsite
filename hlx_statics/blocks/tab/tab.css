@@ -382,18 +382,6 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
     }
 }
 
-/* ==========================================================================
-   Products variant
-   Scoped entirely under main div.tab-wrapper .tab.products so none of this
-   affects the existing code/sub-tab tabs or their navbar.
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Products navbar
-   Only applies inside .tab.products - the default .tabs-wrapper / .tab-button
-   styling elsewhere is untouched.
-   -------------------------------------------------------------------------- */
-
 main div.tab-wrapper .tab.products > .tabs-wrapper {
     flex-direction: row;
     flex-wrap: wrap;
@@ -420,7 +408,7 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
 }
 
 main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active,
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover{
+main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover {
     background-color: #1a1a1a !important;
     color: #fff !important;
 }
@@ -430,16 +418,10 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
     color: #000 !important;
 }
 
-/* --------------------------------------------------------------------------
-   Product content - three independent cards
-   -------------------------------------------------------------------------- */
-
 main div.tab-wrapper .tab.products .products-content {
     width: 100%;
 }
 
-/* Layout wrapper only - no border/background of its own, so it never
-   reads as one big outer card. */
 main div.tab-wrapper .tab.products .products-card {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -450,7 +432,6 @@ main div.tab-wrapper .tab.products .products-card {
     padding: 0;
 }
 
-/* Each section is its own fully independent card. */
 main div.tab-wrapper .tab.products .products-intro,
 main div.tab-wrapper .tab.products .products-media,
 main div.tab-wrapper .tab.products .products-list {
@@ -460,7 +441,6 @@ main div.tab-wrapper .tab.products .products-list {
     box-sizing: border-box;
 }
 
-/* Column 1 - intro */
 main div.tab-wrapper .tab.products .products-intro {
     display: flex;
     flex-direction: column;
@@ -485,7 +465,6 @@ main div.tab-wrapper .tab.products .products-intro p {
     color: rgba(0, 0, 0, 0.7);
 }
 
-/* Column 2 - media */
 main div.tab-wrapper .tab.products .products-media {
     position: relative;
     overflow: hidden;
@@ -506,7 +485,6 @@ main div.tab-wrapper .tab.products .products-media picture img {
     display: block;
 }
 
-/* Column 3 - product list */
 main div.tab-wrapper .tab.products .products-list {
     display: flex;
     flex-direction: column;
@@ -576,7 +554,6 @@ main div.tab-wrapper .tab.products .product-new {
     color: rgba(0, 0, 0, 0.55);
 }
 
-/* navy background variant support, consistent with existing tabs */
 main div.tab-wrapper > div.background-color-navy.products > .tabs-wrapper {
     background: rgba(255, 255, 255, 0.08);
 }
@@ -600,18 +577,11 @@ main div.tab-wrapper > div.background-color-navy.products .product-new {
     color: rgba(255, 255, 255, 0.6);
 }
 
-/* ==========================================================================
-   Responsive
-   ========================================================================== */
-
 @media only screen and (max-width: 1024px) {
     main div.tab-wrapper .tab.products .products-card {
         grid-template-columns: 1fr 1fr;
-        grid-template-areas:
-            "intro media"
-            "list list";
+        grid-template-areas: "intro media" "list list";
     }
-
     main div.tab-wrapper .tab.products .products-intro { grid-area: intro; }
     main div.tab-wrapper .tab.products .products-media { grid-area: media; }
     main div.tab-wrapper .tab.products .products-list { grid-area: list; }
@@ -623,18 +593,15 @@ main div.tab-wrapper > div.background-color-navy.products .product-new {
         overflow-x: auto;
         justify-content: flex-start;
     }
-
     main div.tab-wrapper .tab.products .products-card {
         display: flex;
         flex-direction: column;
         gap: 20px;
     }
-
     main div.tab-wrapper .tab.products .products-intro,
     main div.tab-wrapper .tab.products .products-list {
         padding: 24px;
     }
-
     main div.tab-wrapper .tab.products .products-media {
         min-height: 220px;
     }

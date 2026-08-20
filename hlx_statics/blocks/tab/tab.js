@@ -86,21 +86,6 @@ const createSubTabs = (table) => {
   return { subTabsWrapper, subContentWrapper };
 }
 
-/**
- * Detects whether a <strong> label represents a "(NEW)" style badge.
- * This is a generic pattern match (not a hardcoded product name).
- */
-const isNewBadgeText = (text) => /^\(?\s*new\s*\)?$/i.test(text || '');
-
-/**
- * Transforms a "products" authoring table into the product card layout:
- *   column 1 -> intro (heading + paragraph)
- *   column 2 -> media (picture)
- *   column 3 -> product list (heading + list of product links)
- *
- * The table is treated purely as source data - none of the original
- * table/row/cell markup is kept in the final DOM.
- */
 const createProductContent = (table) => {
   const productsContent = document.createElement('div');
   productsContent.className = 'products-content';
@@ -109,110 +94,84 @@ const createProductContent = (table) => {
   card.className = 'products-card';
   productsContent.appendChild(card);
 
-  const row = table.querySelector(':scope > tbody > tr') || table.querySelector('tr');
-  if (!row) {
-    table.remove();
-    return productsContent;
-  }
+  const row = table.querySelector(':scope > tbody > tr, tr');
+  if (row) {
+    const [introCell, mediaCell, listCell] = row.querySelectorAll(':scope > td');
 
-  const cells = row.querySelectorAll(':scope > td');
-  const [introCell, mediaCell, listCell] = cells;
+    if (introCell) {
+      const intro = document.createElement('div');
+      intro.className = 'products-intro';
 
-  // Column 1 - intro
-  if (introCell) {
-    const intro = document.createElement('div');
-    intro.className = 'products-intro';
+      const heading = introCell.querySelector('h1, h2, h3, h4');
+      if (heading) {
+        heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL');
+        intro.appendChild(heading);
+      }
 
-    const heading = introCell.querySelector('h1, h2, h3, h4');
-    if (heading) {
-      heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL', 'logo-showcase-heading');
-      intro.appendChild(heading.cloneNode(true))
-    };
+      introCell.querySelectorAll(':scope > p').forEach((p) => {
+        p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+        intro.appendChild(p);
+      });
 
-    const paragraphs = introCell.querySelectorAll(':scope > p');
-    paragraphs.forEach((p) => {
-      p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-      intro.appendChild(p.cloneNode(true))
-    });
-
-    card.appendChild(intro);
-  }
-
-  // Column 2 - media
-  if (mediaCell) {
-    const media = document.createElement('div');
-    media.className = 'products-media';
-
-    const picture = mediaCell.querySelector('picture');
-    if (picture) {
-      media.appendChild(picture.cloneNode(true));
+      card.appendChild(intro);
     }
 
-    card.appendChild(media);
-  }
+    const picture = mediaCell?.querySelector('picture');
+    if (picture) {
+      const media = document.createElement('div');
+      media.className = 'products-media';
+      media.appendChild(picture);
+      card.appendChild(media);
+    }
 
-  // Column 3 - product list
-  if (listCell) {
-    const listSection = document.createElement('div');
-    listSection.className = 'products-list';
+    if (listCell) {
+      const listSection = document.createElement('div');
+      listSection.className = 'products-list';
 
-    const listHeading = listCell.querySelector('h1, h2, h3, h4');
-    if (listHeading) listSection.appendChild(listHeading.cloneNode(true));
-
-    const ul = document.createElement('ul');
-    ul.className = 'products-list-items';
-
-    listCell.querySelectorAll(':scope > ul > li, ul > li').forEach((li) => {
-      const link = li.querySelector('a');
-      // A product entry needs at least a link/name to be meaningful.
-      if (!link) return;
-
-      const item = document.createElement('li');
-      item.className = 'product-item';
-
-      const picture = li.querySelector('picture');
-      if (picture) {
-        const icon = document.createElement('span');
-        icon.className = 'product-icon';
-        icon.appendChild(picture.cloneNode(true));
-        item.appendChild(icon);
+      const heading = listCell.querySelector('h1, h2, h3, h4');
+      if (heading) {
+        heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL');
+        listSection.appendChild(heading);
       }
 
-      const info = document.createElement('div');
-      info.className = 'product-info';
-      info.appendChild(link.cloneNode(true));
+      const ul = document.createElement('ul');
+      ul.className = 'products-list-items';
 
-      const newLabel = [...li.querySelectorAll('strong')]
-        .map((strong) => strong.textContent.trim())
-        .find(isNewBadgeText);
+      listCell.querySelectorAll(':scope > ul > li').forEach((li) => {
+        const link = li.querySelector('a');
+        if (!link) return;
 
-      if (newLabel) {
-        const badge = document.createElement('span');
-        badge.className = 'product-new';
-        badge.textContent = newLabel;
-        info.appendChild(badge);
-      }
+        const item = document.createElement('li');
+        item.className = 'product-item';
 
-      item.appendChild(info);
-      ul.appendChild(item);
-    });
+        const itemPicture = li.querySelector('picture');
+        if (itemPicture) {
+          const icon = document.createElement('span');
+          icon.className = 'product-icon';
+          icon.appendChild(itemPicture);
+          item.appendChild(icon);
+        }
 
-    listSection.appendChild(ul);
-    card.appendChild(listSection);
+        const info = document.createElement('div');
+        info.className = 'product-info';
+        info.appendChild(link);
+
+        item.appendChild(info);
+        ul.appendChild(item);
+      });
+
+      listSection.appendChild(ul);
+      card.appendChild(listSection);
+    }
   }
 
-  // The grid was authored assuming 3 columns (intro / media / list), but any
-  // of those columns can be missing from the source table. Size the grid to
-  // however many card sections actually got appended instead of leaving a
-  // static 3-column track that would leave an empty gap.
-  const columnCount = card.children.length;
-  if (columnCount > 0) {
-    card.style.gridTemplateColumns = `repeat(${columnCount}, 1fr)`;
+  if (card.children.length) {
+    card.style.gridTemplateColumns = `repeat(${card.children.length}, 1fr)`;
   }
 
   table.remove();
   return productsContent;
-}
+};
 
 export default async function decorate(block) {
   block.querySelectorAll(':scope > div > div > pre > code').forEach((code) => {
@@ -243,15 +202,8 @@ export default async function decorate(block) {
 
   let tabCount = 0;
 
-  // Only the direct children of the block are tab containers. Using a
-  // recursive selector here would also pick up nested elements (e.g. from
-  // inside a products table) as if they were separate tabs.
   block.querySelectorAll(':scope > div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
-    // Products tabs carry their own dedicated navbar/content structure, so
-    // the content image (e.g. from inside the products table) must never
-    // be picked up as the tab/header icon. Normal tabs keep the existing
-    // behavior unchanged.
     const tabImage = isProducts ? '' : (tab.querySelector('picture')?.outerHTML || '');
     const tabContent = tab.querySelector(':scope > div:last-child');
 
@@ -262,7 +214,7 @@ export default async function decorate(block) {
       tabButton.className = 'tab-button';
       tabButton.innerHTML = `
         ${tabImage ? `<div class="tab-icon">${tabImage}</div>` : ''}
-        <span class="tab-title">${tabTitle}</span>
+        <span class="tab-title spectrum-Heading spectrum-Heading--sizeS">${tabTitle}</span>
       `;
       tabButton.setAttribute('data-tab', `tab${tabCount}`);
       if (tabCount === 1) tabButton.classList.add('active');
@@ -275,9 +227,6 @@ export default async function decorate(block) {
       decorateButtons(contentDiv);
 
       if (isProducts) {
-        // Products tables are product data, not code/sub-tab data:
-        // they get their own dedicated decoration path and must never
-        // reach handleCode() or createSubTabs().
         contentDiv.querySelectorAll('table').forEach((table) => {
           const productContent = createProductContent(table);
           contentDiv.appendChild(productContent);
