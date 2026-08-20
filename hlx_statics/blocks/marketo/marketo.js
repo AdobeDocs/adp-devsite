@@ -1,123 +1,16 @@
 export default async function decorate(block) {
     let configData = {
         marketoConfig: {
-            form_config: {
-                form_id_base: 2277,
-                form_id_program: 4061,
-                poi: "Document Services",
-                campaignIds: {
-                    sfdc: "7015Y000003pFaCQAU",
-                    external: "",
-                    retouch: "",
-                    onsite: "",
-                    cgen: "",
-                    cuid: "",
-                },
-                copartnernames: "",
-                success: {
-                    type: "message",
-                    content: "",
-                },
-                templateOverrides: {
-                    template: "",
-                    purpose: ["request_for_information"],
-                    known_visitor: false,
-                    auto_success: false,
-                    create_inquiry: true,
-                    field_visibility: {
-                        name: "required",
-                        phone: "required",
-                        company: "required",
-                        website: "required",
-                        state: "visible",
-                        postcode: "visible",
-                        company_size: "required",
-                        demo: "hidden",
-                        comments: "hidden",
-                    },
-                    field_filters: {
-                        functional_area: "all",
-                        products: "hidden",
-                        industry: "all",
-                        job_role: "all",
-                    }
-                },
-                prefillFields: {
-                    pmProductionCampaignId: "7015Y000003pFaCQAU",
-                    pmOnsiteCampaignId: "",
-                    pmRetouchCampaignId: "",
-                    pmExternalCampaignId: "",
-                    cGenTagId: "",
-                    productofInterest: "Document Services",
-                    mktoConsentNotice: "",
-                },
-            },
-            demo_ux: {
-                snippetDestination: null,
-                formDestinationElement: ".marketo-form-wrapper",
-                loadCss: false,
-            },
-            form_architecture: {
-                previewMode: false,
-                stage: false,
-                munchkinId: "360-KCI-804",
-                instanceDomain: "engage.adobe.com",
-                mktoFormJS: "https://engage.adobe.com/js/forms2/js/forms2.min.js",
-                formSubmitPath: "/index.php/leadCapture/save2",
-                stageSettings: {
-                    munchkinId: "371-GBU-660",
-                    formId: 1212,
-                    instanceDomain: "371-GBU-660.mktoweb.com",
-                    formCss: "https://business.adobe.com/libs/blocks/marketo/marketo.css",
-                },
-            },
+            form_config: {},
+            demo_ux: {},
+            form_architecture: {},
         },
-        customFields: [
-            {
-                id: "custom-use-case",
-                type: "textarea",
-                label: "Use case",
-                required: true,
-                placeholder: "Please describe your intended application of our PDF Services APIs.",
-                wrapperCss: "margin: 8px 0;",
-                labelCss: "display:block;font-size:14px;font-weight:700;margin-bottom:4px;",
-                inputCss: "width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;",
-                errorText: "This field is required.",
-                errorCss: "color:#d0021b; font-size:12px; margin-top:4px;",
-                marketoField: "mktoQuestionComments"
-            }
-        ],
-        submitButton: {
-            text: "Submit",
-            wrapperCss: "text-align:center; margin: 16px 0;",
-            buttonCss: "background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;"
-        },
-        successRedirect: "/document-services/pricing/contact/sales/confirmation"
+        customFields: [],
+        submitButton: null,
+        successRedirect: null
     };
 
-    function deepMerge(target, source) {
-        if (typeof target !== 'object' || target === null) return source;
-        if (typeof source !== 'object' || source === null) return target;
-        if (Array.isArray(source)) return source;
-        
-        const output = Object.assign({}, target);
-        Object.keys(source).forEach(key => {
-            if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
-                if (key in target) {
-                    output[key] = deepMerge(target[key], source[key]);
-                } else {
-                    output[key] = source[key];
-                }
-            } else {
-                output[key] = source[key];
-            }
-        });
-        return output;
-    }
-
     let fetchUrl = "https://main--adp-devsite-stage--adobedocs.aem.page/test/petheanraj/marketo-form/sales.json";
-    
-    // Check if a link to a JSON file is authored in the block
     const configLink = block.querySelector('a[href$=".json"]');
     if (configLink) {
         fetchUrl = configLink.href;
@@ -130,8 +23,6 @@ export default async function decorate(block) {
             if (json && json.data) {
                 const blockConfig = {};
                 json.data.forEach(row => {
-                    // The keys from the spreadsheet might be 'form-data', 'Key', 'key', etc.
-                    // We'll use 'form-data' based on your provided data, but also fallback to standard keys just in case.
                     const key = row['form-data'] || row['Key'] || row['key'];
                     const value = row['value'] || row['Value'];
                     if (key) {
@@ -153,17 +44,21 @@ export default async function decorate(block) {
                 if (blockConfig['form_id_base']) configData.marketoConfig.form_config.form_id_base = parseInt(blockConfig['form_id_base'], 10);
                 if (blockConfig['form_id_program']) configData.marketoConfig.form_config.form_id_program = parseInt(blockConfig['form_id_program'], 10);
                 if (blockConfig['poi']) configData.marketoConfig.form_config.poi = blockConfig['poi'];
-                if (blockConfig['campaignIds']) configData.marketoConfig.form_config.campaignIds = safeParse(blockConfig['campaignIds'], configData.marketoConfig.form_config.campaignIds);
+                if (blockConfig['campaignIds']) configData.marketoConfig.form_config.campaignIds = safeParse(blockConfig['campaignIds'], {});
                 if (blockConfig['copartnernames'] !== undefined) configData.marketoConfig.form_config.copartnernames = blockConfig['copartnernames'];
-                if (blockConfig['success']) configData.marketoConfig.form_config.success = safeParse(blockConfig['success'], configData.marketoConfig.form_config.success);
-                if (blockConfig['templateOverrides']) configData.marketoConfig.form_config.templateOverrides = safeParse(blockConfig['templateOverrides'], configData.marketoConfig.form_config.templateOverrides);
-                if (blockConfig['prefillFields']) configData.marketoConfig.form_config.prefillFields = safeParse(blockConfig['prefillFields'], configData.marketoConfig.form_config.prefillFields);
-                
-                if (blockConfig['demo_ux']) configData.marketoConfig.demo_ux = safeParse(blockConfig['demo_ux'], configData.marketoConfig.demo_ux);
-                if (blockConfig['form_architecture']) configData.marketoConfig.form_architecture = safeParse(blockConfig['form_architecture'], configData.marketoConfig.form_architecture);
+                if (blockConfig['success']) configData.marketoConfig.form_config.success = safeParse(blockConfig['success'], {});
+                if (blockConfig['templateOverrides']) configData.marketoConfig.form_config.templateOverrides = safeParse(blockConfig['templateOverrides'], {});
+                if (blockConfig['prefillFields']) configData.marketoConfig.form_config.prefillFields = safeParse(blockConfig['prefillFields'], {});
+
+                if (blockConfig['demo_ux']) configData.marketoConfig.demo_ux = safeParse(blockConfig['demo_ux'], {});
+                if (blockConfig['form_architecture']) configData.marketoConfig.form_architecture = safeParse(blockConfig['form_architecture'], {});
 
                 if (blockConfig['additional-fields']) {
-                    configData.customFields = safeParse(blockConfig['additional-fields'], configData.customFields);
+                    configData.customFields = safeParse(blockConfig['additional-fields'], []);
+                }
+                
+                if (blockConfig['submitButton']) {
+                    configData.submitButton = safeParse(blockConfig['submitButton'], null);
                 }
 
                 if (configData.marketoConfig.form_config.success && configData.marketoConfig.form_config.success.type === 'redirect') {
@@ -249,20 +144,25 @@ export default async function decorate(block) {
                 const after = formEl.nextSibling;
 
                 const customInputs = [];
-                
-                (configData.customFields || []).forEach(field => {
+
+                (configData.customFields || []).forEach((field, index) => {
+                    const id = field.id || field.name || `custom-field-${index}`;
+                    field.id = id;
+
                     const fieldDiv = document.createElement('div');
-                    if (field.wrapperCss) fieldDiv.style.cssText = field.wrapperCss;
-                    
+                    fieldDiv.style.cssText = field.wrapperCss || 'margin: 8px 0;';
+
                     let html = '';
                     if (field.label) {
-                        html += `<label style="${field.labelCss || ''}">${field.label} ${field.required ? '<span style="color:#d0021b;">*</span>' : ''}</label>`;
+                        const labelCss = field.labelCss || 'display:block;font-size:14px;font-weight:700;margin-bottom:4px;';
+                        html += `<label style="${labelCss}">${field.label} ${field.required ? '<span style="color:#d0021b;">*</span>' : ''}</label>`;
                     }
-                    
+
+                    const inputCss = field.inputCss || 'width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;';
                     if (field.type === 'textarea') {
-                        html += `<textarea id="${field.id}" rows="6" style="${field.inputCss || ''}" placeholder="${field.placeholder || ''}"></textarea>`;
+                        html += `<textarea id="${id}" rows="6" style="${inputCss}" placeholder="${field.placeholder || ''}"></textarea>`;
                     } else {
-                        html += `<input type="${field.type || 'text'}" id="${field.id}" style="${field.inputCss || ''}" placeholder="${field.placeholder || ''}" />`;
+                        html += `<input type="${field.type || 'text'}" id="${id}" style="${inputCss}" placeholder="${field.placeholder || ''}" />`;
                     }
                     fieldDiv.innerHTML = html;
                     container.insertBefore(fieldDiv, after);
@@ -287,14 +187,14 @@ export default async function decorate(block) {
                 if (customSubmitBtn) {
                     customSubmitBtn.addEventListener('click', (e) => {
                         e.preventDefault();
-                        
+
                         let allValid = true;
                         const hiddenFields = {};
 
                         customInputs.forEach(field => {
                             const inputEl = document.getElementById(field.id);
                             if (!inputEl) return;
-                            
+
                             let isValid = true;
                             if (field.required && !inputEl.value.trim()) {
                                 isValid = false;
@@ -315,9 +215,10 @@ export default async function decorate(block) {
                                 inputEl.style.borderColor = '#6e6e6e';
                                 const err = document.getElementById(field.id + '-error');
                                 if (err) err.remove();
-                                
-                                if (field.marketoField) {
-                                    hiddenFields[field.marketoField] = inputEl.value;
+
+                                const marketoName = field.name || field.marketoField;
+                                if (marketoName) {
+                                    hiddenFields[marketoName] = inputEl.value;
                                 }
                             }
                         });
