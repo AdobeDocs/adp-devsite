@@ -34,7 +34,11 @@
 .marketo-form-wrapper .mktoFormRow[style*="display: none"] .mktoFieldWrap,
 .marketo-form-wrapper .mktoFormRow[style*="display:none"] .mktoFieldWrap,
 .marketo-form-wrapper .mktoFormCol[style*="display: none"] .mktoFieldWrap,
-.marketo-form-wrapper .mktoFormCol[style*="display:none"] .mktoFieldWrap {
+.marketo-form-wrapper .mktoFormCol[style*="display:none"] .mktoFieldWrap,
+.marketo-form-wrapper .mktoFieldWrap[style*="display: none"],
+.marketo-form-wrapper .mktoFieldWrap[style*="display:none"],
+.marketo-form-wrapper .mktoFieldWrap[style*="visibility: hidden"],
+.marketo-form-wrapper .mktoFieldWrap[style*="visibility:hidden"] {
   display: none !important;
 }
 
@@ -55,7 +59,12 @@
 .marketo-form-wrapper .mktoClear,
 .marketo-form-wrapper .mktoOffset,
 .marketo-form-wrapper .mktoGutter,
+.marketo-form-wrapper .mktoPlaceholder,
 .marketo-form-wrapper .mktoHtmlText:empty {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoFieldWrap.mktoHidden {
   display: none !important;
 }
 
@@ -126,6 +135,11 @@
 .marketo-form-wrapper .use-case-textarea {
   height: 120px;
   resize: vertical;
+}
+
+/* Make textarea fields span both columns */
+.marketo-form-wrapper .mktoFieldWrap:has(textarea) {
+  grid-column: 1 / -1;
 }
 
 /* Custom submit button */
