@@ -367,6 +367,7 @@ export default async function decorate(block) {
         }
 
         form.onValidate(function (valid) {
+            console.log("Marketo form onValidate triggered. valid:", valid);
             let customValid = true;
             let firstInvalid = null;
 
@@ -378,14 +379,21 @@ export default async function decorate(block) {
                 }
             });
 
+            console.log("customValid:", customValid);
             if (valid && customValid) {
+                console.log("Form is submittable (valid & customValid true)");
                 form.submittable(true);
             } else {
+                console.log("Form is NOT submittable. valid:", valid, "customValid:", customValid);
                 form.submittable(false);
                 if (firstInvalid) {
                     firstInvalid.focus();
                 }
             }
+        });
+
+        form.onSubmit(function (form) {
+            console.log("Marketo form onSubmit triggered! Validation passed, sending data...");
         });
 
         form.onSuccess(function () {
