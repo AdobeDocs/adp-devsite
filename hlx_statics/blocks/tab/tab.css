@@ -342,7 +342,7 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button.ac
 
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button.active .tab-title,
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button:hover .tab-title {
-    color: white;
+    color: white !important;
 }
 
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wrapper {
@@ -414,6 +414,8 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover > .t
     background-color: #1a1a1a !important;
     color: #fff !important;
 }
+
+
 
 main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
     background-color: #F8F8F8 !important;
