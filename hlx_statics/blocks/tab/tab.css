@@ -31,7 +31,9 @@ main div.tab-wrapper .tab-button {
 }
 
 main div.tab-wrapper > div:not(.background-color-navy) .tab-button.active,
-main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover {
+main div.tab-wrapper > div:not(.background-color-navy) .tab-button.active .tab-title,
+main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover,
+main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover .tab-title{
     background-color: #2e3c6a !important;
     color: white !important;
 }
