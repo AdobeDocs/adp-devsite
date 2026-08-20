@@ -63,8 +63,8 @@ export default async function decorate(block) {
             templateOverrides: {
                 template: "",
                 purpose: ["request_for_information"],
-                known_visitor:  false,
-                auto_success:   false,
+                known_visitor: false,
+                auto_success: false,
                 create_inquiry: true,
                 field_visibility: {
                     name: "required",
@@ -98,23 +98,23 @@ export default async function decorate(block) {
         },
 
         demo_ux: {
-            snippetDestination:     null,
+            snippetDestination: null,
             formDestinationElement: ".marketo-form-wrapper",
             loadCss: false,
         },
 
         form_architecture: {
             previewMode: false,
-            stage:       false,
-            munchkinId:     "360-KCI-804",
+            stage: false,
+            munchkinId: "360-KCI-804",
             instanceDomain: "engage.adobe.com",
-            mktoFormJS:     "https://engage.adobe.com/js/forms2/js/forms2.min.js",
+            mktoFormJS: "https://engage.adobe.com/js/forms2/js/forms2.min.js",
             formSubmitPath: "/index.php/leadCapture/save2",
             stageSettings: {
-                munchkinId:     "371-GBU-660",
-                formId:         1212,
+                munchkinId: "371-GBU-660",
+                formId: 1212,
                 instanceDomain: "371-GBU-660.mktoweb.com",
-                formCss:        "https://business.adobe.com/libs/blocks/marketo/marketo.css",
+                formCss: "https://business.adobe.com/libs/blocks/marketo/marketo.css",
             },
         },
 
@@ -143,22 +143,6 @@ export default async function decorate(block) {
                 const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
                 if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
                 const legend = consentRow && consentRow.querySelector('legend');
-
-                // Cleanup hidden fields/wrappers that create empty grid gaps
-                formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
-                    const field = wrap.querySelector('.mktoField');
-                    // Hide wrapper if no field, or if field is type hidden, or has inline display:none
-                    if (!field || field.type === 'hidden' || field.style.display === 'none') {
-                        wrap.style.setProperty('display', 'none', 'important');
-                    }
-                });
-                
-                formEl.querySelectorAll('.mktoFormRow').forEach(row => {
-                    if (row.style.display === 'none') {
-                        row.classList.add('mktoHidden');
-                    }
-                });
-
                 // Use case textarea
                 const useCaseDiv = document.createElement('div');
                 useCaseDiv.style.cssText = 'grid-column: 1 / -1; margin: 0;';
@@ -199,7 +183,7 @@ export default async function decorate(block) {
                         const err = document.getElementById('use-case-error');
                         if (err) err.remove();
                     }
-                    
+
                     form.addHiddenFields({ mktoQuestionComments: ta.value });
                     formEl.querySelector('.mktoButton').click();
                 });
@@ -209,7 +193,7 @@ export default async function decorate(block) {
         form.onValidate(function (valid) {
             const ta = document.getElementById('custom-use-case');
             const isUseCaseValid = ta ? ta.value.trim() !== '' : true;
-            
+
             if (valid && isUseCaseValid) {
                 form.submittable(true);
             } else {
