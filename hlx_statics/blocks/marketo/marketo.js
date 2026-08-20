@@ -10,7 +10,8 @@ export default async function decorate(block) {
         },
         customFields: [],
         submitButton: null,
-        successRedirect: null
+        successRedirect: null,
+        consentPosition: 'after-button'
     };
 
     let fetchUrl = "/test/petheanraj/marketo-form/sales.json";
@@ -80,6 +81,10 @@ export default async function decorate(block) {
                 
                 if (blockConfig['submitButton']) {
                     configData.submitButton = safeParse(blockConfig['submitButton'], null);
+                }
+
+                if (blockConfig['consentPosition']) {
+                    configData.consentPosition = blockConfig['consentPosition'];
                 }
 
                 if (configData.marketoConfig.form_config.success && configData.marketoConfig.form_config.success.type === 'redirect') {
@@ -190,19 +195,27 @@ export default async function decorate(block) {
                     customInputs.push(field);
                 });
 
-                // Custom submit button
+                // Setup Custom submit button
+                let submitDiv = null;
                 if (configData.submitButton) {
-                    const submitDiv = document.createElement('div');
+                    submitDiv = document.createElement('div');
                     if (configData.submitButton.wrapperCss) submitDiv.style.cssText = configData.submitButton.wrapperCss;
                     submitDiv.innerHTML = `<button id="custom-submit" style="${configData.submitButton.buttonCss || ''}">${configData.submitButton.text || 'Submit'}</button>`;
-                    container.insertBefore(submitDiv, after);
                 }
 
-                // Consent text
+                // Setup Consent text
                 const consentDiv = document.createElement('div');
-                consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5;';
+                consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin: 8px 0;';
                 if (legend) consentDiv.innerHTML = legend.innerHTML;
-                container.insertBefore(consentDiv, after);
+
+                // Inject based on configured position
+                if (configData.consentPosition === 'before-button') {
+                    container.insertBefore(consentDiv, after);
+                    if (submitDiv) container.insertBefore(submitDiv, after);
+                } else {
+                    if (submitDiv) container.insertBefore(submitDiv, after);
+                    container.insertBefore(consentDiv, after);
+                }
 
                 const customSubmitBtn = document.getElementById('custom-submit');
                 if (customSubmitBtn) {
