@@ -1,4 +1,7 @@
+import { readBlockConfig } from '../../scripts/lib-helix.js';
+
 export default async function decorate(block) {
+    const authoredConfig = readBlockConfig(block);
     let configData = {
         marketoConfig: {
             form_config: {},
@@ -11,12 +14,26 @@ export default async function decorate(block) {
     };
 
     let fetchUrl = "/test/petheanraj/marketo-form/sales.json";
+    
+    // Check if there is an explicit link authored in the block
     const configLink = block.querySelector('a[href$=".json"]');
     if (configLink) {
         try {
             fetchUrl = new URL(configLink.href).pathname;
         } catch (e) {
             fetchUrl = configLink.getAttribute('href');
+        }
+    } else if (authoredConfig['form-data']) {
+        // Otherwise, if they authored text like "sales" in the "Form Data" row
+        let val = authoredConfig['form-data'];
+        if (!val.endsWith('.json')) {
+            val += '.json';
+        }
+        // If they provided a full relative path, use it, otherwise prefix the default folder
+        if (val.startsWith('/')) {
+            fetchUrl = val;
+        } else {
+            fetchUrl = `/test/petheanraj/marketo-form/${val}`;
         }
     }
 
