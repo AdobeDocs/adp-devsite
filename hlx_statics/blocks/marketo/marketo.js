@@ -143,27 +143,30 @@ export default async function decorate(block) {
                 const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
                 if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
                 const legend = consentRow && consentRow.querySelector('legend');
+
                 // Use case textarea
                 const useCaseDiv = document.createElement('div');
-                useCaseDiv.style.cssText = 'grid-column: 1 / -1; margin: 0;';
+                useCaseDiv.style.cssText = 'margin: 8px 0;';
                 useCaseDiv.innerHTML = `
-                    <label style="display:block;font-size:14px;font-weight:normal;color:#464646;margin-bottom:4px;">Use case <span>*</span></label>
-                    <textarea id="custom-use-case" class="mktoField use-case-textarea" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px 12px;border:1px solid #909090;border-radius:4px;outline:none;"
+                    <label style="display:block;font-size:14px;font-weight:700;margin-bottom:4px;">Use case <span style="color:#d0021b;">*</span></label>
+                    <textarea id="custom-use-case" rows="6" style="width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;"
                         placeholder="Please describe your intended application of our PDF Services APIs."></textarea>`;
 
                 // Custom submit button
                 const submitDiv = document.createElement('div');
-                submitDiv.style.cssText = 'grid-column: 1 / -1; margin-top: 8px;';
-                submitDiv.innerHTML = `<button id="custom-submit" class="custom-submit">Submit</button>`;
+                submitDiv.style.cssText = 'text-align:center; margin: 16px 0;';
+                submitDiv.innerHTML = `<button id="custom-submit" style="background-color:#1473e6;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;padding:8px 24px;cursor:pointer;">Submit</button>`;
 
                 // Consent text
                 const consentDiv = document.createElement('div');
-                consentDiv.style.cssText = 'grid-column: 1 / -1; font-size:12px; color:#464646; line-height:1.5; margin-top: 8px;';
+                consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5;';
                 if (legend) consentDiv.innerHTML = legend.innerHTML;
 
-                formEl.appendChild(useCaseDiv);
-                formEl.appendChild(submitDiv);
-                formEl.appendChild(consentDiv);
+                const container = formEl.parentNode;
+                const after = formEl.nextSibling;
+                container.insertBefore(useCaseDiv, after);
+                container.insertBefore(submitDiv, useCaseDiv.nextSibling);
+                container.insertBefore(consentDiv, submitDiv.nextSibling);
 
                 document.getElementById('custom-submit').addEventListener('click', (e) => {
                     e.preventDefault();
