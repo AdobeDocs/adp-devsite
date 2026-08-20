@@ -314,8 +314,10 @@ export default async function decorate(block) {
                                         field.value = 'dummy@example.com';
                                     } else if (field.name === 'Country') {
                                         field.value = 'US';
+                                    } else if (field.tagName === 'SELECT' && field.options.length > 1) {
+                                        field.value = field.options[1].value;
                                     } else {
-                                        field.value = '-';
+                                        field.value = 'dummy';
                                     }
                                 }
                                 return;
