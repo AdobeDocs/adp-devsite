@@ -368,6 +368,15 @@ export default async function decorate(block) {
 
         form.onValidate(function (valid) {
             console.log("Marketo form onValidate triggered. valid:", valid);
+            
+            if (!valid) {
+                console.log("Marketo built-in validation failed! The following Marketo fields are invalid:");
+                const invalidEls = form.getFormElem()[0].querySelectorAll('.mktoInvalid');
+                invalidEls.forEach(el => {
+                    console.log("- Field name:", el.name, "| id:", el.id, "| value:", el.value);
+                });
+            }
+
             let customValid = true;
             let firstInvalid = null;
 
