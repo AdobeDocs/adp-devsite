@@ -337,12 +337,12 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button:ho
 
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button.active {
     background-color: rgba(255, 255, 255, 0.18);
-    color: white !important;
+    color: white;
 }
 
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button.active .tab-title,
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button:hover .tab-title {
-    color: white !important;
+    color: white;
 }
 
 main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wrapper {
@@ -382,6 +382,11 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
     }
 }
 
+main div.tab-wrapper > .tabs-wrapper .tab-button .tab-title,
+main div.tab-wrapper > .tabs-wrapper .tab-button:hover .tab-title{
+    color: white !important;
+}
+
 main div.tab-wrapper .tab.products > .tabs-wrapper {
     flex-direction: row;
     flex-wrap: wrap;
@@ -414,8 +419,6 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover > .t
     background-color: #1a1a1a !important;
     color: #fff !important;
 }
-
-
 
 main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
     background-color: #F8F8F8 !important;
