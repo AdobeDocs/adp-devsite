@@ -176,7 +176,7 @@ export default async function decorate(block) {
                     let html = '';
                     if (field.label) {
                         const labelCss = field.labelCss || 'display:block;font-size:14px;font-weight:700;margin-bottom:4px;';
-                        html += `<label style="${labelCss}">${field.label} ${field.required ? '<span style="color:#d0021b;">*</span>' : ''}</label>`;
+                        html += `<label style="${labelCss}">${field.label} ${field.required ? '*' : ''}</label>`;
                     }
 
                     const inputCss = field.inputCss || 'width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;';
