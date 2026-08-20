@@ -40,6 +40,12 @@
   margin: 0 !important;
 }
 
+/* Hide field wraps that don't contain actual inputs or only contain html text to prevent grid shifting */
+.marketo-form-wrapper .mktoFieldWrap:has(.mktoHtmlText),
+.marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField)) {
+  display: none !important;
+}
+
 /* Form Labels (Removed display: none so they show above inputs) */
 .marketo-form-wrapper .mktoLabel {
   display: block !important;
