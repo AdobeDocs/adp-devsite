@@ -89,12 +89,14 @@ export default async function decorate(block) {
                 }
 
                 const successConfig = configData.marketoConfig.form_config.success;
+                console.log("Parsed successConfig:", successConfig);
                 if (successConfig) {
                     if (successConfig.type === 'redirect') {
                         configData.successRedirect = successConfig.content;
                     } else if (successConfig.type === 'message') {
                         configData.successMessage = successConfig.content;
                     }
+                    console.log("Set configData.successMessage to:", configData.successMessage);
                 }
 
                 if (blockConfig['custom-css']) {
@@ -387,6 +389,10 @@ export default async function decorate(block) {
         });
 
         form.onSuccess(function () {
+            console.log("Marketo form onSuccess triggered.");
+            console.log("configData.successRedirect:", configData.successRedirect);
+            console.log("configData.successMessage:", configData.successMessage);
+            
             if (configData.successRedirect) {
                 top.location.href = configData.successRedirect;
                 return false;
@@ -400,6 +406,7 @@ export default async function decorate(block) {
                 
                 return false;
             }
+            console.log("No custom success configuration found, falling back to Marketo default.");
         });
 
     }).catch((error) => {
