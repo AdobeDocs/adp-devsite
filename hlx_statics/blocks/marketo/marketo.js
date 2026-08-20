@@ -160,6 +160,19 @@ export default async function decorate(block) {
             });
 
             // Inject everything outside the form to avoid Marketo's grid/style stripping
+            
+            const selectColorStyle = document.createElement('style');
+            document.head.appendChild(selectColorStyle);
+            document.addEventListener('change', (e) => {
+                if (e.target.tagName !== 'SELECT' || !formEl.contains(e.target)) return;
+                const name = e.target.name;
+                const color = e.target.value ? '#2c2c2c' : '#959595';
+                const existing = selectColorStyle.textContent;
+                const formId = formEl.id || 'mktoForm';
+                const rule = `#${formId} select[name="${name}"] { color: ${color} !important; }`;
+                const replaced = existing.replace(new RegExp(`#${formId} select\\[name="${name}"\\][^}]+}`, 'g'), '');
+                selectColorStyle.textContent = replaced + rule;
+            }, true);
             // Timeout needed to wait for MCZ to render the consent row legend
             setTimeout(() => {
                 const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
@@ -218,12 +231,52 @@ export default async function decorate(block) {
                 }
 
                 const customSubmitBtn = document.getElementById('custom-submit');
+                
+                function showFieldErr(field, msg) {
+                    const id = 'err-' + field.name;
+                    field.style.setProperty('border-color', '#d0021b', 'important');
+                    const existing = document.getElementById(id);
+                    if (existing) { existing.textContent = msg || 'This field is required.'; return; }
+                    const err = document.createElement('div');
+                    err.id = id;
+                    err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px;';
+                    err.textContent = msg || 'This field is required.';
+                    const wrap = field.closest('.mktoFieldWrap');
+                    if (wrap) {
+                        wrap.insertAdjacentElement('afterend', err);
+                    } else {
+                        field.insertAdjacentElement('afterend', err);
+                    }
+                }
+
+                function clearFieldErr(field) {
+                    field.style.removeProperty('border-color');
+                    const err = document.getElementById('err-' + field.name);
+                    if (err) err.remove();
+                }
+
                 if (customSubmitBtn) {
                     customSubmitBtn.addEventListener('click', (e) => {
                         e.preventDefault();
 
                         let allValid = true;
                         const hiddenFields = {};
+
+                        // Validate all Marketo required fields
+                        formEl.querySelectorAll('.mktoRequired').forEach(field => {
+                            if (!field.value.trim()) {
+                                showFieldErr(field);
+                                allValid = false;
+                            } else if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value.trim())) {
+                                showFieldErr(field, 'Must be a valid email address.');
+                                allValid = false;
+                            } else if (field.name === 'Phone' && !/^\+?[\d\s\-().]{7,20}$/.test(field.value.trim())) {
+                                showFieldErr(field, 'Please enter a valid phone number.');
+                                allValid = false;
+                            } else {
+                                clearFieldErr(field);
+                            }
+                        });
 
                         customInputs.forEach(field => {
                             const inputEl = document.getElementById(field.id);
