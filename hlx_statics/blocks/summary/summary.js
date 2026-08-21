@@ -4,18 +4,7 @@ import {
   rearrangeHeroPicture,
 } from '../../scripts/lib-adobeio.js';
 
-/**
- * decorates the summary
- * @param {Element} block The summary block element
- */
 
-function decorateSummaryPosition(block) {
-  if (!block.classList.contains('right')) return;
-  const content = block.querySelector(':scope > div');
-  if (!content) return;
-  content.style.right = window.innerWidth <= 1024 ? '0%' : '10%';
-  
-}
 
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'summary');
@@ -68,6 +57,5 @@ export default async function decorate(block) {
     rearrangeHeroPicture(block, overlayStyle);
   }
 
-  // Set position for right-aligned summary.
-  decorateSummaryPosition(block);
+
 }
