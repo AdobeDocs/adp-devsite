@@ -424,11 +424,14 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
 
 main div.tab-wrapper .tab.products .products-content {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 main div.tab-wrapper .tab.products .products-card {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(var(--products-card-cols, 3), 1fr);
     align-items: stretch;
     gap: 24px;
     border: none;

@@ -90,12 +90,11 @@ const createProductContent = (table) => {
   const productsContent = document.createElement('div');
   productsContent.className = 'products-content';
 
-  const card = document.createElement('div');
-  card.className = 'products-card';
-  productsContent.appendChild(card);
+  const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
+  (rows.length ? rows : table.querySelectorAll('tr')).forEach((row) => {
+    const card = document.createElement('div');
+    card.className = 'products-card';
 
-  const row = table.querySelector(':scope > tbody > tr, tr');
-  if (row) {
     const [introCell, mediaCell, listCell] = row.querySelectorAll(':scope > td');
 
     if (introCell) {
@@ -163,11 +162,12 @@ const createProductContent = (table) => {
       listSection.appendChild(ul);
       card.appendChild(listSection);
     }
-  }
 
-  if (card.children.length) {
-    card.style.gridTemplateColumns = `repeat(${card.children.length}, 1fr)`;
-  }
+    if (card.children.length) {
+      card.style.setProperty('--products-card-cols', card.children.length);
+      productsContent.appendChild(card);
+    }
+  });
 
   table.remove();
   return productsContent;
@@ -224,9 +224,8 @@ export default async function decorate(block) {
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
       contentDiv.innerHTML = tabContent.innerHTML;
 
-      decorateButtons(contentDiv);
-
       if (isProducts) {
+        decorateButtons(contentDiv);
         contentDiv.querySelectorAll('table').forEach((table) => {
           const productContent = createProductContent(table);
           contentDiv.appendChild(productContent);
