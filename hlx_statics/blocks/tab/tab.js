@@ -88,19 +88,18 @@ const createSubTabs = (table) => {
 
 const createProductContent = (table) => {
   const productsContent = document.createElement('div');
-  productsContent.className = 'products-content';
+  productsContent.className = 'card-panels-content';
 
-  const card = document.createElement('div');
-  card.className = 'products-card';
-  productsContent.appendChild(card);
+  const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
+  (rows.length ? rows : table.querySelectorAll('tr')).forEach((row) => {
+    const card = document.createElement('div');
+    card.className = 'card-panels-card';
 
-  const row = table.querySelector(':scope > tbody > tr, tr');
-  if (row) {
     const [introCell, mediaCell, listCell] = row.querySelectorAll(':scope > td');
 
     if (introCell) {
       const intro = document.createElement('div');
-      intro.className = 'products-intro';
+      intro.className = 'card-panels-intro';
 
       const heading = introCell.querySelector('h1, h2, h3, h4');
       if (heading) {
@@ -119,14 +118,14 @@ const createProductContent = (table) => {
     const picture = mediaCell?.querySelector('picture');
     if (picture) {
       const media = document.createElement('div');
-      media.className = 'products-media';
+      media.className = 'card-panels-media';
       media.appendChild(picture);
       card.appendChild(media);
     }
 
     if (listCell) {
       const listSection = document.createElement('div');
-      listSection.className = 'products-list';
+      listSection.className = 'card-panels-list';
 
       const heading = listCell.querySelector('h1, h2, h3, h4');
       if (heading) {
@@ -135,7 +134,7 @@ const createProductContent = (table) => {
       }
 
       const ul = document.createElement('ul');
-      ul.className = 'products-list-items';
+      ul.className = 'card-panels-list-items';
 
       listCell.querySelectorAll(':scope > ul > li').forEach((li) => {
         const link = li.querySelector('a');
@@ -163,11 +162,12 @@ const createProductContent = (table) => {
       listSection.appendChild(ul);
       card.appendChild(listSection);
     }
-  }
 
-  if (card.children.length) {
-    card.style.gridTemplateColumns = `repeat(${card.children.length}, 1fr)`;
-  }
+    if (card.children.length) {
+      card.style.setProperty('--card-panels-card-cols', card.children.length);
+      productsContent.appendChild(card);
+    }
+  });
 
   table.remove();
   return productsContent;
@@ -185,7 +185,7 @@ export default async function decorate(block) {
     }
   });
 
-  const isProducts = block.classList.contains('products');
+  const isProducts = block.classList.contains('products') || block.classList.contains('card-panels');
 
   const dataOrientation = block.getAttribute('data-orientation');
   const orientation = dataOrientation || (block.classList.contains('vertical') ? 'vertical' : 'horizontal');
@@ -224,9 +224,8 @@ export default async function decorate(block) {
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
       contentDiv.innerHTML = tabContent.innerHTML;
 
-      decorateButtons(contentDiv);
-
       if (isProducts) {
+        decorateButtons(contentDiv);
         contentDiv.querySelectorAll('table').forEach((table) => {
           const productContent = createProductContent(table);
           contentDiv.appendChild(productContent);
