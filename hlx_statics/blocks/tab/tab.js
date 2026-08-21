@@ -88,18 +88,18 @@ const createSubTabs = (table) => {
 
 const createProductContent = (table) => {
   const productsContent = document.createElement('div');
-  productsContent.className = 'products-content';
+  productsContent.className = 'products-content card-panels-content';
 
   const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
   (rows.length ? rows : table.querySelectorAll('tr')).forEach((row) => {
     const card = document.createElement('div');
-    card.className = 'products-card';
+    card.className = 'products-card card-panels-card';
 
     const [introCell, mediaCell, listCell] = row.querySelectorAll(':scope > td');
 
     if (introCell) {
       const intro = document.createElement('div');
-      intro.className = 'products-intro';
+      intro.className = 'products-intro card-panels-intro';
 
       const heading = introCell.querySelector('h1, h2, h3, h4');
       if (heading) {
@@ -118,14 +118,14 @@ const createProductContent = (table) => {
     const picture = mediaCell?.querySelector('picture');
     if (picture) {
       const media = document.createElement('div');
-      media.className = 'products-media';
+      media.className = 'products-media card-panels-media';
       media.appendChild(picture);
       card.appendChild(media);
     }
 
     if (listCell) {
       const listSection = document.createElement('div');
-      listSection.className = 'products-list';
+      listSection.className = 'products-list card-panels-list';
 
       const heading = listCell.querySelector('h1, h2, h3, h4');
       if (heading) {
@@ -134,7 +134,7 @@ const createProductContent = (table) => {
       }
 
       const ul = document.createElement('ul');
-      ul.className = 'products-list-items';
+      ul.className = 'products-list-items card-panels-list-items';
 
       listCell.querySelectorAll(':scope > ul > li').forEach((li) => {
         const link = li.querySelector('a');
@@ -165,6 +165,7 @@ const createProductContent = (table) => {
 
     if (card.children.length) {
       card.style.setProperty('--products-card-cols', card.children.length);
+      card.style.setProperty('--card-panels-card-cols', card.children.length);
       productsContent.appendChild(card);
     }
   });
@@ -185,7 +186,7 @@ export default async function decorate(block) {
     }
   });
 
-  const isProducts = block.classList.contains('products');
+  const isProducts = block.classList.contains('products') || block.classList.contains('card-panels');
 
   const dataOrientation = block.getAttribute('data-orientation');
   const orientation = dataOrientation || (block.classList.contains('vertical') ? 'vertical' : 'horizontal');

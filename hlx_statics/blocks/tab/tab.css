@@ -30,15 +30,15 @@ main div.tab-wrapper .tab-button {
     width: 260px;
 }
 
-main div.tab-wrapper > div:not(.background-color-navy) .tab-button.active,
-main div.tab-wrapper > div:not(.background-color-navy) .tab-button.active .tab-title,
-main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover,
-main div.tab-wrapper > div:not(.background-color-navy) .tab-button:hover .tab-title{
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button.active,
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button.active .tab-title,
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button:hover,
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button:hover .tab-title {
     background-color: #2e3c6a !important;
     color: white !important;
 }
 
-main div.tab-wrapper > div.background-color-navy .tab-content {
+main div.tab-wrapper>div.background-color-navy .tab-content {
     color: white;
 }
 
@@ -89,10 +89,10 @@ main div.tab-wrapper .tabs-wrapper {
 }
 
 main div.tab-wrapper div.horizontal .tabs-wrapper {
-   margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
-main div.tab-wrapper .tab{
+main div.tab-wrapper .tab {
     display: flex;
     gap: 3%;
 }
@@ -154,7 +154,7 @@ main div.tab-wrapper .tab.vertical {
     flex-direction: row;
 }
 
-main.dev-docs  div.tab-wrapper .tab.vertical {
+main.dev-docs div.tab-wrapper .tab.vertical {
     align-items: stretch;
     width: 100%;
     margin: 0;
@@ -166,12 +166,12 @@ main div.tab-wrapper .tab.horizontal {
     flex-direction: column;
 }
 
-main div.tab-wrapper .tab.vertical > .tabs-wrapper {
+main div.tab-wrapper .tab.vertical>.tabs-wrapper {
     display: flex;
     flex-direction: column;
 }
 
-main.dev-docs div.tab-wrapper .tab.vertical > .tabs-wrapper {
+main.dev-docs div.tab-wrapper .tab.vertical>.tabs-wrapper {
     width: 240px;
     min-width: 180px;
     flex-shrink: 0;
@@ -183,7 +183,7 @@ main.dev-docs div.tab-wrapper .tab.vertical > .tabs-wrapper {
 }
 
 
-main.dev-docs div.tab-wrapper .tab.vertical > .content-wrapper {
+main.dev-docs div.tab-wrapper .tab.vertical>.content-wrapper {
     flex: 1;
     min-width: 0;
     padding: 16px 24px;
@@ -242,21 +242,21 @@ main div.tab-wrapper .tab-button {
     font-size: 16px;
 }
 
-main div.tab-wrapper > div.background-color-navy .tab-button:not(.active) .tab-title {
+main div.tab-wrapper>div.background-color-navy .tab-button:not(.active) .tab-title {
     color: white;
 }
 
 
-main div.tab-wrapper > div.background-color-navy .tab-button:hover .tab-title {
+main div.tab-wrapper>div.background-color-navy .tab-button:hover .tab-title {
     color: #000;
 }
 
-main.dev-docs div.tab-wrapper > div:not(.background-color-navy) .tab-button {
+main.dev-docs div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button {
     background: #eee;
 }
 
-main div.tab-wrapper > div.background-color-navy .tab-button:hover,
-main div.tab-wrapper > div.background-color-navy .tab-button.active {
+main div.tab-wrapper>div.background-color-navy .tab-button:hover,
+main div.tab-wrapper>div.background-color-navy .tab-button.active {
     background: #eee;
 }
 
@@ -317,7 +317,7 @@ main.dev-docs div.tab-wrapper:has(.tab.vertical.background-color-navy) {
     padding: 0;
 }
 
-main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .tabs-wrapper {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy>.tabs-wrapper {
     background-color: rgb(15, 55, 95);
     border-right-color: rgba(255, 255, 255, 0.15);
     padding: 20px 12px;
@@ -347,7 +347,7 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy .tab-button:ho
     color: white;
 }
 
-main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wrapper {
+main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy>.content-wrapper {
     background-color: #111a35 !important;
     padding: 20px 24px;
 }
@@ -357,7 +357,7 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
         flex-direction: column;
     }
 
-    main.dev-docs div.tab-wrapper .tab.vertical > .tabs-wrapper {
+    main.dev-docs div.tab-wrapper .tab.vertical>.tabs-wrapper {
         width: 100%;
         min-width: unset;
         flex-direction: row;
@@ -367,7 +367,7 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
         padding: 8px;
     }
 
-    main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .tabs-wrapper {
+    main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy>.tabs-wrapper {
         border-bottom-color: rgba(255, 255, 255, 0.15);
         border-right: none;
     }
@@ -378,13 +378,13 @@ main.dev-docs div.tab-wrapper .tab.vertical.background-color-navy > .content-wra
         white-space: nowrap;
     }
 
-    main.dev-docs div.tab-wrapper .tab.vertical > .content-wrapper {
+    main.dev-docs div.tab-wrapper .tab.vertical>.content-wrapper {
         padding: 12px 16px;
         width: 100%;
     }
 }
 
-main div.tab-wrapper .tab.products > .tabs-wrapper {
+main div.tab-wrapper .tab.card-panels>.tabs-wrapper {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
@@ -396,7 +396,7 @@ main div.tab-wrapper .tab.products > .tabs-wrapper {
     margin: 0 auto 32px;
 }
 
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
+main div.tab-wrapper .tab.card-panels>.tabs-wrapper .tab-button {
     height: auto;
     width: auto;
     margin: 0;
@@ -409,29 +409,25 @@ main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button {
     white-space: nowrap;
 }
 
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active,
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active > .tab-title,
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover,
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button.active:hover > .tab-title{
-    background-color: #1a1a1a ;
-    color: #fff ;
+main div.tab-wrapper .tab.card-panels>.tabs-wrapper .tab-button:hover .tab-title,
+main div.tab-wrapper .tab.card-panels>.tabs-wrapper .tab-button.active,
+main div.tab-wrapper .tab.card-panels>.tabs-wrapper .tab-button.active .tab-title,
+main div.tab-wrapper .tab.card-panels>.tabs-wrapper .tab-button:hover,
+main div.tab-wrapper .tab.card-panels>.tabs-wrapper .tab-button:hover .tab-title {
+    background-color: #000 !important;
+    color: #fff !important;
 }
 
-main div.tab-wrapper .tab.products > .tabs-wrapper .tab-button:hover {
-    background-color: #F8F8F8 !important;
-    color: #000 !important; 
-}
-
-main div.tab-wrapper .tab.products .products-content {
+main div.tab-wrapper .tab.card-panels .card-panels-content {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
-main div.tab-wrapper .tab.products .products-card {
+main div.tab-wrapper .tab.card-panels .card-panels-card {
     display: grid;
-    grid-template-columns: repeat(var(--products-card-cols, 3), 1fr);
+    grid-template-columns: repeat(var(--card-panels-card-cols, var(--card-panels-card-cols, 3)), 1fr);
     align-items: stretch;
     gap: 24px;
     border: none;
@@ -439,60 +435,60 @@ main div.tab-wrapper .tab.products .products-card {
     padding: 0;
 }
 
-main div.tab-wrapper .tab.products .products-intro,
-main div.tab-wrapper .tab.products .products-media,
-main div.tab-wrapper .tab.products .products-list {
+main div.tab-wrapper .tab.card-panels .card-panels-intro,
+main div.tab-wrapper .tab.card-panels .card-panels-media,
+main div.tab-wrapper .tab.card-panels .card-panels-list {
     border: 1px solid #e8e8e8;
     border-radius: 16px;
     background-color: #fff;
     box-sizing: border-box;
 }
 
-main div.tab-wrapper .tab.products .products-intro {
+main div.tab-wrapper .tab.card-panels .card-panels-intro {
     display: flex;
     flex-direction: column;
     gap: 16px;
     padding: 40px;
 }
 
-main div.tab-wrapper .tab.products .products-intro h1,
-main div.tab-wrapper .tab.products .products-intro h2,
-main div.tab-wrapper .tab.products .products-intro h3,
-main div.tab-wrapper .tab.products .products-intro h4 {
+main div.tab-wrapper .tab.card-panels .card-panels-intro h1,
+main div.tab-wrapper .tab.card-panels .card-panels-intro h2,
+main div.tab-wrapper .tab.card-panels .card-panels-intro h3,
+main div.tab-wrapper .tab.card-panels .card-panels-intro h4 {
     margin: 0;
     font-size: 28px;
     line-height: 1.2;
     font-weight: 700;
 }
 
-main div.tab-wrapper .tab.products .products-intro p {
+main div.tab-wrapper .tab.card-panels .card-panels-intro p {
     margin: 0;
     font-size: 16px;
     line-height: 1.5;
     color: rgba(0, 0, 0, 0.7);
 }
 
-main div.tab-wrapper .tab.products .products-media {
+main div.tab-wrapper .tab.card-panels .card-panels-media {
     position: relative;
     overflow: hidden;
     min-height: 260px;
     padding: 0;
 }
 
-main div.tab-wrapper .tab.products .products-media picture {
+main div.tab-wrapper .tab.card-panels .card-panels-media picture {
     display: block;
     width: 100%;
     height: 100%;
 }
 
-main div.tab-wrapper .tab.products .products-media picture img {
+main div.tab-wrapper .tab.card-panels .card-panels-media picture img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
-main div.tab-wrapper .tab.products .products-list {
+main div.tab-wrapper .tab.card-panels .card-panels-list {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -500,16 +496,16 @@ main div.tab-wrapper .tab.products .products-list {
     padding: 40px;
 }
 
-main div.tab-wrapper .tab.products .products-list h1,
-main div.tab-wrapper .tab.products .products-list h2,
-main div.tab-wrapper .tab.products .products-list h3,
-main div.tab-wrapper .tab.products .products-list h4 {
+main div.tab-wrapper .tab.card-panels .card-panels-list h1,
+main div.tab-wrapper .tab.card-panels .card-panels-list h2,
+main div.tab-wrapper .tab.card-panels .card-panels-list h3,
+main div.tab-wrapper .tab.card-panels .card-panels-list h4 {
     margin: 0 0 4px;
     font-size: 20px;
     font-weight: 700;
 }
 
-main div.tab-wrapper .tab.products .products-list-items {
+main div.tab-wrapper .tab.card-panels .card-panels-list-items {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -518,13 +514,13 @@ main div.tab-wrapper .tab.products .products-list-items {
     gap: 10px;
 }
 
-main div.tab-wrapper .tab.products .product-item {
+main div.tab-wrapper .tab.card-panels .product-item {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-main div.tab-wrapper .tab.products .product-icon {
+main div.tab-wrapper .tab.card-panels .product-icon {
     flex-shrink: 0;
     width: 32px;
     height: 32px;
@@ -533,83 +529,97 @@ main div.tab-wrapper .tab.products .product-icon {
     justify-content: center;
 }
 
-main div.tab-wrapper .tab.products .product-icon picture,
-main div.tab-wrapper .tab.products .product-icon img {
+main div.tab-wrapper .tab.card-panels .product-icon picture,
+main div.tab-wrapper .tab.card-panels .product-icon img {
     width: 32px;
     height: 32px;
     object-fit: contain;
     border-radius: 6px;
 }
 
-main div.tab-wrapper .tab.products .product-info {
+main div.tab-wrapper .tab.card-panels .product-info {
     display: flex;
     align-items: baseline;
     gap: 6px;
     flex-wrap: wrap;
 }
 
-main div.tab-wrapper .tab.products .product-info a {
+main div.tab-wrapper .tab.card-panels .product-info a {
     font-size: 16px;
     font-weight: 600;
     color: inherit;
     text-decoration: underline;
 }
 
-main div.tab-wrapper .tab.products .product-new {
+main div.tab-wrapper .tab.card-panels .product-new {
     font-size: 14px;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.55);
 }
 
-main div.tab-wrapper > div.background-color-navy.products > .tabs-wrapper {
+main div.tab-wrapper>div.background-color-navy.card-panels>.tabs-wrapper {
     background: rgba(255, 255, 255, 0.08);
 }
 
-main div.tab-wrapper > div.background-color-navy.products > .tabs-wrapper .tab-button {
+main div.tab-wrapper>div.background-color-navy.card-panels>.tabs-wrapper .tab-button {
     color: rgba(255, 255, 255, 0.85);
 }
 
-main div.tab-wrapper > div.background-color-navy.products .products-intro,
-main div.tab-wrapper > div.background-color-navy.products .products-media,
-main div.tab-wrapper > div.background-color-navy.products .products-list {
+main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-intro,
+main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-media,
+main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-list {
     background-color: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.15);
 }
 
-main div.tab-wrapper > div.background-color-navy.products .products-intro p {
+main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-intro p,
+main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-intro p {
     color: rgba(255, 255, 255, 0.75);
 }
 
-main div.tab-wrapper > div.background-color-navy.products .product-new {
+main div.tab-wrapper>div.background-color-navy.card-panels>.product-new,
+main div.tab-wrapper>div.background-color-navy.card-panels>.product-new {
     color: rgba(255, 255, 255, 0.6);
 }
 
 @media only screen and (max-width: 1024px) {
-    main div.tab-wrapper .tab.products .products-card {
+    main div.tab-wrapper .tab.card-panels .card-panels-card {
         grid-template-columns: 1fr 1fr;
         grid-template-areas: "intro media" "list list";
     }
-    main div.tab-wrapper .tab.products .products-intro { grid-area: intro; }
-    main div.tab-wrapper .tab.products .products-media { grid-area: media; }
-    main div.tab-wrapper .tab.products .products-list { grid-area: list; }
+
+    main div.tab-wrapper .tab.card-panels .card-panels-intro {
+        grid-area: intro;
+    }
+
+    main div.tab-wrapper .tab.card-panels .card-panels-media {
+        grid-area: media;
+    }
+
+    main div.tab-wrapper .tab.card-panels .card-panels-list {
+        grid-area: list;
+    }
 }
 
 @media only screen and (max-width: 860px) {
-    main div.tab-wrapper .tab.products > .tabs-wrapper {
+    main div.tab-wrapper .tab.card-panels>.tabs-wrapper {
         width: 100%;
         overflow-x: auto;
         justify-content: flex-start;
     }
-    main div.tab-wrapper .tab.products .products-card {
+
+    main div.tab-wrapper .tab.card-panels .card-panels-card {
         display: flex;
         flex-direction: column;
         gap: 20px;
     }
-    main div.tab-wrapper .tab.products .products-intro,
-    main div.tab-wrapper .tab.products .products-list {
+
+    main div.tab-wrapper .tab.card-panels .card-panels-intro,
+    main div.tab-wrapper .tab.card-panels .card-panels-list {
         padding: 24px;
     }
-    main div.tab-wrapper .tab.products .products-media {
+
+    main div.tab-wrapper .tab.card-panels .card-panels-media {
         min-height: 220px;
     }
 }
