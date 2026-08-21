@@ -8,31 +8,6 @@ import {
 } from "./ai-assistant_constants.js";
 
 /**
- * Parses AI-generated suggested questions from the ---question--- delimited format.
- * @param {string} responseText - Raw text from the AI
- * @returns {Array<{label: string, question: string}>} Parsed questions, or empty array on failure
- */
-export const parseAiSuggestedQuestions = (responseText) => {
-  if (!responseText) return [];
-  const questions = [];
-  const segments = responseText.split(/---question---/);
-  for (const segment of segments) {
-    const trimmed = segment.trim();
-    if (!trimmed) continue;
-    const labelMatch = trimmed.match(/^label:\s*(.+)$/m);
-    const textMatch = trimmed.match(/^text:\s*(.+)$/m);
-    if (labelMatch && textMatch) {
-      const label = labelMatch[1].trim();
-      const question = textMatch[1].trim();
-      if (label && question) {
-        questions.push({ label, question });
-      }
-    }
-  }
-  return questions;
-};
-
-/**
  * Updates the suggested questions list with new questions or a loading skeleton.
  * @param {Array<{label: string, question: string, id?: string|null}>|null} questions - Questions to show, or null for skeleton
  */
@@ -102,15 +77,16 @@ export const createSuggestedQuestionsSection = () => {
 };
 
 /**
- * Shows the suggested questions section with optional scroll behavior.
+ * Reveals the suggested questions section (fade-in + optional scroll). No-ops
+ * unless the section is currently `hidden`. 
  * @param {Object} [options={}] - Options object
- * @param {boolean} [options.shouldScrollIntoView=true] - Whether to scroll the element into view
+ * @param {boolean} [options.shouldScrollIntoView=true] - Scroll the section into view on reveal. Only applies when the section is `hidden` (i.e. actually being revealed).
  */
 export const showSuggestedQuestions = ({
   shouldScrollIntoView = true,
 } = {}) => {
   const el = ELEMENTS.CHAT_SUGGESTED_QUESTIONS;
-  if (el) {
+  if (el?.classList.contains("hidden")) {
     el.classList.remove("hidden");
     el.classList.remove("animate-fade-in");
     requestAnimationFrame(() => {

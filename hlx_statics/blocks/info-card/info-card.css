@@ -327,3 +327,11 @@ main :is(.info-card-wrapper, .infocard-wrapper) :is(.info-card, .infocard).compa
     grid-template-columns: 1fr;
   }
 }
+
+main :is(div.info-card-wrapper div.info-card.narrow, div.infocard-wrapper div.infocard.narrow)>ul>li {
+  max-width: 222px;
+}
+
+main :is(div.info-card-wrapper div.info-card.narrow, div.infocard-wrapper div.infocard.narrow)>ul>li img {
+  width: 222px;
+}

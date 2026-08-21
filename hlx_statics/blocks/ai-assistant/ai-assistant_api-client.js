@@ -6,6 +6,9 @@ import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
  * @typedef {Object} RequestBody
  * @property {string} query
  * @property {string} [collectionId]
+ * @property {string} [sessionId]
+ * @property {boolean} [includeFollowupQuestions]
+ * @property {number} [followupQuestionsCount=2] - Count the client requests; the backend falls back to 3 when omitted.
  */
 
 /**
@@ -79,11 +82,34 @@ import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
  */
 
 /**
+ * Marks the end of the generated answer. Arrives after all content/citation
+ * events but before the trailing `followupQuestions` and `complete` events.
+ * @typedef {Object} AnswerCompleteEvent
+ * @property {'answerComplete'} type
+ * @property {CompleteTimingData} timingDataMs
+ */
+
+/**
+ * @typedef {Object} FollowupQuestion
+ * @property {string} label - Short summary shown on the suggestion button
+ * @property {string} text - Full question sent to the AI when clicked
+ */
+
+/**
+ * @typedef {Object} FollowupQuestionsEvent
+ * @property {'followupQuestions'} type
+ * @property {FollowupQuestion[]} followupQuestions
+ * @property {Object} timingDataMs
+ */
+
+/**
  * @typedef {Object} StreamRequestCallbacks
  * @property {(event: MetadataEvent) => void} onMetadata
  * @property {(event: ContentEvent) => void} onContent
  * @property {(event: CitationEvent) => void} onCitation
  * @property {(event: TimingEvent) => void} onTiming
+ * @property {(event: AnswerCompleteEvent) => void} onAnswerComplete
+ * @property {(event: FollowupQuestionsEvent) => void} onFollowupQuestions
  * @property {(event?: CompleteEvent) => void} onComplete
  * @property {(error: unknown) => void} onError
  */
@@ -98,7 +124,6 @@ const IS_PROD = isProdEnvironment(window.location.host);
 
 export class AiApiClient {
   static STREAMING_ENDPOINT = "/retrieve/generate/stream";
-  static NON_STREAMING_ENDPOINT = "/retrieve/generate";
   static COLLECTIONS_ENDPOINT = "/collections";
   static FEEDBACK_ENDPOINT = "/feedback";
   static LOCAL_STORAGE_COLLECTIONS_KEY = "ai-assistant__collections";
@@ -201,9 +226,25 @@ export class AiApiClient {
    * @param {'THUMBS_UP_DOWN'} [options.type]
    * @param {number} options.score
    * @param {string} options.requestId
+   * @param {string} [options.query] - The user query that triggered the rated response
+   * @param {string|null} [options.collectionId] - The collection the query was run against
+   * @param {string} [options.comment] - Optional free-text feedback comment
    */
-  async submitFeedback({ type = "THUMBS_UP_DOWN", score, requestId }) {
+  async submitFeedback({
+    type = "THUMBS_UP_DOWN",
+    score,
+    requestId,
+    query,
+    collectionId,
+    comment,
+  }) {
     try {
+      /** @type {Record<string, unknown>} */
+      const payload = { scoreType: type, score };
+      if (query !== undefined) payload.query = query;
+      if (collectionId !== undefined) payload.collectionId = collectionId;
+      if (comment !== undefined) payload.comment = comment;
+
       const response = await fetch(
         `${this.baseUrl}${AiApiClient.FEEDBACK_ENDPOINT}/${requestId}`,
         {
@@ -212,7 +253,7 @@ export class AiApiClient {
             "Content-Type": "application/json",
             "X-Api-Key": this.apiKey,
           },
-          body: JSON.stringify({ scoreType: type, score }),
+          body: JSON.stringify(payload),
         },
       );
 
@@ -238,6 +279,8 @@ export class AiApiClient {
     onContent = () => {},
     onCitation = () => {},
     onTiming = () => {},
+    onAnswerComplete = () => {},
+    onFollowupQuestions = () => {},
     onComplete = () => {},
     onError = () => {},
   }) {
@@ -301,6 +344,12 @@ export class AiApiClient {
                 case "timing":
                   onTiming(data);
                   break;
+                case "answerComplete":
+                  onAnswerComplete(data);
+                  break;
+                case "followupQuestions":
+                  onFollowupQuestions(data);
+                  break;
                 case "complete":
                   onComplete(data);
                   return;
@@ -337,62 +386,21 @@ export class AiApiClient {
   }
 
   /**
-   * Makes a non-streaming query and returns the full response text.
-   * Used for background tasks like generating suggested questions.
-   * @param {Object} options
-   * @param {string} options.query - The query to send
-   * @param {string} [options.context] - Optional conversation context/history
-   * @param {string} [options.systemPrompt] - Optional system prompt
-   * @returns {Promise<string>} The generated text response
-   */
-  async collectResponse({ query, context = "", systemPrompt = "" }) {
-    const body = {
-      query: `
-        <system>
-          ${systemPrompt}
-        </system>
-        ${context ? `<history>\n${context}\n</history>` : ""}
-        <question>
-          ${query}
-        </question>
-      `,
-    };
-
-    const response = await fetch(
-      `${this.baseUrl}${AiApiClient.NON_STREAMING_ENDPOINT}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Api-Key": this.apiKey,
-        },
-        body: JSON.stringify(body),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.generatedText || "";
-  }
-
-  /**
-   * Makes a query request with conversation history
+   * Makes a streaming query request.
+   *
    * @param {Object} options - Query options
    * @param {string} options.query - The user's query
-   * @param {string} [options.context] - Optional conversation context/history
    * @param {string} [options.systemPrompt] - Optional system prompt instructions
    * @param {string|null} [options.collectionId] - Optional collection ID for the query
+   * @param {string|null} [options.sessionId] - Bedrock session id from a prior response; omitted on the first request
    * @param {Partial<StreamRequestCallbacks>} options.callbacks
    * @returns {Promise<void>}
    */
   async query({
     query,
-    context = "",
     systemPrompt = "",
     collectionId = null,
+    sessionId = null,
     callbacks = {},
   }) {
     const defaultSystemPrompt = `
@@ -405,14 +413,18 @@ export class AiApiClient {
         <system>
           ${systemPrompt || defaultSystemPrompt}
         </system>
-        ${context ? `<history>\n${context}\n</history>` : ""}
         <question>
           ${query}
         </question>
       `,
+      includeFollowupQuestions: true,
+      followupQuestionsCount: 2,
     };
     if (collectionId) {
       body.collectionId = collectionId;
+    }
+    if (sessionId) {
+      body.sessionId = sessionId;
     }
 
     return this.streamRequest({

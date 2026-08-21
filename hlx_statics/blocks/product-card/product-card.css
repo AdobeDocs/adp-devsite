@@ -46,6 +46,10 @@ main div.product-card-wrapper .button-container {
     height: auto;
 }
 
+main div.product-card-wrapper div.product-card.narrow {
+    max-width: 1000px;
+}
+
 @media screen and (max-width : 1400px) {
     main div.product-card-wrapper div.product-card {
         margin: 0px 20px;
