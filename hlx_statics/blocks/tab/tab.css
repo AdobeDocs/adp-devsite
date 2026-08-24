@@ -514,13 +514,13 @@ main div.tab-wrapper .tab.card-panels .card-panels-list-items {
     gap: 10px;
 }
 
-main div.tab-wrapper .tab.card-panels .product-item {
+main div.tab-wrapper .tab.card-panels .card-panels-item {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-main div.tab-wrapper .tab.card-panels .product-icon {
+main div.tab-wrapper .tab.card-panels .card-panels-icon {
     flex-shrink: 0;
     width: 32px;
     height: 32px;
@@ -529,29 +529,29 @@ main div.tab-wrapper .tab.card-panels .product-icon {
     justify-content: center;
 }
 
-main div.tab-wrapper .tab.card-panels .product-icon picture,
-main div.tab-wrapper .tab.card-panels .product-icon img {
+main div.tab-wrapper .tab.card-panels .card-panels-icon picture,
+main div.tab-wrapper .tab.card-panels .card-panels-icon img {
     width: 32px;
     height: 32px;
     object-fit: contain;
     border-radius: 6px;
 }
 
-main div.tab-wrapper .tab.card-panels .product-info {
+main div.tab-wrapper .tab.card-panels .card-panels-info {
     display: flex;
     align-items: baseline;
     gap: 6px;
     flex-wrap: wrap;
 }
 
-main div.tab-wrapper .tab.card-panels .product-info a {
+main div.tab-wrapper .tab.card-panels .card-panels-info a {
     font-size: 16px;
     font-weight: 600;
     color: inherit;
     text-decoration: underline;
 }
 
-main div.tab-wrapper .tab.card-panels .product-new {
+main div.tab-wrapper .tab.card-panels .card-panels-new {
     font-size: 14px;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.55);
@@ -576,7 +576,7 @@ main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-intro p 
     color: rgba(255, 255, 255, 0.75);
 }
 
-main div.tab-wrapper>div.background-color-navy.card-panels .product-new {
+main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-new {
     color: rgba(255, 255, 255, 0.6);
 }
 

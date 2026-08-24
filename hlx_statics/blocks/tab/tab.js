@@ -86,9 +86,9 @@ const createSubTabs = (table) => {
   return { subTabsWrapper, subContentWrapper };
 }
 
-const createProductContent = (table) => {
-  const productsContent = document.createElement('div');
-  productsContent.className = 'card-panels-content';
+const createCardPanelsContent = (table) => {
+  const cardPanelsContent = document.createElement('div');
+  cardPanelsContent.className = 'card-panels-content';
 
   const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
   (rows.length ? rows : table.querySelectorAll('tr')).forEach((row) => {
@@ -141,18 +141,18 @@ const createProductContent = (table) => {
         if (!link) return;
 
         const item = document.createElement('li');
-        item.className = 'product-item';
+        item.className = 'card-panels-item';
 
         const itemPicture = li.querySelector('picture');
         if (itemPicture) {
           const icon = document.createElement('span');
-          icon.className = 'product-icon';
+          icon.className = 'card-panels-icon';
           icon.appendChild(itemPicture);
           item.appendChild(icon);
         }
 
         const info = document.createElement('div');
-        info.className = 'product-info';
+        info.className = 'card-panels-info';
         info.appendChild(link);
 
         item.appendChild(info);
@@ -165,12 +165,12 @@ const createProductContent = (table) => {
 
     if (card.children.length) {
       card.style.setProperty('--card-panels-card-cols', card.children.length);
-      productsContent.appendChild(card);
+      cardPanelsContent.appendChild(card);
     }
   });
 
   table.remove();
-  return productsContent;
+  return cardPanelsContent;
 };
 
 export default async function decorate(block) {
@@ -185,7 +185,7 @@ export default async function decorate(block) {
     }
   });
 
-  const isProducts = block.classList.contains('products') || block.classList.contains('card-panels');
+  const isCardPanels = block.classList.contains('card-panels');
 
   const dataOrientation = block.getAttribute('data-orientation');
   const orientation = dataOrientation || (block.classList.contains('vertical') ? 'vertical' : 'horizontal');
@@ -204,7 +204,7 @@ export default async function decorate(block) {
 
   block.querySelectorAll(':scope > div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
-    const tabImage = isProducts ? '' : (tab.querySelector('picture')?.outerHTML || '');
+    const tabImage = isCardPanels ? '' : (tab.querySelector('picture')?.outerHTML || '');
     const tabContent = tab.querySelector(':scope > div:last-child');
 
     if (tabTitle && tabContent) {
@@ -224,11 +224,11 @@ export default async function decorate(block) {
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
       contentDiv.innerHTML = tabContent.innerHTML;
 
-      if (isProducts) {
+      if (isCardPanels) {
         decorateButtons(contentDiv);
         contentDiv.querySelectorAll('table').forEach((table) => {
-          const productContent = createProductContent(table);
-          contentDiv.appendChild(productContent);
+          const cardPanelsContent = createCardPanelsContent(table);
+          contentDiv.appendChild(cardPanelsContent);
         });
       } else {
         handleCode(contentDiv);
