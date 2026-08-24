@@ -10,6 +10,7 @@ export default async function decorate(block) {
     block.setAttribute('daa-lh', 'product-card');
 
     const width = block?.parentElement?.parentElement?.getAttribute('data-width');
+    const isBackground = block.classList.contains('background');
 
     block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
         h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'title-heading');
@@ -17,6 +18,15 @@ export default async function decorate(block) {
 
     Array.from(block.children).forEach((card) => {
         card.style.width = width;
+
+        if (isBackground) {
+            const bgDiv = card.children[1];
+            const bg = bgDiv?.textContent?.trim();
+            if (bg) {
+                card.style.background = bg;
+            }
+            bgDiv?.remove();
+        }
 
         card.querySelectorAll('p, div').forEach(p => {
             if (p.textContent.trim() || p.tagName === 'P') {
