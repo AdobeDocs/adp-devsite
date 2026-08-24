@@ -30,10 +30,10 @@ main div.tab-wrapper .tab-button {
     width: 260px;
 }
 
-main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button.active,
-main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button.active .tab-title,
-main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button:hover,
-main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button:hover .tab-title {
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels) .tab-button.active,
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels) .tab-button.active .tab-title,
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels) .tab-button:hover,
+main div.tab-wrapper>div:not(.background-color-navy):not(.card-panels) .tab-button:hover .tab-title {
     background-color: #2e3c6a !important;
     color: white !important;
 }
@@ -251,7 +251,7 @@ main div.tab-wrapper>div.background-color-navy .tab-button:hover .tab-title {
     color: #000;
 }
 
-main.dev-docs div.tab-wrapper>div:not(.background-color-navy):not(.card-panels):not(.card-panels) .tab-button {
+main.dev-docs div.tab-wrapper>div:not(.background-color-navy):not(.card-panels) .tab-button {
     background: #eee;
 }
 
@@ -427,7 +427,7 @@ main div.tab-wrapper .tab.card-panels .card-panels-content {
 
 main div.tab-wrapper .tab.card-panels .card-panels-card {
     display: grid;
-    grid-template-columns: repeat(var(--card-panels-card-cols, var(--card-panels-card-cols, 3)), 1fr);
+    grid-template-columns: repeat(var(--card-panels-card-cols, 3), 1fr);
     align-items: stretch;
     gap: 24px;
     border: none;
@@ -565,20 +565,18 @@ main div.tab-wrapper>div.background-color-navy.card-panels>.tabs-wrapper .tab-bu
     color: rgba(255, 255, 255, 0.85);
 }
 
-main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-intro,
-main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-media,
-main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-list {
+main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-intro,
+main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-media,
+main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-list {
     background-color: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.15);
 }
 
-main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-intro p,
-main div.tab-wrapper>div.background-color-navy.card-panels>.card-panels-intro p {
+main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-intro p {
     color: rgba(255, 255, 255, 0.75);
 }
 
-main div.tab-wrapper>div.background-color-navy.card-panels>.product-new,
-main div.tab-wrapper>div.background-color-navy.card-panels>.product-new {
+main div.tab-wrapper>div.background-color-navy.card-panels .product-new {
     color: rgba(255, 255, 255, 0.6);
 }
 
