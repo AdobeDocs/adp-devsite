@@ -11,9 +11,13 @@ export default async function decorate(block) {
 
     const width = block?.parentElement?.parentElement?.getAttribute('data-width');
     const isBackground = block.classList.contains('background');
+    const isFontWhite = block.classList.contains('font-white');
 
     block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
         h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'title-heading');
+        if (isFontWhite) {
+            h.style.color = 'white';
+        }
     });
 
     Array.from(block.children).forEach((card) => {
@@ -31,6 +35,9 @@ export default async function decorate(block) {
         card.querySelectorAll('p, div').forEach(p => {
             if (p.textContent.trim() || p.tagName === 'P') {
                 p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+                if (isFontWhite) {
+                    p.style.color = 'white';
+                }
             }
         });
 
