@@ -78,6 +78,10 @@ export default async function decorate(block) {
         card.querySelectorAll('a').forEach((a, index) => {
             const isStrong = a.parentElement.tagName === 'STRONG';
             a.className = `spectrum-Button spectrum-Button--outline spectrum-Button--${isStrong || (IS_DEV_DOCS && index === 1) ? 'accent' : 'secondary'} spectrum-Button--sizeM`;
+            if (isFontWhite) {
+                a.style.color = 'white';
+                a.style.borderColor = 'white';
+            }
         });
     });
 
