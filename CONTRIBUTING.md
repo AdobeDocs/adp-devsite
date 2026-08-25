@@ -86,7 +86,7 @@ GitHub Actions is the canonical way to generate snapshots:
 For example, Accordion baselines belong in:
 
 ```text
-tests/playwright/blocks/accordion.spec.js-snapshots/
+tests/playwright/blocks/accordion.spec.mjs-snapshots/
 ```
 
 ### Generate snapshots locally with Act

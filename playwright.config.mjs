@@ -1,9 +1,9 @@
 // @ts-check
-const { defineConfig, devices } = require('@playwright/test');
+import { defineConfig, devices } from '@playwright/test';
 
 const isCI = Boolean(process.env.CI);
 
-module.exports = defineConfig({
+export default defineConfig({
   testDir: './tests/playwright',
   outputDir: 'test-results',
   timeout: 30_000,

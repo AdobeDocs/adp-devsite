@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { expect, test } from '@playwright/test';
 
 const path = '/dev-docs-reference/blocks/accordion/';
 const heading = 'What is this accordion component?';
