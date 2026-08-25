@@ -109,3 +109,9 @@ typings/
 .hlx
 
 .DS_Store
+
+# Playwright artifacts
+/playwright-report/
+/playwright-results.json
+/test-results/
+/blob-report/
