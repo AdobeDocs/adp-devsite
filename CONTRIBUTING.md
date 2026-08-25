@@ -49,6 +49,101 @@ We enforce a coding styleguide using `eslint`. As part of your build, run `npm r
 
 You can fix some of the issues automatically by running `npx eslint . --fix`.
 
+## Playwright end-to-end and visual tests
+
+Pull requests run Playwright against the AEM preview for the pull request's branch. The workflow derives the preview URL from the selected branch using this pattern:
+
+```text
+https://<branch>--adp-devsite-stage--adobedocs.aem.page
+```
+
+The workflow tests the component reference pages under `/dev-docs-reference/blocks/`. Playwright reports and failure diagnostics are available as workflow artifacts.
+
+### When to update visual snapshots
+
+Do not update a snapshot merely because a visual test failed. First determine whether the difference is an unintended regression or an intentional design change.
+
+- **Unintended difference:** fix the implementation and leave the existing snapshot unchanged.
+- **Intentional visual change:** generate, inspect, and commit an updated Linux snapshot.
+- **Behavior-only change:** do not update snapshots unless the rendered component intentionally changed.
+
+Snapshot updates are never accepted automatically by pull request CI. The changed PNG files are part of the reviewable pull request.
+
+### Generate snapshots with GitHub Actions
+
+GitHub Actions is the canonical way to generate snapshots:
+
+1. Push the component changes to your branch. The branch must be available remotely before AEM can serve its scripts and styles.
+2. Open **Actions → Playwright → Run workflow**.
+3. Select the branch containing your changes.
+4. Enable **Generate Linux visual baselines instead of comparing them**.
+5. Run the workflow. The AEM base URL is derived from the selected branch; no URL needs to be entered.
+6. Download the `playwright-linux-snapshots-<commit>` artifact.
+7. Inspect every generated image. Confirm that it represents the intended design rather than a loading failure, missing font, or unrelated page change.
+8. Copy the images into the corresponding `tests/playwright/**/*-snapshots/` directory, then commit and push them.
+9. Let the normal pull request workflow run again. It must pass by comparing the branch against the committed snapshots.
+
+For example, Accordion baselines belong in:
+
+```text
+tests/playwright/blocks/accordion.spec.mjs-snapshots/
+```
+
+### Generate snapshots locally with Act
+
+Act is an optional faster path for contributors with Docker installed. The repository's `.actrc` forces Linux AMD64 and the workflow uses the same pinned Playwright Docker image as GitHub Actions.
+
+To generate snapshots from unpushed changes, start the local AEM development server in one terminal:
+
+```bash
+npm run dev:aem
+```
+
+After the server is available at `http://localhost:3001`, run the workflow from another terminal:
+
+```bash
+rm -rf .act-artifacts
+act workflow_dispatch \
+  -W .github/workflows/playwright.yml \
+  --input playwright_base_url=http://host.docker.internal:3001 \
+  --input update_snapshots=true
+```
+
+`host.docker.internal` lets the Playwright container reach port 3001 on the host when using Docker Desktop. Do not use `localhost` for this case because it refers to the workflow container itself.
+
+Act writes the generated snapshot and report artifacts under `.act-artifacts/`. Extract the snapshot artifact directly into the Playwright test directory, then inspect every PNG before committing it:
+
+```bash
+snapshot_artifact=$(find .act-artifacts -name 'playwright-linux-snapshots-*.zip' -print -quit)
+unzip -o "$snapshot_artifact" -d tests/playwright
+```
+
+To run Act against the current branch's deployed AEM preview instead, omit `playwright_base_url`. This requires pushing the branch first so that its preview is available.
+
+GitHub Actions remains authoritative: after pushing locally generated snapshots, the normal pull request workflow must still pass.
+
+### Run Playwright during development
+
+With the local AEM server running at the configured default URL:
+
+```bash
+npm run test:e2e
+```
+
+To test an explicit deployed preview locally without Act:
+
+```bash
+PLAYWRIGHT_BASE_URL='https://<branch>--adp-devsite-stage--adobedocs.aem.page' npm run test:e2e
+```
+
+Useful commands:
+
+```bash
+npm run test:e2e:ui
+npx playwright show-report
+npx playwright show-trace test-results/**/trace.zip
+```
+
 ## Commit Message Format
 
 This project uses a structured commit changelog format that should be used for every commit. Use `npm run commit` instead of your usual `git commit` to generate commit messages using a wizard.
