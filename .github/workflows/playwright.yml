@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Resolve branch preview URL
         shell: bash
@@ -86,8 +86,22 @@ jobs:
         run: npm run test:e2e:update
 
       - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
+        if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report-${{ github.sha }}
+          path: |
+            playwright-report/
+            playwright-results.json
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Act 0.2.89's local artifact server does not yet support the v7 upload
+      # protocol. Keep this local-only fallback until nektos/act#6114 lands.
+      - name: Upload Playwright report with Act
+        if: always() && env.ACT == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report-${{ github.sha }}
           path: |
@@ -98,8 +112,17 @@ jobs:
           retention-days: 14
 
       - name: Upload generated snapshots
-        if: github.event_name == 'workflow_dispatch' && inputs.update_snapshots
-        uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch' && inputs.update_snapshots && env.ACT != 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-linux-snapshots-${{ github.sha }}
+          path: tests/playwright/**/*-snapshots/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload generated snapshots with Act
+        if: github.event_name == 'workflow_dispatch' && inputs.update_snapshots && env.ACT == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-linux-snapshots-${{ github.sha }}
           path: tests/playwright/**/*-snapshots/*.png
