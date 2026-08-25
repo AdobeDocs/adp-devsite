@@ -551,12 +551,6 @@ main div.tab-wrapper .tab.card-panels .card-panels-info a {
     text-decoration: underline;
 }
 
-main div.tab-wrapper .tab.card-panels .card-panels-new {
-    font-size: 14px;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.55);
-}
-
 main div.tab-wrapper>div.background-color-navy.card-panels>.tabs-wrapper {
     background: rgba(255, 255, 255, 0.08);
 }
@@ -574,10 +568,6 @@ main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-list {
 
 main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-intro p {
     color: rgba(255, 255, 255, 0.75);
-}
-
-main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-new {
-    color: rgba(255, 255, 255, 0.6);
 }
 
 @media only screen and (max-width: 1024px) {
