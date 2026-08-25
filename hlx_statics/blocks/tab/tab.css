@@ -608,6 +608,6 @@ main div.tab-wrapper>div.background-color-navy.card-panels .card-panels-intro p 
     }
 
     main div.tab-wrapper .tab.card-panels .card-panels-media {
-        min-height: 220px;
+        min-height: 120px;
     }
 }
