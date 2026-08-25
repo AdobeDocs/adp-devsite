@@ -8,4 +8,4 @@ test/*
 dev.mjs
 /scripts
 /tests
-playwright.config.js
+playwright.config.mjs
