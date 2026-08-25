@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: playwright-${{ github.event.pull_request.number || github.ref }}
@@ -60,8 +61,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test Playwright summary generator
-        run: npm run test:playwright-summary
+      - name: Test Playwright reporting scripts
+        run: npm run test:playwright-reporting
 
       - name: Wait for branch preview
         shell: bash
@@ -142,6 +143,19 @@ jobs:
           path: tests/playwright/**/*-snapshots/*.png
           if-no-files-found: error
           retention-days: 14
+
+      - name: Update PR description
+        if: >-
+          always() &&
+          env.ACT != 'true' &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.event.pull_request.user.login != 'dependabot[bot]'
+        run: node scripts/update-playwright-pr-body.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Fail the check if Playwright failed
         if: steps.playwright.outcome == 'failure'

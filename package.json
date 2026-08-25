@@ -9,6 +9,8 @@
         "test:e2e:ui": "playwright test --ui",
         "test:e2e:update": "playwright test --update-snapshots",
         "test:playwright-summary": "node --test scripts/playwright-summary.test.mjs",
+        "test:playwright-pr-body": "node --test scripts/update-playwright-pr-body.test.mjs",
+        "test:playwright-reporting": "node --test scripts/playwright-summary.test.mjs scripts/update-playwright-pr-body.test.mjs",
         "lint": "eslint .",
         "dev:aem": "npx @adobe/aem-cli --no-open --port 3001 up",
         "dev:markup": "node ./dev.mjs & open http://localhost:3000",
