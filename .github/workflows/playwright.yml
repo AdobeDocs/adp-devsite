@@ -147,6 +147,7 @@ jobs:
       - name: Update PR description
         if: >-
           always() &&
+          !cancelled() &&
           env.ACT != 'true' &&
           github.event_name == 'pull_request' &&
           github.event.pull_request.head.repo.full_name == github.repository &&
@@ -158,5 +159,5 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Fail the check if Playwright failed
-        if: steps.playwright.outcome == 'failure'
+        if: always() && steps.playwright.outcome == 'failure'
         run: exit 1

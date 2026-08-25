@@ -2,10 +2,16 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const START_MARKER = '<!-- playwright-results:start -->';
-export const END_MARKER = '<!-- playwright-results:end -->';
+import { END_MARKER, START_MARKER } from './playwright-summary.mjs';
+
+export { END_MARKER, START_MARKER };
 export const SUMMARY_PATH = path.resolve('playwright-summary.md');
 export const MAX_SUMMARY_BYTES = 64 * 1024;
+export const MAX_PR_BODY_LENGTH = 65_536;
+export const REQUEST_TIMEOUT_MS = 15_000;
+export const MAX_REQUEST_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 500;
+const MAX_RETRY_DELAY_MS = 10_000;
 const MAX_ERROR_LENGTH = 500;
 
 function boundedText(value, maxLength = MAX_ERROR_LENGTH) {
@@ -95,8 +101,7 @@ function parseConfiguration(env) {
   const token = requireEnvironment(env, 'GITHUB_TOKEN', 2_048);
   const repository = requireEnvironment(env, 'GITHUB_REPOSITORY', 200);
   const prNumber = requireEnvironment(env, 'PR_NUMBER', 20);
-  const githubSha = requireEnvironment(env, 'GITHUB_SHA', 64);
-  const expectedHeadSha = String(env.PR_HEAD_SHA || githubSha).trim();
+  const expectedHeadSha = requireEnvironment(env, 'PR_HEAD_SHA', 64);
 
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) {
     throw new Error('GITHUB_REPOSITORY must have the form owner/repository');
@@ -104,9 +109,8 @@ function parseConfiguration(env) {
   if (!/^[1-9]\d*$/.test(prNumber)) {
     throw new Error('PR_NUMBER must be a positive integer');
   }
-  if (!/^[0-9a-f]{7,64}$/i.test(githubSha)
-    || !/^[0-9a-f]{7,64}$/i.test(expectedHeadSha)) {
-    throw new Error('GITHUB_SHA and PR_HEAD_SHA must be hexadecimal commit SHAs');
+  if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(expectedHeadSha)) {
+    throw new Error('PR_HEAD_SHA must be a full lowercase 40- or 64-character commit SHA');
   }
 
   const apiUrl = String(env.GITHUB_API_URL || 'https://api.github.com').trim();
@@ -150,30 +154,73 @@ async function responseMessage(response) {
   }
 }
 
-async function githubRequest(fetchImpl, url, token, options = {}) {
-  let response;
-  try {
-    response = await fetchImpl(url, {
-      ...options,
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-        ...options.headers,
-      },
-    });
-  } catch (error) {
-    throw new Error(`GitHub request failed: ${boundedText(error?.message || error)}`);
+function retryDelay(response, attempt) {
+  const retryAfterHeader = response?.headers?.get?.('retry-after');
+  const retryAfter = Number(retryAfterHeader);
+  if (retryAfterHeader != null && retryAfterHeader !== ''
+    && Number.isFinite(retryAfter) && retryAfter >= 0) {
+    return Math.min(retryAfter * 1_000, MAX_RETRY_DELAY_MS);
   }
+  return Math.min(RETRY_BASE_DELAY_MS * (2 ** attempt), MAX_RETRY_DELAY_MS);
+}
 
-  if (!response.ok) {
+function isRetryableResponse(response) {
+  return response.status === 429
+    || response.status >= 500
+    || (response.status === 403 && response.headers?.get?.('retry-after') != null);
+}
+
+function sleep(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function githubRequest(fetchImpl, url, token, options = {}) {
+  let lastNetworkError;
+
+  for (let attempt = 0; attempt < MAX_REQUEST_ATTEMPTS; attempt += 1) {
+    let response;
+    try {
+      response = await fetchImpl(url, {
+        ...options,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${token}`,
+          'X-GitHub-Api-Version': '2022-11-28',
+          ...options.headers,
+        },
+      });
+      lastNetworkError = null;
+    } catch (error) {
+      lastNetworkError = error;
+      if (attempt < MAX_REQUEST_ATTEMPTS - 1) {
+        await sleep(Math.min(RETRY_BASE_DELAY_MS * (2 ** attempt), MAX_RETRY_DELAY_MS));
+        continue;
+      }
+      break;
+    }
+
+    if (response.ok) return response;
+    if (isRetryableResponse(response) && attempt < MAX_REQUEST_ATTEMPTS - 1) {
+      try {
+        await response.body?.cancel?.();
+      } catch {
+        // The next bounded attempt is still safe if a response body cannot be cancelled.
+      }
+      await sleep(retryDelay(response, attempt));
+      continue;
+    }
+
     const detail = await responseMessage(response);
-    if (response.status === 401 || response.status === 403) {
+    const isRateLimited = response.status === 403
+      && response.headers?.get?.('retry-after') != null;
+    if (response.status === 401 || (response.status === 403 && !isRateLimited)) {
       throw new Error(`GitHub authorization failed (${response.status}): ${detail}`);
     }
     throw new Error(`GitHub request failed (${response.status}): ${detail}`);
   }
-  return response;
+
+  throw new Error(`GitHub request failed after ${MAX_REQUEST_ATTEMPTS} attempts: ${boundedText(lastNetworkError?.message || lastNetworkError)}`);
 }
 
 export async function updatePullRequestBody({
@@ -214,6 +261,9 @@ export async function updatePullRequestBody({
     throw new Error('GitHub pull request response contains an invalid body');
   }
   const body = replacePlaywrightBlock(pullRequest.body, summary);
+  if (Array.from(body).length > MAX_PR_BODY_LENGTH) {
+    throw new Error(`Updated pull request body exceeds GitHub's ${MAX_PR_BODY_LENGTH}-character limit`);
+  }
   await githubRequest(
     fetchImpl,
     configuration.pullUrl,

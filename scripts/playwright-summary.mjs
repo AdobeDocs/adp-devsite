@@ -2,6 +2,8 @@ import { readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+export const START_MARKER = '<!-- playwright-results:start -->';
+export const END_MARKER = '<!-- playwright-results:end -->';
 export const RESULTS_PATH = path.resolve('playwright-results.json');
 export const SUMMARY_PATH = path.resolve('playwright-summary.md');
 export const MAX_RESULTS_BYTES = 10 * 1024 * 1024;
@@ -174,7 +176,7 @@ export function formatTestCounts(counts) {
 
 export function buildSummary(env, counts, timestamp = new Date()) {
   return [
-    '<!-- playwright-results:start -->',
+    START_MARKER,
     '## Playwright test results',
     '',
     '| Result | Value |',
@@ -187,7 +189,7 @@ export function buildSummary(env, counts, timestamp = new Date()) {
     `| Workflow | ${buildWorkflowLink(env)} |`,
     '',
     `_Last updated: ${timestamp.toISOString()}_`,
-    '<!-- playwright-results:end -->',
+    END_MARKER,
     '',
   ].join('\n');
 }
