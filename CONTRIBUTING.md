@@ -93,15 +93,32 @@ tests/playwright/blocks/accordion.spec.mjs-snapshots/
 
 Act is an optional faster path for contributors with Docker installed. The repository's `.actrc` forces Linux AMD64 and the workflow uses the same pinned Playwright Docker image as GitHub Actions.
 
-First push the current branch so that its AEM preview is available, then run from that branch:
+To generate snapshots from unpushed changes, start the local AEM development server in one terminal:
 
 ```bash
+npm run dev:aem
+```
+
+After the server is available at `http://localhost:3001`, run the workflow from another terminal:
+
+```bash
+rm -rf .act-artifacts
 act workflow_dispatch \
   -W .github/workflows/playwright.yml \
+  --input playwright_base_url=http://host.docker.internal:3001 \
   --input update_snapshots=true
 ```
 
-Act derives the AEM preview URL from the current branch. Generated snapshot and report artifacts are written under `.act-artifacts/`. Extract the snapshot artifact, inspect its PNG files, copy them into the matching snapshot directory, and commit them.
+`host.docker.internal` lets the Playwright container reach port 3001 on the host when using Docker Desktop. Do not use `localhost` for this case because it refers to the workflow container itself.
+
+Act writes the generated snapshot and report artifacts under `.act-artifacts/`. Extract the snapshot artifact directly into the Playwright test directory, then inspect every PNG before committing it:
+
+```bash
+snapshot_artifact=$(find .act-artifacts -name 'playwright-linux-snapshots-*.zip' -print -quit)
+unzip -o "$snapshot_artifact" -d tests/playwright
+```
+
+To run Act against the current branch's deployed AEM preview instead, omit `playwright_base_url`. This requires pushing the branch first so that its preview is available.
 
 GitHub Actions remains authoritative: after pushing locally generated snapshots, the normal pull request workflow must still pass.
 

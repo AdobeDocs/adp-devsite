@@ -6,6 +6,10 @@ on:
       - '**'
   workflow_dispatch:
     inputs:
+      playwright_base_url:
+        description: Optional local Act test target (defaults to http://host.docker.internal:3001)
+        required: false
+        type: string
       update_snapshots:
         description: Generate Linux visual baselines instead of comparing them
         required: false
@@ -37,7 +41,15 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Set local Playwright base URL
+        if: env.ACT == 'true'
+        shell: bash
+        env:
+          LOCAL_PLAYWRIGHT_BASE_URL: ${{ inputs.playwright_base_url }}
+        run: echo "PLAYWRIGHT_BASE_URL=${LOCAL_PLAYWRIGHT_BASE_URL:-http://host.docker.internal:3001}" >> "$GITHUB_ENV"
+
       - name: Resolve branch preview URL
+        if: env.ACT != 'true'
         shell: bash
         run: |
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
@@ -50,6 +62,7 @@ jobs:
           echo "PLAYWRIGHT_BASE_URL=https://${branch}--adp-devsite-stage--adobedocs.aem.page" >> "$GITHUB_ENV"
 
       - name: Validate target URL
+        if: env.ACT != 'true'
         shell: bash
         run: |
           if [[ -z "$PLAYWRIGHT_BASE_URL" || "$PLAYWRIGHT_BASE_URL" != https://* ]]; then
