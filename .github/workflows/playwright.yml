@@ -6,11 +6,6 @@ on:
       - '**'
   workflow_dispatch:
     inputs:
-      base_url:
-        description: AEM base URL to test
-        required: true
-        default: https://developer-stage.adobe.com
-        type: string
       update_snapshots:
         description: Generate Linux visual baselines instead of comparing them
         required: false
@@ -36,17 +31,20 @@ jobs:
       options: --ipc=host
     env:
       CI: true
-      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Resolve pull request preview URL
-        if: github.event_name == 'pull_request'
+      - name: Resolve branch preview URL
         shell: bash
         run: |
-          branch="${GITHUB_HEAD_REF,,}"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            branch="$GITHUB_HEAD_REF"
+          else
+            branch="$GITHUB_REF_NAME"
+          fi
+          branch="${branch,,}"
           branch="${branch//\//-}"
           echo "PLAYWRIGHT_BASE_URL=https://${branch}--adp-devsite-stage--adobedocs.aem.page" >> "$GITHUB_ENV"
 
