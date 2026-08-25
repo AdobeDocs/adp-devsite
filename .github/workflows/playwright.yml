@@ -60,6 +60,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test Playwright summary generator
+        run: npm run test:playwright-summary
+
       - name: Wait for branch preview
         shell: bash
         run: |
@@ -78,12 +81,21 @@ jobs:
           exit 1
 
       - name: Run Playwright tests
+        id: playwright
         if: github.event_name != 'workflow_dispatch' || !inputs.update_snapshots
         run: npm run test:e2e
+        continue-on-error: true
 
       - name: Generate Linux snapshots
         if: github.event_name == 'workflow_dispatch' && inputs.update_snapshots
         run: npm run test:e2e:update
+
+      - name: Build PR summary
+        if: always() && github.event_name == 'pull_request'
+        run: node scripts/playwright-summary.mjs
+        env:
+          TEST_OUTCOME: ${{ steps.playwright.outcome }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Upload Playwright report
         if: always() && env.ACT != 'true'
@@ -93,6 +105,7 @@ jobs:
           path: |
             playwright-report/
             playwright-results.json
+            playwright-summary.md
             test-results/
           if-no-files-found: warn
           retention-days: 14
@@ -107,6 +120,7 @@ jobs:
           path: |
             playwright-report/
             playwright-results.json
+            playwright-summary.md
             test-results/
           if-no-files-found: warn
           retention-days: 14
@@ -128,3 +142,7 @@ jobs:
           path: tests/playwright/**/*-snapshots/*.png
           if-no-files-found: error
           retention-days: 14
+
+      - name: Fail the check if Playwright failed
+        if: steps.playwright.outcome == 'failure'
+        run: exit 1

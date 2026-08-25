@@ -112,6 +112,7 @@ typings/
 # Playwright and local Act artifacts
 /playwright-report/
 /playwright-results.json
+/playwright-summary.md
 /test-results/
 /blob-report/
 /.act-artifacts/
