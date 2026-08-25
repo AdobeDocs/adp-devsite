@@ -1,0 +1,109 @@
+name: Playwright
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: AEM base URL to test
+        required: true
+        default: https://developer-stage.adobe.com
+        type: string
+      update_snapshots:
+        description: Generate Linux visual baselines instead of comparing them
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Chromium end-to-end and visual tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      # Pin the browser, OS dependencies, and Node 24 environment used both by
+      # GitHub Actions and Act. Keep this version aligned with @playwright/test.
+      image: mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
+      options: --ipc=host
+    env:
+      CI: true
+      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve pull request preview URL
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          branch="${GITHUB_HEAD_REF,,}"
+          branch="${branch//\//-}"
+          echo "PLAYWRIGHT_BASE_URL=https://${branch}--adp-devsite-stage--adobedocs.aem.page" >> "$GITHUB_ENV"
+
+      - name: Validate target URL
+        shell: bash
+        run: |
+          if [[ -z "$PLAYWRIGHT_BASE_URL" || "$PLAYWRIGHT_BASE_URL" != https://* ]]; then
+            echo "PLAYWRIGHT_BASE_URL must be a non-empty HTTPS URL" >&2
+            exit 1
+          fi
+          echo "Testing $PLAYWRIGHT_BASE_URL"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for branch preview
+        shell: bash
+        run: |
+          reference_url="$PLAYWRIGHT_BASE_URL/dev-docs-reference/blocks/accordion/?ci=$GITHUB_SHA"
+          script_url="$PLAYWRIGHT_BASE_URL/hlx_statics/scripts/scripts.js?ci=$GITHUB_SHA"
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error "$reference_url" >/dev/null \
+              && curl --fail --silent --show-error "$script_url" >/dev/null; then
+              echo "Reference page and branch assets are ready"
+              exit 0
+            fi
+            echo "Waiting for branch preview (attempt $attempt/30)"
+            sleep 10
+          done
+          echo "Branch preview did not become ready: $PLAYWRIGHT_BASE_URL" >&2
+          exit 1
+
+      - name: Run Playwright tests
+        if: github.event_name != 'workflow_dispatch' || !inputs.update_snapshots
+        run: npm run test:e2e
+
+      - name: Generate Linux snapshots
+        if: github.event_name == 'workflow_dispatch' && inputs.update_snapshots
+        run: npm run test:e2e:update
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.sha }}
+          path: |
+            playwright-report/
+            playwright-results.json
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload generated snapshots
+        if: github.event_name == 'workflow_dispatch' && inputs.update_snapshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-linux-snapshots-${{ github.sha }}
+          path: tests/playwright/**/*-snapshots/*.png
+          if-no-files-found: error
+          retention-days: 14

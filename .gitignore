@@ -109,8 +109,9 @@ typings/
 
 .DS_Store
 
-# Playwright artifacts
+# Playwright and local Act artifacts
 /playwright-report/
 /playwright-results.json
 /test-results/
 /blob-report/
+/.act-artifacts/
