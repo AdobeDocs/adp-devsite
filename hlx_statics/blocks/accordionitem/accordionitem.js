@@ -102,10 +102,9 @@ function decorateTables(block) {
 function getAccordionItem(heading) {
   return `
     <h3>
-        <button class="accordion-itemHeader" type="button"> 
+        <button class="accordion-itemHeader" type="button">
             <span class="accordion-toggle-icon">
                 <svg class="expand-icon" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <svg class="collapse-icon" style="display: none;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -129,7 +128,7 @@ export default async function decorate(block) {
       item.setAttribute("class", "accordion-item");
       const heading = item.querySelector('h3, h4, h5, h6');
       if (heading) {
-        const headingText = heading?.innerText;
+        const headingText = heading?.innerText + "bug";
         item.innerHTML = getAccordionItem(headingText);
         item.setAttribute("class", "accordion-itemHeader");
       } else {
