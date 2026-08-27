@@ -16,27 +16,15 @@ function decorateBackgroundColor(block) {
   });
 }
 
-/**
- * @param {Element} block The banner block element
- * @returns {boolean} true if a caption row was found and handled
- */
 function decorateCaption(block) {
   const rows = block.querySelectorAll(':scope > div');
-  if (rows.length < 2) return false;
-
-  const imgRow = rows[0];
-  const captionRow = rows[1];
-
-  const img = imgRow.querySelector('img');
-  if (!img) return false;
-
-  const captionText = captionRow.textContent.trim();
-  if (captionText) {
-    img.setAttribute('alt', captionText);
+  const altRow = rows[1];
+  const img = rows[0].querySelector('img');
+  if (img) {
+    const altText = altRow?.textContent?.trim();
+    img.setAttribute('alt', altText);
   }
-
-  captionRow.remove();
-  return true;
+  altRow?.remove();
 }
 
 export default async function decorate(block) {
@@ -44,16 +32,8 @@ export default async function decorate(block) {
 
   decorateBackgroundColor(block);
 
-  const firstRow = block.querySelector(':scope > div');
-  const looksLikeImageBanner = block.classList.contains('image')
-    || (firstRow && firstRow.querySelector('img') && !firstRow.querySelector('h1'));
-
-  if (looksLikeImageBanner) {
-    const handled = decorateCaption(block);
-    if (handled) {
-      block.classList.add('image');
-      return;
-    }
+  if (block.classList.contains('image')) {
+    decorateCaption(block);
   }
 
   const h1s = block.querySelectorAll('h1');
