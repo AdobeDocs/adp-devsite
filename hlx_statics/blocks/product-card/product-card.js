@@ -64,13 +64,17 @@ export default async function decorate(block) {
             if (buttons.length) footer.appendChild(btnWrap);
             card.append(body, ...(buttons.length ? [footer] : []));
         } else {
-            card.lastElementChild?.querySelectorAll('.button-container')?.forEach(p => btnWrap.append(p));
-            btnWrap.append(card.lastElementChild);
-            footer.append(btnWrap);
+            const buttonsCol = card.lastElementChild;
+            buttonsCol?.querySelectorAll('.button-container')?.forEach(p => btnWrap.append(p));
+            btnWrap.append(buttonsCol);
 
             card.firstElementChild?.children && [...card.firstElementChild.children].forEach(ele => body.appendChild(ele));
             card.prepend(body);
-            card.append(footer);
+            
+            if (btnWrap.textContent.trim() !== '' || btnWrap.querySelector('a')) {
+                footer.append(btnWrap);
+                card.append(footer);
+            }
         }
     });
 
