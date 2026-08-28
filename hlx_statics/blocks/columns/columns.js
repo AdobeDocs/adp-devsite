@@ -267,8 +267,8 @@ export default async function decorate(block) {
   }
 
   if (isBackground) {
-    console.log("block.querySelector('.columns > div > div:last-child')", block.querySelector('.columns > div > div:last-child'))
-    container.style.backgroundColor = block.querySelector('.columns > div > div:last-child').textContent.trim();
+    console.log("columnList[columnList.length - 1]", columnList[columnList.length - 1].textContent.trim())
+    container.style.backgroundColor = columnList[columnList.length - 1].textContent.trim();
   }
 
   const observer = new IntersectionObserver((entries) => {
