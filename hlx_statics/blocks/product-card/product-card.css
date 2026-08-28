@@ -31,6 +31,7 @@ main div.product-card-wrapper div.product-card>div>div:first-child {
     padding: 20px;
     display: flex;
     flex-direction: column;
+    justify-content: space-around;
     gap: 20px;
     flex: 1;
 }
@@ -47,8 +48,8 @@ main div.product-card-wrapper div.product-card>div>div:first-child img {
     border-radius: 10%;
 }
 
-main div.product-card-wrapper div.all-button-container ,
-main div.product-card-wrapper div.button-container  {
+main div.product-card-wrapper div.all-button-container,
+main div.product-card-wrapper div.button-container {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -65,6 +66,7 @@ main div.product-card-wrapper .button-container {
 }
 
 @media screen and (max-width : 1024px) {
+
     main div.product-card-wrapper div.product-card,
     main div.product-card-wrapper div.product-card.col-4 {
         grid-template-columns: repeat(2, 1fr);
@@ -77,6 +79,7 @@ main div.product-card-wrapper .button-container {
 }
 
 @media screen and (max-width: 768px) {
+
     main div.product-card-wrapper div.product-card,
     main div.product-card-wrapper div.product-card.col-4 {
         grid-template-columns: repeat(1, 1fr);
