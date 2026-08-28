@@ -41,12 +41,12 @@ export default async function decorate(block) {
   const isReversed = block.getAttribute('data-isreversed') === 'true';
   const isControls = block.classList.contains('controls');
   const isBackground = block.classList.contains('background');
-  const isFontColorWhite = block.classList.contains('font-white')
+  const isFontColorWhite = block.classList.contains('font-white');
   const isDocs = IS_DEV_DOCS;
 
   isReversed && block.classList.add('isReversed');
-  isFontColorWhite && block.classList.add('font-white')
-  isDocs && block.classList.add('isDocs')
+  isFontColorWhite && block.classList.add('font-white');
+  isDocs && block.classList.add('isDocs');
   variant === "vertical" && block.classList.add(variant);
 
   block.setAttribute('daa-lh', 'columns');
@@ -64,8 +64,8 @@ export default async function decorate(block) {
       if (bgValue && block.parentElement) {
         block.parentElement.style.background = bgValue;
       }
+      bgRow.remove();
     }
-    bgRow.remove();
   }
 
   removeEmptyPTags(block);
@@ -182,7 +182,7 @@ export default async function decorate(block) {
         button.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
         if (isFontColorWhite) {
           button.style.color = "white";
-          button.style.borderColor = "white"
+          button.style.borderColor = "white";
         }
       } else {
         button.parentElement.replaceWith(button);
