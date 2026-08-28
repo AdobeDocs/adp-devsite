@@ -24,7 +24,7 @@ export default async function decorate(block) {
         card.style.width = width;
 
         if (isBackground) {
-            const bgDiv = card.children[1];
+            const bgDiv = card.children.length >= 3 ? card.children[2] : card.children[1];
             const bg = bgDiv?.textContent?.trim();
             if (bg) {
                 card.style.background = bg;
