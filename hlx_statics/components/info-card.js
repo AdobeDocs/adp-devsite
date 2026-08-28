@@ -1,7 +1,134 @@
 import { createTag, removeEmptyPTags, decorateButtons } from '../scripts/lib-adobeio.js';
 import {
   createOptimizedPicture,
+  getMetadata,
+  IS_DEV_DOCS,
 } from '../scripts/lib-helix.js';
+import {
+  applyVideoContainer,
+  getVideoTitle,
+  parseVideoSource,
+} from '../scripts/video.js';
+
+function initializeNavigation(block, ul) {
+  const cards = [...ul.children];
+  if (cards.length <= 3) return;
+
+  block.querySelectorAll('.info-card-nav').forEach((btn) => btn.remove());
+  block.querySelectorAll('.info-card-viewport').forEach((el) => {
+    // unwrap any viewport from a previous initialization run
+    el.replaceWith(...el.childNodes);
+  });
+  block.querySelectorAll('.info-card-carousel-nav').forEach((el) => el.remove());
+
+  const createNav = (direction, path) => {
+    const btn = createTag('button', {
+      class: `info-card-nav info-card-nav-${direction}`,
+      'aria-label': direction === 'prev' ? 'Previous' : 'Next',
+    });
+
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+      <path d="${path}" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    return btn;
+  };
+
+  const prevBtn = createNav('prev', 'M15 18L9 12L15 6');
+  const nextBtn = createNav('next', 'M9 18L15 12L9 6');
+
+  // Wrap the viewport + ul so the arrows live in their own grid columns
+  // instead of being absolutely positioned on top of the card content.
+  const viewport = createTag('div', { class: 'info-card-viewport' });
+  const navWrapper = createTag('div', { class: 'info-card-carousel-nav' });
+
+  ul.parentNode.insertBefore(navWrapper, ul);
+  viewport.appendChild(ul);
+  navWrapper.appendChild(prevBtn);
+  navWrapper.appendChild(viewport);
+  navWrapper.appendChild(nextBtn);
+
+  const getVisibleCount = () => {
+    if (window.innerWidth <= 1024) {
+      return 1;
+    }
+    return IS_DEV_DOCS ? 2 : 3;
+  };
+
+  let visible = getVisibleCount();
+  // `index` is the position of the first visible card (one-card-step),
+  // not a page multiplier — every arrow click moves the window by 1 card.
+  let index = 0;
+  let rafId = null;
+
+  const getMaxIndex = () => Math.max(0, cards.length - visible);
+
+  const update = () => {
+    const maxIndex = getMaxIndex();
+    index = Math.min(index, maxIndex);
+    const shown = cards.slice(index, index + visible);
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    cards.forEach((card) => {
+      card.classList.add('hide');
+      card.style.display = 'none';
+    });
+
+    rafId = requestAnimationFrame(() => {
+      shown.forEach((card) => {
+        card.style.display = '';
+      });
+      requestAnimationFrame(() => {
+        shown.forEach((card) => card.classList.remove('hide'));
+      });
+      rafId = null;
+    });
+
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index >= maxIndex;
+  };
+
+  const syncGridToVisible = () => {
+    ul.style.setProperty('--info-card-visible', visible);
+  };
+
+  const changeIndex = (step) => {
+    const maxIndex = getMaxIndex();
+    index = Math.max(0, Math.min(index + step, maxIndex));
+    update();
+  };
+
+  prevBtn.onclick = () => changeIndex(-1);
+  nextBtn.onclick = () => changeIndex(1);
+
+  let resizeRaf = null;
+  const handleResize = () => {
+    if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = null;
+      const newVisible = getVisibleCount();
+      if (newVisible !== visible) {
+        visible = newVisible;
+        index = Math.min(index, getMaxIndex());
+        syncGridToVisible();
+        update();
+      }
+    });
+  };
+
+  if (block._infoCardResizeHandler) {
+    window.removeEventListener('resize', block._infoCardResizeHandler);
+  }
+  block._infoCardResizeHandler = handleResize;
+  window.addEventListener('resize', handleResize);
+
+  syncGridToVisible();
+  update();
+}
 
 /** @param {Document} doc */
 function getOpenGraphMeta(doc) {
@@ -38,9 +165,23 @@ export default async function decorateInfoCard(block, options = {}) {
   const { daaLh = 'info-card' } = options;
   block.setAttribute('daa-lh', daaLh);
   const isArticles = block.getAttribute('data-slots')?.split(',')?.includes('articles');
+  const isVideoCard = block.classList.contains('video') || block.getAttribute('data-slots')?.split(',')?.includes('video');
+  const isControls = block.classList.contains('controls') || block.getAttribute('data-controls') === 'true';
+  const isNavigation = block.classList.contains('navigation') || block.getAttribute('data-navigation') === 'true';
+  const isReverse = block.classList.contains('reverse') || block.getAttribute('data-reverse') === 'true';
   const isWide = block.getAttribute('data-wide') === 'true';
+  const isCompact = block.classList.contains('compact') || block.getAttribute('data-compact') === 'true';
   if (isWide) {
     block.classList.add('wide');
+  }
+  if (isNavigation && IS_DEV_DOCS) {
+    block.classList.add('navigation');
+  }
+  if (isReverse && IS_DEV_DOCS) {
+    block.classList.add('reverse');
+  }
+  if (isCompact && IS_DEV_DOCS) {
+    block.classList.add('compact');
   }
   removeEmptyPTags(block);
 
@@ -87,16 +228,32 @@ export default async function decorateInfoCard(block, options = {}) {
   const ul = document.createElement('ul');
   [...block.children].forEach((row) => {
     const li = document.createElement('li');
-    const a = document.createElement('a');
+    const videoSource = isVideoCard ? parseVideoSource(row) : null;
+    const cardHref = [...row.querySelectorAll('a[href]')].find((l) => l !== videoSource?.anchor)?.href;
+    const card = createTag(cardHref ? 'a' : 'div', cardHref ? { href: cardHref } : {});
 
     const image = row.querySelector('img') || row.querySelector('picture img');
+
     if (image) {
       const imageDiv = createTag('div', { class: 'cards-card-image' });
       const picWidth = image.naturalWidth > 0 ? String(image.naturalWidth) : '1200';
       imageDiv.appendChild(
         createOptimizedPicture(image.src, image.alt, false, [{ width: picWidth }]),
       );
-      a.appendChild(imageDiv);
+      card.appendChild(imageDiv);
+    } else if (videoSource) {
+      const imageDiv = createTag('div', { class: 'cards-card-image' });
+      const wrapperVideo = createTag('div');
+      applyVideoContainer(wrapperVideo, {
+        url: videoSource.url,
+        title: getVideoTitle(videoSource.url, videoSource.linkText),
+        autoplay: true,
+        muted: true,
+        loop: true,
+        controls: isControls ? true : false,
+      });
+      imageDiv.appendChild(wrapperVideo);
+      card.appendChild(imageDiv);
     }
 
     const textDiv = createTag('div', { class: 'cards-card-body' });
@@ -109,7 +266,6 @@ export default async function decorateInfoCard(block, options = {}) {
         h3.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'card-heading');
         h3.textContent = headingElement.textContent.trim();
         textDiv.appendChild(h3);
-        headingElement.href ? a.href = headingElement.href : a.href = anchorHref.href;
       } else {
         headingElement.classList.add('spectrum-Heading', 'spectrum-Heading--sizeS', 'card-heading');
         textDiv.appendChild(headingElement);
@@ -126,13 +282,16 @@ export default async function decorateInfoCard(block, options = {}) {
       textDiv.appendChild(p);
     }
 
-    a.appendChild(textDiv);
-    li.appendChild(a);
+    card.appendChild(textDiv);
+    li.appendChild(card);
     ul.appendChild(li);
   });
 
   block.textContent = '';
   block.appendChild(ul);
+  if (isNavigation) {
+    initializeNavigation(block, ul);
+  }
 
   block.querySelectorAll('.icon').forEach((s) => {
     const p_parent = s.parentElement;

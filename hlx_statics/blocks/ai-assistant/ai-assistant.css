@@ -1,6 +1,61 @@
 /* Ai Assistant Floating Chat Bot */
 
 /*
+ * MARK: Screen-reader announcer
+ * Visually-hidden live regions (role="log" + role="status") used to announce
+ * completed assistant replies and the "responding…" state to screen readers.
+ * Kept 1px (not display:none) so the regions remain in the accessibility tree
+ * and can announce; decoupled from the visible transcript.
+ */
+.chat-announcer {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/*
+ * MARK: Skip Link
+ * Visually hidden "Skip to AI Assistant" link. Kept 1px (not display:none) so it
+ * stays in the accessibility tree and tab order; revealed on keyboard focus.
+ */
+.skip-to-ai-assistant {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.skip-to-ai-assistant:focus,
+.skip-to-ai-assistant:focus-visible {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1000001; /* above the sticky global-nav header (z-index: 1000000) */
+    width: auto;
+    height: auto;
+    padding: 8px 16px;
+    overflow: visible;
+    background-color: #fff;
+    color: #292929;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+    outline: 2px solid #1473e6;
+    outline-offset: 2px;
+}
+
+/*
  * MARK: Root & Layout
  */
 .ai-assistant-wrapper {
@@ -329,16 +384,28 @@
     padding: 0 24px 24px 24px;
 
     .chat-textarea-wrapper {
-        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 2px solid #dadada;
+        border-radius: 8px;
+        background: #ffffff;
+        box-sizing: border-box;
+
+        &:focus-within {
+            border-color: #3b63fb;
+        }
     }
 
     textarea {
+        /* height is set by JS event listener based on amount of text */
+        min-height: 36px;
+        /* css var injected from js into style since it's required in both */
+        max-height: var(--max-height);
         width: 100%;
-        min-height: 96px;
-        max-height: 120px;
-        padding: 12px 12px 48px 12px;
-        border: 2px solid #dadada;
-        border-radius: 8px;
+        padding: 0;
+        border: none;
         font-family:
             "adobe-clean",
             "Source Sans Pro",
@@ -350,22 +417,27 @@
             "Trebuchet MS",
             "Lucida Grande",
             sans-serif;
-        font-size: 14px;
+        font-size: var(--spectrum-global-dimension-font-size-100);
         line-height: 18px;
         color: #292929;
-        background: #ffffff;
+        background: transparent;
         resize: none;
         overflow-y: auto;
         box-sizing: border-box;
 
         &:focus {
             outline: none;
-            border-color: #3b63fb;
         }
 
         &::placeholder {
             color: #717171;
         }
+    }
+
+    .chat-input-footer {
+        display: flex;
+        justify-content: flex-end;
+        flex: none;
     }
 
     .chat-disclaimer-text {
@@ -385,9 +457,6 @@
     }
 
     .chat-send-button {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
         width: 72px;
         height: 32px;
         padding: 0;
@@ -522,16 +591,19 @@
     --bubble-background-color: #f8f8f8;
     --bubble-text-color: #292929;
 
+    position: relative;
     display: grid;
-    grid-template-columns: 24px auto;
+    grid-template-columns: auto;
     grid-template-rows: auto auto auto;
     grid-template-areas:
-        "avatar content"
-        "avatar timestamp"
-        "avatar sources";
+        "content"
+        "timestamp"
+        "sources";
     justify-items: start;
     column-gap: 12px;
     width: 100%;
+    overflow-wrap: anywhere;
+    max-width: 388px;
     animation: fadeIn 0.3s ease-in;
     font-size: 16px;
 
@@ -540,11 +612,13 @@
     }
 
     &.chat-bubble-user {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: auto;
         grid-template-rows: auto auto;
         grid-template-areas:
-            "spacer content"
-            "spacer timestamp";
+            "content"
+            "timestamp";
+        align-self: end;
+        justify-items: end;
         --bubble-background-color: #7a6afd;
         --bubble-text-color: #ffffff;
     }
@@ -553,6 +627,15 @@
         --size: 24px;
         grid-area: avatar;
         align-self: start;
+    }
+
+    .chat-bubble-speaker {
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
     }
 
     .chat-bubble-content {

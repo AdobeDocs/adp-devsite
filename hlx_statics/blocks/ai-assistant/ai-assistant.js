@@ -4,7 +4,6 @@ import {
   createTag,
 } from "../../scripts/lib-adobeio.js";
 
-import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
   onUserScroll,
   restoreChatHistory,
@@ -17,27 +16,51 @@ import {
   createInputSection,
 } from "./ai-assistant_chat-ui.js";
 import {
+  CHAT_BUTTON_ID,
+  CHAT_SKIP_BUTTON_LABEL,
+  CHAT_WINDOW_CONTENT_LABEL,
   CHAT_WINDOW_ID,
   CHAT_WINDOW_LABEL_ID,
   ELEMENTS,
 } from "./ai-assistant_constants.js";
 import { createSuggestedQuestionsSection } from "./ai-assistant_suggested-questions.js";
+import { createAnnouncerRegions } from "./ai-assistant_announcer.js";
 
 /**
  * Decorates the ai-assistant block
  * @param {Element} block - the ai-assistant block element
  */
 export default async function decorate(block) {
-  // Prefetch collections to warm cache — resolves before user opens chat
-  aiApiClient.getCollections();
+  // a11y: a visually-hidden "Skip to AI Assistant" link
+  if (!document.getElementById("skip-to-ai-assistant")) {
+    const skipLink = createTag("a", {
+      id: "skip-to-ai-assistant",
+      class: "skip-to-ai-assistant",
+      href: `#${CHAT_BUTTON_ID}`,
+    });
+    skipLink.textContent = CHAT_SKIP_BUTTON_LABEL;
+    document.body.prepend(skipLink);
+  }
 
+  const headingSizes = ["XL", "M", "S", "XS", "XXS", "XXS"];
   addExtraScriptWithLoad(
     document.body,
-    "https://unpkg.com/marked@^17/lib/marked.umd.js",
+    "https://unpkg.com/marked@18.0.5/lib/marked.umd.js",
     () => {
       // @ts-expect-error - marked is not on the Window object
       window.marked.use({
         renderer: {
+          /**
+           * @param {Object} options
+           * @param {Array<unknown>} options.tokens
+           * @param {number} options.depth
+           */
+          heading({ tokens, depth }) {
+            /** @type {string} **/
+            const text = this.parser.parseInline(tokens);
+            const newDepth = Math.min(depth + 2, 6);
+            return `<h${newDepth} class="spectrum-Heading spectrum-Heading--size${headingSizes[newDepth - 1]}">${text}</h${newDepth}>\n`;
+          },
           /**
            * @param {Object} options
            * @param {string} options.href
@@ -45,14 +68,25 @@ export default async function decorate(block) {
            * @param {string} options.text
            */
           link({ href, title, text }) {
-            return `<a href="${href}" title="${title || text}" daa-ll="DevsiteAI Assistant:Message:Link:${title || text}|${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            const analyticsLabel = `DevsiteAI Assistant:Message:Link`;
+            return `<a href="${href}" title="${title || text}" data-ll="${analyticsLabel}" target="_blank" rel="noopener noreferrer">${text}</a>`;
           },
         },
       });
       addExtraScriptWithLoad(
         document.body,
-        "https://unpkg.com/dompurify@^3/dist/purify.min.js",
+        "https://unpkg.com/dompurify@3.4.11/dist/purify.min.js",
         () => {
+          // @ts-expect-error - DOMPurify is not on the Window object
+          window.DOMPurify.setConfig({
+            ADD_ATTR: ["daa-ll", "daa-lh", "target"],
+          });
+          // @ts-expect-error - DOMPurify is not on the Window object
+          window.DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+            if (node.hasAttribute("data-ll")) {
+              node.setAttribute("daa-ll", node.getAttribute("data-ll"));
+            }
+          });
           restoreChatHistory();
         },
       );
@@ -71,7 +105,11 @@ export default async function decorate(block) {
   ELEMENTS.CHAT_WINDOW = chatWindow;
 
   chatWindow.appendChild(createChatWindowHeader());
-  const content = createTag("div", { class: "chat-window-content" });
+  const content = createTag("div", {
+    class: "chat-window-content",
+    role: "region",
+    "aria-label": CHAT_WINDOW_CONTENT_LABEL,
+  });
   ELEMENTS.CHAT_WINDOW_CONTENT = content;
   content.appendChild(createSuggestedQuestionsSection());
   chatWindow.appendChild(content);
@@ -80,13 +118,22 @@ export default async function decorate(block) {
   panel.appendChild(createChatButton());
   panel.appendChild(chatWindow);
 
+  // a11y: visually-hidden live regions for screen-reader announcements, kept
+  // outside the toggled chat-window so they stay in the DOM (a live region
+  // inside a `display:none` ancestor won't announce).
+  panel.appendChild(createAnnouncerRegions());
+
   block.appendChild(panel);
 
   ELEMENTS.CHAT_WINDOW_CONTENT?.addEventListener("scroll", onUserScroll);
   ELEMENTS.CHAT_BUTTON?.addEventListener("click", toggleChatWindow);
-  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener("click", () =>
-    chatWindow.appendChild(createClearDialog()),
-  );
+  ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener("click", () => {
+    const dialog = createClearDialog();
+    chatWindow.appendChild(dialog);
+    /** @type {HTMLElement | null} */ (
+      dialog.querySelector(".chat-window-dialog-cancel")
+    )?.focus();
+  });
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON?.addEventListener(
     "click",
     toggleChatWindow,

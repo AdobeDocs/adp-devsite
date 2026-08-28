@@ -3,8 +3,17 @@ export const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
 export const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
 export const CHAT_BUTTON_LABEL_MINIMIZE = "Minimize AI Assistant";
 export const CHAT_BUTTON_LABEL_CLEAR = "Clear AI Assistant";
+export const CHAT_SKIP_BUTTON_LABEL = "Skip to AI Assistant";
+export const CHAT_BUTTON_ID = "ai-assistant-chat-button";
 export const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
+export const CHAT_WINDOW_CONTENT_LABEL = "Chat messages";
+export const CHAT_BUBBLE_USER_LABEL = "Your message";
+export const CHAT_BUBBLE_AI_LABEL = "Assistant";
+export const CHAT_ANNOUNCER_ID = "ai-assistant-announcer";
+export const CHAT_STATUS_ID = "ai-assistant-status";
+export const CHAT_STATUS_RESPONDING = "Assistant is responding…";
+
 /**
  * @type {Record<string, HTMLElement | null>}
  */
@@ -18,6 +27,8 @@ export const ELEMENTS = {
   CHAT_WINDOW: null,
   CHAT_WINDOW_CONTENT: null,
   CHAT_SUGGESTED_QUESTIONS: null,
+  CHAT_ANNOUNCER: null,
+  CHAT_STATUS: null,
 };
 /**
  * @type {Array<{id?: string | null; label: string; question: string;}>}

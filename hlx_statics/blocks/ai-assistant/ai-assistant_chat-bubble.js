@@ -5,8 +5,15 @@ import { ensurePrismLoaded } from "../../scripts/prism-loader.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
 import { createAiAvatar } from "./ai-assistant_chat-ui.js";
+import {
+  CHAT_BUBBLE_AI_LABEL,
+  CHAT_BUBBLE_USER_LABEL,
+} from "./ai-assistant_constants.js";
 
 export class ChatBubble {
+  /** Incrementing id so each bubble's speaker label has a unique DOM id for aria-labelledby. */
+  static #labelCounter = 0;
+
   /**
    * Creates a chat bubble for a single message.
    * @param {Object} options - Constructor options
@@ -33,6 +40,7 @@ export class ChatBubble {
     this.feedback = feedback;
     this.references = null;
     this._actionsContainer = null;
+    this._speakerLabelId = `chat-bubble-speaker-${ChatBubble.#labelCounter++}`;
     /** @type {HTMLElement} */
     this.element = this.#_init();
   }
@@ -41,16 +49,25 @@ export class ChatBubble {
    * Creates the DOM element
    */
   #_init() {
-    const bubble = createTag("div", { class: "chat-bubble" });
+    const bubble = createTag("div", {
+      class: "chat-bubble",
+      role: "article",
+      "aria-labelledby": this._speakerLabelId,
+    });
+    const speakerLabel = createTag("span", {
+      class: "chat-bubble-speaker",
+      id: this._speakerLabelId,
+      "aria-hidden": "true",
+    });
+    speakerLabel.textContent =
+      this.source === "user" ? CHAT_BUBBLE_USER_LABEL : CHAT_BUBBLE_AI_LABEL;
+    bubble.appendChild(speakerLabel);
+
     const contentElement = createTag("div", {
       class: "chat-bubble-content",
     });
 
-    if (this.source === "ai") {
-      if (!this.isContinuingConversation) {
-        bubble.appendChild(createAiAvatar());
-      }
-    } else if (this.source === "user") {
+    if (this.source === "user") {
       bubble.classList.add("chat-bubble-user");
     }
 
@@ -58,11 +75,10 @@ export class ChatBubble {
       bubble.style.marginTop = "12px";
     }
 
-    // @ts-expect-error - marked is not on the Window type
-    contentElement.innerHTML = window.marked.parse(this.content);
+    this.#_renderContent(contentElement);
     bubble.appendChild(contentElement);
 
-    // Create actions for AI messages but don't append to DOM yet
+    // Create actions for AI messages
     if (this.source === "ai") {
       this._actionsContainer = createTag("div", {
         class: "chat-bubble-actions",
@@ -229,9 +245,13 @@ export class ChatBubble {
     // don't unselect on click
     if (button.dataset.selected === "true") return;
 
+    const message = chatHistory.findById(requestId);
+
     const success = await aiApiClient.submitFeedback({
       score,
       requestId,
+      query: message?.context?.query,
+      collectionId: message?.context?.collectionId,
     });
 
     if (success) {
@@ -248,19 +268,43 @@ export class ChatBubble {
   }
 
   /**
+   * Renders this.content into a content element via marked + DOMPurify.
+   * @param {Element} contentElement
+   */
+  #_renderContent(contentElement) {
+    // @ts-expect-error - DOMPurify is not on the Window object
+    contentElement.innerHTML = window.DOMPurify.sanitize(
+      // @ts-expect-error - marked is not on the Window object
+      window.marked.parse(this.content),
+    );
+  }
+
+  /**
    * Updates the content of the chat bubble
    * @param {string} content
+   * @param {Object} [options]
+   * @param {boolean} [options.alert=false] - When true, marks the content element
+   * `role="alert"` so screen readers announce it immediately (APG Alert pattern / WCAG 4.1.3).
    */
-  updateContent(content) {
+  updateContent(content, { alert = false } = {}) {
     this.content = content;
     const contentElement = this.element.querySelector(".chat-bubble-content");
     if (contentElement) {
-      // @ts-expect-error - DOMPurify is not on the Window object
-      contentElement.innerHTML = window.DOMPurify.sanitize(
-        // @ts-expect-error - marked is not on the Window object
-        window.marked.parse(this.content),
-      );
+      if (alert) {
+        contentElement.setAttribute("role", "alert");
+      }
+      this.#_renderContent(contentElement);
     }
+  }
+
+  /**
+   * Returns the rendered message as plain text.
+   *
+   * @returns {string}
+   */
+  getPlainText() {
+    const contentElement = this.element.querySelector(".chat-bubble-content");
+    return contentElement?.textContent?.trim() ?? "";
   }
 
   scrollIntoView() {
@@ -397,10 +441,7 @@ export class ChatBubble {
         rel: "noopener noreferrer",
       });
       a.textContent = title || url;
-      a.setAttribute(
-        "daa-ll",
-        `DevsiteAI Assistant:Message:Sources:Link:${a.textContent}|${url}`,
-      );
+      a.setAttribute("daa-ll", `DevsiteAI Assistant:Message:Sources:Link`);
       li.appendChild(a);
       list.appendChild(li);
     });

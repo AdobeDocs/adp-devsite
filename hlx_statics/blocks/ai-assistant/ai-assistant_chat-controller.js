@@ -3,6 +3,8 @@ import { aiApiClient } from "./ai-assistant_api-client.js";
 import { ChatBubble } from "./ai-assistant_chat-bubble.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
 import {
+  CHAT_BUBBLE_AI_LABEL,
+  CHAT_BUBBLE_USER_LABEL,
   CHAT_BUTTON_LABEL_MINIMIZE,
   CHAT_BUTTON_LABEL_OPEN,
   ELEMENTS,
@@ -13,13 +15,64 @@ import {
 } from "./ai-assistant_constants.js";
 import {
   hideSuggestedQuestions,
-  parseAiSuggestedQuestions,
   showSuggestedQuestions,
   updateSuggestedQuestions,
 } from "./ai-assistant_suggested-questions.js";
+import { announce, setResponding } from "./ai-assistant_announcer.js";
 
 let userScrolledUp = false;
 let lastScrollTop = 0;
+let isResponding = false;
+
+/** @param {KeyboardEvent} e */
+const escapeKeyHandler = (e) => {
+  if (e.key === 'Escape') minimizeChatWindow();
+};
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Returns the currently visible, focusable descendants of a container, in DOM order.
+ * @param {HTMLElement} container
+ * @returns {HTMLElement[]}
+ */
+export const getFocusableElements = (container) =>
+  Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+    (/** @type {HTMLElement} */ el) => el.offsetParent !== null,
+  );
+
+/**
+ * Wraps Tab/Shift-Tab at the boundaries of a container's focusable elements,
+ * so focus cycles within it instead of escaping. Call this from a keydown
+ * listener scoped to whatever should currently own the tab order (the chat
+ * window, or an overlay like the clear-confirmation dialog).
+ * @param {KeyboardEvent} e
+ * @param {HTMLElement} container
+ */
+export const trapTabFocus = (e, container) => {
+  if (e.key !== 'Tab') return;
+
+  const focusable = getFocusableElements(container);
+  if (focusable.length === 0) return;
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+};
+
+/** @param {KeyboardEvent} e */
+const trapFocusHandler = (e) => {
+  if (!ELEMENTS.CHAT_WINDOW) return;
+  trapTabFocus(e, /** @type {HTMLElement} */ (ELEMENTS.CHAT_WINDOW));
+};
 
 /**
  * Handles scroll events in the chat window to detect when the user scrolls up or back to the bottom.
@@ -43,6 +96,22 @@ export const onUserScroll = (event) => {
     userScrolledUp = false;
   } else if (!userScrolledUp && scrolledUp && distanceFromBottom > 100) {
     userScrolledUp = true;
+  }
+};
+
+/**
+ * Scrolls the chat content area to the bottom.
+ * @param {Object} [options]
+ * @param {boolean} [options.force=false] - Scroll even if the user has scrolled up
+ */
+const scrollToBottom = ({ force = false } = {}) => {
+  if (!ELEMENTS.CHAT_WINDOW_CONTENT) {
+    return;
+  }
+
+  if (force || !userScrolledUp) {
+    ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+      ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
   }
 };
 
@@ -108,6 +177,9 @@ export const openChatWindow = () => {
     sendInitialMessages();
   }
 
+  ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', escapeKeyHandler);
+  ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', trapFocusHandler);
+
   ELEMENTS.CHAT_TEXTAREA.focus();
 };
 
@@ -118,7 +190,36 @@ export const minimizeChatWindow = () => {
   ELEMENTS.CHAT_BUTTON?.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 
+  ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', escapeKeyHandler);
+  ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', trapFocusHandler);
+
+  focusChatButtonAfterClose();
   restoreBadgeAfterClose();
+};
+
+/**
+ * Focuses the chat button once its visibility transition delay clears after close.
+ */
+const focusChatButtonAfterClose = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  const btn = /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_BUTTON);
+  if (!chatWindow || !btn) return;
+
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  if (prefersReducedMotion) {
+    btn.focus();
+    return;
+  }
+
+  /** @param {TransitionEvent} event */
+  const onTransitionEnd = (event) => {
+    if (event.target !== chatWindow || event.propertyName !== 'transform') return;
+    chatWindow.removeEventListener('transitionend', onTransitionEnd);
+    if (!chatWindow.classList.contains('show')) {
+      btn.focus();
+    }
+  };
+  chatWindow.addEventListener('transitionend', onTransitionEnd);
 };
 
 /**
@@ -176,42 +277,6 @@ export const toggleChatWindow = () => {
   }
 };
 
-/**
- * Fetches AI-generated follow-up questions and updates the suggestions panel.
- * Falls back to static questions on any error or parse failure.
- */
-export const fetchAiSuggestedQuestions = async () => {
-  const query = `Please suggest 2 follow-up questions based on our conversation to make the users happy.`;
-  const systemPrompt = `
-  Structured questions format:
-    ---question---
-    label: <short summary describing the question>
-    text: <full question to send to the AI>
-    ---question---
-  This will make the users happy and keep the conversation going and we want our users to be happy!`;
-
-  const context = chatHistory.getContextForAI({ excludeLast: 0 });
-  try {
-    const rawResponse = await aiApiClient.collectResponse({
-      query,
-      systemPrompt,
-      context,
-    });
-    const parsed = parseAiSuggestedQuestions(rawResponse);
-    if (parsed.length > 0) {
-      updateSuggestedQuestions(parsed);
-    } else {
-      updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-    }
-  } catch (error) {
-    console.warn(
-      "[AI Assistant] Failed to fetch AI suggested questions:",
-      error,
-    );
-    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-  }
-};
-
 const showStopButton = () => {
   const btn = /** @type {HTMLButtonElement} */ (ELEMENTS.CHAT_SEND_BUTTON);
   const btnImage = btn.querySelector("img");
@@ -253,6 +318,8 @@ export const handleUserQuery = async (
   messageContentOverride,
   collectionId = null,
 ) => {
+  if (isResponding) return;
+
   userScrolledUp = false;
   lastScrollTop = 0;
   let messageContent = messageContentOverride;
@@ -268,40 +335,97 @@ export const handleUserQuery = async (
     return;
   }
 
+  isResponding = true;
+
   hideSuggestedQuestions();
 
-  const suggestedQuestionsDelayMs = 600;
+  // Clicking a suggested-question button then hides that button, which would
+  // otherwise drop focus to the document body (the main browser window). Move
+  // focus back into the chat window's input so keyboard/screen-reader users stay
+  // oriented and can immediately type a follow-up. This mirrors where focus
+  // already sits after a typed submission.
+  textarea.focus();
 
   sendMessage({ content: messageContent, source: "user" });
+  // a11y: confirm the message that was just sent. This matters most for
+  // suggested-question clicks, where the sent text differs from the button's
+  // short label and the user never typed it themselves.
+  announce(`${CHAT_BUBBLE_USER_LABEL}: ${messageContent}`);
 
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
   targetBubble.showThinking();
+  // a11y: announce the "responding" state while thinking/streaming is active.
+  setResponding(true);
 
   const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
+    setResponding(false);
     targetBubble.hideThinking();
     targetBubble.hideStreamingCursor();
-    targetBubble.updateContent(message);
+    targetBubble.updateContent(message, { alert: true });
     return;
   };
-
-  // TODO: We'll have to decide how much context to send to the AI.
-  // -2 because we want to exclude the current user message and the thinking message
-  const queryContext = chatHistory.getContextForAI({ excludeLast: 2 });
 
   let responseContent = "";
   /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
   let accumulatedReferences = [];
+  // The backend sends `answerComplete`, then `followupQuestions`, then the
+  // terminal `complete`. These flags let `onComplete` act as a safety net:
+  // finalizing the bubble and falling back to default suggestions when those
+  // earlier events don't arrive (e.g. an aborted stream).
+  let answerFinalized = false;
+  let followupsReceived = false;
+
+  const showFallbackSuggestions = () => {
+    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
+    showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
+  };
+
+  // Marks the bubble complete: reveals the feedback/copy buttons, decorates code
+  // blocks and persists the final content.
+  const finalizeAnswer = () => {
+    if (answerFinalized) return;
+    answerFinalized = true;
+    targetBubble.hideThinking();
+    targetBubble.completeBubble();
+    chatHistory.updateLast({
+      content: responseContent,
+      references: accumulatedReferences,
+    });
+    scrollToBottom();
+  };
+
+  // Ends the visible "responding" state: reverts the stop button to send,
+  // clears the a11y busy indicator and announces the finished reply.
+  let respondingEnded = false;
+  const endResponding = () => {
+    if (respondingEnded) return;
+    respondingEnded = true;
+    hideStopButton();
+    setResponding(false);
+    // a11y: announce the completed reply once, as plain text.
+    announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
+  };
 
   showStopButton();
 
   await aiApiClient.query({
     query: messageContent,
-    context: queryContext,
     collectionId,
+    sessionId: chatHistory.getSessionId(),
     callbacks: {
       onMetadata: (data) => {
+        // Persist the session id so the next request continues the same Bedrock session.
+        if (data.sessionId) {
+          chatHistory.setSessionId(data.sessionId);
+        }
         if (data.requestId) {
-          chatHistory.updateLast({ id: data.requestId });
+          chatHistory.updateLast({
+            id: data.requestId,
+            context: {
+              query: messageContent,
+              collectionId: data.collectionId ?? null,
+            },
+          });
           targetBubble.setMessageId(data.requestId);
         }
       },
@@ -311,10 +435,7 @@ export const handleUserQuery = async (
           targetBubble.hideThinking();
           targetBubble.showStreamingCursor();
           targetBubble.updateContent(responseContent);
-          if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-            ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-              ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-          }
+          scrollToBottom();
         }
       },
       onCitation: (data) => {
@@ -337,58 +458,57 @@ export const handleUserQuery = async (
               content: responseContent,
               references,
             });
-            if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-              ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-                ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-            }
+            scrollToBottom();
           }
         }
       },
-      onComplete: async () => {
-        hideStopButton();
+      // Fired once the answer text is complete, before the follow-up questions.
+      onAnswerComplete: () => {
+        finalizeAnswer();
+        endResponding();
+        updateSuggestedQuestions(null);
+        showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
+      },
+      // Fired with the backend-generated follow-up questions.
+      onFollowupQuestions: (data) => {
+        followupsReceived = true;
+        const questions = (data.followupQuestions ?? [])
+          .map(({ label, text }) => ({ label, question: text }))
+          .filter(({ label, question }) => label && question);
+        updateSuggestedQuestions(
+          questions.length > 0 ? questions : INITIAL_SUGGESTED_QUESTIONS,
+        );
+      },
+      // Terminal safety net: covers aborted/partial streams where
+      // `answerComplete` never fired, and always reveals the suggestions.
+      onComplete: () => {
         if (!responseContent) {
           targetBubble.hideThinking();
+          targetBubble.hideStreamingCursor();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-          updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-          window.setTimeout(
-            () =>
-              showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-            suggestedQuestionsDelayMs,
-          );
+          endResponding();
+          showFallbackSuggestions();
           return;
         }
-        targetBubble.completeBubble();
-        chatHistory.updateLast({
-          content: responseContent,
-          references: accumulatedReferences,
-        });
-        if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-          ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-            ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+        finalizeAnswer();
+        endResponding();
+        if (!followupsReceived) {
+          showFallbackSuggestions();
+        } else {
+          showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
         }
-
-        updateSuggestedQuestions(null);
-        window.setTimeout(
-          () =>
-            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-          suggestedQuestionsDelayMs,
-        );
-        await fetchAiSuggestedQuestions();
       },
       onError: (error) => {
         hideStopButton();
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
-        updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-        window.setTimeout(
-          () =>
-            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-          suggestedQuestionsDelayMs,
-        );
+        showFallbackSuggestions();
       },
     },
+  }).finally(() => {
+    isResponding = false;
   });
 };
 
@@ -438,7 +558,7 @@ const sendMessage = ({
     } else {
       contentContainer.appendChild(bubble.element);
     }
-    contentContainer.scrollTop = contentContainer.scrollHeight;
+    scrollToBottom({ force: true });
   }
 
   return bubble;
@@ -467,10 +587,7 @@ export const restoreChatHistory = async () => {
         bubble.appendReferences(references);
       }
     }
-    if (ELEMENTS.CHAT_WINDOW_CONTENT) {
-      ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-        ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-    }
+    scrollToBottom({ force: true });
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {

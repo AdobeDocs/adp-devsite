@@ -4,9 +4,11 @@ import { aiApiClient } from "./ai-assistant_api-client.js";
 import {
   clearConversation,
   handleUserQuery,
+  trapTabFocus,
 } from "./ai-assistant_chat-controller.js";
 
 import {
+  CHAT_BUTTON_ID,
   CHAT_BUTTON_LABEL_CLEAR,
   CHAT_BUTTON_LABEL_CLOSE,
   CHAT_BUTTON_LABEL_OPEN,
@@ -82,18 +84,21 @@ export const createChatWindowHeader = () => {
  * Creates the input section
  */
 export const createInputSection = () => {
+  const TEXTAREA_MAX_HEIGHT = 66;
+
   const inputSection = createTag("div", {
     class: "chat-window-input-section",
   });
   const textarea = /** @type {HTMLTextAreaElement} */ (
     createTag("textarea", {
       placeholder: "What question would you like to ask today?",
-      rows: "4",
+      rows: "2",
       "aria-label": "Enter a question for the AI Assistant",
+      style: `--max-height: ${TEXTAREA_MAX_HEIGHT}px`,
     })
   );
   const disclaimerText = createTag("div", { class: "chat-disclaimer-text" });
-  disclaimerText.innerHTML = `AI-generated responses may be inaccurate or misleading. Be sure to double-check responses and sources. Responses are not your Content. By using AI Assistant, you agree to the <a href="https://www.adobe.com/legal/licenses-terms/adobe-gen-ai-user-guidelines.html" target="_blank" rel="noopener noreferrer" daa-ll="DevsiteAI Assistant:Disclaimer:Link:Generative AI User Guidelines">Generative AI User Guidelines</a>.`;
+  disclaimerText.innerHTML = `AI-generated responses. Please double-check the source before use.`;
 
   const sendButton = /** @type {HTMLButtonElement} */ (
     createTag("button", {
@@ -115,9 +120,12 @@ export const createInputSection = () => {
   sendButton.appendChild(sendButtonLabel);
   sendButton.disabled = true;
 
+  const inputFooter = createTag("div", { class: "chat-input-footer" });
+  inputFooter.appendChild(sendButton);
+
   const textareaWrapper = createTag("div", { class: "chat-textarea-wrapper" });
   textareaWrapper.appendChild(textarea);
-  textareaWrapper.appendChild(sendButton);
+  textareaWrapper.appendChild(inputFooter);
 
   inputSection.appendChild(textareaWrapper);
   inputSection.appendChild(disclaimerText);
@@ -131,7 +139,11 @@ export const createInputSection = () => {
       handleUserQuery();
     }
   });
+
   textarea.addEventListener("input", () => {
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, TEXTAREA_MAX_HEIGHT)}px`;
+
     sendButton.disabled = textarea.value.trim() === "";
   });
   textarea.addEventListener("keydown", (e) => {
@@ -150,6 +162,7 @@ export const createInputSection = () => {
 export const createChatButton = () => {
   const chatButton = createTag("button", {
     class: "chat-button",
+    id: CHAT_BUTTON_ID,
     type: "button",
     "aria-controls": CHAT_WINDOW_ID,
     "aria-expanded": "false",
@@ -173,6 +186,20 @@ export const createChatButton = () => {
 
 export const createClearDialog = () => {
   const dialog = createTag("div", { class: "chat-window-dialog" });
+  dialog.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      dialog.remove();
+      /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+      return;
+    }
+
+    if (e.key !== "Tab") return;
+    // Stop the outer chat-window focus trap from also reacting: this dialog
+    // owns tabbing while it's open, since it overlays the rest of the window.
+    e.stopPropagation();
+    trapTabFocus(e, dialog);
+  });
 
   const card = createTag("section", {
     class: "chat-window-dialog-card",
@@ -195,7 +222,10 @@ export const createClearDialog = () => {
     "daa-ll": "DevsiteAI Assistant:Clear dialog:Cancel",
   });
   cancelButton.textContent = "Cancel";
-  cancelButton.addEventListener("click", () => dialog.remove());
+  cancelButton.addEventListener("click", () => {
+    dialog.remove();
+    /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON)?.focus();
+  });
 
   const clearButton = createTag("button", {
     class: "chat-window-dialog-clear",
@@ -206,6 +236,7 @@ export const createClearDialog = () => {
   clearButton.addEventListener("click", () => {
     dialog.remove();
     clearConversation();
+    /** @type {HTMLElement | null} */ (ELEMENTS.CHAT_TEXTAREA)?.focus();
   });
 
   buttons.appendChild(cancelButton);
