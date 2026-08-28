@@ -69,7 +69,7 @@ export default async function decorate(block) {
   }
 
   if (isFontColorWhite) {
-    block.parentElement.style.color = "white";
+    block.style.color = "white";
   }
 
   removeEmptyPTags(block);
