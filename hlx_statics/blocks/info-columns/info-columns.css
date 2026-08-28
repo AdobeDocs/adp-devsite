@@ -17,6 +17,7 @@ main div.info-columns-wrapper div.info-columns {
 main div.info-columns-wrapper div.info-columns > div {
   display: flex;
   align-items: start;
+  flex-wrap: wrap;
 }
 
 @media screen and (min-width: 1280px) {
