@@ -268,7 +268,7 @@ export default async function decorate(block) {
 
   if (isBackground) {
     console.log("columnList[columnList.length - 1]", columnList[columnList.length - 1].textContent.trim())
-    container.style.backgroundColor = columnList[columnList.length - 1].textContent.trim();
+    block.parentElement.style.backgroundColor = columnList[columnList.length - 1].textContent.trim();
   }
 
   const observer = new IntersectionObserver((entries) => {
