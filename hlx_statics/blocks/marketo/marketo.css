@@ -170,4 +170,11 @@
 .marketo-form-wrapper .custom-field-error {
   color: var(--color-status-error, #d0021b) !important;
 }
+
+/* Hide Marketo cleaned scripts and extra HTML text spans */
+.marketo-form-wrapper .mktoFormRow.mktoCleanedScript,
+.marketo-form-wrapper .mktoHtmlText span {
+  display: none !important;
+}
+
 
