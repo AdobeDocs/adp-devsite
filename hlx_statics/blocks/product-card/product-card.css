@@ -31,7 +31,6 @@ main div.product-card-wrapper div.product-card>div>div:first-child {
     padding: 20px;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
     gap: 20px;
     flex: 1;
 }
