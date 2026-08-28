@@ -41,10 +41,11 @@ export default async function decorate(block) {
   const isReversed = block.getAttribute('data-isreversed') === 'true';
   const isControls = block.classList.contains('controls');
   const isBackground = block.classList.contains('background');
+  const isFontColorWhite = block.classList.contains('font-white')
   const isDocs = IS_DEV_DOCS;
 
   isReversed && block.classList.add('isReversed');
-  isBackground && block.classList.add('background');
+  isFontColorWhite && block.classList.add('font-white')
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
 
@@ -63,8 +64,12 @@ export default async function decorate(block) {
       if (bgValue && block.parentElement) {
         block.parentElement.style.background = bgValue;
       }
-      bgRow.remove();
     }
+    bgRow.remove();
+  }
+
+  if (isFontColorWhite) {
+    block.parentElement.style.color = "white";
   }
 
   removeEmptyPTags(block);
