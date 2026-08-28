@@ -1,7 +1,3 @@
-/* ============================================
-   MARKETO FORM STYLES
-   ============================================ */
-
 .marketo-form-wrapper {
   display: flex;
   flex-direction: column;
@@ -10,7 +6,6 @@
   margin: 0 auto !important;
 }
 
-/* Ensure the form takes full width and uses a 2-column grid */
 .marketo-form-wrapper .mktoForm {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
@@ -20,7 +15,6 @@
   padding-bottom: 0 !important;
 }
 
-/* Force Marketo's row/col wrappers to display contents so fields become direct grid items */
 .marketo-form-wrapper .mktoFormRow:not(.mktoHidden),
 .marketo-form-wrapper .mktoFormCol:not(.mktoHidden) {
   display: contents !important;
@@ -30,7 +24,6 @@
   display: none !important;
 }
 
-/* Hide spacer/clear elements that disrupt the grid */
 .marketo-form-wrapper .mktoClear,
 .marketo-form-wrapper .mktoOffset,
 .marketo-form-wrapper .mktoGutter,
@@ -45,12 +38,10 @@
   margin: 0 !important;
 }
 
-/* Hide field wraps that don't contain visible inputs to prevent grid shifting and empty gaps at the bottom */
 .marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
   display: none !important;
 }
 
-/* Form Labels (Removed display: none so they show above inputs) */
 .marketo-form-wrapper .mktoLabel {
   display: block !important;
   font-size: 14px !important;
@@ -60,18 +51,14 @@
   width: auto !important;
 }
 
-/* Ensure Marketo's default asterisk is hidden if present */
 .marketo-form-wrapper .mktoAsterix {
   display: none !important;
 }
 
-/* Add custom asterisk to required fields */
 .marketo-form-wrapper .mktoRequiredField .mktoLabel::after {
   content: " *";
 }
 
-/* Custom styles for form fields */
-/* We use !important and height: auto to override conflicting styles from sales-styles.css */
 .marketo-form-wrapper .mktoField {
   width: 100% !important;
   border: 1px solid var(--color-grey-300, #909090) !important;
@@ -96,13 +83,11 @@
   border-color: var(--color-status-error, #d0021b) !important;
 }
 
-/* Use case textarea specific styles */
 .marketo-form-wrapper .use-case-textarea {
   height: 120px;
   resize: vertical;
 }
 
-/* Custom submit button */
 .marketo-form-wrapper .custom-submit {
   display: flex;
   align-items: center;
@@ -113,7 +98,6 @@
   height: 48px;
   padding: 12px 24px;
   border-radius: 24px !important;
-  /* Pill shape like expected image */
   background-color: var(--color-aem-blue, #1473e6) !important;
   color: var(--color-white, #fff) !important;
   font-weight: 700 !important;
@@ -138,7 +122,6 @@
   cursor: not-allowed;
 }
 
-/* Success message */
 .marketo-form-wrapper .success-message {
   display: none;
   padding: 24px;
@@ -152,29 +135,23 @@
   display: block;
 }
 
-/* Hide Marketo's default submit button */
 .marketo-form-wrapper .mktoButtonRow {
   display: none !important;
 }
 
-/* Hide Marketo's default consent row and privacy text */
 .marketo-form-wrapper .mktoFormRow.by-supplyingmycontac,
 .marketo-form-wrapper .mktoFormRow.adobe-privacy,
 .marketo-form-wrapper .mktoFormRow:has(.mktoHtmlText) {
   display: none !important;
 }
 
-/* Ensure error messages are red across all fields */
 .marketo-form-wrapper .mktoErrorMsg,
 .marketo-form-wrapper .mktoError,
 .marketo-form-wrapper .custom-field-error {
   color: var(--color-status-error, #d0021b) !important;
 }
 
-/* Hide Marketo cleaned scripts and extra HTML text spans */
 .marketo-form-wrapper .mktoFormRow.mktoCleanedScript,
 .marketo-form-wrapper .mktoHtmlText span {
   display: none !important;
 }
-
-

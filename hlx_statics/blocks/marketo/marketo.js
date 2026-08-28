@@ -65,20 +65,14 @@ export default async function decorate(block) {
     }
   }
 
-  // Clear the block's default HTML table so it doesn't render on the screen
   block.innerHTML = '';
 
-  // Create the wrapper for the Marketo form
   const wrapper = document.createElement('section');
   wrapper.className = 'marketo-form-wrapper';
   block.append(wrapper);
 
-  // Unused environment function removed for optimization
-
-  // Clear Marketo's sessionStorage prefill so form starts fresh each load
   sessionStorage.removeItem('mktoPreFillFields');
 
-  // Ensure marketo-form-loader.js is loaded
   if (typeof window.loadMarketoForm !== 'function') {
     try {
       await new Promise((resolve, reject) => {
@@ -105,7 +99,6 @@ export default async function decorate(block) {
     if (formEl) {
       formEl.setAttribute('autocomplete', 'off');
 
-      // Clear Marketo cookie-prefilled fields using the proper API
       form.vals({
         FirstName: '', LastName: '', Email: '', Phone: '',
         mktoFormsCompany: '', Website: '', Country: '',
@@ -113,14 +106,12 @@ export default async function decorate(block) {
         Industry: '', mktoFormsJobTitle: '', mktoFormsFunctionalArea: '',
       });
 
-      // Inject everything outside the form to avoid Marketo's grid/style stripping
-
       formEl.addEventListener('change', (e) => {
         if (e.target.tagName === 'SELECT') {
           e.target.style.setProperty('color', e.target.value ? '#2c2c2c' : '#959595', 'important');
         }
       });
-      // Timeout needed to wait for MCZ to render the consent row legend
+
       setTimeout(() => {
         const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
         if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
@@ -135,16 +126,15 @@ export default async function decorate(block) {
           field.id = field.id || field.name || `custom-field-${index}`;
           const labelHtml = field.label ? `<label style="${field.labelCss || 'display:block;font-size:14px;font-weight:700;margin-bottom:4px;'}">${field.label} ${field.required ? '*' : ''}</label>` : '';
           const inputCss = field.inputCss || 'width:100%;box-sizing:border-box;font-size:16px;padding:8px;border:1px solid #6e6e6e;border-radius:4px;';
-          const inputHtml = field.type === 'textarea' ? `<textarea id="${field.id}" rows="6" style="${inputCss}" placeholder="${field.placeholder || ''}"></textarea>` 
+          const inputHtml = field.type === 'textarea' ? `<textarea id="${field.id}" rows="6" style="${inputCss}" placeholder="${field.placeholder || ''}"></textarea>`
             : `<input type="${field.type || 'text'}" id="${field.id}" style="${inputCss}" placeholder="${field.placeholder || ''}" />`;
-          
+
           container.insertBefore(Object.assign(document.createElement('div'), {
             className: 'aem-injected-element', style: field.wrapperCss || 'margin: 8px 0;', innerHTML: labelHtml + inputHtml
           }), after);
           customInputs.push(field);
         });
 
-        // Setup Custom submit button
         let submitDiv = null;
         if (configData.submitButton) {
           submitDiv = document.createElement('div');
@@ -153,13 +143,11 @@ export default async function decorate(block) {
           submitDiv.innerHTML = `<button id="custom-submit" style="${configData.submitButton.buttonCss || ''}">${configData.submitButton.text || 'Submit'}</button>`;
         }
 
-        // Setup Consent text
         const consentDiv = document.createElement('div');
         consentDiv.className = 'aem-injected-element';
         consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin: 8px 0;';
         if (legend) consentDiv.innerHTML = legend.innerHTML;
 
-        // Inject based on configured position
         if (configData.consentPosition === 'before-button') {
           container.insertBefore(consentDiv, after);
           if (submitDiv) container.insertBefore(submitDiv, after);
@@ -168,9 +156,6 @@ export default async function decorate(block) {
           container.insertBefore(consentDiv, after);
         }
 
-        // Aggressive cleanup: Marketo hides fields using various methods (visibility, opacity, display:none on rows).
-        // Because we use display: contents on rows to enable CSS Grid, some wrappers might be left exposed.
-        // We use a MutationObserver to ensure any wrapper containing a hidden field is also strictly display: none.
         const observer = new MutationObserver(() => {
           formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
             const input = wrap.querySelector('.mktoField');
@@ -179,13 +164,11 @@ export default async function decorate(block) {
               if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || input.type === 'hidden') {
                 wrap.style.setProperty('display', 'none', 'important');
               } else {
-                // Only remove if we explicitly set it
                 if (wrap.style.display === 'none') {
                   wrap.style.removeProperty('display');
                 }
               }
             } else {
-              // Wrapper has no input (e.g. just empty html text)
               const htmlText = wrap.querySelector('.mktoHtmlText');
               if (!htmlText || htmlText.innerHTML.trim() === '') {
                 wrap.style.setProperty('display', 'none', 'important');
@@ -306,4 +289,3 @@ export default async function decorate(block) {
     console.error("Failed to load Marketo form:", error);
   });
 }
-
