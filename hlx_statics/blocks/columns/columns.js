@@ -68,14 +68,13 @@ export default async function decorate(block) {
     bgRow.remove();
   }
 
-  if (isFontColorWhite) {
-    block.style.color = "white";
-  }
-
   removeEmptyPTags(block);
 
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header');
+    if (isFontColorWhite) {
+      h.style.color = "white";
+    }
     decorateAnchorLink(h);
   });
   block.querySelectorAll('p').forEach((p) => {
@@ -178,6 +177,10 @@ export default async function decorate(block) {
       button.classList.add('spectrum-Button', 'spectrum-Button--sizeM');
       if (button.parentElement.tagName.toLowerCase() !== 'strong') {
         button.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
+        if (isFontColorWhite) {
+          button.style.color = "white";
+          button.style.borderColor = "white"
+        }
       } else {
         button.parentElement.replaceWith(button);
         button.classList.add('spectrum-Button--fill', 'spectrum-Button--accent');
@@ -203,6 +206,9 @@ export default async function decorate(block) {
         if (!section.querySelector('h3')) {
           const emptyHeading = document.createElement('h3');
           emptyHeading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header', 'without-content');
+          if (isFontColorWhite) {
+            emptyHeading.style.color = "white";
+          }
           section.prepend(emptyHeading);
         }
       });
@@ -217,6 +223,9 @@ export default async function decorate(block) {
       column.classList.add('second-column');
       const p_text = createTag('p');
       p_text.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+      if (isFontColorWhite) {
+        p_text.style.color = "white";
+      }
       p_text.innerHTML = column.innerHTML;
       column.innerHTML = "";
       column.append(p_text);
@@ -238,6 +247,9 @@ export default async function decorate(block) {
   block.querySelectorAll('ul').forEach((ul) => {
     ul.parentElement.classList.add('listing');
     ul.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    if (isFontColorWhite) {
+      ul.style.color = "white";
+    }
   });
 
   block.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
@@ -258,6 +270,9 @@ export default async function decorate(block) {
     block.querySelectorAll('p, div').forEach(p => {
       if (p.textContent.trim() || p.tagName === 'P') {
         p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+        if (isFontColorWhite) {
+          p.style.color = "white";
+        }
       }
     });
 
