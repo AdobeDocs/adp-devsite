@@ -1,105 +1,105 @@
 main div.product-card-wrapper:has(.product-card.background-color-white) {
-    background-color: white;
+  background-color: white;
 }
 
 main div.product-card-wrapper div.product-card {
-    max-width: 1280px;
-    margin: auto;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-gap: 50px;
+  max-width: 1280px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 50px;
 }
 
 main div.product-card-wrapper div.product-card.narrow {
-    max-width: 1000px;
+  max-width: 1000px;
 }
 
 main div.product-card-wrapper div.product-card.col-4 {
-    grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 main div.product-card-wrapper div.product-card>div {
-    background-color: #ffffff;
-    border: 1px solid #e6e6e6;
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 main div.product-card-wrapper div.product-card>div>div:first-child {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
 }
 
 main div.product-card-wrapper div.product-card>div>div:nth-child(2) {
-    margin: 0px 20px;
-    border-top: 1px solid #E6E6E6;
-    padding: 14px 0px 20px 0px;
+  margin: 0px 20px;
+  border-top: 1px solid #E6E6E6;
+  padding: 14px 0px 20px 0px;
 }
 
 main div.product-card-wrapper div.product-card>div>div:first-child img {
-    width: 48px;
-    height: 48px;
-    border-radius: 10%;
+  width: 48px;
+  height: 48px;
+  border-radius: 10%;
 }
 
 main div.product-card-wrapper div.all-button-container,
 main div.product-card-wrapper div.button-container {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 main div.product-card-wrapper .button-container {
-    height: auto;
+  height: auto;
 }
 
 @media screen and (max-width : 1400px) {
-    main div.product-card-wrapper div.product-card {
-        margin: 0px 20px;
-    }
+  main div.product-card-wrapper div.product-card {
+    margin: 0px 20px;
+  }
 }
 
 @media screen and (max-width : 1024px) {
 
-    main div.product-card-wrapper div.product-card,
-    main div.product-card-wrapper div.product-card.col-4 {
-        grid-template-columns: repeat(2, 1fr);
-        margin: 0px 20px;
-    }
+  main div.product-card-wrapper div.product-card,
+  main div.product-card-wrapper div.product-card.col-4 {
+    grid-template-columns: repeat(2, 1fr);
+    margin: 0px 20px;
+  }
 
-    main div.product-card-wrapper div.product-card>div>div:last-child>p {
-        max-width: 260px;
-    }
+  main div.product-card-wrapper div.product-card>div>div:last-child>p {
+    max-width: 260px;
+  }
 }
 
 @media screen and (max-width: 768px) {
 
-    main div.product-card-wrapper div.product-card,
-    main div.product-card-wrapper div.product-card.col-4 {
-        grid-template-columns: repeat(1, 1fr);
-    }
+  main div.product-card-wrapper div.product-card,
+  main div.product-card-wrapper div.product-card.col-4 {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
 
 @media screen and (max-width:768px) and (min-width:550px) {
-    main div.product-card-wrapper div.product-card {
-        margin: 0% 10%;
-    }
+  main div.product-card-wrapper div.product-card {
+    margin: 0% 10%;
+  }
 }
 
 @media screen and (max-width : 425px) {
-    main div.product-card-wrapper div.product-card {
-        margin: 0px 25px;
-    }
+  main div.product-card-wrapper div.product-card {
+    margin: 0px 25px;
+  }
 }
 
 @media screen and (max-width : 365px) {
-    main div.product-card-wrapper div.all-button-container {
-        flex-direction: column;
-        align-items: center;
-    }
+  main div.product-card-wrapper div.all-button-container {
+    flex-direction: column;
+    align-items: center;
+  }
 }
