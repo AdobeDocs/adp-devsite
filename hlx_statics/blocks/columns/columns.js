@@ -82,6 +82,9 @@ export default async function decorate(block) {
     // don't attach to icon container or if p tag contains icons
     if (!p.classList.contains('icon-container') && hasIcons.length === 0) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+      if (isFontColorWhite) {
+        p.style.color = "white";
+      }
     } else if (hasIcons.length > 0) {
       p.classList.add('icon-container');
       // Wraps non-hyperlinked text after icon in a paragraph tag
