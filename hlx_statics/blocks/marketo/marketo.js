@@ -15,27 +15,13 @@ export default async function decorate(block) {
         consentPosition: 'after-button'
     };
 
-    let fetchUrl = "/test/petheanraj/marketo-form/sales.json";
+    let fetchUrl = window.location.pathname;
 
-    // Check if there is an explicit link authored in the block
-    const configLink = block.querySelector('a[href$=".json"]');
-    if (configLink) {
-        try {
-            fetchUrl = new URL(configLink.href).pathname;
-        } catch (e) {
-            fetchUrl = configLink.getAttribute('href');
-        }
-    } else if (authoredConfig['form-data']) {
-        // Otherwise, if they authored text like "sales" in the "Form Data" row
-        let val = authoredConfig['form-data'];
-        if (!val.endsWith('.json')) {
-            val += '.json';
-        }
-        // If they provided a full relative path, use it, otherwise prefix the default folder
-        if (val.startsWith('/')) {
-            fetchUrl = val;
+    if (authoredConfig['form-data']) {
+        if (fetchUrl.endsWith('/')) {
+            fetchUrl = `${window.location.pathname}${authoredConfig['form-data']}.json`;
         } else {
-            fetchUrl = `/test/petheanraj/marketo-form/${val}`;
+            fetchUrl = `${window.location.pathname}/${authoredConfig['form-data']}.json`;
         }
     }
 
@@ -386,7 +372,7 @@ export default async function decorate(block) {
 
         form.onValidate(function (valid) {
             console.log("Marketo form onValidate triggered. valid:", valid);
-            
+
             if (!valid) {
                 console.log("Marketo built-in validation failed! The following Marketo fields are invalid:");
                 const invalidEls = form.getFormElem()[0].querySelectorAll('.mktoInvalid');
@@ -426,15 +412,15 @@ export default async function decorate(block) {
         form.onSuccess(function () {
             console.log("Marketo form onSuccess triggered.");
             console.log("configData.successRedirect:", configData.successRedirect);
-            
+
             if (configData.successRedirect) {
                 top.location.href = configData.successRedirect;
                 return false;
             }
-            
+
             // Hide all custom injected elements (custom fields, submit button, consent)
             document.querySelectorAll('.aem-injected-element').forEach(el => el.style.display = 'none');
-            
+
             console.log("Falling back to Marketo default success behavior.");
         });
 
