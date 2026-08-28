@@ -56,6 +56,17 @@ export default async function decorate(block) {
     console.error('Columns Block expects .columns-container to be parent.');
   }
 
+  if (isBackground) {
+    const bgRow = block.lastElementChild;
+    if (bgRow) {
+      const bgValue = bgRow.textContent.trim();
+      if (bgValue && block.parentElement) {
+        block.parentElement.style.background = bgValue;
+      }
+      bgRow.remove();
+    }
+  }
+
   removeEmptyPTags(block);
 
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
@@ -148,12 +159,7 @@ export default async function decorate(block) {
   const columnList = block.querySelectorAll('.columns > div');
   if (columnList.length > 0) {
     columnList[0].classList.add("first-column-div");
-    if (isBackground) {
-      columnList[columnList.length - 2].classList.add("last-column-div");
-    }
-    else {
-      columnList[columnList.length - 1].classList.add("last-column-div");
-    }
+    columnList[columnList.length - 1].classList.add("last-column-div");
   }
 
   if (!block.classList.contains('link')) {
@@ -264,11 +270,6 @@ export default async function decorate(block) {
       data.replaceChildren(p);
     });
 
-  }
-
-  if (isBackground) {
-    console.log("columnList[columnList.length - 1]", columnList[columnList.length - 1].textContent.trim())
-    block.parentElement.style.backgroundColor = columnList[columnList.length - 1].textContent.trim();
   }
 
   const observer = new IntersectionObserver((entries) => {
