@@ -1,0 +1,157 @@
+.marketo-form-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 40px) !important;
+  max-width: none !important;
+  margin: 0 auto !important;
+}
+
+.marketo-form-wrapper .mktoForm {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px !important;
+  width: 100% !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.marketo-form-wrapper .mktoFormRow:not(.mktoHidden),
+.marketo-form-wrapper .mktoFormCol:not(.mktoHidden) {
+  display: contents !important;
+}
+
+.marketo-form-wrapper .mktoHidden {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoClear,
+.marketo-form-wrapper .mktoOffset,
+.marketo-form-wrapper .mktoGutter,
+.marketo-form-wrapper .mktoHtmlText:empty {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoFieldWrap {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoLabel {
+  display: block !important;
+  font-size: 14px !important;
+  font-weight: normal !important;
+  color: #464646 !important;
+  margin-bottom: 4px !important;
+  width: auto !important;
+}
+
+.marketo-form-wrapper .mktoAsterix {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoRequiredField .mktoLabel::after {
+  content: " *";
+}
+
+.marketo-form-wrapper .mktoField {
+  width: 100% !important;
+  border: 1px solid var(--color-grey-300, #909090) !important;
+  border-radius: 4px !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  line-height: 24px !important;
+  height: auto !important;
+  min-height: 44px !important;
+  color: var(--color-black, #333) !important;
+  background-color: var(--color-white, #fff) !important;
+  transition: border-color 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+.marketo-form-wrapper .mktoField:focus {
+  outline: none !important;
+  border-color: var(--color-aem-blue, #1473e6) !important;
+}
+
+.marketo-form-wrapper .mktoField.mktoInvalid {
+  border-color: var(--color-status-error, #d0021b) !important;
+}
+
+.marketo-form-wrapper .use-case-textarea {
+  height: 120px;
+  resize: vertical;
+}
+
+.marketo-form-wrapper .custom-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+  height: 48px;
+  padding: 12px 24px;
+  border-radius: 24px !important;
+  background-color: var(--color-aem-blue, #1473e6) !important;
+  color: var(--color-white, #fff) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  line-height: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none !important;
+}
+
+.marketo-form-wrapper .custom-submit:hover {
+  background-color: var(--color-aem-blue-hover, #0054b6) !important;
+  box-shadow: 0 4px 12px rgba(20, 55, 100, 0.2);
+}
+
+.marketo-form-wrapper .custom-submit:active {
+  background-color: var(--color-aem-blue-active, #004494) !important;
+}
+
+.marketo-form-wrapper .custom-submit:disabled {
+  background-color: var(--color-grey-300, #c8c8c8) !important;
+  cursor: not-allowed;
+}
+
+.marketo-form-wrapper .success-message {
+  display: none;
+  padding: 24px;
+  background-color: var(--color-status-success-bg, #e6f4e6);
+  border: 1px solid var(--color-status-success, #2e7d32);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.marketo-form-wrapper .success-message.show {
+  display: block;
+}
+
+.marketo-form-wrapper .mktoButtonRow {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoFormRow.by-supplyingmycontac,
+.marketo-form-wrapper .mktoFormRow.adobe-privacy,
+.marketo-form-wrapper .mktoFormRow:has(.mktoHtmlText) {
+  display: none !important;
+}
+
+.marketo-form-wrapper .mktoErrorMsg,
+.marketo-form-wrapper .mktoError,
+.marketo-form-wrapper .custom-field-error {
+  color: var(--color-status-error, #d0021b) !important;
+}
+
+.marketo-form-wrapper .mktoFormRow.mktoCleanedScript,
+.marketo-form-wrapper .mktoHtmlText span {
+  display: none !important;
+}
