@@ -15,13 +15,17 @@ export default async function decorate(block) {
     consentPosition: 'after-button'
   };
 
-  let fetchUrl = window.location.pathname;
+  let fetchUrl = null;
 
   if (authoredConfig['form-data']) {
-    if (fetchUrl.endsWith('/')) {
-      fetchUrl = `${window.location.pathname}${authoredConfig['form-data']}.json`;
-    } else {
-      fetchUrl = `${window.location.pathname}/${authoredConfig['form-data']}.json`;
+    try {
+      const url = new URL(authoredConfig['form-data'], window.location.href);
+      fetchUrl = url.pathname;
+    } catch (e) {
+      fetchUrl = authoredConfig['form-data'];
+    }
+    if (!fetchUrl.endsWith('.json')) {
+      fetchUrl += '.json';
     }
   }
 
