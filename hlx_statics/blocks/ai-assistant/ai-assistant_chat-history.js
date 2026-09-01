@@ -7,6 +7,14 @@
  */
 
 /**
+ * The request context that produced an AI response. 
+ * Used to enrich feedback submissions.
+ * @typedef {Object} ChatMessageContext
+ * @property {string} query - The user query that triggered this response
+ * @property {string|null} collectionId - The collection the query ran agains
+ */
+
+/**
  * @typedef {Object} ChatMessage
  * @property {string} [id]
  * @property {string} content
@@ -14,6 +22,7 @@
  * @property {ChatReference[]} [references]
  * @property {string|null|number} [timestamp]
  * @property {{type: 'THUMBS_UP_DOWN'; score: 0|1}} [feedback]
+ * @property {ChatMessageContext} [context] - For AI messages: how the response was generated
  */
 
 /**
@@ -30,6 +39,7 @@
  * @typedef {Object} Conversation
  * @property {ChatMessage[]} messages
  * @property {SuggestedQuestion[]|null} suggestedQuestions
+ * @property {string|null} sessionId - Bedrock session id for the conversation
  */
 
 export class ChatHistory {
@@ -56,6 +66,7 @@ export class ChatHistory {
       this._cache = {
         messages: this._sanitizeMessages(parsed?.messages ?? []),
         suggestedQuestions: parsed?.suggestedQuestions ?? null,
+        sessionId: parsed?.sessionId ?? null,
       };
       return this._cache;
     } catch (error) {
@@ -70,7 +81,7 @@ export class ChatHistory {
    * @private
    */
   _emptyConversation() {
-    return { messages: [], suggestedQuestions: null };
+    return { messages: [], suggestedQuestions: null, sessionId: null };
   }
 
   /**
@@ -152,17 +163,24 @@ export class ChatHistory {
   }
 
   /**
-   * Gets messages formatted for AI context
-   * @param {Object} [options]
-   * @param {number} [options.excludeLast=2] - Number of recent messages to exclude (0 = include all)
-   * @returns {string} Formatted context string
+   * Gets the Bedrock session id for the current conversation.
+   * @returns {string|null}
    */
-  getContextForAI({ excludeLast = 2 } = {}) {
-    const messages = this.getAll();
-    const sliced = excludeLast > 0 ? messages.slice(0, -excludeLast) : messages;
-    return sliced
-      .map(({ source, content }) => JSON.stringify({ source, content }))
-      .join("\n");
+  getSessionId() {
+    return this._getConversation().sessionId ?? null;
+  }
+
+  /**
+   * Stores the Bedrock session id for the current conversation, overwriting any
+   * existing value. Recovery from an expired id is handled by the backend: it
+   * mints a fresh session and returns the new id in the `metadata` event, which
+   * we simply persist here. No-ops when unchanged.
+   * @param {string|null} sessionId
+   */
+  setSessionId(sessionId) {
+    const conversation = this._getConversation();
+    if (conversation.sessionId === sessionId) return;
+    this._save({ ...conversation, sessionId });
   }
 
   /**
@@ -203,6 +221,7 @@ export class ChatHistory {
       const serializable = {
         messages: this._sanitizeMessages(conversation.messages),
         suggestedQuestions: conversation.suggestedQuestions ?? null,
+        sessionId: conversation.sessionId ?? null,
       };
       sessionStorage.setItem(
         ChatHistory.STORAGE_KEY,
@@ -222,13 +241,14 @@ export class ChatHistory {
    */
   _sanitizeMessages(messages) {
     return messages.map(
-      ({ id, content, source, references, timestamp, feedback }) => ({
+      ({ id, content, source, references, timestamp, feedback, context }) => ({
         ...(id && { id }),
         content,
         source,
         ...(references?.length && { references }),
         ...(timestamp && { timestamp }),
         ...(feedback && { feedback }),
+        ...(context && { context }),
       }),
     );
   }

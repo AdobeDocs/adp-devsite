@@ -14,6 +14,9 @@ export class ChatBubble {
   /** Incrementing id so each bubble's speaker label has a unique DOM id for aria-labelledby. */
   static #labelCounter = 0;
 
+  /** Incrementing id that uniquely associates each sources button and region. */
+  static #sourcesCounter = 0;
+
   /**
    * Creates a chat bubble for a single message.
    * @param {Object} options - Constructor options
@@ -245,9 +248,13 @@ export class ChatBubble {
     // don't unselect on click
     if (button.dataset.selected === "true") return;
 
+    const message = chatHistory.findById(requestId);
+
     const success = await aiApiClient.submitFeedback({
       score,
       requestId,
+      query: message?.context?.query,
+      collectionId: message?.context?.collectionId,
     });
 
     if (success) {
@@ -405,32 +412,105 @@ export class ChatBubble {
   }
 
   /**
-   * Appends references to the chat bubble
+   * Renders references as a Sources section in the chat bubble.
    * @param {Array<{url: string, title: string}>} references
    */
-  appendReferences(references) {
-    if (!references?.length) {
+  renderSources(references) {
+    const validReferences = references?.filter((reference) => {
+      if (typeof reference?.url !== "string" || !reference.url) return false;
+      try {
+        return new URL(reference.url).protocol === "https:";
+      } catch {
+        return false;
+      }
+    }) ?? [];
+
+    if (!validReferences.length) {
       console.warn("[AI Assistant] No references provided");
       return;
     }
 
     if (this.references?.length) {
-      console.warn("[AI Assistant] References already appended to chat bubble");
+      console.warn("[AI Assistant] Sources already rendered in chat bubble");
       return;
     }
 
-    this.references = references;
+    this.references = validReferences;
 
+    const sourcesId = ChatBubble.#sourcesCounter++;
+    const buttonId = `chat-bubble-sources-button-${sourcesId}`;
+    const regionId = `chat-bubble-sources-region-${sourcesId}`;
     const wrapper = createTag("div", {
       class: "chat-bubble-sources",
     });
-    const heading = createTag("p", { class: "chat-bubble-sources-heading" });
-    heading.textContent = "Sources:";
+    const heading = createTag("h6", {
+      class: "chat-bubble-sources-heading",
+    });
+    const button = createTag("button", {
+      type: "button",
+      "aria-expanded": "false",
+      "aria-controls": regionId,
+      id: buttonId,
+    });
+    const buttonIndicator = createTag("span", {
+      class: "chat-bubble-sources-status-indicator",
+      "aria-hidden": "true",
+    });
+    buttonIndicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+      <path fill="#222" d="M7.965 5.178C7.978 5.118 8 5.061 8 5s-.021-.118-.034-.178c-.01-.05-.01-.102-.03-.15-.023-.058-.068-.107-.104-.16-.03-.042-.047-.09-.084-.127l-.004-.003-.003-.004L3.615.303a.875.875 0 1 0-1.23 1.244L5.88 5 2.385 8.453a.875.875 0 1 0 1.23 1.244L7.74 5.622l.003-.004.004-.003c.037-.038.055-.085.084-.127.036-.053.08-.102.104-.16.02-.048.02-.1.03-.15"></path>
+    </svg>`;
+    const buttonText = createTag("span", {
+      class: "chat-bubble-sources-label",
+    });
+    buttonText.textContent = "Sources";
+    const faviconsContainer = createTag("span", {
+      class: "chat-bubble-sources-favicons",
+      "aria-hidden": "true",
+    });
+    const faviconImages = createTag("span", {
+      class: "chat-bubble-sources-favicon-images",
+    });
+    faviconsContainer.appendChild(faviconImages);
+    if (validReferences.length > 3) {
+      const remainingSources = createTag("span", {});
+      remainingSources.textContent = `& ${validReferences.length - 3} more`;
+      faviconsContainer.appendChild(remainingSources);
+    }
+
+    button.append(buttonIndicator, buttonText, faviconsContainer);
+    heading.appendChild(button);
     wrapper.appendChild(heading);
 
+    const sourcesRegion = createTag("div", {
+      id: regionId,
+      "aria-labelledby": buttonId,
+      role: "region",
+      hidden: "",
+    });
     const list = createTag("ol", { class: "chat-bubble-sources-list" });
-    references.forEach(({ url, title }) => {
+    validReferences.forEach(({ url, title }, index) => {
+      if (index < 3) {
+        try {
+          const host = new URL(url).host;
+          const sourceFavicon = createTag("img", {
+            src: `https://s2.googleusercontent.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=16`,
+            alt: "",
+          });
+          sourceFavicon.addEventListener("error", () => {
+            sourceFavicon.hidden = true;
+          });
+          faviconImages.appendChild(sourceFavicon);
+        } catch {
+          // A missing favicon should not prevent the source link from rendering.
+        }
+      }
+
       const li = createTag("li", { class: "chat-bubble-sources-item" });
+      const marker = createTag("span", {
+        "aria-hidden": "true",
+        class: "chat-bubble-sources-item-marker",
+      });
+      marker.textContent = String(index + 1);
       const a = createTag("a", {
         href: url,
         target: "_blank",
@@ -438,10 +518,20 @@ export class ChatBubble {
       });
       a.textContent = title || url;
       a.setAttribute("daa-ll", `DevsiteAI Assistant:Message:Sources:Link`);
-      li.appendChild(a);
+      li.append(marker, a);
       list.appendChild(li);
     });
-    wrapper.appendChild(list);
+    sourcesRegion.appendChild(list);
+    wrapper.appendChild(sourcesRegion);
+
+    button.addEventListener("click", () => {
+      const isExpanded = button.getAttribute("aria-expanded") === "true";
+      const newState = !isExpanded;
+      sourcesRegion.hidden = !newState;
+      button.setAttribute("aria-expanded", String(newState));
+      buttonIndicator.classList.toggle("rotated", newState);
+    });
+
     this.element.appendChild(wrapper);
   }
 }

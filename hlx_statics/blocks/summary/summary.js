@@ -4,10 +4,8 @@ import {
   rearrangeHeroPicture,
 } from '../../scripts/lib-adobeio.js';
 
-/**
- * decorates the summary
- * @param {Element} block The summary block element
- */
+
+
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'summary');
   decorateButtons(block);
@@ -55,9 +53,9 @@ export default async function decorate(block) {
 
   if (block.querySelector('picture')) {
     //if there is an image as the background set up the overlay style
-    const overlayStyle = 'position: absolute; display: flex; left: 0%; z-index: 1000;';
+    const overlayStyle = 'position: absolute; display: flex; z-index: 1000;';
     rearrangeHeroPicture(block, overlayStyle);
   }
+
+
 }
-
-

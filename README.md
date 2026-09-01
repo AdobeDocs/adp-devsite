@@ -2,13 +2,24 @@
 This is the Adobe I/O Helix repo. It contains all the scripts, styles and other helixy bits to power the adobe.io website. 
 
 ## Installation
-1. Install hlx as a global command. You need Node 10.13 or newer. `$ npm install -g @adobe/aem-cli`
-3. Run `$ aem up`
-4. Navigate to http://localhost:3000/
+You need Node 24.
+1. `$ npm install`
+2. Start the dev server, picking one of the two options below.
 
-## Building styles
-The site always uses the minified version of the styles so you must build the styles before seeing them get updated. 
-1. `$ npm install --legacy-peer-deps`
-2. Make changes to any css file. If you add a new .css files make sure to include them in `styles-includes.css`.
-3. `$ npm run buildCss`
-4. Minified css built to `/hlx_statics/spectrum/minified`
+### Option A: `$ npm run dev`
+Use this if you also need doc-path requests proxied to a local content
+connector (running separately, outside this repo, on ports 3002/3003).
+
+This runs the AEM CLI dev server (port 3001) and a local markup/proxy server
+(`dev.mjs`, port 3000) concurrently. 
+
+Navigate to http://localhost:3000/
+
+The proxy server serves the site and forwards doc-path requests to the
+connector, falling back to the AEM CLI dev server otherwise.
+
+### Option B: `$ npm run dev:aem`
+Use this if you don't need the local content connector (you're only
+working on blocks and want to use stage content).
+
+This runs only the AEM CLI dev server. Navigate to http://localhost:3001/.

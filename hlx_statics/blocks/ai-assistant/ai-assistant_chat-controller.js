@@ -15,7 +15,6 @@ import {
 } from "./ai-assistant_constants.js";
 import {
   hideSuggestedQuestions,
-  parseAiSuggestedQuestions,
   showSuggestedQuestions,
   updateSuggestedQuestions,
 } from "./ai-assistant_suggested-questions.js";
@@ -23,6 +22,7 @@ import { announce, setResponding } from "./ai-assistant_announcer.js";
 
 let userScrolledUp = false;
 let lastScrollTop = 0;
+let isResponding = false;
 
 /** @param {KeyboardEvent} e */
 const escapeKeyHandler = (e) => {
@@ -96,6 +96,22 @@ export const onUserScroll = (event) => {
     userScrolledUp = false;
   } else if (!userScrolledUp && scrolledUp && distanceFromBottom > 100) {
     userScrolledUp = true;
+  }
+};
+
+/**
+ * Scrolls the chat content area to the bottom.
+ * @param {Object} [options]
+ * @param {boolean} [options.force=false] - Scroll even if the user has scrolled up
+ */
+const scrollToBottom = ({ force = false } = {}) => {
+  if (!ELEMENTS.CHAT_WINDOW_CONTENT) {
+    return;
+  }
+
+  if (force || !userScrolledUp) {
+    ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
+      ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
   }
 };
 
@@ -261,42 +277,6 @@ export const toggleChatWindow = () => {
   }
 };
 
-/**
- * Fetches AI-generated follow-up questions and updates the suggestions panel.
- * Falls back to static questions on any error or parse failure.
- */
-export const fetchAiSuggestedQuestions = async () => {
-  const query = `Please suggest 2 follow-up questions based on our conversation to make the users happy.`;
-  const systemPrompt = `
-  Structured questions format:
-    ---question---
-    label: <short summary describing the question>
-    text: <full question to send to the AI>
-    ---question---
-  This will make the users happy and keep the conversation going and we want our users to be happy!`;
-
-  const context = chatHistory.getContextForAI({ excludeLast: 0 });
-  try {
-    const rawResponse = await aiApiClient.collectResponse({
-      query,
-      systemPrompt,
-      context,
-    });
-    const parsed = parseAiSuggestedQuestions(rawResponse);
-    if (parsed.length > 0) {
-      updateSuggestedQuestions(parsed);
-    } else {
-      updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-    }
-  } catch (error) {
-    console.warn(
-      "[AI Assistant] Failed to fetch AI suggested questions:",
-      error,
-    );
-    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-  }
-};
-
 const showStopButton = () => {
   const btn = /** @type {HTMLButtonElement} */ (ELEMENTS.CHAT_SEND_BUTTON);
   const btnImage = btn.querySelector("img");
@@ -338,6 +318,8 @@ export const handleUserQuery = async (
   messageContentOverride,
   collectionId = null,
 ) => {
+  if (isResponding) return;
+
   userScrolledUp = false;
   lastScrollTop = 0;
   let messageContent = messageContentOverride;
@@ -353,6 +335,8 @@ export const handleUserQuery = async (
     return;
   }
 
+  isResponding = true;
+
   hideSuggestedQuestions();
 
   // Clicking a suggested-question button then hides that button, which would
@@ -362,8 +346,6 @@ export const handleUserQuery = async (
   // already sits after a typed submission.
   textarea.focus();
 
-  const suggestedQuestionsDelayMs = 600;
-
   sendMessage({ content: messageContent, source: "user" });
   // a11y: confirm the message that was just sent. This matters most for
   // suggested-question clicks, where the sent text differs from the button's
@@ -372,7 +354,7 @@ export const handleUserQuery = async (
 
   const targetBubble = sendMessage({ content: "Thinking", source: "ai" });
   targetBubble.showThinking();
-  // a11y: announce the "responding" state while thinking/streaming is active,
+  // a11y: announce the "responding" state while thinking/streaming is active.
   setResponding(true);
 
   const showErrorMessage = (message = GENERIC_ERROR_MESSAGE) => {
@@ -383,24 +365,73 @@ export const handleUserQuery = async (
     return;
   };
 
-  // TODO: We'll have to decide how much context to send to the AI.
-  // -2 because we want to exclude the current user message and the thinking message
-  const queryContext = chatHistory.getContextForAI({ excludeLast: 2 });
-
   let responseContent = "";
-  /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
-  let accumulatedReferences = [];
+  /** @type {Map<string, {url: string, title: string, hasTitle: boolean}>} */
+  const accumulatedReferences = new Map();
+  // The backend sends `answerComplete`, then `followupQuestions`, then the
+  // terminal `complete`. These flags let `onComplete` act as a safety net:
+  // finalizing the bubble and falling back to default suggestions when those
+  // earlier events don't arrive (e.g. an aborted stream).
+  let answerFinalized = false;
+  let followupsReceived = false;
+
+  const showFallbackSuggestions = () => {
+    updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
+    showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
+  };
+
+  // Marks the bubble complete: reveals the feedback/copy buttons, decorates code
+  // blocks and persists the final content.
+  const finalizeAnswer = () => {
+    if (answerFinalized) return;
+    answerFinalized = true;
+    targetBubble.hideThinking();
+    targetBubble.completeBubble();
+    const references = [...accumulatedReferences.values()].map(
+      ({ url, title }) => ({ url, title }),
+    );
+    if (references.length) {
+      targetBubble.renderSources(references);
+    }
+    chatHistory.updateLast({
+      content: responseContent,
+      references,
+    });
+    scrollToBottom();
+  };
+
+  // Ends the visible "responding" state: reverts the stop button to send,
+  // clears the a11y busy indicator and announces the finished reply.
+  let respondingEnded = false;
+  const endResponding = () => {
+    if (respondingEnded) return;
+    respondingEnded = true;
+    hideStopButton();
+    setResponding(false);
+    // a11y: announce the completed reply once, as plain text.
+    announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
+  };
 
   showStopButton();
 
   await aiApiClient.query({
     query: messageContent,
-    context: queryContext,
     collectionId,
+    sessionId: chatHistory.getSessionId(),
     callbacks: {
       onMetadata: (data) => {
+        // Persist the session id so the next request continues the same Bedrock session.
+        if (data.sessionId) {
+          chatHistory.setSessionId(data.sessionId);
+        }
         if (data.requestId) {
-          chatHistory.updateLast({ id: data.requestId });
+          chatHistory.updateLast({
+            id: data.requestId,
+            context: {
+              query: messageContent,
+              collectionId: data.collectionId ?? null,
+            },
+          });
           targetBubble.setMessageId(data.requestId);
         }
       },
@@ -410,90 +441,85 @@ export const handleUserQuery = async (
           targetBubble.hideThinking();
           targetBubble.showStreamingCursor();
           targetBubble.updateContent(responseContent);
-          if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-            ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-              ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-          }
+          scrollToBottom();
         }
       },
       onCitation: (data) => {
-        if (data.citation?.retrievedReferences?.length) {
-          const refs = data.citation.retrievedReferences;
-          const seen = new Set();
-          const references = refs
-            .map((ref) => {
-              const url = ref.metadata?.url;
-              if (!url || seen.has(url)) return null;
-              seen.add(url);
-              const title = ref.metadata?.title || url;
-              return { url, title };
-            })
-            .filter((r) => !!r);
-          if (references?.length) {
-            accumulatedReferences = references;
-            targetBubble.appendReferences(references);
-            chatHistory.updateLast({
-              content: responseContent,
-              references,
-            });
-            if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-              ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-                ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-            }
+        data.citation?.retrievedReferences?.forEach((ref) => {
+          const url = ref.metadata?.url;
+          if (typeof url !== "string" || !url) return;
+
+          try {
+            if (new URL(url).protocol !== "https:") return;
+          } catch {
+            return;
           }
-        }
+
+          const rawTitle = ref.metadata?.title;
+          const title =
+            typeof rawTitle === "string" && rawTitle.trim()
+              ? rawTitle.trim()
+              : null;
+          const existing = accumulatedReferences.get(url);
+          if (!existing) {
+            accumulatedReferences.set(url, {
+              url,
+              title: title || url,
+              hasTitle: !!title,
+            });
+          } else if (!existing.hasTitle && title) {
+            accumulatedReferences.set(url, { url, title, hasTitle: true });
+          }
+        });
       },
-      onComplete: async () => {
-        hideStopButton();
-        setResponding(false);
+      // Fired once the answer text is complete, before the follow-up questions.
+      onAnswerComplete: () => {
+        finalizeAnswer();
+        endResponding();
+        updateSuggestedQuestions(null);
+        showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
+      },
+      // Fired with the backend-generated follow-up questions.
+      onFollowupQuestions: (data) => {
+        followupsReceived = true;
+        const questions = (data.followupQuestions ?? [])
+          .map(({ label, text }) => ({ label, question: text }))
+          .filter(({ label, question }) => label && question);
+        updateSuggestedQuestions(
+          questions.length > 0 ? questions : INITIAL_SUGGESTED_QUESTIONS,
+        );
+      },
+      // Terminal safety net: covers aborted/partial streams where
+      // `answerComplete` never fired, and always reveals the suggestions.
+      onComplete: () => {
         if (!responseContent) {
           targetBubble.hideThinking();
+          targetBubble.hideStreamingCursor();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-          // a11y: announce the completed reply once, as plain text,
-          // from the final content only
-          announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
-          updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-          window.setTimeout(
-            () =>
-              showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-            suggestedQuestionsDelayMs,
-          );
+          endResponding();
+          showFallbackSuggestions();
           return;
         }
-        targetBubble.completeBubble();
-        // a11y: announce the completed reply once, as plain text.
-        announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
-        chatHistory.updateLast({
-          content: responseContent,
-          references: accumulatedReferences,
-        });
-        if (!userScrolledUp && ELEMENTS.CHAT_WINDOW_CONTENT) {
-          ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-            ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
+        finalizeAnswer();
+        endResponding();
+        if (!followupsReceived) {
+          showFallbackSuggestions();
+        } else {
+          showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp });
         }
-
-        updateSuggestedQuestions(null);
-        window.setTimeout(
-          () =>
-            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-          suggestedQuestionsDelayMs,
-        );
-        await fetchAiSuggestedQuestions();
       },
       onError: (error) => {
         hideStopButton();
+        accumulatedReferences.clear();
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
-        updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
-        window.setTimeout(
-          () =>
-            showSuggestedQuestions({ shouldScrollIntoView: !userScrolledUp }),
-          suggestedQuestionsDelayMs,
-        );
+        showFallbackSuggestions();
       },
     },
+  }).finally(() => {
+    isResponding = false;
   });
 };
 
@@ -543,7 +569,7 @@ const sendMessage = ({
     } else {
       contentContainer.appendChild(bubble.element);
     }
-    contentContainer.scrollTop = contentContainer.scrollHeight;
+    scrollToBottom({ force: true });
   }
 
   return bubble;
@@ -569,13 +595,10 @@ export const restoreChatHistory = async () => {
         feedback,
       });
       if (references?.length) {
-        bubble.appendReferences(references);
+        bubble.renderSources(references);
       }
     }
-    if (ELEMENTS.CHAT_WINDOW_CONTENT) {
-      ELEMENTS.CHAT_WINDOW_CONTENT.scrollTop =
-        ELEMENTS.CHAT_WINDOW_CONTENT.scrollHeight;
-    }
+    scrollToBottom({ force: true });
   }
   const lastMessage = chatHistory.getAll().pop();
   if (lastMessage?.source === "ai") {

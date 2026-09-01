@@ -22,6 +22,16 @@ main div.summary-wrapper div.summary > div {
   text-align: left;
 }
 
+main div.summary-wrapper div.summary.right > div {
+  right: 10%;
+}
+
+@media screen and (max-width: 1024px) {
+  main div.summary-wrapper div.summary.right > div {
+    right: 0%;
+  }
+}
+
 main div.summary-wrapper  div.summary.no-image > div {
   display: flex;
   flex-direction: column;
@@ -135,5 +145,3 @@ main div.summary-wrapper div.summary.background-color-white p a:hover, main div.
 main div.summary-wrapper div.summary.background-color-white {
   background-color: rgb(255, 255, 255);
 }
-
-

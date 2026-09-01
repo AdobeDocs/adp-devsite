@@ -8,7 +8,7 @@ main div.info-columns-container {
 }
 
 main div.info-columns-wrapper div.info-columns {
-  width: 100%;
+  width: 90%;
   max-width: 1280px;
   box-sizing: border-box;
   margin: auto;
@@ -19,7 +19,7 @@ main div.info-columns-wrapper div.info-columns > div {
   align-items: start;
 }
 
-@media screen and (min-width: 1280px) {
+@media screen and (min-width: 769px) {
   main div.info-columns-wrapper div.info-columns > div {
     gap: 32px;
   }
@@ -38,9 +38,9 @@ main div.info-columns-wrapper div.info-column {
   box-sizing: border-box;
 }
 
-@media screen and (max-width: 1280px) {
+@media screen and (min-width: 769px) and (max-width: 1280px) {
   main div.info-columns-wrapper div.info-columns div.info-column {
-    padding: 0 32px;
+    padding: 0;
   }
 }
 
@@ -60,6 +60,7 @@ main div.info-columns-wrapper div.info-column {
   main div.info-columns-wrapper div.info-columns div.info-column {
     width: 100%;
     margin: 32px 0;
+    padding: 0 32px;
   }
 }
 
