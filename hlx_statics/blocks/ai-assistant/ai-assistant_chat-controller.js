@@ -366,8 +366,8 @@ export const handleUserQuery = async (
   };
 
   let responseContent = "";
-  /** @type {import('./ai-assistant_chat-history.js').ChatReference[]} */
-  let accumulatedReferences = [];
+  /** @type {Map<string, {url: string, title: string, hasTitle: boolean}>} */
+  const accumulatedReferences = new Map();
   // The backend sends `answerComplete`, then `followupQuestions`, then the
   // terminal `complete`. These flags let `onComplete` act as a safety net:
   // finalizing the bubble and falling back to default suggestions when those
@@ -387,9 +387,15 @@ export const handleUserQuery = async (
     answerFinalized = true;
     targetBubble.hideThinking();
     targetBubble.completeBubble();
+    const references = [...accumulatedReferences.values()].map(
+      ({ url, title }) => ({ url, title }),
+    );
+    if (references.length) {
+      targetBubble.renderSources(references);
+    }
     chatHistory.updateLast({
       content: responseContent,
-      references: accumulatedReferences,
+      references,
     });
     scrollToBottom();
   };
@@ -439,28 +445,32 @@ export const handleUserQuery = async (
         }
       },
       onCitation: (data) => {
-        if (data.citation?.retrievedReferences?.length) {
-          const refs = data.citation.retrievedReferences;
-          const seen = new Set();
-          const references = refs
-            .map((ref) => {
-              const url = ref.metadata?.url;
-              if (!url || seen.has(url)) return null;
-              seen.add(url);
-              const title = ref.metadata?.title || url;
-              return { url, title };
-            })
-            .filter((r) => !!r);
-          if (references?.length) {
-            accumulatedReferences = references;
-            targetBubble.appendReferences(references);
-            chatHistory.updateLast({
-              content: responseContent,
-              references,
-            });
-            scrollToBottom();
+        data.citation?.retrievedReferences?.forEach((ref) => {
+          const url = ref.metadata?.url;
+          if (typeof url !== "string" || !url) return;
+
+          try {
+            if (new URL(url).protocol !== "https:") return;
+          } catch {
+            return;
           }
-        }
+
+          const rawTitle = ref.metadata?.title;
+          const title =
+            typeof rawTitle === "string" && rawTitle.trim()
+              ? rawTitle.trim()
+              : null;
+          const existing = accumulatedReferences.get(url);
+          if (!existing) {
+            accumulatedReferences.set(url, {
+              url,
+              title: title || url,
+              hasTitle: !!title,
+            });
+          } else if (!existing.hasTitle && title) {
+            accumulatedReferences.set(url, { url, title, hasTitle: true });
+          }
+        });
       },
       // Fired once the answer text is complete, before the follow-up questions.
       onAnswerComplete: () => {
@@ -501,6 +511,7 @@ export const handleUserQuery = async (
       },
       onError: (error) => {
         hideStopButton();
+        accumulatedReferences.clear();
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
@@ -584,7 +595,7 @@ export const restoreChatHistory = async () => {
         feedback,
       });
       if (references?.length) {
-        bubble.appendReferences(references);
+        bubble.renderSources(references);
       }
     }
     scrollToBottom({ force: true });
