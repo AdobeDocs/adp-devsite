@@ -335,15 +335,13 @@ export default async function decorate(block) {
                 }
              });
              
-             // If the row has field wrappers, but ALL of them are hidden, the row is a zombie! Rip it out!
+             // If the row has field wrappers, but ALL of them are hidden, the row is a zombie!
+             // We add a custom class instead of inline styles because Marketo's JS loop 
+             // continuously strips inline styles for rows.
              if (wraps.length > 0 && !hasVisibleField) {
-                row.style.position = 'absolute';
-                row.style.visibility = 'hidden';
-                row.style.width = '0';
-                row.style.height = '0';
-                row.style.overflow = 'hidden';
-                row.style.margin = '0';
-                row.style.padding = '0';
+                row.classList.add('zombie-row');
+             } else {
+                row.classList.remove('zombie-row');
              }
           });
 
