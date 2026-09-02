@@ -244,16 +244,29 @@ export default async function decorate(block) {
           // Remove Marketo's injected style blocks inside the form which set margins and widths
           formEl.querySelectorAll('style').forEach(s => s.remove());
 
-          // Forcefully rip spacing elements and button row out of the document flow.
+          // Forcefully rip spacing elements, hidden rows, and button row out of the document flow.
           // Using position:absolute ensures they NEVER become grid items, even if Marketo 
-          // or Author CSS overrides 'display: none' with 'display: block !important'.
-          formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix').forEach(el => {
+          // or Author CSS overrides 'display: none'.
+          formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix, .mktoPlaceholder').forEach(el => {
             el.style.position = 'absolute';
             el.style.visibility = 'hidden';
             el.style.width = '0';
             el.style.height = '0';
             el.style.overflow = 'hidden';
           });
+
+          // Ensure the Marketo submit button's container is entirely ripped from the grid
+          const originalBtn = formEl.querySelector('.mktoButton');
+          if (originalBtn) {
+            const btnWrap = originalBtn.closest('.mktoButtonRow') || originalBtn.closest('.mktoFormRow');
+            if (btnWrap) {
+              btnWrap.style.position = 'absolute';
+              btnWrap.style.visibility = 'hidden';
+              btnWrap.style.width = '0';
+              btnWrap.style.height = '0';
+              btnWrap.style.overflow = 'hidden';
+            }
+          }
           
           // Completely remove privacy/consent rows from DOM since we extract and inject their content manually
           formEl.querySelectorAll('.mktoFormRow.mktoCleanedScript, .mktoFormRow.by-supplyingmycontac, .mktoFormRow.adobe-privacy').forEach(row => {
@@ -308,21 +321,41 @@ export default async function decorate(block) {
 
           formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
             const input = wrap.querySelector('.mktoField');
+            let shouldHide = false;
             if (input) {
               const style = window.getComputedStyle(input);
               if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || input.type === 'hidden') {
-                wrap.style.display = 'none';
-              } else {
-                // Only remove if we explicitly set it
-                if (wrap.style.display === 'none') {
-                  wrap.style.removeProperty('display');
-                }
+                shouldHide = true;
               }
             } else {
               // Wrapper has no input (e.g. just empty html text)
               const htmlText = wrap.querySelector('.mktoHtmlText');
               if (!htmlText || htmlText.innerHTML.trim() === '') {
-                wrap.style.display = 'none';
+                shouldHide = true;
+              }
+            }
+
+            if (shouldHide) {
+              // Rip hidden fields completely out of the grid using position:absolute!
+              // This is the ONLY way to guarantee they don't leave empty cells at the bottom of the form
+              // if their display property gets overridden.
+              wrap.style.position = 'absolute';
+              wrap.style.visibility = 'hidden';
+              wrap.style.width = '0';
+              wrap.style.height = '0';
+              wrap.style.overflow = 'hidden';
+              wrap.style.margin = '0';
+              wrap.style.padding = '0';
+            } else {
+              // Restore if we need to show it again dynamically
+              if (wrap.style.position === 'absolute') {
+                wrap.style.removeProperty('position');
+                wrap.style.removeProperty('visibility');
+                wrap.style.removeProperty('width');
+                wrap.style.removeProperty('height');
+                wrap.style.removeProperty('overflow');
+                wrap.style.removeProperty('margin');
+                wrap.style.removeProperty('padding');
               }
             }
           });
