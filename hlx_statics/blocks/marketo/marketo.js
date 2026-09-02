@@ -194,7 +194,7 @@ export default async function decorate(block) {
 
           const fieldDiv = document.createElement('div');
           fieldDiv.className = 'aem-injected-element';
-          fieldDiv.style.cssText = field.wrapperCss || 'margin: 0;';
+          fieldDiv.style.cssText = field.wrapperCss || 'margin-top: 16px;';
 
           let html = '';
           if (field.label) {
@@ -269,7 +269,7 @@ export default async function decorate(block) {
               btnWrap.style.overflow = 'hidden';
             }
           }
-          
+
           // Completely remove privacy/consent rows from DOM since we extract and inject their content manually
           formEl.querySelectorAll('.mktoFormRow.mktoCleanedScript, .mktoFormRow.by-supplyingmycontac, .mktoFormRow.adobe-privacy').forEach(row => {
             row.remove();
@@ -297,7 +297,7 @@ export default async function decorate(block) {
               el.style.removeProperty('padding-right');
               el.style.removeProperty('clear');
               el.style.removeProperty('height');
-              
+
               // If Marketo applied display block/flex inline, it overrides our CSS 'display: contents'. 
               // Strip it unless it is explicitly 'none' (which Marketo uses to hide elements).
               if (el.style.display && el.style.display !== 'none') {
@@ -325,24 +325,24 @@ export default async function decorate(block) {
           // must also be ripped out. Marketo wraps tracking inputs in empty rows, and if left as 
           // display: block or display: contents, they generate empty grid gaps!
           formEl.querySelectorAll('.mktoFormRow').forEach(row => {
-             const wraps = row.querySelectorAll('.mktoFieldWrap');
-             let hasVisibleField = false;
-             wraps.forEach(wrap => {
-                const style = window.getComputedStyle(wrap);
-                // If it's not absolutely positioned and not display none, it's a visible field
-                if (style.position !== 'absolute' && style.display !== 'none' && style.visibility !== 'hidden') {
-                   hasVisibleField = true;
-                }
-             });
-             
-             // If the row has field wrappers, but ALL of them are hidden, the row is a zombie!
-             // We add a custom class instead of inline styles because Marketo's JS loop 
-             // continuously strips inline styles for rows.
-             if (wraps.length > 0 && !hasVisibleField) {
-                row.classList.add('zombie-row');
-             } else {
-                row.classList.remove('zombie-row');
-             }
+            const wraps = row.querySelectorAll('.mktoFieldWrap');
+            let hasVisibleField = false;
+            wraps.forEach(wrap => {
+              const style = window.getComputedStyle(wrap);
+              // If it's not absolutely positioned and not display none, it's a visible field
+              if (style.position !== 'absolute' && style.display !== 'none' && style.visibility !== 'hidden') {
+                hasVisibleField = true;
+              }
+            });
+
+            // If the row has field wrappers, but ALL of them are hidden, the row is a zombie!
+            // We add a custom class instead of inline styles because Marketo's JS loop 
+            // continuously strips inline styles for rows.
+            if (wraps.length > 0 && !hasVisibleField) {
+              row.classList.add('zombie-row');
+            } else {
+              row.classList.remove('zombie-row');
+            }
           });
 
           formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
