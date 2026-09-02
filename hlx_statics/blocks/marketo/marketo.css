@@ -1,58 +1,58 @@
 .marketo-form-wrapper {
   display: flex;
   flex-direction: column;
-  width: calc(100% - 40px) !important;
-  max-width: none !important;
-  margin: 0 auto !important;
+  width: calc(100% - 40px);
+  max-width: none;
+  margin: 0 auto;
 }
 
 .marketo-form-wrapper .mktoForm {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 16px !important;
-  width: 100% !important;
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .marketo-form-wrapper .mktoFormRow:not(.mktoHidden),
 .marketo-form-wrapper .mktoFormCol:not(.mktoHidden) {
-  display: contents !important;
+  display: contents;
 }
 
 .marketo-form-wrapper .mktoHidden {
-  display: none !important;
+  display: none;
 }
 
 .marketo-form-wrapper .mktoClear,
 .marketo-form-wrapper .mktoOffset,
 .marketo-form-wrapper .mktoGutter,
 .marketo-form-wrapper .mktoHtmlText:empty {
-  display: none !important;
+  display: none;
 }
 
 .marketo-form-wrapper .mktoFieldWrap {
-  display: flex !important;
-  flex-direction: column !important;
-  width: 100% !important;
-  margin: 0 !important;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
 }
 
 .marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
-  display: none !important;
+  display: none;
 }
 
 .marketo-form-wrapper .mktoLabel {
-  display: block !important;
-  font-size: 14px !important;
-  font-weight: normal !important;
-  color: #464646 !important;
-  margin-bottom: 4px !important;
-  width: auto !important;
+  display: block;
+  font-size: 14px;
+  font-weight: normal;
+  color: #464646;
+  margin-bottom: 4px;
+  width: auto;
 }
 
 .marketo-form-wrapper .mktoAsterix {
-  display: none !important;
+  display: none;
 }
 
 .marketo-form-wrapper .mktoRequiredField .mktoLabel::after {
@@ -60,27 +60,27 @@
 }
 
 .marketo-form-wrapper .mktoField {
-  width: 100% !important;
-  border: 1px solid var(--color-grey-300, #909090) !important;
-  border-radius: 4px !important;
-  padding: 10px 12px !important;
-  font-size: 16px !important;
-  line-height: 24px !important;
-  height: auto !important;
-  min-height: 44px !important;
-  color: var(--color-black, #333) !important;
-  background-color: var(--color-white, #fff) !important;
-  transition: border-color 0.2s ease !important;
-  box-sizing: border-box !important;
+  width: 100%;
+  border: 1px solid var(--color-grey-300, #909090);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 16px;
+  line-height: 24px;
+  height: auto;
+  min-height: 44px;
+  color: var(--color-black, #333);
+  background-color: var(--color-white, #fff);
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .marketo-form-wrapper .mktoField:focus {
-  outline: none !important;
-  border-color: var(--color-aem-blue, #1473e6) !important;
+  outline: none;
+  border-color: var(--color-aem-blue, #1473e6);
 }
 
 .marketo-form-wrapper .mktoField.mktoInvalid {
-  border-color: var(--color-status-error, #d0021b) !important;
+  border-color: var(--color-status-error, #d0021b);
 }
 
 .marketo-form-wrapper .use-case-textarea {
@@ -97,28 +97,28 @@
   max-width: 280px;
   height: 48px;
   padding: 12px 24px;
-  border-radius: 24px !important;
-  background-color: var(--color-aem-blue, #1473e6) !important;
-  color: var(--color-white, #fff) !important;
-  font-weight: 700 !important;
-  font-size: 15px !important;
+  border-radius: 24px;
+  background-color: var(--color-aem-blue, #1473e6);
+  color: var(--color-white, #fff);
+  font-weight: 700;
+  font-size: 15px;
   line-height: 24px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none !important;
+  border: none;
 }
 
 .marketo-form-wrapper .custom-submit:hover {
-  background-color: var(--color-aem-blue-hover, #0054b6) !important;
+  background-color: var(--color-aem-blue-hover, #0054b6);
   box-shadow: 0 4px 12px rgba(20, 55, 100, 0.2);
 }
 
 .marketo-form-wrapper .custom-submit:active {
-  background-color: var(--color-aem-blue-active, #004494) !important;
+  background-color: var(--color-aem-blue-active, #004494);
 }
 
 .marketo-form-wrapper .custom-submit:disabled {
-  background-color: var(--color-grey-300, #c8c8c8) !important;
+  background-color: var(--color-grey-300, #c8c8c8);
   cursor: not-allowed;
 }
 
@@ -136,22 +136,22 @@
 }
 
 .marketo-form-wrapper .mktoButtonRow {
-  display: none !important;
+  display: none;
 }
 
 .marketo-form-wrapper .mktoFormRow.by-supplyingmycontac,
 .marketo-form-wrapper .mktoFormRow.adobe-privacy,
 .marketo-form-wrapper .mktoFormRow:has(.mktoHtmlText) {
-  display: none !important;
+  display: none;
 }
 
 .marketo-form-wrapper .mktoErrorMsg,
 .marketo-form-wrapper .mktoError,
 .marketo-form-wrapper .custom-field-error {
-  color: var(--color-status-error, #d0021b) !important;
+  color: var(--color-status-error, #d0021b);
 }
 
 .marketo-form-wrapper .mktoFormRow.mktoCleanedScript,
 .marketo-form-wrapper .mktoHtmlText span {
-  display: none !important;
+  display: none;
 }
