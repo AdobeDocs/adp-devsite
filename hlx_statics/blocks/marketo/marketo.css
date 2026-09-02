@@ -1,4 +1,4 @@
-.marketo-form-wrapper {
+body .marketo-form-wrapper {
   display: flex;
   flex-direction: column;
   width: calc(100% - 40px);
@@ -6,7 +6,7 @@
   margin: 0 auto;
 }
 
-.marketo-form-wrapper .mktoForm {
+body .marketo-form-wrapper form.mktoForm {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
@@ -15,34 +15,34 @@
   padding-bottom: 0;
 }
 
-.marketo-form-wrapper .mktoFormRow:not(.mktoHidden),
-.marketo-form-wrapper .mktoFormCol:not(.mktoHidden) {
+body .marketo-form-wrapper form.mktoForm .mktoFormRow:not(.mktoHidden),
+body .marketo-form-wrapper form.mktoForm .mktoFormCol:not(.mktoHidden) {
   display: contents;
 }
 
-.marketo-form-wrapper .mktoHidden {
+body .marketo-form-wrapper form.mktoForm .mktoHidden {
   display: none;
 }
 
-.marketo-form-wrapper .mktoClear,
-.marketo-form-wrapper .mktoOffset,
-.marketo-form-wrapper .mktoGutter,
-.marketo-form-wrapper .mktoHtmlText:empty {
+body .marketo-form-wrapper form.mktoForm .mktoClear,
+body .marketo-form-wrapper form.mktoForm .mktoOffset,
+body .marketo-form-wrapper form.mktoForm .mktoGutter,
+body .marketo-form-wrapper form.mktoForm .mktoHtmlText:empty {
   display: none;
 }
 
-.marketo-form-wrapper .mktoFieldWrap {
+body .marketo-form-wrapper form.mktoForm .mktoFieldWrap {
   display: flex;
   flex-direction: column;
   width: 100%;
   margin: 0;
 }
 
-.marketo-form-wrapper .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
+body .marketo-form-wrapper form.mktoForm .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
   display: none;
 }
 
-.marketo-form-wrapper .mktoLabel {
+body .marketo-form-wrapper form.mktoForm .mktoLabel {
   display: block;
   font-size: 14px;
   font-weight: normal;
@@ -51,15 +51,15 @@
   width: auto;
 }
 
-.marketo-form-wrapper .mktoAsterix {
+body .marketo-form-wrapper form.mktoForm .mktoAsterix {
   display: none;
 }
 
-.marketo-form-wrapper .mktoRequiredField .mktoLabel::after {
+body .marketo-form-wrapper form.mktoForm .mktoRequiredField .mktoLabel::after {
   content: " *";
 }
 
-.marketo-form-wrapper .mktoField {
+body .marketo-form-wrapper form.mktoForm .mktoField {
   width: 100%;
   border: 1px solid var(--color-grey-300, #909090);
   border-radius: 4px;
@@ -74,21 +74,21 @@
   box-sizing: border-box;
 }
 
-.marketo-form-wrapper .mktoField:focus {
+body .marketo-form-wrapper form.mktoForm .mktoField:focus {
   outline: none;
   border-color: var(--color-aem-blue, #1473e6);
 }
 
-.marketo-form-wrapper .mktoField.mktoInvalid {
+body .marketo-form-wrapper form.mktoForm .mktoField.mktoInvalid {
   border-color: var(--color-status-error, #d0021b);
 }
 
-.marketo-form-wrapper .use-case-textarea {
+body .marketo-form-wrapper .use-case-textarea {
   height: 120px;
   resize: vertical;
 }
 
-.marketo-form-wrapper .custom-submit {
+body .marketo-form-wrapper .custom-submit {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,21 +108,21 @@
   border: none;
 }
 
-.marketo-form-wrapper .custom-submit:hover {
+body .marketo-form-wrapper .custom-submit:hover {
   background-color: var(--color-aem-blue-hover, #0054b6);
   box-shadow: 0 4px 12px rgba(20, 55, 100, 0.2);
 }
 
-.marketo-form-wrapper .custom-submit:active {
+body .marketo-form-wrapper .custom-submit:active {
   background-color: var(--color-aem-blue-active, #004494);
 }
 
-.marketo-form-wrapper .custom-submit:disabled {
+body .marketo-form-wrapper .custom-submit:disabled {
   background-color: var(--color-grey-300, #c8c8c8);
   cursor: not-allowed;
 }
 
-.marketo-form-wrapper .success-message {
+body .marketo-form-wrapper .success-message {
   display: none;
   padding: 24px;
   background-color: var(--color-status-success-bg, #e6f4e6);
@@ -131,27 +131,27 @@
   text-align: center;
 }
 
-.marketo-form-wrapper .success-message.show {
+body .marketo-form-wrapper .success-message.show {
   display: block;
 }
 
-.marketo-form-wrapper .mktoButtonRow {
+body .marketo-form-wrapper form.mktoForm .mktoButtonRow {
   display: none;
 }
 
-.marketo-form-wrapper .mktoFormRow.by-supplyingmycontac,
-.marketo-form-wrapper .mktoFormRow.adobe-privacy,
-.marketo-form-wrapper .mktoFormRow:has(.mktoHtmlText) {
+body .marketo-form-wrapper form.mktoForm .mktoFormRow.by-supplyingmycontac,
+body .marketo-form-wrapper form.mktoForm .mktoFormRow.adobe-privacy,
+body .marketo-form-wrapper form.mktoForm .mktoFormRow:has(.mktoHtmlText) {
   display: none;
 }
 
-.marketo-form-wrapper .mktoErrorMsg,
-.marketo-form-wrapper .mktoError,
-.marketo-form-wrapper .custom-field-error {
+body .marketo-form-wrapper form.mktoForm .mktoErrorMsg,
+body .marketo-form-wrapper form.mktoForm .mktoError,
+body .marketo-form-wrapper .custom-field-error {
   color: var(--color-status-error, #d0021b);
 }
 
-.marketo-form-wrapper .mktoFormRow.mktoCleanedScript,
-.marketo-form-wrapper .mktoHtmlText span {
+body .marketo-form-wrapper form.mktoForm .mktoFormRow.mktoCleanedScript,
+body .marketo-form-wrapper form.mktoForm .mktoHtmlText span {
   display: none;
 }
