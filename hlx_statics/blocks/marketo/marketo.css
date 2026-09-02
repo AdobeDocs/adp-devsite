@@ -38,12 +38,22 @@ body .marketo-form-wrapper form.mktoForm .mktoFormCol::after {
   content: none;
 }
 
+/* Bulletproof rip-out for hidden elements. 
+   Using position: absolute ensures they never become grid items,
+   even if Marketo dynamically applies inline display: block */
 body .marketo-form-wrapper form.mktoForm .mktoClear,
 body .marketo-form-wrapper form.mktoForm .mktoOffset,
 body .marketo-form-wrapper form.mktoForm .mktoGutter,
+body .marketo-form-wrapper form.mktoForm .mktoButtonRow,
 body .marketo-form-wrapper form.mktoForm input[type="hidden"],
 body .marketo-form-wrapper form.mktoForm .mktoHtmlText:empty {
-  display: none;
+  position: absolute;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body .marketo-form-wrapper form.mktoForm .mktoFieldWrap {
