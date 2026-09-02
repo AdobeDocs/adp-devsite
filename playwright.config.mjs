@@ -10,7 +10,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  workers: isCI ? 1 : undefined,
+  workers: isCI ? '50%' : undefined,
 
   expect: {
     timeout: 5_000,
@@ -24,6 +24,7 @@ export default defineConfig({
 
   reporter: [
     ['line'],
+    ['github'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['json', { outputFile: 'playwright-results.json' }],
   ],
