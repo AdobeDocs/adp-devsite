@@ -244,31 +244,6 @@ export default async function decorate(block) {
           // Remove Marketo's injected style blocks inside the form which set margins and widths
           formEl.querySelectorAll('style').forEach(s => s.remove());
 
-          // Forcefully rip spacing elements, hidden rows, and button row out of the document flow.
-          // Using position:absolute ensures they NEVER become grid items, even if Marketo 
-          // or Author CSS overrides 'display: none'.
-          formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix, .mktoPlaceholder, input[type="hidden"]').forEach(el => {
-            el.style.position = 'absolute';
-            el.style.visibility = 'hidden';
-            el.style.width = '0';
-            el.style.height = '0';
-            el.style.overflow = 'hidden';
-            el.style.margin = '0';
-            el.style.padding = '0';
-          });
-
-          // Ensure the Marketo submit button's container is entirely ripped from the grid
-          const originalBtn = formEl.querySelector('.mktoButton');
-          if (originalBtn) {
-            const btnWrap = originalBtn.closest('.mktoButtonRow') || originalBtn.closest('.mktoFormRow');
-            if (btnWrap) {
-              btnWrap.style.position = 'absolute';
-              btnWrap.style.visibility = 'hidden';
-              btnWrap.style.width = '0';
-              btnWrap.style.height = '0';
-              btnWrap.style.overflow = 'hidden';
-            }
-          }
 
           // Completely remove privacy/consent rows from DOM since we extract and inject their content manually
           formEl.querySelectorAll('.mktoFormRow.mktoCleanedScript, .mktoFormRow.by-supplyingmycontac, .mktoFormRow.adobe-privacy').forEach(row => {
