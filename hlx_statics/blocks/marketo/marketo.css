@@ -47,6 +47,7 @@ body .marketo-form-wrapper form.mktoForm .mktoGutter,
 body .marketo-form-wrapper form.mktoForm .mktoButtonRow,
 body .marketo-form-wrapper form.mktoForm input[type="hidden"],
 body .marketo-form-wrapper form.mktoForm .mktoHtmlText:empty,
+body .marketo-form-wrapper form.mktoForm .mktoPlaceholder,
 body .marketo-form-wrapper form.mktoForm .mktoFormRow.zombie-row {
   position: absolute;
   visibility: hidden;
