@@ -241,20 +241,51 @@ export default async function decorate(block) {
         // Because we use display: contents on rows to enable CSS Grid, some wrappers might be left exposed.
         // This interval ensures any wrapper containing a hidden field is also strictly display: none.
         setInterval(() => {
+          // Remove Marketo's injected style block inside the form which sets margins and widths
+          const inlineStyle = formEl.querySelector('style');
+          if (inlineStyle) inlineStyle.remove();
+
+          // Forcefully hide spacing elements that Marketo might try to show
+          formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix').forEach(el => {
+            el.style.display = 'none';
+          });
+          
+          formEl.querySelectorAll('.mktoFormRow.mktoCleanedScript, .mktoFormRow.by-supplyingmycontac, .mktoFormRow.adobe-privacy').forEach(row => {
+            row.style.display = 'none';
+          });
+
           // Strip Marketo injected inline styles that break flex/grid layout
-          const structuralEls = formEl.querySelectorAll('.mktoFormRow, .mktoFormCol, .mktoFieldWrap, .mktoLabel, .mktoGutter, .mktoOffset, .mktoClear');
+          const structuralEls = formEl.querySelectorAll('.mktoFormRow, .mktoFormCol, .mktoFieldWrap, .mktoLabel');
           structuralEls.forEach(el => {
             if (el.style) {
               el.style.removeProperty('width');
               el.style.removeProperty('margin');
               el.style.removeProperty('margin-bottom');
+              el.style.removeProperty('margin-top');
               el.style.removeProperty('padding');
+              el.style.removeProperty('padding-left');
+              el.style.removeProperty('padding-right');
               el.style.removeProperty('clear');
+              el.style.removeProperty('height');
+              el.style.removeProperty('min-height');
+              
+              // If Marketo applied display block/flex inline, it overrides our CSS 'display: contents'. 
+              // Strip it unless it is explicitly 'none' (which Marketo uses to hide elements).
+              if (el.style.display && el.style.display !== 'none') {
+                el.style.removeProperty('display');
+              }
             }
           });
           if (formEl.style) {
             formEl.style.removeProperty('width');
           }
+
+          // Ensure rows containing only html text (like privacy policy) are hidden if we want them out of the grid
+          formEl.querySelectorAll('.mktoFormRow').forEach(row => {
+            if (row.querySelector('.mktoHtmlText')) {
+              row.style.display = 'none';
+            }
+          });
 
           formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
             const input = wrap.querySelector('.mktoField');
