@@ -241,9 +241,8 @@ export default async function decorate(block) {
         // Because we use display: contents on rows to enable CSS Grid, some wrappers might be left exposed.
         // This interval ensures any wrapper containing a hidden field is also strictly display: none.
         setInterval(() => {
-          // Remove Marketo's injected style block inside the form which sets margins and widths
-          const inlineStyle = formEl.querySelector('style');
-          if (inlineStyle) inlineStyle.remove();
+          // Remove Marketo's injected style blocks inside the form which set margins and widths
+          formEl.querySelectorAll('style').forEach(s => s.remove());
 
           // Forcefully hide spacing elements that Marketo might try to show
           formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix').forEach(el => {

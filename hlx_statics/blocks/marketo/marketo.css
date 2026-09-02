@@ -25,9 +25,24 @@ body .marketo-form-wrapper form.mktoForm .mktoHidden {
   display: none;
 }
 
+/* 
+ * CRITICAL FIX: Marketo's forms2.css adds clearfix ::before/::after pseudo-elements to rows and cols.
+ * Because we use 'display: contents' on these elements to flatten the DOM for CSS Grid, 
+ * these pseudo-elements become direct children of the Grid and take up invisible grid cells, 
+ * creating massive empty gaps. We MUST hide them.
+ */
+body .marketo-form-wrapper form.mktoForm .mktoFormRow::before,
+body .marketo-form-wrapper form.mktoForm .mktoFormRow::after,
+body .marketo-form-wrapper form.mktoForm .mktoFormCol::before,
+body .marketo-form-wrapper form.mktoForm .mktoFormCol::after {
+  display: none;
+  content: none;
+}
+
 body .marketo-form-wrapper form.mktoForm .mktoClear,
 body .marketo-form-wrapper form.mktoForm .mktoOffset,
 body .marketo-form-wrapper form.mktoForm .mktoGutter,
+body .marketo-form-wrapper form.mktoForm input[type="hidden"],
 body .marketo-form-wrapper form.mktoForm .mktoHtmlText:empty {
   display: none;
 }
