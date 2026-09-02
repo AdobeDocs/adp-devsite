@@ -247,12 +247,14 @@ export default async function decorate(block) {
           // Forcefully rip spacing elements, hidden rows, and button row out of the document flow.
           // Using position:absolute ensures they NEVER become grid items, even if Marketo 
           // or Author CSS overrides 'display: none'.
-          formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix, .mktoPlaceholder').forEach(el => {
+          formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix, .mktoPlaceholder, input[type="hidden"]').forEach(el => {
             el.style.position = 'absolute';
             el.style.visibility = 'hidden';
             el.style.width = '0';
             el.style.height = '0';
             el.style.overflow = 'hidden';
+            el.style.margin = '0';
+            el.style.padding = '0';
           });
 
           // Ensure the Marketo submit button's container is entirely ripped from the grid
