@@ -194,7 +194,7 @@ export default async function decorate(block) {
 
           const fieldDiv = document.createElement('div');
           fieldDiv.className = 'aem-injected-element';
-          fieldDiv.style.cssText = field.wrapperCss || 'margin: 8px 0;';
+          fieldDiv.style.cssText = field.wrapperCss || 'margin: 0;';
 
           let html = '';
           if (field.label) {
@@ -225,7 +225,7 @@ export default async function decorate(block) {
         // Setup Consent text
         const consentDiv = document.createElement('div');
         consentDiv.className = 'aem-injected-element';
-        consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin: 8px 0;';
+        consentDiv.style.cssText = 'font-size:12px; color:#444; line-height:1.5; margin: 0;';
         if (legend) consentDiv.innerHTML = legend.innerHTML;
 
         // Inject based on configured position
@@ -254,20 +254,28 @@ export default async function decorate(block) {
             row.style.display = 'none';
           });
 
+          // Aggressively strip margins and min-heights from ALL elements inside the form
+          formEl.querySelectorAll('*').forEach(el => {
+            if (el.style) {
+              el.style.removeProperty('margin');
+              el.style.removeProperty('margin-bottom');
+              el.style.removeProperty('margin-top');
+              el.style.removeProperty('margin-left');
+              el.style.removeProperty('margin-right');
+              el.style.removeProperty('min-height');
+            }
+          });
+
           // Strip Marketo injected inline styles that break flex/grid layout
           const structuralEls = formEl.querySelectorAll('.mktoFormRow, .mktoFormCol, .mktoFieldWrap, .mktoLabel');
           structuralEls.forEach(el => {
             if (el.style) {
               el.style.removeProperty('width');
-              el.style.removeProperty('margin');
-              el.style.removeProperty('margin-bottom');
-              el.style.removeProperty('margin-top');
               el.style.removeProperty('padding');
               el.style.removeProperty('padding-left');
               el.style.removeProperty('padding-right');
               el.style.removeProperty('clear');
               el.style.removeProperty('height');
-              el.style.removeProperty('min-height');
               
               // If Marketo applied display block/flex inline, it overrides our CSS 'display: contents'. 
               // Strip it unless it is explicitly 'none' (which Marketo uses to hide elements).
@@ -278,6 +286,11 @@ export default async function decorate(block) {
           });
           if (formEl.style) {
             formEl.style.removeProperty('width');
+            formEl.style.removeProperty('margin');
+            formEl.style.removeProperty('margin-bottom');
+            formEl.style.removeProperty('padding');
+            formEl.style.removeProperty('padding-bottom');
+            formEl.style.removeProperty('min-height');
           }
 
           // Ensure rows containing only html text (like privacy policy) are hidden if we want them out of the grid
