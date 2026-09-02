@@ -161,9 +161,9 @@ export default async function decorate(block) {
 
       const selectColorStyle = document.createElement('style');
       selectColorStyle.textContent = `
-                form.mktoForm .mktoFormRow.mktoCleanedScript,
-                form.mktoForm .mktoHtmlText span {
-                    display: none !important;
+                body form.mktoForm .mktoFormRow.mktoCleanedScript,
+                body form.mktoForm .mktoHtmlText span {
+                    display: none;
                 }
             `;
       document.head.appendChild(selectColorStyle);
@@ -173,14 +173,14 @@ export default async function decorate(block) {
         const color = e.target.value ? '#2c2c2c' : '#959595';
         const existing = selectColorStyle.textContent;
         const formId = formEl.id || 'mktoForm';
-        const rule = `#${formId} select[name="${name}"] { color: ${color} !important; }`;
+        const rule = `body #${formId} select[name="${name}"] { color: ${color}; }`;
         const replaced = existing.replace(new RegExp(`#${formId} select\\[name="${name}"\\][^}]+}`, 'g'), '');
         selectColorStyle.textContent = replaced + rule;
       }, true);
       // Timeout needed to wait for MCZ to render the consent row legend
       setTimeout(() => {
         const consentRow = formEl.querySelector('.mktoFormRow.by-supplyingmycontac');
-        if (consentRow) consentRow.style.setProperty('display', 'none', 'important');
+        if (consentRow) consentRow.style.display = 'none';
         const legend = consentRow && consentRow.querySelector('legend');
 
         const container = formEl.parentNode;
@@ -241,12 +241,27 @@ export default async function decorate(block) {
         // Because we use display: contents on rows to enable CSS Grid, some wrappers might be left exposed.
         // This interval ensures any wrapper containing a hidden field is also strictly display: none.
         setInterval(() => {
+          // Strip Marketo injected inline styles that break flex/grid layout
+          const structuralEls = formEl.querySelectorAll('.mktoFormRow, .mktoFormCol, .mktoFieldWrap, .mktoLabel, .mktoGutter, .mktoOffset, .mktoClear');
+          structuralEls.forEach(el => {
+            if (el.style) {
+              el.style.removeProperty('width');
+              el.style.removeProperty('margin');
+              el.style.removeProperty('margin-bottom');
+              el.style.removeProperty('padding');
+              el.style.removeProperty('clear');
+            }
+          });
+          if (formEl.style) {
+            formEl.style.removeProperty('width');
+          }
+
           formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
             const input = wrap.querySelector('.mktoField');
             if (input) {
               const style = window.getComputedStyle(input);
               if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || input.type === 'hidden') {
-                wrap.style.setProperty('display', 'none', 'important');
+                wrap.style.display = 'none';
               } else {
                 // Only remove if we explicitly set it
                 if (wrap.style.display === 'none') {
@@ -257,7 +272,7 @@ export default async function decorate(block) {
               // Wrapper has no input (e.g. just empty html text)
               const htmlText = wrap.querySelector('.mktoHtmlText');
               if (!htmlText || htmlText.innerHTML.trim() === '') {
-                wrap.style.setProperty('display', 'none', 'important');
+                wrap.style.display = 'none';
               }
             }
           });
@@ -267,13 +282,13 @@ export default async function decorate(block) {
 
         function showFieldErr(field, msg) {
           const id = 'err-' + field.name;
-          field.style.setProperty('border-color', '#d0021b', 'important');
+          field.style.borderColor = '#d0021b';
           const existing = document.getElementById(id);
           if (existing) { existing.textContent = msg || 'This field is required.'; return; }
           const err = document.createElement('div');
           err.id = id;
           err.className = 'custom-field-error';
-          err.style.cssText = 'color:#d0021b !important; font-size:12px; margin-top:4px; display:block; clear:both; width:100%;';
+          err.style.cssText = 'color:#d0021b; font-size:12px; margin-top:4px; display:block; clear:both; width:100%;';
           err.textContent = msg || 'This field is required.';
           const wrap = field.closest('.mktoFieldWrap');
           if (wrap) {
@@ -347,7 +362,7 @@ export default async function decorate(block) {
                   err = document.createElement('div');
                   err.id = field.id + '-error';
                   err.className = 'custom-field-error';
-                  err.style.cssText = field.errorCss || 'color:#d0021b !important; font-size:12px; margin-top:4px;';
+                  err.style.cssText = field.errorCss || 'color:#d0021b; font-size:12px; margin-top:4px;';
                   err.textContent = field.errorText || 'This field is required.';
                   inputEl.after(err);
                 }
