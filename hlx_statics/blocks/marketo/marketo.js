@@ -244,13 +244,20 @@ export default async function decorate(block) {
           // Remove Marketo's injected style blocks inside the form which set margins and widths
           formEl.querySelectorAll('style').forEach(s => s.remove());
 
-          // Forcefully hide spacing elements that Marketo might try to show
+          // Forcefully rip spacing elements and button row out of the document flow.
+          // Using position:absolute ensures they NEVER become grid items, even if Marketo 
+          // or Author CSS overrides 'display: none' with 'display: block !important'.
           formEl.querySelectorAll('.mktoGutter, .mktoOffset, .mktoClear, .mktoButtonRow, .mktoAsterix').forEach(el => {
-            el.style.display = 'none';
+            el.style.position = 'absolute';
+            el.style.visibility = 'hidden';
+            el.style.width = '0';
+            el.style.height = '0';
+            el.style.overflow = 'hidden';
           });
           
+          // Completely remove privacy/consent rows from DOM since we extract and inject their content manually
           formEl.querySelectorAll('.mktoFormRow.mktoCleanedScript, .mktoFormRow.by-supplyingmycontac, .mktoFormRow.adobe-privacy').forEach(row => {
-            row.style.display = 'none';
+            row.remove();
           });
 
           // Aggressively strip margins and min-heights from ALL elements inside the form
@@ -292,10 +299,10 @@ export default async function decorate(block) {
             formEl.style.removeProperty('min-height');
           }
 
-          // Ensure rows containing only html text (like privacy policy) are hidden if we want them out of the grid
+          // Ensure rows containing only html text (like privacy policy) are completely removed
           formEl.querySelectorAll('.mktoFormRow').forEach(row => {
             if (row.querySelector('.mktoHtmlText')) {
-              row.style.display = 'none';
+              row.remove();
             }
           });
 

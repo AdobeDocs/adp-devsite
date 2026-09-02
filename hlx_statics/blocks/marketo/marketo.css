@@ -1,7 +1,6 @@
 body .marketo-form-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   width: calc(100% - 40px);
   max-width: none;
   margin: 0 auto;
