@@ -18,13 +18,19 @@ function decorateBackgroundColor(block) {
 
 function decorateCaption(block) {
   const rows = block.querySelectorAll(':scope > div');
+  const img = rows[0]?.querySelector('img');
+  if (!img) return;
+
   const altRow = rows[1];
-  const img = rows[0].querySelector('img');
-  if (img) {
-    const altText = altRow?.textContent?.trim();
-    img.setAttribute('alt', altText);
+  if (altRow) {
+    const altText = altRow.textContent?.trim();
+    if (altText) {
+      img.setAttribute('alt', altText);
+    }
+    altRow.remove();
+  } else {
+    img.setAttribute('alt', 'Alt text');
   }
-  altRow?.remove();
 }
 
 export default async function decorate(block) {
