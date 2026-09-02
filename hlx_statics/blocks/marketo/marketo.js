@@ -321,6 +321,32 @@ export default async function decorate(block) {
             }
           });
 
+          // Final aggressive sweep: Any mktoFormRow that only contains hidden/absolute field wraps
+          // must also be ripped out. Marketo wraps tracking inputs in empty rows, and if left as 
+          // display: block or display: contents, they generate empty grid gaps!
+          formEl.querySelectorAll('.mktoFormRow').forEach(row => {
+             const wraps = row.querySelectorAll('.mktoFieldWrap');
+             let hasVisibleField = false;
+             wraps.forEach(wrap => {
+                const style = window.getComputedStyle(wrap);
+                // If it's not absolutely positioned and not display none, it's a visible field
+                if (style.position !== 'absolute' && style.display !== 'none' && style.visibility !== 'hidden') {
+                   hasVisibleField = true;
+                }
+             });
+             
+             // If the row has field wrappers, but ALL of them are hidden, the row is a zombie! Rip it out!
+             if (wraps.length > 0 && !hasVisibleField) {
+                row.style.position = 'absolute';
+                row.style.visibility = 'hidden';
+                row.style.width = '0';
+                row.style.height = '0';
+                row.style.overflow = 'hidden';
+                row.style.margin = '0';
+                row.style.padding = '0';
+             }
+          });
+
           formEl.querySelectorAll('.mktoFieldWrap').forEach(wrap => {
             const input = wrap.querySelector('.mktoField');
             let shouldHide = false;
