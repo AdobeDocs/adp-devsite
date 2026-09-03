@@ -23,13 +23,14 @@ function decorateCaption(block) {
 
   const altRow = rows[1];
   if (altRow) {
-    const altText = altRow.textContent?.trim();
-    if (altText) {
-      img.setAttribute('alt', altText);
-    }
-    altRow.remove();
-  } else {
-    img.setAttribute('alt', 'Alt text');
+    const captionId = `caption-${Math.random().toString(36).substring(2, 9)}`;
+    altRow.id = captionId;
+    altRow.style.display = 'none';
+    img.setAttribute('aria-labelledby', captionId);
+  }
+
+  if (img.getAttribute('alt') === 'undefined' || !img.hasAttribute('alt')) {
+    img.setAttribute('alt', '');
   }
 }
 

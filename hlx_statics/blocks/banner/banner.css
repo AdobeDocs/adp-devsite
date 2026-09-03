@@ -80,17 +80,16 @@ main div.banner-wrapper:has(.banner.image) {
 
   & div.banner.image {
     width: 100%;
-    display: flex;
-    justify-content: center;
 
     & img {
-      width: 80%;
-      height: 100%;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
     }
 
     &.medium img {
       width: 500px;
-      height: 100%;
     }
   }
 }
