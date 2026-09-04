@@ -54,6 +54,9 @@ export default async function decorate(block) {
 
             item.innerHTML = getAccordionItem(headingText);
             const contentArea = item.querySelector('.accordion-itemContent');
+            // collapse by default in JS so it doesn't rely on the page wrapper CSS
+            // (e.g. Sidekick Library preview lacks the main > .accordion-wrapper chain)
+            contentArea.style.display = 'none';
             contentNodes.forEach(node => contentArea.appendChild(node));
 
             // Decorate any raw <pre><code> blocks so they get line numbers
