@@ -4,7 +4,7 @@ main div.columns-wrapper:has(.columns.background-color-white) {
 
 main div.columns-wrapper {
     width: 100%;
-    background: rgb( 245,245,245 );
+    background: rgb(245, 245, 245);
 }
 
 main div.columns-wrapper div.columns {
@@ -13,26 +13,27 @@ main div.columns-wrapper div.columns {
     margin: auto;
 }
 
-main div.columns-wrapper div.columns > div {
+main div.columns-wrapper div.columns>div {
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 80px 0;
 }
 
-main div.columns-wrapper div.columns .first-column-div, main div.columns-wrapper div.columns .last-column-div {
+main div.columns-wrapper div.columns .first-column-div,
+main div.columns-wrapper div.columns .last-column-div {
     padding: 0 0;
 }
 
-main div.columns-wrapper  div.columns > div:nth-child(even) {
+main div.columns-wrapper div.columns>div:nth-child(even) {
     flex-direction: row-reverse;
 }
 
-main div.columns-wrapper  div.columns.isReversed > div:nth-child(odd) {
+main div.columns-wrapper div.columns.isReversed>div:nth-child(odd) {
     flex-direction: row-reverse;
 }
 
-main div.columns-wrapper  div.columns.isReversed > div:nth-child(even) {
+main div.columns-wrapper div.columns.isReversed>div:nth-child(even) {
     flex-direction: row;
 }
 
@@ -43,16 +44,16 @@ main div.columns-wrapper .checkmark ul {
     padding-left: 0px;
 }
 
-main div.columns-wrapper .checkmark ul > li {
+main div.columns-wrapper .checkmark ul>li {
     margin-bottom: 12px;
 }
 
-main div.columns-wrapper .checkmark ul > li:before{
+main div.columns-wrapper .checkmark ul>li:before {
     color: #096;
     content: "\2714\0020";
 }
 
-main div.columns-wrapper  div.columns  div.second-column div.button-group-container {
+main div.columns-wrapper div.columns div.second-column div.button-group-container {
     gap: 2rem;
     display: flex;
     text-align: center;
@@ -60,6 +61,7 @@ main div.columns-wrapper  div.columns  div.second-column div.button-group-contai
 }
 
 @media screen and (max-width: 620px) {
+
     main div.columns-wrapper div.columns div.first-column img,
     main div.columns-wrapper div.columns div.first-column video {
         width: 100vw;
@@ -100,35 +102,35 @@ main div.columns-wrapper div.second-column {
     padding: 0 32px;
 }
 
-main .column-header .anchor-link{
+main .column-header .anchor-link {
     /* padding-left: 10px; */
     visibility: hidden;
 }
 
-main .column-header:hover .anchor-link{
+main .column-header:hover .anchor-link {
     /* padding-left: 10px; */
     visibility: visible;
 }
 
 main div.columns-wrapper div.columns h3.column-header {
-    margin-top: 0!important;
-    margin-bottom: 16px!important;
-    scroll-margin-top:100px;
+    margin-top: 0 !important;
+    margin-bottom: 16px !important;
+    scroll-margin-top: 100px;
 }
 
 main div.columns-wrapper div.columns h3.column-header a {
     font-size: 22px;
 }
 
-main div.columns-wrapper div.columns h3.column-header + p {
-    margin-top: 0!important;
+main div.columns-wrapper div.columns h3.column-header+p {
+    margin-top: 0 !important;
 }
 
-main div.columns-wrapper  div.columns p + p {
+main div.columns-wrapper div.columns p+p {
     margin-top: 24px;
 }
 
-main div.columns-wrapper div.columns div.listing.second-column[data-align="right"]{
+main div.columns-wrapper div.columns div.listing.second-column[data-align="right"] {
     text-align: right;
     width: auto;
 }
@@ -140,8 +142,8 @@ main div.columns-wrapper div.columns div.listing ul {
 main div.columns-wrapper div.second-column div.product-link-container {
     display: flex;
     flex-direction: row;
-    gap:  1rem;
-    padding:0;
+    gap: 1rem;
+    padding: 0;
     margin: 0;
 }
 
@@ -150,12 +152,15 @@ main div.columns-wrapper div.second-column div.product-link-container {
         flex-wrap: wrap;
         justify-content: center;
     }
+
     main div.columns-wrapper div.columns div.product-link-container p {
         max-width: 150px;
     }
+
     main div.columns div.first-column {
         width: 100% !important;
     }
+
     main div.columns-wrapper div.columns div.first-column img,
     main div.columns-wrapper div.columns div.first-column video {
         max-width: 100%;
@@ -175,7 +180,7 @@ main div.columns-wrapper div.second-column div.product-link-container p.icon-con
 }
 
 main div.columns-wrapper div.second-column p.button-container {
-    margin-top:0px;
+    margin-top: 0px;
 }
 
 main div.columns-wrapper div.second-column div.product-link-container img {
@@ -194,11 +199,11 @@ main div.columns-wrapper div.columns.center {
     width: auto;
 }
 
-main div.columns-wrapper div.columns.center > div {
+main div.columns-wrapper div.columns.center>div {
     align-items: start;
 }
 
-main div.columns-wrapper div.columns.center > div > div {
+main div.columns-wrapper div.columns.center>div>div {
     display: flex;
     flex-direction: column;
     text-align: center;
@@ -237,7 +242,7 @@ main div.columns-wrapper div.center div.first-column-div {
 }
 
 @media screen and (max-width: 1280px) {
-    main div.columns-wrapper  div.columns div.second-column {
+    main div.columns-wrapper div.columns div.second-column {
         width: 75%;
         margin: auto;
         margin-top: 40px;
@@ -248,20 +253,23 @@ main div.columns-wrapper div.center div.first-column-div {
     main div.columns-wrapper div.columns {
         width: 100% !important;
     }
-    main div.columns-wrapper div.columns > div {
+
+    main div.columns-wrapper div.columns>div {
         flex-direction: column !important;
         padding: 0 0 !important;
     }
-    main div.columns-wrapper  div.columns.center > div > div {
+
+    main div.columns-wrapper div.columns.center>div>div {
         text-align: center;
         padding: 32px 32px;
     }
 
-    main div.columns-wrapper div.columns.center > div {
+    main div.columns-wrapper div.columns.center>div {
         align-items: center;
     }
 
-    main div.columns-wrapper div.second-column div.product-link-container, main div.columns div.second-column div.button-group-container {
+    main div.columns-wrapper div.second-column div.product-link-container,
+    main div.columns div.second-column div.button-group-container {
         justify-content: center;
         align-items: center;
     }
@@ -301,7 +309,7 @@ main div.columns-wrapper div.columns.vertical p+p {
     margin-top: 0;
 }
 
-main div.columns-wrapper div.columns.vertical>div:nth-child(even) ,
+main div.columns-wrapper div.columns.vertical>div:nth-child(even),
 main div.columns-wrapper div.columns.vertical>div:nth-child(odd) {
     flex-direction: column;
 }
@@ -323,10 +331,10 @@ main div.columns-wrapper div.columns.wide p.button-container a {
     font-size: 16px;
 }
 
-main div.columns-wrapper div.columns.center li{
+main div.columns-wrapper div.columns.center li {
     text-align: initial;
 }
 
-main div.columns-wrapper div.columns.heading-center.center h3.column-header  {
+main div.columns-wrapper div.columns.heading-center.center h3.column-header {
     text-align: center;
 }

@@ -40,13 +40,10 @@ export default async function decorate(block) {
   const variant = block.getAttribute('data-variant')
   const isReversed = block.getAttribute('data-isreversed') === 'true';
   const isControls = block.classList.contains('controls');
-  const isBackground = block.classList.contains('background');
-  const isFontColorWhite = block.classList.contains('font-white');
+  isReversed && block.classList.add('isReversed');
   const isDocs = IS_DEV_DOCS;
 
-  isReversed && block.classList.add('isReversed');
-  isFontColorWhite && block.classList.add('font-white');
-  isDocs && block.classList.add('isDocs');
+  isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
 
   block.setAttribute('daa-lh', 'columns');
@@ -57,24 +54,10 @@ export default async function decorate(block) {
     console.error('Columns Block expects .columns-container to be parent.');
   }
 
-  if (isBackground) {
-    const bgRow = block.lastElementChild;
-    if (bgRow) {
-      const bgValue = bgRow.textContent.trim();
-      if (bgValue && block.parentElement) {
-        block.parentElement.style.background = bgValue;
-      }
-      bgRow.remove();
-    }
-  }
-
   removeEmptyPTags(block);
 
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header');
-    if (isFontColorWhite) {
-      h.style.color = "white";
-    }
     decorateAnchorLink(h);
   });
   block.querySelectorAll('p').forEach((p) => {
@@ -82,9 +65,6 @@ export default async function decorate(block) {
     // don't attach to icon container or if p tag contains icons
     if (!p.classList.contains('icon-container') && hasIcons.length === 0) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-      if (isFontColorWhite) {
-        p.style.color = "white";
-      }
     } else if (hasIcons.length > 0) {
       p.classList.add('icon-container');
       // Wraps non-hyperlinked text after icon in a paragraph tag
@@ -180,10 +160,6 @@ export default async function decorate(block) {
       button.classList.add('spectrum-Button', 'spectrum-Button--sizeM');
       if (button.parentElement.tagName.toLowerCase() !== 'strong') {
         button.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
-        if (isFontColorWhite) {
-          button.style.color = "white";
-          button.style.borderColor = "white";
-        }
       } else {
         button.parentElement.replaceWith(button);
         button.classList.add('spectrum-Button--fill', 'spectrum-Button--accent');
@@ -209,9 +185,6 @@ export default async function decorate(block) {
         if (!section.querySelector('h3')) {
           const emptyHeading = document.createElement('h3');
           emptyHeading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header', 'without-content');
-          if (isFontColorWhite) {
-            emptyHeading.style.color = "white";
-          }
           section.prepend(emptyHeading);
         }
       });
@@ -226,9 +199,6 @@ export default async function decorate(block) {
       column.classList.add('second-column');
       const p_text = createTag('p');
       p_text.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-      if (isFontColorWhite) {
-        p_text.style.color = "white";
-      }
       p_text.innerHTML = column.innerHTML;
       column.innerHTML = "";
       column.append(p_text);
@@ -250,9 +220,6 @@ export default async function decorate(block) {
   block.querySelectorAll('ul').forEach((ul) => {
     ul.parentElement.classList.add('listing');
     ul.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-    if (isFontColorWhite) {
-      ul.style.color = "white";
-    }
   });
 
   block.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
@@ -273,9 +240,6 @@ export default async function decorate(block) {
     block.querySelectorAll('p, div').forEach(p => {
       if (p.textContent.trim() || p.tagName === 'P') {
         p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
-        if (isFontColorWhite) {
-          p.style.color = "white";
-        }
       }
     });
 
