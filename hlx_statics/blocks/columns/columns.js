@@ -58,9 +58,13 @@ export default async function decorate(block) {
     if (img) {
       const bgUrl = img.currentSrc || img.src;
       block.parentElement.style.backgroundImage = `url('${bgUrl}')`;
+      block.parentElement.style.backgroundRepeat = 'no-repeat';
+      block.parentElement.style.backgroundSize = 'cover';
+      block.parentElement.style.backgroundPosition = 'center';
       lastDiv.remove();
     }
   }
+
 
   if (!container.classList.contains('columns-container')) {
     // eslint-disable-next-line no-console
