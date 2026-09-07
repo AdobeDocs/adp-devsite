@@ -57,7 +57,7 @@ export default async function decorate(block) {
 
     if (img) {
       const bgUrl = img.currentSrc || img.src;
-      block.style.backgroundImage = `url('${bgUrl}')`;
+      block.parentElement.style.backgroundImage = `url('${bgUrl}')`;
       lastDiv.remove();
     }
   }
