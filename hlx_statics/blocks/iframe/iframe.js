@@ -11,7 +11,7 @@ function penpalOnLoad() {
       // The iframe to which a connection should be made
       iframe: penpalIframe,
       // Manually set origin as auto-detection may fail, as the src of the iframe is set later
-      //childOrigin: isExternalLink(src) ? new URL(src).origin : window.origin,
+      // childOrigin: isExternalLink(src) ? new URL(src).origin : window.origin,
       // Methods the parent is exposing to the child
       methods: {
         setOverflow(overflow) {
@@ -160,11 +160,18 @@ export default async function decorate(block) {
     iframeSrcUrl.hash = currentHash;
   }
 
+  // Explicit allow list for Permission Policy in chromium browsers
+  let allowList = '';
+  if (block.classList.contains("clipboard-write")) {
+    allowList += "clipboard-write";
+  }
+
   const iframe = createTag("iframe", {
     title: title,
     class: filteredClassList.join(" "),
     src: iframeSrcUrl.toString(),
     id: "penpalIframe",
+    allow: allowList
   });
 
 
