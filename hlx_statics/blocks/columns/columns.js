@@ -40,14 +40,27 @@ export default async function decorate(block) {
   const variant = block.getAttribute('data-variant')
   const isReversed = block.getAttribute('data-isreversed') === 'true';
   const isControls = block.classList.contains('controls');
-  isReversed && block.classList.add('isReversed');
+  const isBgImage = block.classList.contains('bgimage')
   const isDocs = IS_DEV_DOCS;
 
+  isReversed && block.classList.add('isReversed');
+  isBgImage && block.classList.add('bgimage');
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
 
   block.setAttribute('daa-lh', 'columns');
   decorateLightOrDark(block);
+
+  if (isBgImage) {
+    const lastDiv = block.lastElementChild;
+    const img = lastDiv?.querySelector('img');
+
+    if (img) {
+      const bgUrl = img.currentSrc || img.src;
+      block.style.backgroundImage = `url('${bgUrl}')`;
+      lastDiv.remove();
+    }
+  }
 
   if (!container.classList.contains('columns-container')) {
     // eslint-disable-next-line no-console
