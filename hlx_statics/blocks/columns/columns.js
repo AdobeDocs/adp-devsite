@@ -40,11 +40,13 @@ export default async function decorate(block) {
   const variant = block.getAttribute('data-variant')
   const isReversed = block.getAttribute('data-isreversed') === 'true';
   const isControls = block.classList.contains('controls');
-  const isBgImage = block.classList.contains('bgimage')
+  const isBgImage = block.classList.contains('bgimage');
+  const isFontColorWhite = block.classList.contains('font-white')
   const isDocs = IS_DEV_DOCS;
 
   isReversed && block.classList.add('isReversed');
   isBgImage && block.classList.add('bgimage');
+  isFontColorWhite && block.classList.add('font-white');
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
 
@@ -56,7 +58,7 @@ export default async function decorate(block) {
     const img = lastDiv?.querySelector('img');
 
     if (img) {
-      const bgUrl = img.currentSrc || img.src;
+      const bgUrl = img.src;
       block.parentElement.style.backgroundImage = `url('${bgUrl}')`;
       block.parentElement.style.backgroundRepeat = 'no-repeat';
       block.parentElement.style.backgroundSize = 'cover';
@@ -75,6 +77,7 @@ export default async function decorate(block) {
 
   block.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((h) => {
     h.classList.add('spectrum-Heading', 'spectrum-Heading--sizeM', 'column-header');
+    h.style.color = isFontColorWhite ? 'white' : 'inherit';
     decorateAnchorLink(h);
   });
   block.querySelectorAll('p').forEach((p) => {
@@ -82,6 +85,7 @@ export default async function decorate(block) {
     // don't attach to icon container or if p tag contains icons
     if (!p.classList.contains('icon-container') && hasIcons.length === 0) {
       p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+      p.style.color = isFontColorWhite ? 'white' : 'inherit';
     } else if (hasIcons.length > 0) {
       p.classList.add('icon-container');
       // Wraps non-hyperlinked text after icon in a paragraph tag
@@ -216,6 +220,7 @@ export default async function decorate(block) {
       column.classList.add('second-column');
       const p_text = createTag('p');
       p_text.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+      p_text.style.color = isFontColorWhite ? 'white' : 'inherit';
       p_text.innerHTML = column.innerHTML;
       column.innerHTML = "";
       column.append(p_text);
@@ -237,6 +242,7 @@ export default async function decorate(block) {
   block.querySelectorAll('ul').forEach((ul) => {
     ul.parentElement.classList.add('listing');
     ul.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+    ul.style.color = isFontColorWhite ? 'white' : 'inherit';
   });
 
   block.querySelectorAll('div > div.second-column').forEach((secondColumn) => {
@@ -257,6 +263,7 @@ export default async function decorate(block) {
     block.querySelectorAll('p, div').forEach(p => {
       if (p.textContent.trim() || p.tagName === 'P') {
         p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+        p.style.color = isFontColorWhite ? 'white' : 'inherit';
       }
     });
 
