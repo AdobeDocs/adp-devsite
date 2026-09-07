@@ -181,6 +181,8 @@ export default async function decorate(block) {
       button.classList.add('spectrum-Button', 'spectrum-Button--sizeM');
       if (button.parentElement.tagName.toLowerCase() !== 'strong') {
         button.classList.add('spectrum-Button--secondary', 'spectrum-Button--outline');
+        button.style.color = isFontColorWhite ? 'white' : 'inherit';
+        button.style.borderColor = isFontColorWhite ? 'white' : 'inherit';
       } else {
         button.parentElement.replaceWith(button);
         button.classList.add('spectrum-Button--fill', 'spectrum-Button--accent');
