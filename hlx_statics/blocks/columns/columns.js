@@ -1,6 +1,5 @@
 import {
   createTag,
-  decorateButtons,
   removeEmptyPTags,
   getBlockSectionContainer,
   decorateAnchorLink,
