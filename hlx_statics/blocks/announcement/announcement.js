@@ -15,7 +15,7 @@ function rearrangeLinks(block) {
   const announcementButtonContainer = document.createElement('div');
   announcementButtonContainer.classList.add('announcement-button-container');
 
-  leftDiv.querySelectorAll('ul').forEach((ul) => {
+  leftDiv.querySelectorAll('ul, ul').forEach((ul) => {
     ul.querySelectorAll('li a').forEach((a, index) => {
       const pTag = document.createElement('p');
       if (index === 0 && variant !== 'secondary') {
