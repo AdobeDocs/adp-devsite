@@ -47,7 +47,7 @@ async function openAccordionPage(page) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-test.describe('Accordion reference', () => {
+test.describe('AccordionItem reference', () => {
   test.beforeEach(async ({ page }) => openAccordionPage(page));
 
   test('expands and collapses an item', async ({ page }) => {
