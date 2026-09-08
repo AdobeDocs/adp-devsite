@@ -15,6 +15,11 @@ on:
         required: false
         default: false
         type: boolean
+      full_suite:
+        description: Run all tests instead of only the ones affected by the changed files
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -40,6 +45,19 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history lets scripts/playwright-affected-tests.mjs diff against
+          # the PR base branch.
+          fetch-depth: 0
+
+      - name: Determine affected tests
+        id: affected
+        shell: bash
+        env:
+          PLAYWRIGHT_DIFF_BASE: ${{ github.base_ref && format('origin/{0}', github.base_ref) }}
+          PLAYWRIGHT_FULL_SUITE: ${{ inputs.full_suite }}
+        # Stdout carries only mode=/count= lines for $GITHUB_OUTPUT.
+        run: node scripts/playwright-affected-tests.mjs >> "$GITHUB_OUTPUT"
 
       - name: Set local Playwright base URL
         if: env.ACT == 'true'
@@ -78,6 +96,8 @@ jobs:
         run: npm run test:playwright-reporting
 
       - name: Wait for branch preview
+        # No selected spec touches the preview when the affected set is empty.
+        if: steps.affected.outputs.mode == 'all' || steps.affected.outputs.count != '0'
         shell: bash
         run: |
           reference_url="$PLAYWRIGHT_BASE_URL/dev-docs-reference/blocks/accordion/?ci=$GITHUB_SHA"
@@ -97,7 +117,15 @@ jobs:
       - name: Run Playwright tests
         id: playwright
         if: github.event_name != 'workflow_dispatch' || !inputs.update_snapshots
-        run: npm run test:e2e
+        shell: bash
+        env:
+          AFFECTED_MODE: ${{ steps.affected.outputs.mode }}
+        run: |
+          if [[ "$AFFECTED_MODE" == "subset" ]]; then
+            npx playwright test --test-list playwright-affected-tests.txt
+          else
+            npm run test:e2e
+          fi
         continue-on-error: true
 
       - name: Generate Linux snapshots

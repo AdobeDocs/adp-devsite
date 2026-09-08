@@ -59,6 +59,17 @@ https://<branch>--adp-devsite-stage--adobedocs.aem.page
 
 The workflow tests the component reference pages under `/dev-docs-reference/blocks/`. Playwright reports and failure diagnostics are available as workflow artifacts.
 
+### Which tests run on a pull request
+
+To keep feedback fast, the workflow runs only the specs affected by the pull request's changed files. `scripts/playwright-affected-tests.mjs` diffs the branch against the base branch and maps changes to specs by naming convention: `hlx_statics/blocks/<block>/` changes run `tests/playwright/blocks/<block>.spec.mjs`. Spec and snapshot changes under `tests/playwright/blocks/` select their own spec the same way.
+
+Two exceptions:
+
+- **Shared changes run everything.** Files outside a single block — `hlx_statics/scripts/`, `hlx_statics/styles/`, other `tests/playwright/` files, `playwright.config.mjs`, `package.json`/`package-lock.json`, and the workflow itself — select the full suite.
+- **Blocks without a spec run nothing for that block** and log a warning. When you change such a block, consider adding its spec.
+
+To force the full suite, dispatch the workflow manually with **Run all tests instead of only the ones affected by the changed files** enabled. Locally, the same selection is available via `node scripts/playwright-affected-tests.mjs [base-ref]`, which writes `playwright-affected-tests.txt` for `npx playwright test --test-list playwright-affected-tests.txt`.
+
 ### When to update visual snapshots
 
 Do not update a snapshot merely because a visual test failed. First determine whether the difference is an unintended regression or an intentional design change.
