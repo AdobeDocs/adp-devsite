@@ -61,7 +61,7 @@ The workflow tests the component reference pages under `/dev-docs-reference/bloc
 
 ### Which tests run on a pull request
 
-To keep feedback fast, the workflow runs only the specs affected by the pull request's changed files. `scripts/playwright-affected-tests.mjs` diffs the branch against the base branch and maps changes to specs by naming convention: `hlx_statics/blocks/<block>/` changes run `tests/playwright/blocks/<block>.spec.mjs`. Spec and snapshot changes under `tests/playwright/blocks/` select their own spec the same way.
+To keep feedback fast, the workflow runs only the specs affected by the pull request's changed files. `scripts/playwright-affected-tests.mjs` lists the pull request's files through the GitHub API (falling back to a git diff against the base branch) and maps changes to specs by naming convention: `hlx_statics/blocks/<block>/` changes run `tests/playwright/blocks/<block>.spec.mjs`. Spec and snapshot changes under `tests/playwright/blocks/` select their own spec the same way.
 
 Two exceptions:
 

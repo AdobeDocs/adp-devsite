@@ -46,14 +46,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Full history lets scripts/playwright-affected-tests.mjs diff against
-          # the PR base branch.
+          # Full history keeps the git-diff fallback of
+          # scripts/playwright-affected-tests.mjs working on manual dispatches.
           fetch-depth: 0
 
       - name: Determine affected tests
         id: affected
         shell: bash
         env:
+          # Pull request runs list changed files via the GitHub API, so no git
+          # history is needed in the container. git diff remains the fallback
+          # for local Act runs and manual dispatches.
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           PLAYWRIGHT_DIFF_BASE: ${{ github.base_ref && format('origin/{0}', github.base_ref) }}
           PLAYWRIGHT_FULL_SUITE: ${{ inputs.full_suite }}
         # Stdout carries only mode=/count= lines for $GITHUB_OUTPUT.

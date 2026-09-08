@@ -11,6 +11,8 @@ import {
   buildTestListContent,
   classifyChangedFile,
   computeAffectedSpecs,
+  listPullRequestFiles,
+  resolveAffectedTests,
 } from './playwright-affected-tests.mjs';
 
 const scriptPath = fileURLToPath(new URL('./playwright-affected-tests.mjs', import.meta.url));
@@ -128,7 +130,7 @@ test('computeAffectedSpecs returns an empty subset for unrelated changes', () =>
 test('buildTestListContent lists specs relative to the Playwright rootDir', () => {
   const content = buildTestListContent(['tests/playwright/blocks/banner.spec.mjs'], 'origin/main');
   assert.match(content, /^#.*scripts\/playwright-affected-tests\.mjs/);
-  assert.match(content, /# Changed files were diffed against origin\/main\./);
+  assert.match(content, /# Changed files were determined via origin\/main\./);
   assert.ok(content.trimEnd().endsWith('blocks/banner.spec.mjs'));
   assert.doesNotMatch(content, /^tests\/playwright/m);
 });
@@ -137,13 +139,168 @@ test('blockToSpec follows the tests/playwright/blocks naming convention', () => 
   assert.equal(blockToSpec('banner'), 'tests/playwright/blocks/banner.spec.mjs');
 });
 
+function stubFetch(pages) {
+  const calls = [];
+  const fetchImpl = async (url) => {
+    const page = Number(new URL(url).searchParams.get('page') || '1');
+    calls.push(url.toString());
+    const body = pages[page - 1];
+    return {
+      ok: body !== undefined,
+      status: body !== undefined ? 200 : 403,
+      json: async () => body,
+    };
+  };
+  return { calls, fetchImpl };
+}
+
+test('listPullRequestFiles fetches every page and maps filenames', async () => {
+  const pageOne = Array.from({ length: 100 }, (_, i) => ({ filename: `file-${i}.js` }));
+  const { calls, fetchImpl } = stubFetch([pageOne, [{ filename: 'last.js' }]]);
+
+  const files = await listPullRequestFiles({
+    repository: 'AdobeDocs/adp-devsite',
+    prNumber: '42',
+    token: 'secret',
+    fetchImpl,
+  });
+
+  assert.equal(files.length, 101);
+  assert.equal(files.at(-1), 'last.js');
+  assert.equal(calls.length, 2);
+  assert.match(calls[0], /^https:\/\/api\.github\.com\/repos\/AdobeDocs\/adp-devsite\/pulls\/42\/files\?/);
+  assert.match(calls[0], /per_page=100/);
+});
+
+test('listPullRequestFiles sends the token only in the Authorization header', async () => {
+  let seen;
+  const fetchImpl = async (url, options) => {
+    seen = { url: url.toString(), options };
+    return { ok: true, status: 200, json: async () => [] };
+  };
+
+  await listPullRequestFiles({
+    repository: 'owner/repo',
+    prNumber: '7',
+    token: 'secret-token',
+    fetchImpl,
+  });
+
+  assert.equal(seen.options.headers.authorization, 'Bearer secret-token');
+  assert.doesNotMatch(seen.url, /secret-token/);
+  assert.equal(seen.options.headers.accept, 'application/vnd.github+json');
+});
+
+test('listPullRequestFiles rejects invalid identifiers without calling fetch', async () => {
+  let called = false;
+  const fetchImpl = async () => { called = true; };
+
+  await assert.rejects(
+    () => listPullRequestFiles({ repository: 'not a repo', prNumber: '1', token: 'x', fetchImpl }),
+    /Invalid GitHub repository/,
+  );
+  await assert.rejects(
+    () => listPullRequestFiles({ repository: 'owner/repo', prNumber: '1; rm -rf /', token: 'x', fetchImpl }),
+    /Invalid pull request number/,
+  );
+  await assert.rejects(
+    () => listPullRequestFiles({ apiUrl: 'http://api.github.com', repository: 'owner/repo', prNumber: '1', token: 'x', fetchImpl }),
+    /plain HTTPS URL/,
+  );
+  assert.equal(called, false);
+});
+
+test('listPullRequestFiles throws on API errors and malformed payloads', async () => {
+  await assert.rejects(
+    () => listPullRequestFiles({
+      repository: 'owner/repo', prNumber: '1', token: 'x', fetchImpl: async () => ({ ok: false, status: 403 }),
+    }),
+    /responded 403/,
+  );
+  await assert.rejects(
+    () => listPullRequestFiles({
+      repository: 'owner/repo', prNumber: '1', token: 'x', fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ message: 'nope' }) }),
+    }),
+    /malformed pull request files payload/,
+  );
+});
+
+test('resolveAffectedTests prefers the GitHub API over git for pull requests', async () => {
+  await withTemporaryDirectory(async (directory) => {
+    // Not a git repository: selection must succeed via the API alone.
+    await mkdir(path.join(directory, 'tests/playwright/blocks'), { recursive: true });
+    await writeFile(path.join(directory, 'tests/playwright/blocks/banner.spec.mjs'), '// spec\n', 'utf8');
+
+    const { fetchImpl } = stubFetch([[{ filename: 'hlx_statics/blocks/banner/banner.js' }]]);
+    const result = await resolveAffectedTests({
+      env: {
+        GITHUB_TOKEN: 'secret',
+        GITHUB_REPOSITORY: 'owner/repo',
+        PR_NUMBER: '5',
+      },
+      cwd: directory,
+      listPath: path.join(directory, 'playwright-affected-tests.txt'),
+      fetchImpl,
+    });
+
+    assert.equal(result.mode, 'subset');
+    assert.deepEqual(result.specs, ['tests/playwright/blocks/banner.spec.mjs']);
+    assert.match(result.via, /GitHub API \(pull request #5\)/);
+
+    const list = await readFile(path.join(directory, 'playwright-affected-tests.txt'), 'utf8');
+    assert.match(list, /^blocks\/banner\.spec\.mjs$/m);
+  });
+});
+
+test('resolveAffectedTests falls back to git diff when the API fails', async () => {
+  await withGitRepository(async (directory) => {
+    await commitFile(directory, 'tests/playwright/blocks/banner.spec.mjs', '// spec\n', 'add banner spec');
+    git(directory, ['checkout', '-b', 'feature']);
+    await commitFile(directory, 'hlx_statics/blocks/banner/banner.js', '// block\n', 'change banner block');
+
+    const result = await resolveAffectedTests({
+      env: {
+        GITHUB_TOKEN: 'secret',
+        GITHUB_REPOSITORY: 'owner/repo',
+        PR_NUMBER: '5',
+        PLAYWRIGHT_DIFF_BASE: 'main',
+      },
+      cwd: directory,
+      listPath: path.join(directory, 'playwright-affected-tests.txt'),
+      fetchImpl: async () => { throw new Error('network down'); },
+    });
+
+    assert.equal(result.mode, 'subset');
+    assert.deepEqual(result.specs, ['tests/playwright/blocks/banner.spec.mjs']);
+    assert.match(result.via, /git diff against main/);
+  });
+});
+
+test('resolveAffectedTests uses git diff when no pull request context exists', async () => {
+  await withGitRepository(async (directory) => {
+    git(directory, ['checkout', '-b', 'feature']);
+    await commitFile(directory, 'CONTRIBUTING.md', 'docs\n', 'docs change');
+
+    const result = await resolveAffectedTests({
+      env: {},
+      cwd: directory,
+      listPath: path.join(directory, 'playwright-affected-tests.txt'),
+      baseRef: 'main',
+    });
+
+    assert.equal(result.mode, 'subset');
+    assert.deepEqual(result.specs, []);
+    assert.match(result.via, /git diff against main/);
+  });
+});
+
 test('cli falls back to the full suite when the base ref cannot be diffed', async () => {
   await withTemporaryDirectory((directory) => {
     const result = runScript(directory, ['origin/does-not-exist']);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /^mode=all$/m);
     assert.match(result.stdout, /^count=0$/m);
-    assert.match(result.stderr, /Cannot diff against 'origin\/does-not-exist'/);
+    assert.match(result.stderr, /Cannot determine changed files/);
   });
 });
 
