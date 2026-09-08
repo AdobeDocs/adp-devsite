@@ -1,4 +1,5 @@
 import decoratePreformattedCode, { applyLanguageDirectives, extractLanguageDirectives } from "../../components/code.js";
+import { decorateButtons } from "../../scripts/lib-adobeio.js";
 import { IS_DEV_DOCS } from "../../scripts/lib-helix.js";
 
 /**
@@ -85,6 +86,93 @@ const createSubTabs = (table) => {
   return { subTabsWrapper, subContentWrapper };
 }
 
+const createCardPanelsContent = (table) => {
+  const cardPanelsContent = document.createElement('div');
+  cardPanelsContent.className = 'card-panels-content';
+
+  const rows = table.querySelectorAll(':scope > tbody > tr, :scope > tr');
+  (rows.length ? rows : table.querySelectorAll('tr')).forEach((row) => {
+    const card = document.createElement('div');
+    card.className = 'card-panels-card';
+
+    const [introCell, mediaCell, listCell] = row.querySelectorAll(':scope > td');
+
+    if (introCell) {
+      const intro = document.createElement('div');
+      intro.className = 'card-panels-intro';
+
+      const heading = introCell.querySelector('h1, h2, h3, h4');
+      if (heading) {
+        heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL');
+        intro.appendChild(heading);
+      }
+
+      introCell.querySelectorAll(':scope > p').forEach((p) => {
+        p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
+        intro.appendChild(p);
+      });
+
+      card.appendChild(intro);
+    }
+
+    const picture = mediaCell?.querySelector('picture');
+    if (picture) {
+      const media = document.createElement('div');
+      media.className = 'card-panels-media';
+      media.appendChild(picture);
+      card.appendChild(media);
+    }
+
+    if (listCell) {
+      const listSection = document.createElement('div');
+      listSection.className = 'card-panels-list';
+
+      const heading = listCell.querySelector('h1, h2, h3, h4');
+      if (heading) {
+        heading.classList.add('spectrum-Heading', 'spectrum-Heading--sizeL');
+        listSection.appendChild(heading);
+      }
+
+      const ul = document.createElement('ul');
+      ul.className = 'card-panels-list-items';
+
+      listCell.querySelectorAll(':scope > ul > li').forEach((li) => {
+        const link = li.querySelector('a');
+        if (!link) return;
+
+        const item = document.createElement('li');
+        item.className = 'card-panels-item';
+
+        const itemPicture = li.querySelector('picture');
+        if (itemPicture) {
+          const icon = document.createElement('span');
+          icon.className = 'card-panels-icon';
+          icon.appendChild(itemPicture);
+          item.appendChild(icon);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'card-panels-info';
+        info.appendChild(link);
+
+        item.appendChild(info);
+        ul.appendChild(item);
+      });
+
+      listSection.appendChild(ul);
+      card.appendChild(listSection);
+    }
+
+    if (card.children.length) {
+      card.style.setProperty('--card-panels-card-cols', card.children.length);
+      cardPanelsContent.appendChild(card);
+    }
+  });
+
+  table.remove();
+  return cardPanelsContent;
+};
+
 export default async function decorate(block) {
   block.querySelectorAll(':scope > div > div > pre > code').forEach((code) => {
     const match = code.textContent.trim().match(/^(data-[^=]+)=(.*)$/);
@@ -96,6 +184,8 @@ export default async function decorate(block) {
       value.trim().split(/\s+/).filter(Boolean).forEach((cls) => block.classList.add(cls));
     }
   });
+
+  const isCardPanels = block.classList.contains('card-panels');
 
   const dataOrientation = block.getAttribute('data-orientation');
   const orientation = dataOrientation || (block.classList.contains('vertical') ? 'vertical' : 'horizontal');
@@ -112,10 +202,10 @@ export default async function decorate(block) {
 
   let tabCount = 0;
 
-  block.querySelectorAll('div').forEach((tab) => {
+  block.querySelectorAll(':scope > div').forEach((tab) => {
     const tabTitle = tab.querySelector('h2, h3, strong')?.textContent.trim();
-    const tabImage = tab.querySelector('picture')?.outerHTML || '';
-    const tabContent = tab.querySelector('div:last-child');
+    const tabImage = isCardPanels ? '' : (tab.querySelector('picture')?.outerHTML || '');
+    const tabContent = tab.querySelector(':scope > div:last-child');
 
     if (tabTitle && tabContent) {
       tabCount++;
@@ -124,7 +214,7 @@ export default async function decorate(block) {
       tabButton.className = 'tab-button';
       tabButton.innerHTML = `
         ${tabImage ? `<div class="tab-icon">${tabImage}</div>` : ''}
-        <span class="tab-title">${tabTitle}</span>
+        <span class="tab-title spectrum-Heading spectrum-Heading--sizeS">${tabTitle}</span>
       `;
       tabButton.setAttribute('data-tab', `tab${tabCount}`);
       if (tabCount === 1) tabButton.classList.add('active');
@@ -134,13 +224,21 @@ export default async function decorate(block) {
       contentDiv.setAttribute('data-tab-content', `tab${tabCount}`);
       contentDiv.innerHTML = tabContent.innerHTML;
 
-      handleCode(contentDiv);
+      if (isCardPanels) {
+        decorateButtons(contentDiv);
+        contentDiv.querySelectorAll('table').forEach((table) => {
+          const cardPanelsContent = createCardPanelsContent(table);
+          contentDiv.appendChild(cardPanelsContent);
+        });
+      } else {
+        handleCode(contentDiv);
 
-      contentDiv.querySelectorAll('table').forEach((table) => {
-        const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
-        contentDiv.appendChild(subTabsWrapper);
-        contentDiv.appendChild(subContentWrapper);
-      });
+        contentDiv.querySelectorAll('table').forEach((table) => {
+          const { subTabsWrapper, subContentWrapper } = createSubTabs(table);
+          contentDiv.appendChild(subTabsWrapper);
+          contentDiv.appendChild(subContentWrapper);
+        });
+      }
 
       if (tabCount === 1) contentDiv.classList.add('active');
 
