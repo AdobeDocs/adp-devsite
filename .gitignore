@@ -113,6 +113,7 @@ typings/
 /playwright-report/
 /playwright-results.json
 /playwright-summary.md
+/playwright-affected-tests.txt
 /test-results/
 /blob-report/
 /.act-artifacts/
