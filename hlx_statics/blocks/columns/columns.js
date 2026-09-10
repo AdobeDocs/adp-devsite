@@ -1,6 +1,5 @@
 import {
   createTag,
-  decorateButtons,
   removeEmptyPTags,
   getBlockSectionContainer,
   decorateAnchorLink,
@@ -40,14 +39,30 @@ export default async function decorate(block) {
   const variant = block.getAttribute('data-variant')
   const isReversed = block.getAttribute('data-isreversed') === 'true';
   const isControls = block.classList.contains('controls');
-  isReversed && block.classList.add('isReversed');
+  const isFullWidthBackground = block.classList.contains('full-width-background');
   const isDocs = IS_DEV_DOCS;
 
+  isReversed && block.classList.add('isReversed');
   isDocs && block.classList.add('isDocs')
   variant === "vertical" && block.classList.add(variant);
 
   block.setAttribute('daa-lh', 'columns');
   decorateLightOrDark(block);
+
+  if (isFullWidthBackground) {
+    const lastDiv = block.lastElementChild;
+    const img = lastDiv?.querySelector('img');
+
+    if (img) {
+      const bgUrl = img.src;
+      block.parentElement.style.backgroundImage = `url('${bgUrl}')`;
+      block.parentElement.style.backgroundRepeat = 'no-repeat';
+      block.parentElement.style.backgroundSize = 'cover';
+      block.parentElement.style.backgroundPosition = 'center';
+      lastDiv.remove();
+    }
+  }
+
 
   if (!container.classList.contains('columns-container')) {
     // eslint-disable-next-line no-console
