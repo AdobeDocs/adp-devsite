@@ -82,7 +82,7 @@ jobs:
           fi
           branch="${branch,,}"
           branch="${branch//\//-}"
-          echo "PLAYWRIGHT_BASE_URL=https://${branch}--adp-devsite-stage--adobedocs.aem.page" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_BASE_URL=https://${branch}--adp-devsite--adobedocs.aem.page" >> "$GITHUB_ENV"
 
       - name: Validate target URL
         if: env.ACT != 'true'
