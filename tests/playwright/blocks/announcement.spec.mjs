@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { hideNonComponentContent } from '../visual-test-utils.mjs';
+import {
+  hideNonComponentContent,
+  openDevDocsReferencePage,
+} from '../visual-test-utils.mjs';
 
 const path = '/dev-docs-reference/blocks/announcement/';
 const devBizPath = '/tools/sidekick/blocks/announcement';
@@ -32,18 +35,10 @@ function getAnnouncement(page, buttonName) {
 }
 
 async function openAnnouncementPage(page) {
-  const response = await page.goto(path, { waitUntil: 'domcontentloaded' });
-  expect(response, 'the reference page should return an HTTP response').not.toBeNull();
-  expect(response.ok(), `reference page returned ${response.status()}`).toBeTruthy();
-
-  await expect(page.getByRole('heading', {
-    level: 1,
-    name: 'Announcement Block',
-  })).toBeVisible();
-
-  // Font completion is relevant to screenshot stability. Do not wait for
-  // networkidle; assert the specific UI readiness conditions instead.
-  await page.evaluate(() => document.fonts.ready);
+  await openDevDocsReferencePage(page, {
+    path,
+    heading: 'Announcement Block',
+  });
 
   // Block decoration runs asynchronously. Wait until every example has been
   // loaded and its links rearranged into a button container before comparing
@@ -57,6 +52,8 @@ test.describe('Announcement reference', () => {
 
   examples.forEach((example) => {
     test(`matches ${example.name} visuals`, async ({ page }) => {
+      await hideNonComponentContent(page);
+
       const block = getAnnouncement(page, example.button);
 
       await expect(block).toHaveCount(1);
