@@ -54,7 +54,7 @@ You can fix some of the issues automatically by running `npx eslint . --fix`.
 Pull requests run Playwright against the AEM preview for the pull request's branch. The workflow derives the preview URL from the selected branch using this pattern:
 
 ```text
-https://<branch>--adp-devsite-stage--adobedocs.aem.page
+https://<branch>--adp-devsite--adobedocs.aem.page
 ```
 
 The workflow tests the component reference pages under `/dev-docs-reference/blocks/`. Playwright reports and failure diagnostics are available as workflow artifacts.
@@ -144,7 +144,7 @@ npm run test:e2e
 To test an explicit deployed preview locally without Act:
 
 ```bash
-PLAYWRIGHT_BASE_URL='https://<branch>--adp-devsite-stage--adobedocs.aem.page' npm run test:e2e
+PLAYWRIGHT_BASE_URL='https://<branch>--adp-devsite--adobedocs.aem.page' npm run test:e2e
 ```
 
 Useful commands:
