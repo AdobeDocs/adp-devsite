@@ -330,3 +330,20 @@ main div.columns-wrapper div.columns.center li{
 main div.columns-wrapper div.columns.heading-center.center h3.column-header  {
     text-align: center;
 }
+
+main div.columns-wrapper div.columns.font-white h1,
+main div.columns-wrapper div.columns.font-white h2,
+main div.columns-wrapper div.columns.font-white h3,
+main div.columns-wrapper div.columns.font-white h4,
+main div.columns-wrapper div.columns.font-white h5,
+main div.columns-wrapper div.columns.font-white h6,
+main div.columns-wrapper div.columns.font-white p,
+main div.columns-wrapper div.columns.font-white ul,
+main div.columns-wrapper div.columns.font-white li {
+    color: white !important;
+}
+
+main div.columns-wrapper div.columns.font-white .spectrum-Button--secondary {
+    color: white !important;
+    border-color: white !important;
+}

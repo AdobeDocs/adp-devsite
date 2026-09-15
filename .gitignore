@@ -108,3 +108,12 @@ typings/
 .hlx
 
 .DS_Store
+
+# Playwright and local Act artifacts
+/playwright-report/
+/playwright-results.json
+/playwright-summary.md
+/playwright-affected-tests.txt
+/test-results/
+/blob-report/
+/.act-artifacts/

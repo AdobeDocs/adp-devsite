@@ -6,6 +6,22 @@ main div.banner-wrapper.black {
   background-color: black;
 }
 
+main div.banner-wrapper.background-color-navy {
+  background-color: rgb(15, 55, 95);
+}
+
+main div.banner-wrapper.background-color-white {
+  background-color: #fff;
+}
+
+main div.banner-wrapper.background-color-gray {
+  background-color: rgb(245, 245, 245);
+}
+
+main div.banner-wrapper.background-color-dark-gray {
+  background-color: #323232;
+}
+
 main div.banner-wrapper div.banner {
   width: 90%;
   max-width: 1280px;
@@ -53,14 +69,33 @@ main div.banner-wrapper div.banner:not(.isH)>div>div {
 }
 
 main div.banner-wrapper div.banner.wide {
-      padding: 20px 0;
+  padding: 20px 0;
 }
 
-main div.banner-wrapper div.banner.wide p.button-container a{
+main div.banner-wrapper div.banner.wide p.button-container a {
   font-size: 16px;
 }
 
+main div.banner-wrapper:has(.banner.image) {
+
+  & div.banner.image {
+    width: 100%;
+
+    & img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    &.medium img {
+      width: 500px;
+    }
+  }
+}
+
 @media screen and (max-width: 768px) {
+
   main div.banner-wrapper.black div.banner:not(.isH)>div>div,
   main div.banner-wrapper div.banner:not(.isH)>div>div {
     flex-direction: column;
@@ -71,5 +106,17 @@ main div.banner-wrapper div.banner.wide p.button-container a{
 
   main div.banner-wrapper div.banner>div>div {
     align-items: center;
+  }
+}
+
+@media screen and (min-width: 320px) and (max-width : 1024px) {
+  main div.banner-wrapper:has(.banner.image) {
+
+    & div.banner.image {
+      &.medium img {
+        width: 80%;
+        height: 100%;
+      }
+    }
   }
 }

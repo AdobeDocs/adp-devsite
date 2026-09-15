@@ -105,18 +105,18 @@ async function initSearch() {
   let searchCleared = false; // Flag to track if search was cleared
   if (getComputedStyle(searchResultsDiv).visibility === "hidden") {
     suggestionsFlag = true;
-  }else{
+  } else {
     searchExecuted = true;
   }
 
   let selectedProducts;
-  if (localElem && !urlParams.products){ // if no products selected in URL and in local search then just select local product (probably first search in product page)
+  if (localElem && !urlParams.products) { // if no products selected in URL and in local search then just select local product (probably first search in product page)
     selectedProducts = [localElem.productName]
-  }else{
+  } else {
     // from url params set selected products
     selectedProducts = (urlParams.products === "all" || !urlParams.products)
-    ? allProducts.slice() // Select all products when "all" is in the URL or no products (a new search)
-    : urlParams.products.split(",").filter(product => allProducts.includes(product));
+      ? allProducts.slice() // Select all products when "all" is in the URL or no products (a new search)
+      : urlParams.products.split(",").filter(product => allProducts.includes(product));
   }
 
   // Get indices corresponding to selected products
@@ -124,9 +124,9 @@ async function initSearch() {
   let initialIndex;
 
   // Set initial index to initialize instant search instance
-  if (localElem && !urlParams.products){ //the only unique case is when initially doing local search and not selecting other products
+  if (localElem && !urlParams.products) { //the only unique case is when initially doing local search and not selecting other products
     initialIndex = localElem.indexName;
-  }else{
+  } else {
     initialIndex = selectedIndices[0];
   }
 
@@ -134,13 +134,13 @@ async function initSearch() {
   let search = instantsearch({
     indexName: initialIndex, // Use the first valid index
     searchClient,
-    });
+  });
 
   // Variable to keep track of results to modify how to render them later
   let results = new Map();
 
   search.start();
-  
+
   let currentDynamicWidgets = []; // Widgets that change on each call
   let staticWidgetsAdded = false; // One-time widgets
 
@@ -163,131 +163,134 @@ async function initSearch() {
       searchBoxContainer = ".suggestion-results";
     }
 
-     // Calculate hits dynamically based number of selected indices
+    // Calculate hits dynamically based number of selected indices
     const hits = Math.min(15, Math.max(4, Math.floor(SUGGESTION_MAX_RESULTS / selectedIndices.length)));
 
-     // Add common widgets like hits per index and how long results are (content) - and save reference so it can be removed on the next call
-     const configureWidget = instantsearch.widgets.configure({
-       hitsPerPage: hits,
-       attributesToHighlight: ['title', 'content'],
-       attributesToSnippet: ['content:50'],
-     });
-     currentDynamicWidgets.push(configureWidget);
-     search.addWidgets([configureWidget]);
+    // Add common widgets like hits per index and how long results are (content) - and save reference so it can be removed on the next call
+    const configureWidget = instantsearch.widgets.configure({
+      hitsPerPage: hits,
+      attributesToHighlight: ['title', 'content'],
+      attributesToSnippet: ['content:50'],
+    });
+    currentDynamicWidgets.push(configureWidget);
+    search.addWidgets([configureWidget]);
 
     // Custom InstantSearch search box to deal with suggestions and full results which depends on user input
-    function customSearchBox() { return { init({ helper }) {
-      const searchInput = document.querySelector("#search-box input");
-      const clearSearchQueryButton = document.querySelector("button.clear-search-query-button");
-      const searchResults = document.querySelector("div.search-results");
-      const searchSuggestions = document.querySelector("div.suggestion-results");
-      const outerSearchSuggestions = document.querySelector("div.outer-suggestion-results");
-      const queryFromURL = urlParams.query;
+    function customSearchBox() {
+      return {
+        init({ helper }) {
+          const searchInput = document.querySelector("#search-box input");
+          const clearSearchQueryButton = document.querySelector("button.clear-search-query-button");
+          const searchResults = document.querySelector("div.search-results");
+          const searchSuggestions = document.querySelector("div.suggestion-results");
+          const outerSearchSuggestions = document.querySelector("div.outer-suggestion-results");
+          const queryFromURL = urlParams.query;
 
-      // Function to toggle clear button visibility
-      function toggleClearButton() {
-        if (searchInput.value.trim() !== "") {
-          clearSearchQueryButton.style.display = "block";
-        } else {
-          clearSearchQueryButton.style.display = "none";
-        }
-      }
-
-      // Initialize clear button visibility
-      toggleClearButton();
-
-      const debounceMs = window.adp_search.searchDebounceMs ?? 200;
-      const debouncedSuggestionSearch = window.adp_search.debouncePromise(
-        () => {
-          if (searchExecuted) {
-            return Promise.resolve();
+          // Function to toggle clear button visibility
+          function toggleClearButton() {
+            if (searchInput.value.trim() !== "") {
+              clearSearchQueryButton.style.display = "block";
+            } else {
+              clearSearchQueryButton.style.display = "none";
+            }
           }
-          const trimmed = searchInput.value.trim();
-          if (trimmed === '' || !isSearchableQuery(trimmed)) {
+
+          // Initialize clear button visibility
+          toggleClearButton();
+
+          const debounceMs = window.adp_search.searchDebounceMs ?? 200;
+          const debouncedSuggestionSearch = window.adp_search.debouncePromise(
+            () => {
+              if (searchExecuted) {
+                return Promise.resolve();
+              }
+              const trimmed = searchInput.value.trim();
+              if (trimmed === '' || !isSearchableQuery(trimmed)) {
+                helper.setQuery('').search();
+                return Promise.resolve();
+              }
+              helper.setQuery(searchInput.value).search();
+              return Promise.resolve();
+            },
+            debounceMs,
+          );
+
+          // Detects query in URL but no input value (tab was reloaded)
+          if (queryFromURL && !searchInput.value) {
+            searchInput.value = queryFromURL;
+            if (isSearchableQuery(queryFromURL)) {
+              helper.setQuery(queryFromURL).search();
+              suggestionsFlag = false;
+              searchResults.style.visibility = "visible";
+              outerSearchSuggestions.style.display = "none";
+              searchExecuted = true; // Mark search as executed
+            }
+            toggleClearButton(); // Update clear button visibility
+          }
+
+          // Listen for user typing (suggestions appear before Enter is pressed)
+          searchInput.addEventListener('input', () => {
+            toggleClearButton(); // Update clear button visibility on input
+            searchCleared = false; // Reset cleared flag when user starts typing
+            if (searchExecuted) {
+              return;
+            }
+            const trimmed = searchInput.value.trim();
+            if (trimmed === '') {
+              searchSuggestions.style.display = 'none';
+              helper.setQuery('').search();
+              return;
+            }
+            if (!isSearchableQuery(trimmed)) {
+              searchSuggestions.style.display = 'none';
+              helper.setQuery('').search();
+              return;
+            }
+            searchSuggestions.style.display = 'block';
+            debouncedSuggestionSearch();
+          });
+
+          // When Enter is pressed, execute full search and prevent suggestions from reappearing
+          searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+              searchCleared = false; // Reset cleared flag when user presses Enter
+              const trimmed = searchInput.value.trim();
+              if (trimmed === '') { // If users presses enter with an empty query while in a full search, clear results and show suggestions again
+                searchResults.classList.remove('has-results');
+                searchResults.style.visibility = 'hidden';
+                outerSearchSuggestions.style.display = 'flex';
+                suggestionsFlag = true;
+                searchExecuted = false;
+                return;
+              }
+              helper.setQuery(searchInput.value).search();
+              outerSearchSuggestions.style.display = "none";
+              searchSuggestions.style.display = "none";
+              suggestionsFlag = false; // Prevent suggestions from overriding search results
+              searchResults.style.visibility = "visible";
+              searchResults.classList.add('has-results');
+              searchExecuted = true; // Prevent suggestions from overriding search results
+            }
+          });
+
+          // Clear search query when clear button is clicked
+          clearSearchQueryButton.addEventListener('click', () => {
+            outerSearchSuggestions.style.display = "flex";
+            searchInput.value = "";
             helper.setQuery('').search();
-            return Promise.resolve();
-          }
-          helper.setQuery(searchInput.value).search();
-          return Promise.resolve();
-        },
-        debounceMs,
-      );
-
-      // Detects query in URL but no input value (tab was reloaded)
-      if (queryFromURL && !searchInput.value) {
-        searchInput.value = queryFromURL;
-        if (isSearchableQuery(queryFromURL)) {
-          helper.setQuery(queryFromURL).search();
-          suggestionsFlag = false;
-          searchResults.style.visibility = "visible";
-          outerSearchSuggestions.style.display = "none";
-          searchExecuted = true; // Mark search as executed
-        }
-        toggleClearButton(); // Update clear button visibility
-      }
-
-      // Listen for user typing (suggestions appear before Enter is pressed)
-      searchInput.addEventListener('input', () => {
-        toggleClearButton(); // Update clear button visibility on input
-        searchCleared = false; // Reset cleared flag when user starts typing
-        if (searchExecuted) {
-          return;
-        }
-        const trimmed = searchInput.value.trim();
-        if (trimmed === '') {
-          searchSuggestions.style.display = 'none';
-          helper.setQuery('').search();
-          return;
-        }
-        if (!isSearchableQuery(trimmed)) {
-          searchSuggestions.style.display = 'none';
-          helper.setQuery('').search();
-          return;
-        }
-        searchSuggestions.style.display = 'block';
-        debouncedSuggestionSearch();
-      });
-
-      // When Enter is pressed, execute full search and prevent suggestions from reappearing
-      searchInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-          searchCleared = false; // Reset cleared flag when user presses Enter
-          const trimmed = searchInput.value.trim();
-          if (trimmed === '') { // If users presses enter with an empty query while in a full search, clear results and show suggestions again
-            searchResults.classList.remove('has-results');
-            searchResults.style.visibility = 'hidden';
-            outerSearchSuggestions.style.display = 'flex';
-            suggestionsFlag = true;
-            searchExecuted = false;
-            return;
-          }
-          helper.setQuery(searchInput.value).search();
-          outerSearchSuggestions.style.display = "none";
-          searchSuggestions.style.display = "none";
-          suggestionsFlag = false; // Prevent suggestions from overriding search results
-          searchResults.style.visibility = "visible";
-          searchResults.classList.add('has-results');
-          searchExecuted = true; // Prevent suggestions from overriding search results
-        }
-      });
-
-      // Clear search query when clear button is clicked
-      clearSearchQueryButton.addEventListener('click', () => {
-        outerSearchSuggestions.style.display = "flex";
-        searchInput.value = "";
-        helper.setQuery('').search();
-        // which results are removed depends on which mode we are in
-        if(suggestionsFlag){
-          searchSuggestions.style.display = "none";
-        }else{
-          searchResults.classList.remove('has-results');
-          searchResults.style.visibility = "hidden";
-        }
-        searchCleared = true; // Mark that search was cleared
-        toggleClearButton(); // Update clear button visibility after clearing
-      });
-    }, render() {}, };
-  }
+            // which results are removed depends on which mode we are in
+            if (suggestionsFlag) {
+              searchSuggestions.style.display = "none";
+            } else {
+              searchResults.classList.remove('has-results');
+              searchResults.style.visibility = "hidden";
+            }
+            searchCleared = true; // Mark that search was cleared
+            toggleClearButton(); // Update clear button visibility after clearing
+          });
+        }, render() { },
+      };
+    }
 
     // Custom InstantSearch function to merge hits from multiple indices
     function mergedHits({ indices }) {
@@ -318,9 +321,9 @@ async function initSearch() {
         return;
       }
 
-      if (suggestionsFlag){
+      if (suggestionsFlag) {
         renderSuggestionResults();
-      }else{
+      } else {
         renderMergedResults(); // Call to render the filtered results
       }
     }
@@ -437,7 +440,7 @@ async function initSearch() {
     });
   }
 
-// Function that attaches event listeners to each checkbox
+  // Function that attaches event listeners to each checkbox
   function attachCheckboxEventListeners() {
     const allProductsCheckbox = document.getElementById('checkbox-all-products');
     const productCheckboxes = document.querySelectorAll('.filters input[type="checkbox"]:not(#checkbox-all-products)');
@@ -576,14 +579,14 @@ async function initSearch() {
     // render each section
     sorted.forEach((product) => {
       const productDiv = document.createElement("div");
-        productDiv.classList.add("suggestion-product-group");
+      productDiv.classList.add("suggestion-product-group");
 
-        // Add separator before each product section
-        productDiv.innerHTML = `<hr class="search-suggestions-hr-top"><h4 class="search-suggestions-h4">${product}</h4><hr class="search-suggestions-hr-bottom">`;
-        if (productGroupedResults.has(product)) {
-          // If there are results, render them
-          productGroupedResults.get(product).forEach(({ key, value }) => {
-              productDiv.innerHTML += `
+      // Add separator before each product section
+      productDiv.innerHTML = `<hr class="search-suggestions-hr-top"><h4 class="search-suggestions-h4">${product}</h4><hr class="search-suggestions-hr-bottom">`;
+      if (productGroupedResults.has(product)) {
+        // If there are results, render them
+        productGroupedResults.get(product).forEach(({ key, value }) => {
+          productDiv.innerHTML += `
                   <a href="${value.url}" role="menuitem" tabindex="0" target="_top" class="spectrum-Menu-item search-suggestions-a" daa-ll="search-suggestion-${value.url}">
                     <span class="spectrum-Menu-itemLabel">
                         <div>
@@ -594,11 +597,11 @@ async function initSearch() {
                     </span>
                   </a>
               `;
-          });
-        } else {
-            // Even if no results, still display the product section
-            productDiv.innerHTML += `<p class="no-suggestions-result" >No results found for this product.</p>`;
-        }
+        });
+      } else {
+        // Even if no results, still display the product section
+        productDiv.innerHTML += `<p class="no-suggestions-result" >No results found for this product.</p>`;
+      }
       ul.appendChild(productDiv);
     });
 
@@ -1086,18 +1089,18 @@ export default async function decorate(block) {
   if (isSourceGithub()) {
     // Create navigation for docs from github (desktop only)
 
-    let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;'});
+    let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu desktop-nav', style: 'list-style-type: none;' });
 
     // Add Products link for documentation template
     if (isTopLevelNav(window.location.pathname)) {
-      const homeLinkLi = createTag('li', {class: 'navigation-home'});
-      const homeLinkA = createTag('a', {href: setExpectedOrigin(window.location.origin), 'daa-ll': 'Home', 'fullPath': true});
+      const homeLinkLi = createTag('li', { class: 'navigation-home' });
+      const homeLinkA = createTag('a', { href: setExpectedOrigin(window.location.origin), 'daa-ll': 'Home', 'fullPath': true });
       homeLinkA.innerHTML = 'Products';
       homeLinkLi.append(homeLinkA);
       navigationLinks.append(homeLinkLi);
     } else {
-      const productLi = createTag('li', {class: 'navigation-products'});
-      const productA = createTag('a', {href: setExpectedOrigin(window.location.origin, '/apis'), 'daa-ll': 'Products',  'fullPath': true});
+      const productLi = createTag('li', { class: 'navigation-products' });
+      const productA = createTag('a', { href: setExpectedOrigin(window.location.origin, '/apis'), 'daa-ll': 'Products', 'fullPath': true });
       productA.innerHTML = 'Products';
       productLi.append(productA);
       navigationLinks.append(productLi);
@@ -1106,13 +1109,6 @@ export default async function decorate(block) {
     const topNavHtml = await fetchTopNavHtml();
     if (topNavHtml) {
       navigationLinks.innerHTML += topNavHtml;
-
-      // external links (aio_external query param)
-      navigationLinks.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
-        link.href = link.href.replace(/[?&]aio_external/, '');
-        link.setAttribute('target', '_blank');
-        link.setAttribute('rel', 'noopener noreferrer');
-      });
 
       // Process dropdowns for documentation template navigation
       navigationLinks.querySelectorAll('li > ul').forEach((dropDownList, index) => {
@@ -1135,6 +1131,20 @@ export default async function decorate(block) {
         dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
       });
 
+      // external links (aio_external query param)
+      navigationLinks.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
+        try {
+          const url = new URL(link.href, window.location.href);
+          url.searchParams.delete('aio_external');
+          link.href = url.href;
+        } catch (e) {
+          link.href = link.href.replace(/[?&]aio_external(=[^&#]*)?/, '');
+        }
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+
+      });
+
       header.append(navigationLinks);
     }
 
@@ -1145,17 +1155,17 @@ export default async function decorate(block) {
 
   } else {
     // Create navigation for non-documentation pages
-    let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu', style: 'list-style-type: none;'});
+    let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu', style: 'list-style-type: none;' });
 
     if (isTopLevelNav(window.location.pathname)) {
-      const homeLinkLi = createTag('li', {class: 'navigation-home'});
-      const homeLinkA = createTag('a', {href: setExpectedOrigin(window.location.origin), 'daa-ll': 'Home'});
+      const homeLinkLi = createTag('li', { class: 'navigation-home' });
+      const homeLinkA = createTag('a', { href: setExpectedOrigin(window.location.origin), 'daa-ll': 'Home' });
       homeLinkA.innerHTML = 'Products';
       homeLinkLi.append(homeLinkA);
       navigationLinks.append(homeLinkLi);
     } else {
-      const productLi = createTag('li', {class: 'navigation-products'});
-      const productA = createTag('a', {href: setExpectedOrigin(window.location.origin, '/apis'), 'daa-ll': 'Products'});
+      const productLi = createTag('li', { class: 'navigation-products' });
+      const productA = createTag('a', { href: setExpectedOrigin(window.location.origin, '/apis'), 'daa-ll': 'Products' });
       productA.innerHTML = 'Products';
       productLi.append(productA);
       navigationLinks.append(productLi);
@@ -1169,7 +1179,7 @@ export default async function decorate(block) {
         navigationLinks.innerHTML += topNavHtml;
       }
     } else {
-      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin,'nav');
+      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin, 'nav');
       let fragment = await loadFragment(navPath);
       if (fragment == null) {
         // load the default nav in franklin_assets folder nav
@@ -1267,7 +1277,7 @@ export default async function decorate(block) {
   header.append(globalNavSearchDropDown());
 
   //initialize search
-  if(window.adp_search.map_found){
+  if (window.adp_search.map_found) {
     decorateSearchIframeContainer(header);
   }
   block.remove();
@@ -1318,7 +1328,7 @@ export default async function decorate(block) {
 
   if (window.adp && window.adp.imsProfile === LoadingState.SUCCESS) {
     hideSpinner();
-    if(window.adobeid && window.adobeid.profile) {
+    if (window.adobeid && window.adobeid.profile) {
       // Use helper to ensure header is ready
       decorateProfileWhenReady(window.adobeid.profile);
     }
@@ -1346,7 +1356,7 @@ export default async function decorate(block) {
 
   window.addEventListener('imsGetProfileSuccess', () => {
     hideSpinner();
-    if(window.adobeid && window.adobeid.profile) {
+    if (window.adobeid && window.adobeid.profile) {
       // Use helper to ensure header is ready
       decorateProfileWhenReady(window.adobeid.profile);
     }
