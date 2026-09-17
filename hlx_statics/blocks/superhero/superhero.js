@@ -52,8 +52,8 @@ function getTextColorModifier(block) {
 
 function unwrapIcons(block) {
   block.querySelectorAll('span.icon').forEach((span) => {
-    span.textContent = '';  
-    
+    span.textContent = '';
+
     const spanParent = span.parentElement;
     spanParent.replaceWith(span);
   });
@@ -131,7 +131,7 @@ async function decorateDevBizHalfWidth(block) {
     });
     placeholderDiv.remove();
   }
-  
+
   const videoSource = parseVideoSource(block.lastElementChild);
   if (videoSource && block.classList.contains('video')) {
     const isControl = block.classList.contains('controls');
@@ -361,7 +361,7 @@ function applyDataAttributeStyles(block) {
 
   const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(29, 125, 238)';
   const background = block.getAttribute('data-background') || defaultBackgroundColor;
-  if(variant === VARIANTS.halfWidth) {
+  if (variant === VARIANTS.halfWidth) {
     const wrapper = block.parentElement;
     wrapper.style.background = background;
   } else {
