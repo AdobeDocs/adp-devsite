@@ -70,8 +70,12 @@ export default async function decorate(block) {
 
   const accordion_items = block.querySelectorAll('.accordion-item');
   accordion_items.forEach((item, i) => {
-    item.addEventListener("click", () => {
-        const heading = item.querySelector('.accordion-itemHeader');
+    const heading = item.querySelector('.accordion-itemHeader');
+    // Listen on the header button (not the whole item) so only the header toggles,
+    // and so the toggle still fires inside the Sidekick Library preview, which adds its
+    // own click handler to every <a>/<button> that calls stopPropagation() (that only
+    // blocks ancestor listeners, not other listeners on the same button element).
+    heading.addEventListener("click", () => {
         const content = item.querySelector('.accordion-itemContent');
         content.querySelectorAll('p').forEach((p) => {
             p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
