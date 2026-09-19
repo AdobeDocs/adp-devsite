@@ -257,6 +257,7 @@ export function isFileVideo(url) {
  */
 export function buildYoutubeEmbed(videoId, title, {
   autoplay = false,
+  muted = false,
   loop = false,
   controls = true,
 } = {}) {
@@ -267,6 +268,8 @@ export function buildYoutubeEmbed(videoId, title, {
   });
   if (autoplay) {
     params.set('autoplay', '1');
+  }
+  if (muted) {
     params.set('mute', '1');
   }
   if (loop) {
@@ -290,6 +293,7 @@ export function buildYoutubeEmbed(videoId, title, {
  */
 export function buildVimeoEmbed(url, title, {
   autoplay = false,
+  muted = false,
   loop = false,
   controls = true,
 } = {}) {
@@ -301,6 +305,8 @@ export function buildVimeoEmbed(url, title, {
   });
   if (autoplay) {
     params.set('autoplay', '1');
+  }
+  if (muted) {
     params.set('muted', '1');
   }
   const src = `https://player.vimeo.com/video/${videoId}?${params.toString()}`;
@@ -381,11 +387,11 @@ export function buildVideoMarkup({
 
   const youtubeId = getYoutubeVideoId(resolvedUrl);
   if (youtubeId) {
-    return buildYoutubeEmbed(youtubeId, resolvedTitle, { autoplay, loop, controls: controls || !autoplay });
+    return buildYoutubeEmbed(youtubeId, resolvedTitle, { autoplay, muted, loop, controls: controls || !autoplay });
   }
 
   if (resolvedUrl.toLowerCase().includes('vimeo')) {
-    return buildVimeoEmbed(resolvedUrl, resolvedTitle, { autoplay, loop, controls: controls || !autoplay });
+    return buildVimeoEmbed(resolvedUrl, resolvedTitle, { autoplay, muted, loop, controls: controls || !autoplay });
   }
 
   const adobeTvId = getAdobeTvVideoId(resolvedUrl);
@@ -592,5 +598,10 @@ export function buildVideoContainer(options) {
 export function applyVideoContainer(element, options) {
   element.classList.add('video-container');
   element.innerHTML = buildVideoMarkup(options);
+  const video = element.querySelector('video');
+  if (video && typeof options?.muted === 'boolean') {
+    video.muted = options.muted;
+    video.defaultMuted = options.muted;
+  }
   hydrateSocialEmbeds(element);
 }
