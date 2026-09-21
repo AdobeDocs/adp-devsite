@@ -228,7 +228,6 @@ main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
   display: flex;
   overflow: hidden;
   user-select: none;
-  gap: 90px;
   position: relative;
   width: 100%;
   mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
@@ -239,8 +238,6 @@ main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  gap: 90px;
   min-width: 100%;
   animation: carousel-marquee 55s linear infinite;
 }
@@ -255,22 +252,31 @@ main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover 
   }
 
   100% {
-    transform: translateX(calc(-100% - 90px));
+    transform: translateX(-100%);
   }
 }
 
 main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
-  display: inline-flex;
+  flex-shrink: 0;
+  width: 172px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  opacity: 0.9;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0.65;
+  filter: grayscale(100%);
+  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
   cursor: pointer;
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-logo-item:hover {
+main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-logo-item {
+  opacity: 0.35;
+  filter: grayscale(100%);
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-logo-item:hover,
+main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-logo-item:hover {
   opacity: 1;
+  filter: grayscale(0%);
   transform: scale(1.08);
 }
 
@@ -279,7 +285,7 @@ main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
   height: 65px;
   max-height: 65px;
   width: auto;
-  max-width: 160px;
+  max-width: 140px;
   object-fit: contain;
   display: block;
 }
@@ -303,31 +309,23 @@ main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.scroll
   }
 
   main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
-    gap: 56px;
     mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
   }
 
   main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
-    gap: 56px;
     animation-duration: 40s;
   }
 
-  @keyframes carousel-marquee {
-    0% {
-      transform: translateX(0);
-    }
-
-    100% {
-      transform: translateX(calc(-100% - 56px));
-    }
+  main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
+    width: 120px;
   }
 
   main div.carousel-wrapper div.carousel.scroll .carousel-logo-item img,
   main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
     height: 32px;
     max-height: 34px;
-    max-width: 120px;
+    max-width: 100px;
   }
 
   main div.carousel-wrapper div.carousel.scroll .carousel-logo-text {
