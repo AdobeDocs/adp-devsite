@@ -18,7 +18,7 @@ main div.carousel-wrapper div.carousel .icon img {
   object-fit: contain;
 }
 
-main div.carousel-wrapper  div.carousel div.product-link-container {
+main div.carousel-wrapper div.carousel div.product-link-container {
   display: flex;
   flex-direction: row;
   gap: 1rem;
@@ -47,7 +47,7 @@ main div.carousel-wrapper div.carousel .icon-container {
     flex-wrap: wrap;
   }
 
-  main div.carousel-wrapper  div.carousel div.media-container,
+  main div.carousel-wrapper div.carousel div.media-container,
   main div.carousel-wrapper div.carousel div.text-container {
     width: 100% !important;
     max-width: 100%;
@@ -59,6 +59,7 @@ main div.carousel-wrapper div.carousel .icon-container {
     visibility: hidden;
   }
 }
+
 main div.carousel-wrapper div.carousel p.image-container picture {
   left: 0;
   width: 100%;
@@ -171,8 +172,10 @@ main div.carousel-wrapper .carousel .slide-arrow:focus {
 }
 
 main div.carousel-wrapper div.carousel .slides-container {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
 }
 
 /* WebKit */
@@ -270,6 +273,7 @@ main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover 
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(calc(-100% - 3.5rem));
   }
@@ -280,22 +284,20 @@ main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  opacity: 0.55;
-  filter: grayscale(100%);
-  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+  opacity: 0.9;
+  transition: opacity 0.3s ease, transform 0.3s ease;
   cursor: pointer;
 }
 
 main div.carousel-wrapper div.carousel.scroll .carousel-logo-item:hover {
   opacity: 1;
-  filter: grayscale(0%);
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 main div.carousel-wrapper div.carousel.scroll .carousel-logo-item img,
 main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
-  height: 32px;
-  max-height: 36px;
+  height: 65px;
+  max-height: 65px;
   width: auto;
   max-width: 160px;
   object-fit: contain;
@@ -347,6 +349,7 @@ main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.scroll
     0% {
       transform: translateX(0);
     }
+
     100% {
       transform: translateX(calc(-100% - 2rem));
     }
@@ -354,8 +357,8 @@ main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.scroll
 
   main div.carousel-wrapper div.carousel.scroll .carousel-logo-item img,
   main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
-    height: 26px;
-    max-height: 28px;
+    height: 32px;
+    max-height: 34px;
     max-width: 120px;
   }
 
@@ -369,12 +372,13 @@ main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.scroll
   main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
     animation: none;
   }
+
   main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
     overflow-x: auto;
     scrollbar-width: none;
   }
+
   main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container::-webkit-scrollbar {
     display: none;
   }
 }
-
