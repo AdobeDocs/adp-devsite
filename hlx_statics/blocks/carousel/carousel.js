@@ -15,8 +15,8 @@ export default async function decorate(block) {
   block.setAttribute("daa-lh", "carousel");
   removeEmptyPTags(block);
 
-  if (block.classList.contains("scroll")) {
-    decorateScrollCarousel(block);
+  if (block.classList.contains("partner-marquee")) {
+    decoratePartnerMarquee(block);
     return;
   }
 
@@ -371,10 +371,13 @@ export default async function decorate(block) {
 }
 
 /**
- * decorates the scroll carousel variant (logo marquee ticker)
+ * decorates the partner-marquee variant
  * @param {Element} block The carousel block element
  */
-function decorateScrollCarousel(block) {
+function decoratePartnerMarquee(block) {
+  const isImageVariant = block.classList.contains('image');
+  const isTextVariant = block.classList.contains('text');
+
   const rows = [...block.querySelectorAll(':scope > div > div')];
   if (rows.length === 0) return;
 
@@ -383,19 +386,50 @@ function decorateScrollCarousel(block) {
   rows.forEach((row) => {
     const pictures = row.querySelectorAll('picture');
     const images = row.querySelectorAll('img');
+    const textContent = row.textContent.trim();
 
-    if (pictures.length > 0) {
-      pictures.forEach((pic) => {
-        logoElements.push({ type: 'picture', element: pic });
-      });
-    } else if (images.length > 0) {
-      images.forEach((img) => {
-        logoElements.push({ type: 'image', element: img });
-      });
+    if (isImageVariant) {
+      // Image variant: get image only, extract text from row as alt text
+      if (pictures.length > 0) {
+        pictures.forEach((pic) => {
+          const img = pic.querySelector('img');
+          if (img && textContent) {
+            img.setAttribute('alt', textContent);
+          }
+          logoElements.push({ type: 'picture', element: pic });
+        });
+      } else if (images.length > 0) {
+        images.forEach((img) => {
+          if (textContent) {
+            img.setAttribute('alt', textContent);
+          }
+          logoElements.push({ type: 'image', element: img });
+        });
+      }
+    } else if (isTextVariant) {
+      // Text variant: get text only
+      if (textContent) {
+        logoElements.push({ type: 'text', text: textContent });
+      }
     } else {
-      const text = row.textContent.trim();
-      if (text) {
-        logoElements.push({ type: 'text', text });
+      // Default: if images present, use text as alt text and display image; otherwise display text
+      if (pictures.length > 0) {
+        pictures.forEach((pic) => {
+          const img = pic.querySelector('img');
+          if (img && textContent) {
+            img.setAttribute('alt', textContent);
+          }
+          logoElements.push({ type: 'picture', element: pic });
+        });
+      } else if (images.length > 0) {
+        images.forEach((img) => {
+          if (textContent) {
+            img.setAttribute('alt', textContent);
+          }
+          logoElements.push({ type: 'image', element: img });
+        });
+      } else if (textContent) {
+        logoElements.push({ type: 'text', text: textContent });
       }
     }
   });
@@ -404,18 +438,23 @@ function decorateScrollCarousel(block) {
 
   const scrollWrapper = createTag('div', { class: 'carousel-scroll-wrapper' });
   const marqueeContainer = createTag('div', { class: 'carousel-marquee-container' });
-  const marqueeTrack1 = createTag('div', { class: 'carousel-marquee-group' });
+  const marqueeTrack1 = createTag('ul', { class: 'carousel-marquee-group', role: 'list' });
 
   function createLogoItem(item) {
-    const itemDiv = createTag('div', { class: 'carousel-logo-item' });
+    const itemLi = createTag('li', { class: 'carousel-logo-item' });
     if (item.type === 'picture' || item.type === 'image') {
-      itemDiv.append(item.element.cloneNode(true));
+      const cloned = item.element.cloneNode(true);
+      const img = cloned.tagName === 'IMG' ? cloned : cloned.querySelector('img');
+      if (img && !img.getAttribute('alt')) {
+        img.setAttribute('alt', img.getAttribute('title') || 'Partner logo');
+      }
+      itemLi.append(cloned);
     } else if (item.type === 'text') {
       const span = createTag('span', { class: 'carousel-logo-text' });
       span.textContent = item.text;
-      itemDiv.append(span);
+      itemLi.append(span);
     }
-    return itemDiv;
+    return itemLi;
   }
 
   // Ensure enough items in the group to span viewports smoothly
@@ -437,4 +476,5 @@ function decorateScrollCarousel(block) {
   scrollWrapper.append(marqueeContainer);
   block.append(scrollWrapper);
 }
+
 

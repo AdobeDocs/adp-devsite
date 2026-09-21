@@ -206,15 +206,15 @@ main div.carousel-wrapper div.carousel .carousel-circle-selected {
   background-color: #007aff !important;
 }
 
-/* Scroll variant - Logo marquee carousel */
-main div.carousel-wrapper div.carousel.scroll {
+/* Partner-marquee variant */
+main div.carousel-wrapper div.carousel.partner-marquee {
   max-width: 100%;
   padding: 36px 0;
   position: relative;
   overflow: hidden;
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-scroll-wrapper {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-scroll-wrapper {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 16px;
@@ -224,7 +224,7 @@ main div.carousel-wrapper div.carousel.scroll .carousel-scroll-wrapper {
   width: 100%;
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container {
   display: flex;
   overflow: hidden;
   user-select: none;
@@ -234,15 +234,18 @@ main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-group {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   min-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   animation: carousel-marquee 55s linear infinite;
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-marquee-group {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container:hover .carousel-marquee-group {
   animation-play-state: paused;
 }
 
@@ -256,7 +259,7 @@ main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover 
   }
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item {
   flex-shrink: 0;
   width: 172px;
   display: flex;
@@ -265,23 +268,23 @@ main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
   opacity: 1;
   filter: none;
   transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
-  cursor: pointer;
+  cursor: default;
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-logo-item {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container:hover .carousel-logo-item {
   opacity: 0.4;
   filter: grayscale(100%);
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-logo-item:hover,
-main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-logo-item:hover {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item:hover,
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container:hover .carousel-logo-item:hover {
   opacity: 1;
   filter: none;
   transform: scale(1.08);
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-logo-item img,
-main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item img,
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item picture img {
   height: 65px;
   max-height: 65px;
   width: auto;
@@ -290,7 +293,7 @@ main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
   display: block;
 }
 
-main div.carousel-wrapper div.carousel.scroll .carousel-logo-text {
+main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-text {
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -299,52 +302,52 @@ main div.carousel-wrapper div.carousel.scroll .carousel-logo-text {
   font-family: inherit;
 }
 
-main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.scroll .carousel-logo-text {
+main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.partner-marquee .carousel-logo-text {
   color: #1a1a1a;
 }
 
 @media screen and (max-width: 700px) {
-  main div.carousel-wrapper div.carousel.scroll {
+  main div.carousel-wrapper div.carousel.partner-marquee {
     padding: 24px 0;
   }
 
-  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container {
     mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
   }
 
-  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-group {
     animation-duration: 40s;
   }
 
-  main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item {
     width: 120px;
   }
 
-  main div.carousel-wrapper div.carousel.scroll .carousel-logo-item img,
-  main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item img,
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item picture img {
     height: 32px;
     max-height: 34px;
     max-width: 100px;
   }
 
-  main div.carousel-wrapper div.carousel.scroll .carousel-logo-text {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-text {
     font-size: 18px;
   }
 }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-group {
     animation: none;
   }
 
-  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container {
     overflow-x: auto;
     scrollbar-width: none;
   }
 
-  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container::-webkit-scrollbar {
+  main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container::-webkit-scrollbar {
     display: none;
   }
 }
