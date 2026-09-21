@@ -262,21 +262,21 @@ main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.65;
-  filter: grayscale(100%);
+  opacity: 1;
+  filter: none;
   transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
   cursor: pointer;
 }
 
 main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-logo-item {
-  opacity: 0.35;
+  opacity: 0.4;
   filter: grayscale(100%);
 }
 
 main div.carousel-wrapper div.carousel.scroll .carousel-logo-item:hover,
 main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-logo-item:hover {
   opacity: 1;
-  filter: grayscale(0%);
+  filter: none;
   transform: scale(1.08);
 }
 
