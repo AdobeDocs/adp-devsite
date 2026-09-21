@@ -284,3 +284,53 @@ describe('Carousel block', () => {
 
 });
 
+describe('Carousel (scroll) block', () => {
+    let scrollBlock;
+
+    beforeEach(async () => {
+        scrollBlock = document.createElement('div');
+        scrollBlock.className = 'carousel scroll background-color-white';
+        scrollBlock.innerHTML = `
+            <div>
+                <div><p>Powering world-class editorial teams</p></div>
+            </div>
+            <div>
+                <div><p>KYBER</p></div>
+            </div>
+            <div>
+                <div><p>Lumina.ai</p></div>
+            </div>
+            <div>
+                <div><p>Vogue</p></div>
+            </div>
+            <div>
+                <div><p><a href="https://stripe.com"><img src="stripe.png" alt="Stripe"></a></p></div>
+            </div>
+        `;
+        document.body.append(scrollBlock);
+        await decorateBlock(scrollBlock);
+    });
+
+    afterEach(() => {
+        scrollBlock.remove();
+    });
+
+    it('Builds scroll carousel with header and marquee track', () => {
+        expect(scrollBlock.getAttribute('daa-lh')).to.equal('carousel');
+        const header = scrollBlock.querySelector('.carousel-scroll-header');
+        expect(header).to.exist;
+        const title = header.querySelector('.carousel-scroll-title');
+        expect(title).to.exist;
+        expect(title.textContent).to.equal('Powering world-class editorial teams');
+
+        const marqueeContainer = scrollBlock.querySelector('.carousel-marquee-container');
+        expect(marqueeContainer).to.exist;
+        const groups = scrollBlock.querySelectorAll('.carousel-marquee-group');
+        expect(groups.length).to.equal(2);
+        expect(groups[1].getAttribute('aria-hidden')).to.equal('true');
+
+        const items = groups[0].querySelectorAll('.carousel-logo-item');
+        expect(items.length).to.be.greaterThan(0);
+    });
+});
+

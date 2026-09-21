@@ -14,6 +14,12 @@ import {
 export default async function decorate(block) {
   block.setAttribute("daa-lh", "carousel");
   removeEmptyPTags(block);
+
+  if (block.classList.contains("scroll")) {
+    decorateScrollCarousel(block);
+    return;
+  }
+
   reformatHyperlinkImages(block);
 
   const carousel_block_child = createTag("div", { class: "block-container" });
@@ -52,9 +58,9 @@ export default async function decorate(block) {
   block.querySelectorAll(':scope > div:not([class]) > div:not([class])').forEach((innerDiv, index) => {
     // one outer div for each slide - add class to inner div and remove outerDiv
     innerDiv.classList.add("carousel-container");
-    innerDiv.parentElement.replaceWith(carousel_block_child);    
+    innerDiv.parentElement.replaceWith(carousel_block_child);
     innerDiv.setAttribute("id", `carouselTab-${index}`);
-    
+
     //add circle for every slide
     const div_slide_circle = block.querySelector(".carousel-circle-div");
     const circle_button = createTag("button", { class: "carousel-circle" });
@@ -68,20 +74,20 @@ export default async function decorate(block) {
     carousel_li.append(innerDiv);
 
     //add everything but image to the text div
-    const flex_div = createTag("div", { id: "text-flex-div-" + `carouselTab-${index}`});
+    const flex_div = createTag("div", { id: "text-flex-div-" + `carouselTab-${index}` });
     flex_div.classList.add("text-container");
     innerDiv.append(flex_div);
-    
+
     innerDiv.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
       h.classList.add(
         "spectrum-Heading",
         "spectrum-Heading--sizeL",
         "carousel-heading"
       );
-      flex_div.append(h);  
+      flex_div.append(h);
     });
 
-    const button_div = createTag("div", { id: "button-div-" + `carouselTab-${index}`});
+    const button_div = createTag("div", { id: "button-div-" + `carouselTab-${index}` });
     flex_div.append(button_div);
   });
 
@@ -145,10 +151,10 @@ export default async function decorate(block) {
           // Add a class to the <p> tag
           p.classList.add("icon-container");
           const icon_link = p.querySelector("a");
-          if(icon_link){
+          if (icon_link) {
             icon_link.classList.add("spectrum-Link", "spectrum-Link--quiet");
           }
-        }else{
+        } else {
           flex_div.setAttribute("class", "text-container");
           p.classList.add("spectrum-Body", "spectrum-Body--sizeM");
         }
@@ -163,7 +169,7 @@ export default async function decorate(block) {
 
     // Maintains order within carousel text container
     if (prevElement) { // at the beginning of the div
-      text_container.querySelectorAll('p.icon-container').forEach((innerLink) => {productLinkContainer.append(innerLink)}); 
+      text_container.querySelectorAll('p.icon-container').forEach((innerLink) => { productLinkContainer.append(innerLink) });
       prevElement.after(productLinkContainer);
     };
 
@@ -362,4 +368,130 @@ export default async function decorate(block) {
 
   const timer = setTimeout(slideTimer, timeout);
   timer;
+}
+
+/**
+ * decorates the scroll carousel variant (logo marquee ticker)
+ * @param {Element} block The carousel block element
+ */
+function decorateScrollCarousel(block) {
+  const rows = [...block.querySelectorAll(':scope > div > div')];
+  if (rows.length === 0) return;
+
+  let titleText = null;
+  const logoElements = [];
+
+  const heading = block.querySelector('h1, h2, h3, h4, h5, h6');
+  if (heading) {
+    titleText = heading.textContent.trim();
+  }
+
+  rows.forEach((row, index) => {
+    if (heading && row.contains(heading) && !row.querySelector('img, picture, svg') && row.querySelectorAll('p').length <= 1) {
+      return;
+    }
+
+    if (!titleText && index === 0 && rows.length > 1 && !row.querySelector('img, picture, svg, a')) {
+      const text = row.textContent.trim();
+      if (text && text.length < 120) {
+        titleText = text;
+        return;
+      }
+    }
+
+    const pictures = row.querySelectorAll('picture');
+    const images = row.querySelectorAll('img');
+    const links = row.querySelectorAll('a');
+    const paragraphs = row.querySelectorAll('p');
+
+    if (pictures.length > 0) {
+      pictures.forEach((pic) => {
+        const link = pic.closest('a') || pic.parentElement?.closest('a') || row.querySelector('a');
+        logoElements.push({ type: 'picture', element: pic, link });
+      });
+    } else if (images.length > 0) {
+      images.forEach((img) => {
+        const link = img.closest('a') || img.parentElement?.closest('a') || row.querySelector('a');
+        logoElements.push({ type: 'image', element: img, link });
+      });
+    } else if (links.length > 0) {
+      links.forEach((a) => {
+        logoElements.push({ type: 'link', element: a, link: a });
+      });
+    } else if (paragraphs.length > 0) {
+      paragraphs.forEach((p) => {
+        const text = p.textContent.trim();
+        if (text) {
+          logoElements.push({ type: 'text', element: p, text });
+        }
+      });
+    } else {
+      const text = row.textContent.trim();
+      if (text) {
+        logoElements.push({ type: 'text', element: row, text });
+      }
+    }
+  });
+
+  block.innerHTML = '';
+
+  const scrollWrapper = createTag('div', { class: 'carousel-scroll-wrapper' });
+
+  if (titleText) {
+    const headerDiv = createTag('div', { class: 'carousel-scroll-header' });
+    const titleP = createTag('p', { class: 'carousel-scroll-title' });
+    titleP.textContent = titleText;
+    headerDiv.append(titleP);
+    scrollWrapper.append(headerDiv);
+  }
+
+  const marqueeContainer = createTag('div', { class: 'carousel-marquee-container' });
+  const marqueeTrack1 = createTag('div', { class: 'carousel-marquee-group' });
+
+  function createLogoItem(item) {
+    const itemDiv = createTag('div', { class: 'carousel-logo-item' });
+    if (item.type === 'picture' || item.type === 'image') {
+      const clonedMedia = item.element.cloneNode(true);
+      if (item.link) {
+        const a = createTag('a', {
+          href: item.link.href,
+          title: item.link.title || '',
+          target: item.link.target || '_blank',
+          rel: 'noopener noreferrer',
+        });
+        a.append(clonedMedia);
+        itemDiv.append(a);
+      } else {
+        itemDiv.append(clonedMedia);
+      }
+    } else if (item.type === 'link') {
+      const a = item.element.cloneNode(true);
+      a.classList.add('carousel-logo-text');
+      itemDiv.append(a);
+    } else if (item.type === 'text') {
+      const span = createTag('span', { class: 'carousel-logo-text' });
+      span.textContent = item.text || item.element.textContent.trim();
+      itemDiv.append(span);
+    }
+    return itemDiv;
+  }
+
+  // Ensure enough items in the group to span viewports smoothly
+  const minItems = 8;
+  const repeatCount = logoElements.length > 0 && logoElements.length < minItems
+    ? Math.ceil(minItems / logoElements.length)
+    : 1;
+
+  for (let r = 0; r < repeatCount; r += 1) {
+    logoElements.forEach((item) => {
+      marqueeTrack1.append(createLogoItem(item));
+    });
+  }
+
+  const marqueeTrack2 = marqueeTrack1.cloneNode(true);
+  marqueeTrack2.setAttribute('aria-hidden', 'true');
+
+  marqueeContainer.append(marqueeTrack1, marqueeTrack2);
+  scrollWrapper.append(marqueeContainer);
+  block.append(scrollWrapper);
 }

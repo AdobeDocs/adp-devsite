@@ -202,3 +202,179 @@ main div.carousel-wrapper div.carousel .carousel-circle {
 main div.carousel-wrapper div.carousel .carousel-circle-selected {
   background-color: #007aff !important;
 }
+
+/* Scroll variant - Logo marquee carousel */
+main div.carousel-wrapper div.carousel.scroll {
+  max-width: 100%;
+  padding: 36px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-scroll-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-scroll-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-scroll-title {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  color: #707070;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+
+main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.scroll .carousel-scroll-title {
+  color: #707070;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  gap: 3.5rem;
+  position: relative;
+  width: 100%;
+  mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 3.5rem;
+  min-width: 100%;
+  animation: carousel-marquee 28s linear infinite;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container:hover .carousel-marquee-group {
+  animation-play-state: paused;
+}
+
+@keyframes carousel-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 3.5rem));
+  }
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-logo-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.55;
+  filter: grayscale(100%);
+  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-logo-item:hover {
+  opacity: 1;
+  filter: grayscale(0%);
+  transform: scale(1.05);
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-logo-item img,
+main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
+  height: 32px;
+  max-height: 36px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  display: block;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-logo-item a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+main div.carousel-wrapper div.carousel.scroll .carousel-logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: inherit;
+  font-family: inherit;
+}
+
+main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.scroll .carousel-logo-text {
+  color: #1a1a1a;
+}
+
+@media screen and (max-width: 700px) {
+  main div.carousel-wrapper div.carousel.scroll {
+    padding: 24px 0;
+  }
+
+  main div.carousel-wrapper div.carousel.scroll .carousel-scroll-header {
+    margin-bottom: 20px;
+  }
+
+  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
+    gap: 2rem;
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  }
+
+  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
+    gap: 2rem;
+    animation-duration: 22s;
+  }
+
+  @keyframes carousel-marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(calc(-100% - 2rem));
+    }
+  }
+
+  main div.carousel-wrapper div.carousel.scroll .carousel-logo-item img,
+  main div.carousel-wrapper div.carousel.scroll .carousel-logo-item picture img {
+    height: 26px;
+    max-height: 28px;
+    max-width: 120px;
+  }
+
+  main div.carousel-wrapper div.carousel.scroll .carousel-logo-text {
+    font-size: 1.1rem;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-group {
+    animation: none;
+  }
+  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  main div.carousel-wrapper div.carousel.scroll .carousel-marquee-container::-webkit-scrollbar {
+    display: none;
+  }
+}
+
