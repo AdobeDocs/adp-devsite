@@ -292,9 +292,6 @@ describe('Carousel (scroll) block', () => {
         scrollBlock.className = 'carousel scroll background-color-white';
         scrollBlock.innerHTML = `
             <div>
-                <div><p>Powering world-class editorial teams</p></div>
-            </div>
-            <div>
                 <div><p>KYBER</p></div>
             </div>
             <div>
@@ -304,7 +301,7 @@ describe('Carousel (scroll) block', () => {
                 <div><p>Vogue</p></div>
             </div>
             <div>
-                <div><p><a href="https://stripe.com"><img src="stripe.png" alt="Stripe"></a></p></div>
+                <div><p><img src="stripe.png" alt="Stripe"></p></div>
             </div>
         `;
         document.body.append(scrollBlock);
@@ -315,13 +312,8 @@ describe('Carousel (scroll) block', () => {
         scrollBlock.remove();
     });
 
-    it('Builds scroll carousel with header and marquee track', () => {
+    it('Builds scroll carousel with marquee track of images and text', () => {
         expect(scrollBlock.getAttribute('daa-lh')).to.equal('carousel');
-        const header = scrollBlock.querySelector('.carousel-scroll-header');
-        expect(header).to.exist;
-        const title = header.querySelector('.carousel-scroll-title');
-        expect(title).to.exist;
-        expect(title.textContent).to.equal('Powering world-class editorial teams');
 
         const marqueeContainer = scrollBlock.querySelector('.carousel-marquee-container');
         expect(marqueeContainer).to.exist;
@@ -333,4 +325,5 @@ describe('Carousel (scroll) block', () => {
         expect(items.length).to.be.greaterThan(0);
     });
 });
+
 

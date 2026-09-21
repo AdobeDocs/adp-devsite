@@ -378,57 +378,24 @@ function decorateScrollCarousel(block) {
   const rows = [...block.querySelectorAll(':scope > div > div')];
   if (rows.length === 0) return;
 
-  let titleText = null;
   const logoElements = [];
 
-  const heading = block.querySelector('h1, h2, h3, h4, h5, h6');
-  if (heading) {
-    titleText = heading.textContent.trim();
-  }
-
-  rows.forEach((row, index) => {
-    if (heading && row.contains(heading) && !row.querySelector('img, picture, svg') && row.querySelectorAll('p').length <= 1) {
-      return;
-    }
-
-    if (!titleText && index === 0 && rows.length > 1 && !row.querySelector('img, picture, svg, a')) {
-      const text = row.textContent.trim();
-      if (text && text.length < 120) {
-        titleText = text;
-        return;
-      }
-    }
-
+  rows.forEach((row) => {
     const pictures = row.querySelectorAll('picture');
     const images = row.querySelectorAll('img');
-    const links = row.querySelectorAll('a');
-    const paragraphs = row.querySelectorAll('p');
 
     if (pictures.length > 0) {
       pictures.forEach((pic) => {
-        const link = pic.closest('a') || pic.parentElement?.closest('a') || row.querySelector('a');
-        logoElements.push({ type: 'picture', element: pic, link });
+        logoElements.push({ type: 'picture', element: pic });
       });
     } else if (images.length > 0) {
       images.forEach((img) => {
-        const link = img.closest('a') || img.parentElement?.closest('a') || row.querySelector('a');
-        logoElements.push({ type: 'image', element: img, link });
-      });
-    } else if (links.length > 0) {
-      links.forEach((a) => {
-        logoElements.push({ type: 'link', element: a, link: a });
-      });
-    } else if (paragraphs.length > 0) {
-      paragraphs.forEach((p) => {
-        const text = p.textContent.trim();
-        if (text) {
-          logoElements.push({ type: 'text', element: p, text });
-        }
+        logoElements.push({ type: 'image', element: img });
       });
     } else {
       const text = row.textContent.trim();
       if (text) {
-        logoElements.push({ type: 'text', element: row, text });
+        logoElements.push({ type: 'text', text });
       }
     }
   });
@@ -436,41 +403,16 @@ function decorateScrollCarousel(block) {
   block.innerHTML = '';
 
   const scrollWrapper = createTag('div', { class: 'carousel-scroll-wrapper' });
-
-  if (titleText) {
-    const headerDiv = createTag('div', { class: 'carousel-scroll-header' });
-    const titleP = createTag('p', { class: 'carousel-scroll-title' });
-    titleP.textContent = titleText;
-    headerDiv.append(titleP);
-    scrollWrapper.append(headerDiv);
-  }
-
   const marqueeContainer = createTag('div', { class: 'carousel-marquee-container' });
   const marqueeTrack1 = createTag('div', { class: 'carousel-marquee-group' });
 
   function createLogoItem(item) {
     const itemDiv = createTag('div', { class: 'carousel-logo-item' });
     if (item.type === 'picture' || item.type === 'image') {
-      const clonedMedia = item.element.cloneNode(true);
-      if (item.link) {
-        const a = createTag('a', {
-          href: item.link.href,
-          title: item.link.title || '',
-          target: item.link.target || '_blank',
-          rel: 'noopener noreferrer',
-        });
-        a.append(clonedMedia);
-        itemDiv.append(a);
-      } else {
-        itemDiv.append(clonedMedia);
-      }
-    } else if (item.type === 'link') {
-      const a = item.element.cloneNode(true);
-      a.classList.add('carousel-logo-text');
-      itemDiv.append(a);
+      itemDiv.append(item.element.cloneNode(true));
     } else if (item.type === 'text') {
       const span = createTag('span', { class: 'carousel-logo-text' });
-      span.textContent = item.text || item.element.textContent.trim();
+      span.textContent = item.text;
       itemDiv.append(span);
     }
     return itemDiv;
@@ -495,3 +437,4 @@ function decorateScrollCarousel(block) {
   scrollWrapper.append(marqueeContainer);
   block.append(scrollWrapper);
 }
+
