@@ -245,10 +245,6 @@ main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-group {
   animation: carousel-marquee 55s linear infinite;
 }
 
-main div.carousel-wrapper div.carousel.partner-marquee .carousel-marquee-container:hover .carousel-marquee-group {
-  animation-play-state: paused;
-}
-
 @keyframes carousel-marquee {
   0% {
     transform: translateX(0);

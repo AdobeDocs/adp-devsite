@@ -41,10 +41,6 @@ main div.marquee-wrapper div.marquee .marquee-group {
   animation: marquee-scroll 55s linear infinite;
 }
 
-main div.marquee-wrapper div.marquee .marquee-container:hover .marquee-group {
-  animation-play-state: paused;
-}
-
 @keyframes marquee-scroll {
   0% {
     transform: translateX(0);

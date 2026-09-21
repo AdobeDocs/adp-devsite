@@ -375,9 +375,6 @@ export default async function decorate(block) {
  * @param {Element} block The carousel block element
  */
 function decoratePartnerMarquee(block) {
-  const isImageVariant = block.classList.contains('image');
-  const isTextVariant = block.classList.contains('text');
-
   const rows = [...block.querySelectorAll(':scope > div > div')];
   if (rows.length === 0) return;
 
@@ -386,53 +383,19 @@ function decoratePartnerMarquee(block) {
   rows.forEach((row) => {
     const pictures = row.querySelectorAll('picture');
     const images = row.querySelectorAll('img');
-    const textContent = row.textContent.trim();
 
-    if (isImageVariant) {
-      // Image variant: get image only, extract text from row as alt text
-      if (pictures.length > 0) {
-        pictures.forEach((pic) => {
-          const img = pic.querySelector('img');
-          if (img && textContent) {
-            img.setAttribute('alt', textContent);
-          }
-          logoElements.push({ type: 'picture', element: pic });
-        });
-      } else if (images.length > 0) {
-        images.forEach((img) => {
-          if (textContent) {
-            img.setAttribute('alt', textContent);
-          }
-          logoElements.push({ type: 'image', element: img });
-        });
-      }
-    } else if (isTextVariant) {
-      // Text variant: get text only
-      if (textContent) {
-        logoElements.push({ type: 'text', text: textContent });
-      }
-    } else {
-      // Default: if images present, use text as alt text and display image; otherwise display text
-      if (pictures.length > 0) {
-        pictures.forEach((pic) => {
-          const img = pic.querySelector('img');
-          if (img && textContent) {
-            img.setAttribute('alt', textContent);
-          }
-          logoElements.push({ type: 'picture', element: pic });
-        });
-      } else if (images.length > 0) {
-        images.forEach((img) => {
-          if (textContent) {
-            img.setAttribute('alt', textContent);
-          }
-          logoElements.push({ type: 'image', element: img });
-        });
-      } else if (textContent) {
-        logoElements.push({ type: 'text', text: textContent });
-      }
+    if (pictures.length > 0) {
+      pictures.forEach((pic) => {
+        logoElements.push(pic);
+      });
+    } else if (images.length > 0) {
+      images.forEach((img) => {
+        logoElements.push(img);
+      });
     }
   });
+
+  if (logoElements.length === 0) return;
 
   block.innerHTML = '';
 
@@ -440,20 +403,14 @@ function decoratePartnerMarquee(block) {
   const marqueeContainer = createTag('div', { class: 'carousel-marquee-container' });
   const marqueeTrack1 = createTag('ul', { class: 'carousel-marquee-group', role: 'list' });
 
-  function createLogoItem(item) {
+  function createLogoItem(element) {
     const itemLi = createTag('li', { class: 'carousel-logo-item' });
-    if (item.type === 'picture' || item.type === 'image') {
-      const cloned = item.element.cloneNode(true);
-      const img = cloned.tagName === 'IMG' ? cloned : cloned.querySelector('img');
-      if (img && !img.getAttribute('alt')) {
-        img.setAttribute('alt', img.getAttribute('title') || 'Partner logo');
-      }
-      itemLi.append(cloned);
-    } else if (item.type === 'text') {
-      const span = createTag('span', { class: 'carousel-logo-text' });
-      span.textContent = item.text;
-      itemLi.append(span);
+    const cloned = element.cloneNode(true);
+    const img = cloned.tagName === 'IMG' ? cloned : cloned.querySelector('img');
+    if (img && !img.getAttribute('alt')) {
+      img.setAttribute('alt', img.getAttribute('title') || 'Partner logo');
     }
+    itemLi.append(cloned);
     return itemLi;
   }
 
@@ -464,8 +421,8 @@ function decoratePartnerMarquee(block) {
     : 1;
 
   for (let r = 0; r < repeatCount; r += 1) {
-    logoElements.forEach((item) => {
-      marqueeTrack1.append(createLogoItem(item));
+    logoElements.forEach((element) => {
+      marqueeTrack1.append(createLogoItem(element));
     });
   }
 
@@ -476,5 +433,6 @@ function decoratePartnerMarquee(block) {
   scrollWrapper.append(marqueeContainer);
   block.append(scrollWrapper);
 }
+
 
 

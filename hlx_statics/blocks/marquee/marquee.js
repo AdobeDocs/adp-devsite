@@ -22,19 +22,16 @@ export default async function decorate(block) {
 
     if (pictures.length > 0) {
       pictures.forEach((pic) => {
-        items.push({ type: "picture", element: pic });
+        items.push(pic);
       });
     } else if (images.length > 0) {
       images.forEach((img) => {
-        items.push({ type: "image", element: img });
+        items.push(img);
       });
-    } else {
-      const text = row.textContent.trim();
-      if (text) {
-        items.push({ type: "text", text });
-      }
     }
   });
+
+  if (items.length === 0) return;
 
   block.innerHTML = "";
 
@@ -42,20 +39,14 @@ export default async function decorate(block) {
   const marqueeContainer = createTag("div", { class: "marquee-container" });
   const marqueeTrack1 = createTag("ul", { class: "marquee-group", role: "list" });
 
-  function createMarqueeItem(item) {
+  function createMarqueeItem(element) {
     const itemLi = createTag("li", { class: "marquee-item" });
-    if (item.type === "picture" || item.type === "image") {
-      const cloned = item.element.cloneNode(true);
-      const img = cloned.tagName === "IMG" ? cloned : cloned.querySelector("img");
-      if (img && !img.getAttribute("alt")) {
-        img.setAttribute("alt", img.getAttribute("title") || "Partner logo");
-      }
-      itemLi.append(cloned);
-    } else if (item.type === "text") {
-      const span = createTag("span", { class: "marquee-text" });
-      span.textContent = item.text;
-      itemLi.append(span);
+    const cloned = element.cloneNode(true);
+    const img = cloned.tagName === "IMG" ? cloned : cloned.querySelector("img");
+    if (img && !img.getAttribute("alt")) {
+      img.setAttribute("alt", img.getAttribute("title") || "Partner logo");
     }
+    itemLi.append(cloned);
     return itemLi;
   }
 
@@ -66,8 +57,8 @@ export default async function decorate(block) {
     : 1;
 
   for (let r = 0; r < repeatCount; r += 1) {
-    items.forEach((item) => {
-      marqueeTrack1.append(createMarqueeItem(item));
+    items.forEach((element) => {
+      marqueeTrack1.append(createMarqueeItem(element));
     });
   }
 
