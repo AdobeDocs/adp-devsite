@@ -289,19 +289,6 @@ main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-item pictu
   display: block;
 }
 
-main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-text {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  color: inherit;
-  font-family: inherit;
-}
-
-main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.partner-marquee .carousel-logo-text {
-  color: #1a1a1a;
-}
-
 @media screen and (max-width: 700px) {
   main div.carousel-wrapper div.carousel.partner-marquee {
     padding: 24px 0;
@@ -325,10 +312,6 @@ main div.carousel-wrapper:has(.carousel.background-color-white) .carousel.partne
     height: 32px;
     max-height: 34px;
     max-width: 100px;
-  }
-
-  main div.carousel-wrapper div.carousel.partner-marquee .carousel-logo-text {
-    font-size: 18px;
   }
 }
 
