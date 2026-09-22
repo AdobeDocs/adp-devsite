@@ -1206,8 +1206,10 @@ export default async function decorate(block) {
       let dropdownLinksHTML = '';
 
       dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
+        const description = dropdownLinks.parentElement?.textContent.trim() || '';
+        console.log("desc", description)
         dropdownLinksHTML
-          += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText);
+          += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText, description);
       });
 
       dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
