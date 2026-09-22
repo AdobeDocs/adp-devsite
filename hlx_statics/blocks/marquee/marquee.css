@@ -7,62 +7,62 @@ main .marquee {
   padding: 36px 0;
   position: relative;
   overflow: hidden;
-}
 
-main .marquee .marquee-wrapper-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
+  .marquee-wrapper-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
 
-main .marquee .marquee-container {
-  display: flex;
-  overflow: hidden;
-  user-select: none;
-  position: relative;
-  width: 100%;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
-}
+  .marquee-container {
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+    position: relative;
+    width: 100%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
+  }
 
-main .marquee .marquee-group {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  min-width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  animation: marquee-scroll 55s linear infinite;
+  .marquee-group {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    min-width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: marquee-scroll 55s linear infinite;
+  }
+
+  .marquee-item {
+    flex-shrink: 0;
+    width: 172px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.08);
+    }
+
+    img {
+      height: 100px;
+      width: 100px;
+      max-width: 140px;
+      object-fit: contain;
+      display: block;
+    }
+  }
 }
 
 @keyframes marquee-scroll {
   to {
     transform: translateX(-100%);
   }
-}
-
-main .marquee .marquee-item {
-  flex-shrink: 0;
-  width: 172px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-}
-
-main .marquee .marquee-item:hover {
-  transform: scale(1.08);
-}
-
-main .marquee .marquee-item img {
-  height: 100px;
-  width: 100px;
-  max-width: 140px;
-  object-fit: contain;
-  display: block;
 }
