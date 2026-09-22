@@ -67,38 +67,3 @@ main .marquee .marquee-item img {
   object-fit: contain;
   display: block;
 }
-
-@media screen and (max-width: 700px) {
-  main .marquee {
-    padding: 24px 0;
-  }
-
-  main .marquee .marquee-container {
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-  }
-
-  main .marquee .marquee-group {
-    animation-duration: 40s;
-  }
-
-  main .marquee .marquee-item {
-    width: 120px;
-  }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-  main .marquee .marquee-group {
-    animation: none;
-  }
-
-  main .marquee .marquee-container {
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  main .marquee .marquee-container::-webkit-scrollbar {
-    display: none;
-  }
-}
