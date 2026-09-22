@@ -1,5 +1,5 @@
 main .marquee-wrapper:has(.marquee.background-color-white) {
-  background-color: white !important;
+  background-color: white;
 }
 
 main .marquee {
@@ -19,13 +19,14 @@ main .marquee {
   }
 
   .marquee-container {
+    --mask-gradient: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
     display: flex;
     overflow: hidden;
     user-select: none;
     position: relative;
     width: 100%;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
+    -webkit-mask-image: var(--mask-gradient);
+    mask-image: var(--mask-gradient);
   }
 
   .marquee-group {
@@ -57,6 +58,28 @@ main .marquee {
       max-width: 140px;
       object-fit: contain;
       display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-container {
+      -webkit-mask-image: none;
+      mask-image: none;
+      justify-content: center;
+    }
+
+    .marquee-group {
+      animation: none;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .marquee-item {
+      transition: none;
+
+      &:hover {
+        transform: none;
+      }
     }
   }
 }
