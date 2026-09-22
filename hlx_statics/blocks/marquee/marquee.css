@@ -1,16 +1,16 @@
 /* Marquee Block */
-main div.marquee-wrapper:has(.marquee.background-color-white) {
+.marquee-wrapper:has(.marquee.background-color-white) {
   background-color: white !important;
 }
 
-main div.marquee-wrapper div.marquee {
+main .marquee {
   max-width: 100%;
   padding: 36px 0;
   position: relative;
   overflow: hidden;
 }
 
-main div.marquee-wrapper div.marquee .marquee-wrapper-inner {
+main .marquee .marquee-wrapper-inner {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 16px;
@@ -20,17 +20,17 @@ main div.marquee-wrapper div.marquee .marquee-wrapper-inner {
   width: 100%;
 }
 
-main div.marquee-wrapper div.marquee .marquee-container {
+main .marquee .marquee-container {
   display: flex;
   overflow: hidden;
   user-select: none;
   position: relative;
   width: 100%;
-  mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 12%, black 90%, transparent 100%);
 }
 
-main div.marquee-wrapper div.marquee .marquee-group {
+main .marquee .marquee-group {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -42,33 +42,26 @@ main div.marquee-wrapper div.marquee .marquee-group {
 }
 
 @keyframes marquee-scroll {
-  0% {
-    transform: translateX(0);
-  }
-
-  100% {
+  to {
     transform: translateX(-100%);
   }
 }
 
-main div.marquee-wrapper div.marquee .marquee-item {
+main .marquee .marquee-item {
   flex-shrink: 0;
   width: 172px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.3s ease;
-  cursor: default;
 }
 
-main div.marquee-wrapper div.marquee .marquee-item:hover {
+main .marquee .marquee-item:hover {
   transform: scale(1.08);
 }
 
-main div.marquee-wrapper div.marquee .marquee-item img,
-main div.marquee-wrapper div.marquee .marquee-item picture img {
+main .marquee .marquee-item img {
   height: 65px;
-  max-height: 65px;
   width: auto;
   max-width: 140px;
   object-fit: contain;
@@ -76,43 +69,41 @@ main div.marquee-wrapper div.marquee .marquee-item picture img {
 }
 
 @media screen and (max-width: 700px) {
-  main div.marquee-wrapper div.marquee {
+  main .marquee {
     padding: 24px 0;
   }
 
-  main div.marquee-wrapper div.marquee .marquee-container {
-    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  main .marquee .marquee-container {
     -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
   }
 
-  main div.marquee-wrapper div.marquee .marquee-group {
+  main .marquee .marquee-group {
     animation-duration: 40s;
   }
 
-  main div.marquee-wrapper div.marquee .marquee-item {
+  main .marquee .marquee-item {
     width: 120px;
   }
 
-  main div.marquee-wrapper div.marquee .marquee-item img,
-  main div.marquee-wrapper div.marquee .marquee-item picture img {
+  main .marquee .marquee-item img {
     height: 32px;
-    max-height: 34px;
     max-width: 100px;
   }
 }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  main div.marquee-wrapper div.marquee .marquee-group {
+  main .marquee .marquee-group {
     animation: none;
   }
 
-  main div.marquee-wrapper div.marquee .marquee-container {
+  main .marquee .marquee-container {
     overflow-x: auto;
     scrollbar-width: none;
   }
 
-  main div.marquee-wrapper div.marquee .marquee-container::-webkit-scrollbar {
+  main .marquee .marquee-container::-webkit-scrollbar {
     display: none;
   }
 }
