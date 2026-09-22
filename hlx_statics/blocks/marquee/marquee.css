@@ -46,11 +46,6 @@ main .marquee {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
-
-    &:hover {
-      transform: scale(1.08);
-    }
 
     img {
       height: 100px;
@@ -72,14 +67,6 @@ main .marquee {
       animation: none;
       flex-wrap: wrap;
       justify-content: center;
-    }
-
-    .marquee-item {
-      transition: none;
-
-      &:hover {
-        transform: none;
-      }
     }
   }
 }
