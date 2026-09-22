@@ -61,7 +61,7 @@ main .marquee .marquee-item:hover {
 
 main .marquee .marquee-item img {
   height: 100px;
-  width: auto;
+  width: 100px;
   max-width: 140px;
   object-fit: contain;
   display: block;
