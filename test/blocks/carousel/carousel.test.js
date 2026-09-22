@@ -284,40 +284,34 @@ describe('Carousel block', () => {
 
 });
 
-describe('Carousel (scroll) block', () => {
-    let scrollBlock;
+describe('Carousel (partner-marquee) block', () => {
+    let marqueeBlock;
 
     beforeEach(async () => {
-        scrollBlock = document.createElement('div');
-        scrollBlock.className = 'carousel scroll background-color-white';
-        scrollBlock.innerHTML = `
+        marqueeBlock = document.createElement('div');
+        marqueeBlock.className = 'carousel partner-marquee background-color-white';
+        marqueeBlock.innerHTML = `
             <div>
-                <div><p>KYBER</p></div>
+                <div><p><picture><img src="stripe.png" alt="Stripe"></picture></p></div>
             </div>
             <div>
-                <div><p>Lumina.ai</p></div>
-            </div>
-            <div>
-                <div><p>Vogue</p></div>
-            </div>
-            <div>
-                <div><p><img src="stripe.png" alt="Stripe"></p></div>
+                <div><p><img src="google.png" alt="Google"></p></div>
             </div>
         `;
-        document.body.append(scrollBlock);
-        await decorateBlock(scrollBlock);
+        document.body.append(marqueeBlock);
+        await decorateBlock(marqueeBlock);
     });
 
     afterEach(() => {
-        scrollBlock.remove();
+        marqueeBlock.remove();
     });
 
-    it('Builds scroll carousel with marquee track of images and text', () => {
-        expect(scrollBlock.getAttribute('daa-lh')).to.equal('carousel');
+    it('Builds partner-marquee carousel with marquee track of images', () => {
+        expect(marqueeBlock.getAttribute('daa-lh')).to.equal('carousel');
 
-        const marqueeContainer = scrollBlock.querySelector('.carousel-marquee-container');
+        const marqueeContainer = marqueeBlock.querySelector('.carousel-marquee-container');
         expect(marqueeContainer).to.exist;
-        const groups = scrollBlock.querySelectorAll('.carousel-marquee-group');
+        const groups = marqueeBlock.querySelectorAll('.carousel-marquee-group');
         expect(groups.length).to.equal(2);
         expect(groups[1].getAttribute('aria-hidden')).to.equal('true');
 

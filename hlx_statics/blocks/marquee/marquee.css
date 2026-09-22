@@ -57,21 +57,11 @@ main div.marquee-wrapper div.marquee .marquee-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 1;
-  filter: none;
-  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+  transition: transform 0.3s ease;
   cursor: default;
 }
 
-main div.marquee-wrapper div.marquee .marquee-container:hover .marquee-item {
-  opacity: 0.4;
-  filter: grayscale(100%);
-}
-
-main div.marquee-wrapper div.marquee .marquee-item:hover,
-main div.marquee-wrapper div.marquee .marquee-container:hover .marquee-item:hover {
-  opacity: 1;
-  filter: none;
+main div.marquee-wrapper div.marquee .marquee-item:hover {
   transform: scale(1.08);
 }
 
