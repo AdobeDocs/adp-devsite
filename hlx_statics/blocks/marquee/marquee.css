@@ -86,13 +86,8 @@ main .marquee .marquee-item img {
     width: 120px;
   }
 
-  main .marquee .marquee-item img {
-    height: 32px;
-    max-width: 100px;
-  }
 }
 
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   main .marquee .marquee-group {
     animation: none;
