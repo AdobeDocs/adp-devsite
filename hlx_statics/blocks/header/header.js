@@ -1205,11 +1205,13 @@ export default async function decorate(block) {
       let dropdownLinkDropdownHTML = '';
       let dropdownLinksHTML = '';
 
-      dropDownList.querySelectorAll('ul > li > a').forEach((dropdownLinks) => {
-        const description = dropdownLinks.parentElement?.textContent.trim() || '';
-        console.log("desc", description)
+      dropDownList.querySelectorAll('ul > li').forEach((dropdownLinks) => {
+        const link = dropdownLinks.querySelector('a');
+        if (!link) return;
+        const linkText = link.textContent.trim();
+        const description = dropdownLinks.textContent.replace(linkText, '').trim();
         dropdownLinksHTML
-          += globalNavLinkItemDropdownItem(dropdownLinks.href, dropdownLinks.innerText, description);
+          += globalNavLinkItemDropdownItem(link.href, linkText, description);
       });
 
       dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
