@@ -52,8 +52,8 @@ function getTextColorModifier(block) {
 
 function unwrapIcons(block) {
   block.querySelectorAll('span.icon').forEach((span) => {
-    span.textContent = '';  
-    
+    span.textContent = '';
+
     const spanParent = span.parentElement;
     spanParent.replaceWith(span);
   });
@@ -131,7 +131,7 @@ async function decorateDevBizHalfWidth(block) {
     });
     placeholderDiv.remove();
   }
-  
+
   const videoSource = parseVideoSource(block.lastElementChild);
   if (videoSource && block.classList.contains('video')) {
     const isControl = block.classList.contains('controls');
@@ -139,14 +139,13 @@ async function decorateDevBizHalfWidth(block) {
     const wantLoop = block.classList.contains('loop');
     const isAutoplay = !isControl || wantAutoplay;
     const isLoop = !isControl || wantLoop;
-    const muted = !isControl || wantAutoplay;
 
     const videoContainer = createTag('div', { class: 'superhero-video-container' });
     applyVideoContainer(videoContainer, {
       url: videoSource.url,
       title: getVideoTitle(videoSource.url, videoSource.linkText),
       autoplay: isAutoplay,
-      muted,
+      muted : false,
       controls: isControl,
       loop: isLoop,
     });
@@ -361,7 +360,7 @@ function applyDataAttributeStyles(block) {
 
   const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(29, 125, 238)';
   const background = block.getAttribute('data-background') || defaultBackgroundColor;
-  if(variant === VARIANTS.halfWidth) {
+  if (variant === VARIANTS.halfWidth) {
     const wrapper = block.parentElement;
     wrapper.style.background = background;
   } else {
