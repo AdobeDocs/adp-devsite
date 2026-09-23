@@ -70,8 +70,8 @@ export default async function decorate(block) {
 
   const accordion_items = block.querySelectorAll('.accordion-item');
   accordion_items.forEach((item, i) => {
-    item.addEventListener("click", () => {
-        const heading = item.querySelector('.accordion-itemHeader');
+    const heading = item.querySelector('.accordion-itemHeader');
+    heading.addEventListener("click", () => {
         const content = item.querySelector('.accordion-itemContent');
         content.querySelectorAll('p').forEach((p) => {
             p.classList.add('spectrum-Body', 'spectrum-Body--sizeM');
