@@ -1128,6 +1128,11 @@ main .heading6 h6>span {
   color: rgb(0, 84, 182) !important;
 }
 
+.spectrum-Link.focus-ring {
+  outline: 2px solid rgb(0, 84, 182);
+  outline-offset: 2px;
+}
+
 .spectrum-Link--quiet:hover {
   text-decoration: underline !important;
 }
