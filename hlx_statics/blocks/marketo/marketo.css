@@ -1,184 +1,1 @@
-body .marketo-form-wrapper {
-  display: flex;
-  flex-direction: column;
-  width: calc(100% - 40px);
-  max-width: none;
-  margin: 0 auto;
-}
-
-body .marketo-form-wrapper form.mktoForm {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  width: 100%;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoFormRow:not(.mktoHidden),
-body .marketo-form-wrapper form.mktoForm .mktoFormCol:not(.mktoHidden) {
-  display: contents;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoHidden {
-  display: none;
-}
-
-/* 
- * CRITICAL FIX: Marketo's forms2.css adds clearfix ::before/::after pseudo-elements to rows and cols.
- * Because we use 'display: contents' on these elements to flatten the DOM for CSS Grid, 
- * these pseudo-elements become direct children of the Grid and take up invisible grid cells, 
- * creating massive empty gaps. We MUST hide them.
- */
-body .marketo-form-wrapper form.mktoForm .mktoFormRow::before,
-body .marketo-form-wrapper form.mktoForm .mktoFormRow::after,
-body .marketo-form-wrapper form.mktoForm .mktoFormCol::before,
-body .marketo-form-wrapper form.mktoForm .mktoFormCol::after {
-  display: none;
-  content: none;
-}
-
-/* Bulletproof rip-out for hidden elements. 
-   Using position: absolute ensures they never become grid items,
-   even if Marketo dynamically applies inline display: block */
-body .marketo-form-wrapper form.mktoForm .mktoClear,
-body .marketo-form-wrapper form.mktoForm .mktoOffset,
-body .marketo-form-wrapper form.mktoForm .mktoGutter,
-body .marketo-form-wrapper form.mktoForm .mktoButtonRow,
-body .marketo-form-wrapper form.mktoForm input[type="hidden"],
-body .marketo-form-wrapper form.mktoForm .mktoHtmlText:empty,
-body .marketo-form-wrapper form.mktoForm .mktoPlaceholder,
-body .marketo-form-wrapper form.mktoForm .mktoFormRow.zombie-row {
-  position: absolute;
-  visibility: hidden;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoFieldWrap {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  margin: 0;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {
-  display: none;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoLabel {
-  display: block;
-  font-size: 14px;
-  font-weight: normal;
-  color: #464646;
-  margin-bottom: 4px;
-  width: auto;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoAsterix {
-  display: none;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoRequiredField .mktoLabel::after {
-  content: " *";
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoField {
-  width: 100%;
-  border: 1px solid var(--color-grey-300, #909090);
-  border-radius: 4px;
-  padding: 10px 12px;
-  font-size: 16px;
-  line-height: 24px;
-  height: auto;
-  min-height: 44px;
-  color: var(--color-black, #333);
-  background-color: var(--color-white, #fff);
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoField:focus {
-  outline: none;
-  border-color: var(--color-aem-blue, #1473e6);
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoField.mktoInvalid {
-  border-color: var(--color-status-error, #d0021b);
-}
-
-body .marketo-form-wrapper .use-case-textarea {
-  height: 120px;
-  resize: vertical;
-}
-
-body .marketo-form-wrapper .custom-submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  max-width: 280px;
-  height: 48px;
-  padding: 12px 24px;
-  border-radius: 24px;
-  background-color: var(--color-aem-blue, #1473e6);
-  color: var(--color-white, #fff);
-  font-weight: 700;
-  font-size: 15px;
-  line-height: 24px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-body .marketo-form-wrapper .custom-submit:hover {
-  background-color: var(--color-aem-blue-hover, #0054b6);
-  box-shadow: 0 4px 12px rgba(20, 55, 100, 0.2);
-}
-
-body .marketo-form-wrapper .custom-submit:active {
-  background-color: var(--color-aem-blue-active, #004494);
-}
-
-body .marketo-form-wrapper .custom-submit:disabled {
-  background-color: var(--color-grey-300, #c8c8c8);
-  cursor: not-allowed;
-}
-
-body .marketo-form-wrapper .success-message {
-  display: none;
-  padding: 24px;
-  background-color: var(--color-status-success-bg, #e6f4e6);
-  border: 1px solid var(--color-status-success, #2e7d32);
-  border-radius: 8px;
-  text-align: center;
-}
-
-body .marketo-form-wrapper .success-message.show {
-  display: block;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoButtonRow {
-  display: none;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoFormRow.by-supplyingmycontac,
-body .marketo-form-wrapper form.mktoForm .mktoFormRow.adobe-privacy,
-body .marketo-form-wrapper form.mktoForm .mktoFormRow:has(.mktoHtmlText) {
-  display: none;
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoErrorMsg,
-body .marketo-form-wrapper form.mktoForm .mktoError,
-body .marketo-form-wrapper .custom-field-error {
-  color: var(--color-status-error, #d0021b);
-}
-
-body .marketo-form-wrapper form.mktoForm .mktoFormRow.mktoCleanedScript,
-body .marketo-form-wrapper form.mktoForm .mktoHtmlText span {
-  display: none;
-}
+body .marketo-form-wrapper {  display: flex;  flex-direction: column;  width: calc(100% - 40px);  max-width: none;  margin: 0 auto;}body .marketo-form-wrapper form.mktoForm {  display: grid;  grid-template-columns: 1fr 1fr;  gap: 16px;  width: 100%;  margin-bottom: 0;  padding-bottom: 0;}body .marketo-form-wrapper form.mktoForm .mktoFormRow:not(.mktoHidden),body .marketo-form-wrapper form.mktoForm .mktoFormCol:not(.mktoHidden) {  display: contents;}body .marketo-form-wrapper form.mktoForm .mktoHidden {  display: none;}body .marketo-form-wrapper form.mktoForm .mktoFormRow::before,body .marketo-form-wrapper form.mktoForm .mktoFormRow::after,body .marketo-form-wrapper form.mktoForm .mktoFormCol::before,body .marketo-form-wrapper form.mktoForm .mktoFormCol::after {  display: none;  content: none;}body .marketo-form-wrapper form.mktoForm .mktoClear,body .marketo-form-wrapper form.mktoForm .mktoOffset,body .marketo-form-wrapper form.mktoForm .mktoGutter,body .marketo-form-wrapper form.mktoForm .mktoButtonRow,body .marketo-form-wrapper form.mktoForm input[type="hidden"],body .marketo-form-wrapper form.mktoForm .mktoHtmlText:empty,body .marketo-form-wrapper form.mktoForm .mktoPlaceholder,body .marketo-form-wrapper form.mktoForm .mktoFormRow.zombie-row {  position: absolute;  visibility: hidden;  width: 0;  height: 0;  overflow: hidden;  margin: 0;  padding: 0;}body .marketo-form-wrapper form.mktoForm .mktoFieldWrap {  display: flex;  flex-direction: column;  width: 100%;  margin: 0;}body .marketo-form-wrapper form.mktoForm .mktoFieldWrap:not(:has(.mktoField:not([type="hidden"]))) {  display: none;}body .marketo-form-wrapper form.mktoForm .mktoLabel {  display: block;  font-size: 14px;  font-weight: normal;  color: #464646;  margin-bottom: 4px;  width: auto;}body .marketo-form-wrapper form.mktoForm .mktoAsterix {  display: none;}body .marketo-form-wrapper form.mktoForm .mktoRequiredField .mktoLabel::after {  content: " *";}body .marketo-form-wrapper form.mktoForm .mktoField {  width: 100%;  border: 1px solid var(--color-grey-300, #909090);  border-radius: 4px;  padding: 10px 12px;  font-size: 16px;  line-height: 24px;  height: auto;  min-height: 44px;  color: var(--color-black, #333);  background-color: var(--color-white, #fff);  transition: border-color 0.2s ease;  box-sizing: border-box;}body .marketo-form-wrapper form.mktoForm .mktoField:focus {  outline: none;  border-color: var(--color-aem-blue, #1473e6);}body .marketo-form-wrapper form.mktoForm .mktoField.mktoInvalid {  border-color: var(--color-status-error, #d0021b);}body .marketo-form-wrapper .use-case-textarea {  height: 120px;  resize: vertical;}body .marketo-form-wrapper .custom-submit {  display: flex;  align-items: center;  justify-content: center;  gap: 12px;  width: 100%;  max-width: 280px;  height: 48px;  padding: 12px 24px;  border-radius: 24px;  background-color: var(--color-aem-blue, #1473e6);  color: var(--color-white, #fff);  font-weight: 700;  font-size: 15px;  line-height: 24px;  cursor: pointer;  transition: all 0.2s ease;  border: none;}body .marketo-form-wrapper .custom-submit:hover {  background-color: var(--color-aem-blue-hover, #0054b6);  box-shadow: 0 4px 12px rgba(20, 55, 100, 0.2);}body .marketo-form-wrapper .custom-submit:active {  background-color: var(--color-aem-blue-active, #004494);}body .marketo-form-wrapper .custom-submit:disabled {  background-color: var(--color-grey-300, #c8c8c8);  cursor: not-allowed;}body .marketo-form-wrapper .success-message {  display: none;  padding: 24px;  background-color: var(--color-status-success-bg, #e6f4e6);  border: 1px solid var(--color-status-success, #2e7d32);  border-radius: 8px;  text-align: center;}body .marketo-form-wrapper .success-message.show {  display: block;}body .marketo-form-wrapper form.mktoForm .mktoButtonRow {  display: none;}body .marketo-form-wrapper form.mktoForm .mktoFormRow.by-supplyingmycontac,body .marketo-form-wrapper form.mktoForm .mktoFormRow.adobe-privacy,body .marketo-form-wrapper form.mktoForm .mktoFormRow:has(.mktoHtmlText) {  display: none;}body .marketo-form-wrapper form.mktoForm .mktoErrorMsg,body .marketo-form-wrapper form.mktoForm .mktoError,body .marketo-form-wrapper .custom-field-error {  color: var(--color-status-error, #d0021b);}body .marketo-form-wrapper form.mktoForm .mktoFormRow.mktoCleanedScript,body .marketo-form-wrapper form.mktoForm .mktoHtmlText span {  display: none;}
