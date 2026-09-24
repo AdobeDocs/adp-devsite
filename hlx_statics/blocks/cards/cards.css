@@ -143,7 +143,7 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
     flex-direction: row;
   }
   main div.cards-wrapper div.cards > div {
-    padding: 40px 0;
+    padding: 20px;
   }
   main div.cards-wrapper {
     width: 100% !important;
