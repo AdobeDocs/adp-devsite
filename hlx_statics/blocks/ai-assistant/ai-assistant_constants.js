@@ -19,7 +19,6 @@ export const CHAT_STATUS_RESPONDING = "Assistant is responding…";
  */
 export const ELEMENTS = {
   CHAT_BUTTON: null,
-  CHAT_BUTTON_BADGE: null,
   CHAT_WINDOW_CLOSE_BUTTON: null,
   CHAT_WINDOW_CLEAR_BUTTON: null,
   CHAT_SEND_BUTTON: null,

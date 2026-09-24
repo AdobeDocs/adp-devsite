@@ -127,32 +127,6 @@
     }
 }
 
-.ai-assistant-panel .chat-button .chat-button-badge {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: var(--ai-border-linear-gradient);
-    color: #fff;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    padding: 2px 6px;
-    border-radius: 8px;
-    border: 2px solid #fff;
-    pointer-events: none;
-    line-height: 1.4;
-    opacity: 1;
-    transform: scale(1);
-    transition:
-        opacity 0.15s cubic-bezier(0, 0, 0.4, 1),
-        transform 0.15s cubic-bezier(0, 0, 0.4, 1);
-}
-
-.ai-assistant-panel .chat-button .chat-button-badge.hidden {
-    opacity: 0;
-    transform: scale(0.6);
-}
-
 /*
 * MARK: Chat Window
 */
@@ -219,20 +193,6 @@
         font-size: 18px;
         font-weight: 700;
         margin-inline: 12px;
-    }
-
-    .chat-window-badge {
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2px 11px;
-        background-color: rgb(255, 232, 240);
-        color: black;
-        border-radius: 7px;
-        font-size: 12px;
-        min-height: 24px;
-        line-height: 14px;
     }
 
     .chat-window-close,
