@@ -281,13 +281,18 @@ async function openCardsPage(page) {
 async function waitForCardImages(block, expectedCount) {
   const images = block.locator('img');
   await expect(images).toHaveCount(expectedCount);
-  for (let index = 0; index < expectedCount; index += 1) {
-    const image = images.nth(index);
-    await image.scrollIntoViewIfNeeded();
-    await expect(image).toHaveJSProperty('complete', true);
-    await expect.poll(() => image.evaluate((element) => element.naturalWidth))
-      .toBeGreaterThan(0);
-  }
+  if (expectedCount === 0) return;
+
+  // Cards replaces every picture when the block intersects the viewport. An
+  // individual image can detach during scrollIntoViewIfNeeded, so scroll the
+  // stable block and wait for its optimized replacement images instead.
+  await block.scrollIntoViewIfNeeded();
+  await expect.poll(() => images.evaluateAll((elements, count) => (
+    elements.length === count && elements.every((image) => (
+      image.getAttribute('src')?.startsWith(window.location.origin)
+      && image.complete && image.naturalWidth > 0
+    ))
+  ), expectedCount)).toBe(true);
 }
 
 test.describe('Cards DevBiz reference', () => {
