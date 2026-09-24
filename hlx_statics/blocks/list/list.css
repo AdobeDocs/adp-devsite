@@ -21,7 +21,7 @@ main div.list-wrapper div.list > div {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px !important;
+  padding: 20px;
 }
 
 main div.list-wrapper div.list > div {
