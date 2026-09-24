@@ -716,7 +716,8 @@ header button.clear-search-query-button:hover {
 }
 
 header button.clear-search-query-button:focus {
-  outline: none;
+  outline: 2px solid rgb(0, 84, 182);
+  outline-offset: -1px;
 }
 
 header button.clear-search-query-button > svg {
