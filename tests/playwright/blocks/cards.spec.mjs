@@ -51,6 +51,16 @@ async function expectCardImageLoaded(block) {
   return image;
 }
 
+async function expectWideImageFitsCard(block) {
+  await expect.poll(() => block.evaluate((element) => {
+    const wrapper = element.closest('.cards-wrapper').getBoundingClientRect();
+    const card = element.querySelector(':scope > div').getBoundingClientRect();
+    const image = element.querySelector('img').getBoundingClientRect();
+    const fits = (rect) => rect.left >= wrapper.left - 1 && rect.right <= wrapper.right + 1;
+    return fits(card) && fits(image) && image.width > image.height;
+  })).toBe(true);
+}
+
 async function expectCardsBehavior(page, { wide = false } = {}) {
   for (const cardExample of cards) {
     const block = getCard(page, cardExample.heading);
@@ -79,7 +89,11 @@ async function expectCardsBehavior(page, { wide = false } = {}) {
     const image = await expectCardImageLoaded(block);
     await expect(image).toHaveAttribute('alt', 'Card Image');
     await expect(image).toHaveAttribute('src', new RegExp(imageAsset));
-    await expect(image).toHaveCSS('height', wide ? '200px' : '80px');
+    if (wide) {
+      await expectWideImageFitsCard(block);
+    } else {
+      await expect(image).toHaveCSS('height', '80px');
+    }
 
     await expect(block.getByRole('link', { name: 'Learn more', exact: true }))
       .toHaveAttribute('href', 'https://developer.adobe.com/');
@@ -99,6 +113,7 @@ async function expectCardsScreenshot(page, { wide = false } = {}) {
       await expect(block).not.toHaveClass(/\bwide\b/);
     }
     await expectCardImageLoaded(block);
+    if (wide) await expectWideImageFitsCard(block);
   }
   await page.evaluate(() => document.fonts.ready);
   await hideNonComponentContent(page);
@@ -148,10 +163,7 @@ test.describe('Cards wide reference', () => {
     await expectCardsBehavior(page, { wide: true });
   });
 
-  // The current DevDocs fixture authors three separate 33% blocks, but wide
-  // images expand each card beyond its wrapper and overlap neighboring text.
-  // Do not bless that clipping with a baseline; enable after the layout is fixed.
-  test.fixme('matches the wide three-card grid visual', async ({ page }) => {
+  test('matches the wide three-card grid visual', async ({ page }) => {
     await expectCardsScreenshot(page, { wide: true });
   });
 });
