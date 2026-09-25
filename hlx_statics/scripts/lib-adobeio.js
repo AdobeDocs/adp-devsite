@@ -860,38 +860,41 @@ export const setSearchFrameOrigin = (host, suffix = '') => {
 };
 
 /**
- * Returns the franklin closest sub folder
+ * Returns an ordered list of candidate paths to check for a resource (e.g. nav),
+ * walking up from the current page's own folder to each ancestor folder in turn,
+ * always ending with the site-wide franklin_assets default as the last resort.
+ * This lets a resource defined in a parent folder apply to all its subfolders,
+ * unless a subfolder defines its own (which takes precedence).
  * @param {*} host The host
- * @param {*} suffix A suffix to append
- * @returns The first subfolder in the franklin dir - for special urls like apis will return the franklin_assets folder
+ * @param {*} suffix The resource name to look for (e.g. 'nav')
+ * @returns {string[]} Candidate URLs, deepest folder first
  */
-export const getClosestFranklinSubfolder = (host, suffix = '', defaultNav = false) => {
-  let subfolderPath = window.location.pathname.split('/')[1];
+export const getClosestFranklinSubfolder = (host, suffix = '') => {
+  let pathname = window.location.pathname;
+  if (pathname.charAt(pathname.length - 1) === '/') pathname = pathname.slice(0, -1);
+  if (pathname.charAt(0) === '/') pathname = pathname.slice(1);
 
-  // make sure top level paths point to the same nav if on these paths
-  if (subfolderPath === '' || subfolderPath === 'apis' || subfolderPath === 'open' || subfolderPath === 'developer-support' || defaultNav) {
-    subfolderPath = 'franklin_assets';
-  } else {
-    subfolderPath = window.location.pathname;
-    // strip any ending slash
-    if (subfolderPath.charAt(subfolderPath.length - 1) === '/') subfolderPath = subfolderPath.substring(0, subfolderPath.length - 1);
-    // strip any leading slash
-    if (subfolderPath.charAt(0) === '/') subfolderPath = subfolderPath.substring(1);
-  }
+  const segments = pathname.split('/').filter(Boolean);
+  const topLevel = segments[0];
+  const isSpecialTopLevel = topLevel === undefined || topLevel === 'apis' || topLevel === 'open' || topLevel === 'developer-support';
 
-  if (isLocalHostEnvironment(host)) {
-    return `http://localhost:3000/${subfolderPath}/${suffix}`;
+  const folders = [];
+  if (!isSpecialTopLevel) {
+    for (let i = segments.length; i > 0; i -= 1) {
+      folders.push(segments.slice(0, i).join('/'));
+    }
   }
-  if (isStageEnvironment(host)) {
-    return `https://developer-stage.adobe.com/${subfolderPath}/${suffix}`;
-  }
-  if (isHlxPath(host)) {
-    return `${window.location.origin}/${subfolderPath}/${suffix}`;
-  }
-  if (isDevEnvironment(host)) {
-    return `https://developer-dev.adobe.com/${subfolderPath}/${suffix}`;
-  }
-  return `https://developer.adobe.com/${subfolderPath}/${suffix}`;
+  folders.push('franklin_assets');
+
+  const buildUrl = (folder) => {
+    if (isLocalHostEnvironment(host)) return `http://localhost:3000/${folder}/${suffix}`;
+    if (isStageEnvironment(host)) return `https://developer-stage.adobe.com/${folder}/${suffix}`;
+    if (isHlxPath(host)) return `${window.location.origin}/${folder}/${suffix}`;
+    if (isDevEnvironment(host)) return `https://developer-dev.adobe.com/${folder}/${suffix}`;
+    return `https://developer.adobe.com/${folder}/${suffix}`;
+  };
+
+  return folders.map(buildUrl);
 };
 
 /**

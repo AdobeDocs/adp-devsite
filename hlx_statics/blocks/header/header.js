@@ -1172,18 +1172,18 @@ export default async function decorate(block) {
     }
 
     // check if documentation template then retrieve from config otherwise default back to google drive path
-    let navPath;
     if (IS_DEV_DOCS) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
       }
     } else {
-      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin, 'nav');
-      let fragment = await loadFragment(navPath);
-      if (fragment == null) {
-        // load the default nav in franklin_assets folder nav
-        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
+      // walk up from the current folder to each ancestor, falling back to franklin_assets/nav
+      const navPaths = getClosestFranklinSubfolder(window.location.origin, 'nav');
+      let fragment = cfg.nav ? await loadFragment(cfg.nav) : null;
+      for (let i = 0; i < navPaths.length && fragment == null; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        fragment = await loadFragment(navPaths[i]);
       }
       const ul = fragment.querySelector("ul");
       ul.classList.add("menu");
