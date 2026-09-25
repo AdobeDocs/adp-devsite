@@ -388,7 +388,7 @@ header.global-nav-header li .nav-dropdown-item .nav-dropdown-description {
   font-size: 12px;
   max-width: 200px;
   text-wrap: initial;
-
+  word-break: auto-phrase;
 }
 
 header.global-nav-header a.nav-dropdown-links {
