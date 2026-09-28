@@ -307,7 +307,7 @@ main div.columns-wrapper div.columns.vertical>div:nth-child(odd) {
 }
 
 main div.columns-wrapper div.columns.wide {
-    padding: 40px 0;
+    padding: 20px;
 }
 
 main div.columns-wrapper div.columns.wide.large-font h3.column-header {
