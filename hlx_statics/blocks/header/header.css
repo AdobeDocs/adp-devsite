@@ -390,6 +390,7 @@ header.global-nav-header li .nav-dropdown-item .nav-dropdown-description {
   text-wrap: initial;
   -webkit-hyphens: none;
   -moz-hyphens: none;
+  -ms-hyphens:none;
   hyphens: none;
 }
 
