@@ -3,14 +3,12 @@ import {
   setActiveTab,
   focusRing,
   isTopLevelNav,
-  getClosestFranklinSubfolder,
   decorateProfile,
   fetchProfileAvatar,
   LoadingState,
   setExpectedOrigin
 } from '../../scripts/lib-adobeio.js';
-import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
-import { loadFragment } from '../fragment/fragment.js';
+import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, loadNavFragment, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 
 const ALGOLIA_CONFIG = {
   APP_KEY: window.adp_search.APP_KEY || '',
@@ -1172,19 +1170,15 @@ export default async function decorate(block) {
     }
 
     // check if documentation template then retrieve from config otherwise default back to google drive path
-    let navPath;
     if (IS_DEV_DOCS) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
       }
     } else {
-      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin, 'nav');
-      let fragment = await loadFragment(navPath);
-      if (fragment == null) {
-        // load the default nav in franklin_assets folder nav
-        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
-      }
+      // walk up from the current folder to each ancestor, falling back to franklin_assets/nav
+      const fragment = await loadNavFragment(cfg.nav);
+      if (!fragment) return;
       const ul = fragment.querySelector("ul");
       ul.classList.add("menu");
       ul.setAttribute("id", "navigation-links");
