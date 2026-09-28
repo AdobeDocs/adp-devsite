@@ -1178,6 +1178,7 @@ export default async function decorate(block) {
     } else {
       // walk up from the current folder to each ancestor, falling back to franklin_assets/nav
       const fragment = await loadNavFragment(cfg.nav);
+      if (!fragment) return;
       const ul = fragment.querySelector("ul");
       ul.classList.add("menu");
       ul.setAttribute("id", "navigation-links");

@@ -158,6 +158,7 @@ export default async function decorate(block) {
     }
   } else {
     const fragment = await loadNavFragment();
+    if (!fragment) return;
     const ul = fragment.querySelector("ul");
     ul.classList.add("menu");
     ul.setAttribute("id", "navigation-links");
