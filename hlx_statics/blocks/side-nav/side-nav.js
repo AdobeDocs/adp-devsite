@@ -1,6 +1,5 @@
 import {
   createTag,
-  getClosestFranklinSubfolder,
   isTopLevelNav,
   setExpectedOrigin,
 } from "../../scripts/lib-adobeio.js";
@@ -8,9 +7,9 @@ import {
   fetchSideNavHtml,
   fetchTopNavHtml,
   fetchTopButtonsNavHtml,
+  loadNavFragment,
   IS_DEV_DOCS
 } from "../../scripts/lib-helix.js";
-import { loadFragment } from '../fragment/fragment.js';
 
 /**
  * Helper function to create a navigation section with a label
@@ -158,13 +157,7 @@ export default async function decorate(block) {
       processNestedNavigation(menuUl);
     }
   } else {
-    // walk up from the current folder to each ancestor, falling back to franklin_assets/nav
-    const navPaths = getClosestFranklinSubfolder(window.location.origin, 'nav');
-    let fragment = null;
-    for (let i = 0; i < navPaths.length && !fragment; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      fragment = await loadFragment(navPaths[i]);
-    }
+    const fragment = await loadNavFragment();
     const ul = fragment.querySelector("ul");
     ul.classList.add("menu");
     ul.setAttribute("id", "navigation-links");

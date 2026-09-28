@@ -869,7 +869,7 @@ export const setSearchFrameOrigin = (host, suffix = '') => {
  * @param {*} suffix The resource name to look for (e.g. 'nav')
  * @returns {string[]} Candidate URLs, deepest folder first
  */
-export const getClosestFranklinSubfolder = (host, suffix = '') => {
+export const getFranklinSubfolders = (host, suffix = '') => {
   let pathname = window.location.pathname;
   if (pathname.charAt(pathname.length - 1) === '/') pathname = pathname.slice(0, -1);
   if (pathname.charAt(0) === '/') pathname = pathname.slice(1);
@@ -880,9 +880,10 @@ export const getClosestFranklinSubfolder = (host, suffix = '') => {
 
   const folders = [];
   if (!isSpecialTopLevel) {
-    for (let i = segments.length; i > 0; i -= 1) {
-      folders.push(segments.slice(0, i).join('/'));
-    }
+    while (segments.length > 0) {                                                                                                                                            
+       folders.push(segments.join('/'));
+       segments.pop();
+     }
   }
   folders.push('franklin_assets');
 

@@ -3,14 +3,12 @@ import {
   setActiveTab,
   focusRing,
   isTopLevelNav,
-  getClosestFranklinSubfolder,
   decorateProfile,
   fetchProfileAvatar,
   LoadingState,
   setExpectedOrigin
 } from '../../scripts/lib-adobeio.js';
-import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
-import { loadFragment } from '../fragment/fragment.js';
+import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, loadNavFragment, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 
 const ALGOLIA_CONFIG = {
   APP_KEY: window.adp_search.APP_KEY || '',
@@ -1179,12 +1177,7 @@ export default async function decorate(block) {
       }
     } else {
       // walk up from the current folder to each ancestor, falling back to franklin_assets/nav
-      const navPaths = getClosestFranklinSubfolder(window.location.origin, 'nav');
-      let fragment = cfg.nav ? await loadFragment(cfg.nav) : null;
-      for (let i = 0; i < navPaths.length && fragment == null; i += 1) {
-        // eslint-disable-next-line no-await-in-loop
-        fragment = await loadFragment(navPaths[i]);
-      }
+      const fragment = await loadNavFragment(cfg.nav);
       const ul = fragment.querySelector("ul");
       ul.classList.add("menu");
       ul.setAttribute("id", "navigation-links");
