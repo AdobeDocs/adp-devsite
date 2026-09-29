@@ -109,11 +109,16 @@ test.describe('Announcement DevBiz reference', () => {
       const wrapper = wrappers.nth(index);
       const image = wrapper.locator('picture img');
 
-      await expect(image).toHaveJSProperty('complete', true);
+      await expect.poll(() => image.evaluate((element) => (
+        element.complete && element.naturalWidth > 0
+      ))).toBe(true);
       await expect(wrapper.locator('picture').locator('..')).toBeHidden();
-      await expect.poll(async () => wrapper.evaluate(
-        (element) => getComputedStyle(element).backgroundImage,
-      )).not.toBe('none');
+      // Decoration should use this authored image, not just set any background image.
+      await expect.poll(() => wrapper.evaluate((element) => {
+        const authoredImage = element.querySelector('picture img');
+        return authoredImage
+          && getComputedStyle(element).backgroundImage === `url("${authoredImage.src}")`;
+      })).toBe(true);
     };
     await Promise.all(Array.from({ length: 3 }, (_, index) => assertBackgroundImage(index + 1)));
   });
