@@ -809,7 +809,7 @@ async function loadLazy(doc) {
     }
   }
 
-  if (IS_AI_ASSISTANT_ENABLED) {
+  if (IS_AI_ASSISTANT_ENABLED && !doc.body.classList.contains('sidekick-library')) {
     buildAiAssistant(main);
     loadAiAssistant(doc.querySelector('.ai-assistant-wrapper'));
   }
