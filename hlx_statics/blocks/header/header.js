@@ -1084,7 +1084,6 @@ export default async function decorate(block) {
     tabindex: '0',
     role: 'button',
     'aria-label': 'Open navigation menu',
-    'aria-haspopup': 'true',
     'aria-expanded': 'false',
     'aria-controls': 'side-nav',
   });
