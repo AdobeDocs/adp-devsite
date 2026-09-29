@@ -147,6 +147,7 @@ main div.hero-wrapper div.hero-video-container {
   main div.hero-wrapper div.hero {
     padding: 32px;
     overflow: hidden;
+    height: 100% !important;
   }
 
   main div.hero-wrapper div.hero > div:first-child {
