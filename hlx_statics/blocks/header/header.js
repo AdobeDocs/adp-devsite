@@ -986,16 +986,26 @@ function addCheckmarkSvg(ul) {
 
 function handleMenuButton(header) {
   const menuBtn = header.querySelector('.menu-btn');
+  const menuIcon = header.querySelector('.menu-icon');
   if (!menuBtn) return;
 
   menuBtn.addEventListener('change', () => {
     const sideNav = document.querySelector('.side-nav');
+    menuIcon?.setAttribute('aria-expanded', String(menuBtn.checked));
     if (menuBtn.checked) {
       sideNav?.classList.add('is-visible');
       document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
     } else {
       sideNav?.classList.remove('is-visible');
       document.body.style.overflow = ''; // Restore scrolling
+    }
+  });
+
+  menuIcon?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.preventDefault();
+      menuBtn.checked = !menuBtn.checked;
+      menuBtn.dispatchEvent(new Event('change'));
     }
   });
 
@@ -1010,6 +1020,7 @@ function handleMenuButton(header) {
     // Close the menu when switching between breakpoints
     if (menuBtn.checked) {
       menuBtn.checked = false;
+      menuIcon?.setAttribute('aria-expanded', 'false');
       sideNav.classList.remove('is-visible');
       document.body.style.overflow = '';
     }
@@ -1067,7 +1078,15 @@ export default async function decorate(block) {
   // Create menu button (moved outside of template condition)
   const mobileButton = createTag('input', { class: 'menu-btn', type: 'checkbox', id: 'menu-btn' });
   header.appendChild(mobileButton);
-  const mobileMenu = createTag('label', { class: 'menu-icon', for: 'menu-btn' });
+  const mobileMenu = createTag('label', {
+    class: 'menu-icon',
+    for: 'menu-btn',
+    tabindex: '0',
+    role: 'button',
+    'aria-label': 'Open navigation menu',
+    'aria-expanded': 'false',
+    'aria-controls': 'side-nav',
+  });
   mobileMenu.innerHTML = '<span class="navicon"></span>';
   header.appendChild(mobileMenu);
 
