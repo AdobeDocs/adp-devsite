@@ -917,6 +917,17 @@ header.global-nav-header div.nav-buttons-container {
     transform: rotate(45deg);
     top: 0;
   }
+
+  header div.suggestion-results {
+    width: calc(100% - 32px);
+    max-width: calc(100% - 32px);
+    left: 16px;
+  }
+
+  header a.search-suggestions-a {
+    left: 0;
+    width: 100%;
+  }
 }
 
 @media screen and (max-width: 768px) {
