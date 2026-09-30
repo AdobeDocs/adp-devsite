@@ -854,9 +854,13 @@ function globalNavLinkItemDropdown(id, name, links) {
 }
 
 function globalNavLinkItemDropdownItem(url, name, description) {
+  const [_, queryString] = url.split('?');
+  const searchParams = new URLSearchParams(queryString);
+  const isExternal =  searchParams.has('aio_external');
+
   return `
       <li class="spectrum-Menu-item menu-item">
-        <a href="${url}" class="nav-dropdown-links spectrum-Menu-itemLabel nav-dropdown-item" daa-ll="${name}">
+        <a href="${url}" target="${isExternal ? '_blank' : '_self'}" class="nav-dropdown-links spectrum-Menu-itemLabel nav-dropdown-item" daa-ll="${name}">
           <span class="nav-dropdown-name">${name}</span>${description ? '<span class="nav-dropdown-description">' + description + '</span>' : ''}
         </a>
       </li>
