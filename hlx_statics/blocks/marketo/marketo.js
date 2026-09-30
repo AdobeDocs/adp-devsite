@@ -68,14 +68,12 @@ export default async function decorate(block) {
           configData.consentPosition = blockConfig['consentPosition'];
         }
         const successConfig = configData.marketoConfig.form_config.success;
-        console.log("Parsed successConfig:", successConfig);
         if (successConfig) {
           if (successConfig.type === 'redirect') {
             configData.successRedirect = successConfig.content;
           } else if (successConfig.type === 'message') {
             configData.successMessage = successConfig.content;
           }
-          console.log("Set configData.successMessage to:", configData.successMessage);
         }
         if (blockConfig['custom-css']) {
           const style = document.createElement('style');
@@ -381,12 +379,9 @@ export default async function decorate(block) {
       }, 500);
     }
     form.onValidate(function (valid) {
-      console.log("Marketo form onValidate triggered. valid:", valid);
       if (!valid) {
-        console.log("Marketo built-in validation failed! The following Marketo fields are invalid:");
         const invalidEls = form.getFormElem()[0].querySelectorAll('.mktoInvalid');
         invalidEls.forEach(el => {
-          console.log("- Field name:", el.name, "| id:", el.id, "| value:", el.value);
         });
       }
       let customValid = true;
@@ -398,12 +393,9 @@ export default async function decorate(block) {
           if (!firstInvalid) firstInvalid = inputEl;
         }
       });
-      console.log("customValid:", customValid);
       if (valid && customValid) {
-        console.log("Form is submittable (valid & customValid true)");
         form.submittable(true);
       } else {
-        console.log("Form is NOT submittable. valid:", valid, "customValid:", customValid);
         form.submittable(false);
         if (firstInvalid) {
           firstInvalid.focus();
@@ -411,17 +403,13 @@ export default async function decorate(block) {
       }
     });
     form.onSubmit(function (form) {
-      console.log("Marketo form onSubmit triggered! Validation passed, sending data...");
     });
     form.onSuccess(function () {
-      console.log("Marketo form onSuccess triggered.");
-      console.log("configData.successRedirect:", configData.successRedirect);
       if (configData.successRedirect) {
         top.location.href = configData.successRedirect;
         return false;
       }
       document.querySelectorAll('.aem-injected-element').forEach(el => el.style.display = 'none');
-      console.log("Falling back to Marketo default success behavior.");
     });
   }).catch((error) => {
     console.error("Failed to load Marketo form:", error);
