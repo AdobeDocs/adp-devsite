@@ -863,6 +863,20 @@ function globalNavLinkItemDropdownItem(url, name, description) {
     `;
 }
 
+function handleExternalLinks(header) {
+  header.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
+    try {
+      const url = new URL(link.href, window.location.href);
+      url.searchParams.delete('aio_external');
+      link.href = url.href;
+    } catch (e) {
+      link.href = link.href.replace(/[?&]aio_external(=[^&#]*)?/, '');
+    }
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+  });
+}
+
 function handleButtons(header) {
   const closeAllDropdowns = () => {
     header.querySelectorAll('button.navigation-dropdown').forEach((button) => {
@@ -1134,10 +1148,11 @@ export default async function decorate(block) {
 
         dropDownList.querySelectorAll('ul > li').forEach((dropdownLinks) => {
           const link = dropdownLinks.querySelector('a');
+          if (!link) return;
           const linkText = link.textContent.trim();
           const description = dropdownLinks.textContent.replace(linkText, '').trim();
           dropdownLinksHTML
-            += globalNavLinkItemDropdownItem(link, linkText, description);
+            += globalNavLinkItemDropdownItem(link.href, linkText, description);
         });
 
         dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
@@ -1146,20 +1161,6 @@ export default async function decorate(block) {
           dropdownLinksHTML,
         );
         dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
-      });
-
-      // external links (aio_external query param)
-      navigationLinks.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
-        try {
-          const url = new URL(link.href, window.location.href);
-          url.searchParams.delete('aio_external');
-          link.href = url.href;
-        } catch (e) {
-          link.href = link.href.replace(/[?&]aio_external(=[^&#]*)?/, '');
-        }
-        link.setAttribute('target', '_blank');
-        link.setAttribute('rel', 'noopener noreferrer');
-
       });
 
       header.append(navigationLinks);
@@ -1389,4 +1390,5 @@ export default async function decorate(block) {
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
+  handleExternalLinks(header);
 }
