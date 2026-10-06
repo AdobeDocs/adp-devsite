@@ -47,9 +47,6 @@ export default async function decorate(block) {
   const mainMenuSection = createNavSection("side-nav-menu-section", "Global Navigation");
   navigationLinksContainer.append(mainMenuSection);
 
-  // Create navigation links UL that will be used in both cases
-  // Note: this is a disclosure-pattern nested nav list (links + expand/collapse
-  // buttons), not an ARIA tree widget, so no role="tree"
   const navigationLinksUl = createTag("ul", {
     class: "spectrum-SideNav spectrum-SideNav--multiLevel",
   });
@@ -71,9 +68,6 @@ export default async function decorate(block) {
     <path class="fill" d="M4,7.01a1,1,0,0,1,1.7055-.7055l3.289,3.286,3.289-3.286a1,1,0,0,1,1.437,1.3865l-.0245.0245L9.7,11.7075a1,1,0,0,1-1.4125,0L4.293,7.716A.9945.9945,0,0,1,4,7.01Z" />
   </svg>`;
 
-  // Create menu list
-  // Disclosure-pattern nested nav list (links + an expand/collapse button for
-  // the one collapsible group), not an ARIA tree widget - see DEVSITE-2668.
   let menuUl = createTag("ul", {
     class: "spectrum-SideNav spectrum-SideNav--multiLevel main-menu",
   });
@@ -102,9 +96,6 @@ export default async function decorate(block) {
         li.removeChild(label);
         li.insertBefore(expandableLink, nestedUl);
 
-        // Set up proper nesting structure (disclosure pattern: no tree/treeitem/
-        // group roles - this is a plain nested list with a toggle button, see
-        // DEVSITE-2668)
         li.classList.add('header');
         nestedUl.classList.add('spectrum-SideNav');
         nestedUl.style.display = 'none';
@@ -251,9 +242,6 @@ export default async function decorate(block) {
       if (layer === 1 && childUl) {
         li.classList.add("header");
       }
-
-      // Disclosure pattern: this is a plain nested nav list, not an ARIA tree
-      // widget, so no role="treeitem"/aria-level.
 
       const currentUrl = window.location.href.split('#')[0];
 
