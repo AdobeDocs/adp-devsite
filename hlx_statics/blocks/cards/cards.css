@@ -43,16 +43,6 @@ main div.cards-wrapper div.cards {
   }
 }
 
-/* In the row layout, wrap blocks with more than 6 cards to a max of 6 per row */
-@media screen and (min-width: 1025px) {
-  main div.cards-wrapper div.cards:has(> div:nth-child(7)) {
-    flex-wrap: wrap;
-  }
-  main div.cards-wrapper div.cards:has(> div:nth-child(7)) > div {
-    flex: 0 1 16.666%;
-  }
-}
-
 main div.cards-wrapper div.cards > div {
   text-align: center;
   display: table-cell;
