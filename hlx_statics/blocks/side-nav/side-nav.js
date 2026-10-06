@@ -295,7 +295,6 @@ export default async function decorate(block) {
           const header = li.parentElement.closest("li");
           header?.classList.remove("is-selected");
           li.classList.add("is-expanded", "is-selected");
-          if (childUl) li.setAttribute("aria-expanded", true);
           toggleParent(li, true);
         } else {
           updateState(li, childUl);
@@ -326,7 +325,7 @@ export default async function decorate(block) {
           });
           toggleButton.onclick = (e) => {
             e.preventDefault();
-            const expanded = li.getAttribute('aria-expanded') === 'true';
+            const expanded = li.classList.contains('is-expanded');
             toggleNavItem(li, !expanded, childUl, getAnchorTag);
           };
           li.classList.add('has-toggle-row');
@@ -353,7 +352,6 @@ export default async function decorate(block) {
 
   // Unified function to toggle navigation item state
   function toggleNavItem(li, isExpanded, childUl, anchorTag) {
-    li.setAttribute("aria-expanded", isExpanded);
     li.classList.toggle("is-expanded", isExpanded);
 
     if (childUl) {
@@ -365,8 +363,6 @@ export default async function decorate(block) {
       if (toggleButton) {
         toggleButton.setAttribute('aria-expanded', isExpanded);
         updateIcon(toggleButton, isExpanded, true);
-      } else if (anchorTag) {
-        updateIcon(anchorTag, isExpanded, true);
       }
 
       // Update session storage
@@ -397,7 +393,6 @@ export default async function decorate(block) {
     if (shouldExpand) {
       toggleNavItem(li, true, childUl, anchorTag);
     } else {
-      li.setAttribute("aria-expanded", false);
       anchorTag?.removeAttribute("aria-current");
       li.classList.remove("is-expanded", "is-selected");
       if (childUl) childUl.style.display = "none";
