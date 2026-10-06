@@ -1165,12 +1165,6 @@ export default async function decorate(block) {
 
       header.append(navigationLinks);
     }
-
-
-    // Handle mobile menu button for side nav
-    handleMenuButton(header);
-
-
   } else {
     // Create navigation for non-documentation pages
     let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu', style: 'list-style-type: none;' });

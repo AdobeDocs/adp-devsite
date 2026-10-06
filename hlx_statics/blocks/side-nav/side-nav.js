@@ -33,6 +33,9 @@ export default async function decorate(block) {
     sideNavContainer.style.visibility = "hidden";
   }
 
+  // Unique id generator for disclosure button -> panel aria-controls wiring
+  let sideNavGroupId = 0;
+
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
   navigationLinks.setAttribute("daa-lh", "side-nav");
@@ -45,8 +48,9 @@ export default async function decorate(block) {
   navigationLinksContainer.append(mainMenuSection);
 
   // Create navigation links UL that will be used in both cases
+  // Note: this is a disclosure-pattern nested nav list (links + expand/collapse
+  // buttons), not an ARIA tree widget, so no role="tree"
   const navigationLinksUl = createTag("ul", {
-    role: "tree",
     class: "spectrum-SideNav spectrum-SideNav--multiLevel",
   });
   navigationLinksUl.setAttribute("aria-label", "Table of contents");
@@ -68,8 +72,9 @@ export default async function decorate(block) {
   </svg>`;
 
   // Create menu list
+  // Disclosure-pattern nested nav list (links + an expand/collapse button for
+  // the one collapsible group), not an ARIA tree widget - see DEVSITE-2668.
   let menuUl = createTag("ul", {
-    role: "tree",
     class: "spectrum-SideNav spectrum-SideNav--multiLevel main-menu",
   });
 
@@ -82,10 +87,14 @@ export default async function decorate(block) {
         const text = label.nodeType === Node.TEXT_NODE ? label.textContent.trim() : label.textContent;
 
         // Create the expandable link
+        if (!nestedUl.id) {
+          nestedUl.id = `side-nav-group-${sideNavGroupId++}`;
+        }
         const expandableLink = createTag('button', {
           class: 'spectrum-SideNav-itemLink',
           type: 'button',
-          'aria-expanded': 'false'
+          'aria-expanded': 'false',
+          'aria-controls': nestedUl.id,
         });
         expandableLink.innerHTML = text;
 
@@ -93,10 +102,10 @@ export default async function decorate(block) {
         li.removeChild(label);
         li.insertBefore(expandableLink, nestedUl);
 
-        // Set up proper nesting structure
-        li.setAttribute('role', 'treeitem');
+        // Set up proper nesting structure (disclosure pattern: no tree/treeitem/
+        // group roles - this is a plain nested list with a toggle button, see
+        // DEVSITE-2668)
         li.classList.add('header');
-        nestedUl.setAttribute('role', 'group');
         nestedUl.classList.add('spectrum-SideNav');
         nestedUl.style.display = 'none';
 
@@ -126,10 +135,10 @@ export default async function decorate(block) {
         // Add click handler
         expandableLink.onclick = (e) => {
           e.preventDefault();
-          const isExpanded = li.getAttribute('aria-expanded') === 'true';
+          const isExpanded = expandableLink.getAttribute('aria-expanded') === 'true';
           const newState = !isExpanded;
 
-          li.setAttribute('aria-expanded', newState);
+          expandableLink.setAttribute('aria-expanded', newState);
           li.classList.toggle('is-expanded', newState);
           nestedUl.style.display = newState ? 'block' : 'none';
           updateIcon(expandableLink, newState, true);
@@ -243,8 +252,8 @@ export default async function decorate(block) {
         li.classList.add("header");
       }
 
-      li.setAttribute("role", "treeitem");
-      li.setAttribute("aria-level", layer);
+      // Disclosure pattern: this is a plain nested nav list, not an ARIA tree
+      // widget, so no role="treeitem"/aria-level.
 
       const currentUrl = window.location.href.split('#')[0];
 
@@ -268,56 +277,73 @@ export default async function decorate(block) {
           if (!li.contains(childUl)){
             li.appendChild(childUl);
           }
-          childUl.setAttribute("role", "group");
           childUl.classList.add("spectrum-SideNav");
           assignLayerNumbers(childUl, layer + 1);
         }
 
 
       } else if (getAnchorTag) {
-        // Normal anchor behavior (existing code unchanged)
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
+        // Navigation only - expand/collapse is handled by a separate disclosure
+        // button below, so a single control no longer both navigates AND
+        // toggles
         getAnchorTag.onclick = (e) => {
-          e.preventDefault();
-          const isExpanded = li.getAttribute("aria-expanded") === "true";
-
-          // Toggle expanded state if it has children
-          if (childUl) {
-            toggleNavItem(li, !isExpanded, childUl, getAnchorTag);
-          }
-
-          // Handle navigation and selection
           if (currentUrl === getAnchorTag.href) {
+            e.preventDefault();
             getAnchorTag.setAttribute("aria-current", "page");
             document.querySelectorAll('.is-selected').forEach(el => {
               el.classList.remove('is-selected');
             });
             li.classList.add("is-selected");
             toggleParent(li, true);
-          } else if (!childUl || !isExpanded) {
-            // Only navigate if it has no children or we're opening it
-            window.location.href = getAnchorTag.href;
           }
+          // Otherwise let the link navigate normally.
         };
 
         if (currentUrl === getAnchorTag.href) {
-          li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
           // Check to make sure only the child is selected and not the parent
           const header = li.parentElement.closest("li");
           header?.classList.remove("is-selected");
           li.classList.add("is-expanded", "is-selected");
+          if (childUl) li.setAttribute("aria-expanded", true);
           toggleParent(li, true);
         } else {
           updateState(li, childUl);
         }
 
         if (childUl) {
-          childUl.setAttribute("role", "group");
           childUl.classList.add("spectrum-SideNav");
           assignLayerNumbers(childUl, layer + 1);
-          updateIcon(getAnchorTag, li.classList.contains("is-expanded"), true);
+
+          const legacyIcon = getAnchorTag.querySelector('svg');
+          if (legacyIcon) legacyIcon.remove();
+
+          // Separate expand/collapse disclosure button (decoupled from the
+          // navigation link) so expanding a section doesn't also navigate.
+          // The li becomes a wrapping flex row so the button stays pinned
+          // next to its own label instead of centering on the whole
+          // (possibly expanded) subtree.
+          if (!childUl.id) {
+            childUl.id = `side-nav-group-${sideNavGroupId++}`;
+          }
+          const isExpanded = li.classList.contains("is-expanded");
+          const toggleButton = createTag('button', {
+            type: 'button',
+            class: 'spectrum-SideNav-toggleButton',
+            'aria-expanded': isExpanded ? 'true' : 'false',
+            'aria-controls': childUl.id,
+            'aria-label': `Toggle ${getAnchorTag.textContent.trim()}`,
+          });
+          toggleButton.onclick = (e) => {
+            e.preventDefault();
+            const expanded = li.getAttribute('aria-expanded') === 'true';
+            toggleNavItem(li, !expanded, childUl, getAnchorTag);
+          };
+          li.classList.add('has-toggle-row');
+          li.insertBefore(toggleButton, childUl);
+          updateIcon(toggleButton, isExpanded, true);
         }
       }
     }
@@ -344,7 +370,16 @@ export default async function decorate(block) {
 
     if (childUl) {
       childUl.style.display = isExpanded ? "block" : "none";
-      updateIcon(anchorTag, isExpanded, true);
+
+      // Icon/aria-expanded live on the disclosure button (sibling of the
+      // anchor), not the navigation link itself
+      const toggleButton = li.querySelector(':scope > button.spectrum-SideNav-toggleButton');
+      if (toggleButton) {
+        toggleButton.setAttribute('aria-expanded', isExpanded);
+        updateIcon(toggleButton, isExpanded, true);
+      } else if (anchorTag) {
+        updateIcon(anchorTag, isExpanded, true);
+      }
 
       // Update session storage
       if (anchorTag?.href) {
