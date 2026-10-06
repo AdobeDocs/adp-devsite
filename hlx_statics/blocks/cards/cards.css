@@ -26,7 +26,6 @@ main div.cards-wrapper div.cards {
   display: flex;
   justify-content: center;
   flex-direction: row;
-  flex-wrap: wrap;
 }
 
 @media screen and (max-width: 320px) {
@@ -47,6 +46,7 @@ main div.cards-wrapper div.cards {
 main div.cards-wrapper div.cards > div {
   text-align: center;
   display: table-cell;
+  min-width: 0;
 }
 
 main div.cards-wrapper div.cards > div.three-cards {
@@ -79,6 +79,8 @@ main div.cards-wrapper div.cards > div > div {
 
 main div.cards-wrapper div.cards > div img {
   height: 80px;
+  max-width: 100%;
+  object-fit: contain;
   margin-top: 0;
   margin-bottom: 24px;
 }
