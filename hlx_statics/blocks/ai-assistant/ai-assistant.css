@@ -547,6 +547,7 @@
     border-radius: 16px;
     padding: 32px;
     width: 100%;
+    max-width: 440px;
     color: #131313;
 
     .chat-window-dialog-heading {
