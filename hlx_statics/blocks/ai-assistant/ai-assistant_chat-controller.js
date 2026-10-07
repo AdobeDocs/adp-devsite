@@ -115,6 +115,18 @@ const setChatWindowExpanded = (isExpanded) => {
   setPageBackgroundInert(isExpanded);
 };
 
+/**
+ * Recompute Prism line-number rows after the assistant content has adopted its
+ * new width. Two animation frames let the expanded/compact layout settle first.
+ */
+const resizeAssistantCodeBlockLineNumbersAfterLayout = () => {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      ChatBubble.resizeCodeBlockLineNumbers(ELEMENTS.CHAT_WINDOW_CONTENT);
+    });
+  });
+};
+
 /** @param {KeyboardEvent} e */
 const escapeKeyHandler = (e) => {
   if (e.key === 'Escape') closeChatWindow();
@@ -272,7 +284,9 @@ export const openChatWindow = () => {
     sendInitialMessages();
   }
 
-  ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', escapeKeyHandler);
+  // Listen on the document so Escape still closes the chat if focus moves to
+  // the non-focusable backdrop or another area outside the panel.
+  document.addEventListener('keydown', escapeKeyHandler);
   ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', trapFocusHandler);
 
   ELEMENTS.CHAT_TEXTAREA.focus();
@@ -293,7 +307,7 @@ export const closeChatWindow = () => {
   ELEMENTS.CHAT_BUTTON?.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 
-  ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', escapeKeyHandler);
+  document.removeEventListener('keydown', escapeKeyHandler);
   ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', trapFocusHandler);
 
   if (wasExpanded) {
@@ -352,6 +366,7 @@ export const toggleChatWindowView = () => {
   if (!chatWindow?.classList.contains("show")) return;
 
   setChatWindowExpanded(!chatWindow.classList.contains("expanded"));
+  resizeAssistantCodeBlockLineNumbersAfterLayout();
 };
 
 const showStopButton = () => {
