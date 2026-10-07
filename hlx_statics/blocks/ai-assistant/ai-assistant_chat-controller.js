@@ -241,6 +241,8 @@ export const openChatWindow = () => {
   }
 
   setChatWindowExpanded(false);
+  ELEMENTS.CHAT_WINDOW.classList.remove("instant-close");
+  ELEMENTS.CHAT_BUTTON.classList.remove("instant-close");
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_CLOSE;
   ELEMENTS.CHAT_WINDOW.classList.add("show");
@@ -277,6 +279,13 @@ export const openChatWindow = () => {
 };
 
 export const closeChatWindow = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  const wasExpanded = chatWindow?.classList.contains("expanded");
+  if (wasExpanded) {
+    chatWindow.classList.add("instant-close");
+    ELEMENTS.CHAT_BUTTON?.classList.add("instant-close");
+  }
+
   setChatWindowExpanded(false);
   ELEMENTS.CHAT_BUTTON?.setAttribute("aria-expanded", "false");
   // @ts-expect-error - CHAT_BUTTON has to be defined for us to get this far
@@ -287,7 +296,11 @@ export const closeChatWindow = () => {
   ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', escapeKeyHandler);
   ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', trapFocusHandler);
 
-  focusChatButtonAfterClose();
+  if (wasExpanded) {
+    ELEMENTS.CHAT_BUTTON?.focus();
+  } else {
+    focusChatButtonAfterClose();
+  }
 };
 
 /**

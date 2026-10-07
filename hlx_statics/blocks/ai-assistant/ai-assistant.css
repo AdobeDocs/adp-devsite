@@ -154,6 +154,10 @@
         transition: visibility 0s linear;
         transform: scale(0.9);
     }
+
+    &.instant-close {
+        transition: none;
+    }
 }
 
 /*
@@ -183,6 +187,10 @@
     transition:
         transform var(--opening-transition-duration) cubic-bezier(0.5, 0, 1, 1),
         visibility 0s linear var(--opening-transition-duration);
+
+    &.instant-close {
+        transition: none;
+    }
 
     &.show {
         visibility: visible;
