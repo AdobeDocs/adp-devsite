@@ -1249,7 +1249,11 @@ main a , main strong a, main .default-content-wrapper a strong{
 }
 
 main .default-content-wrapper :is(p, li, td, dd) a:not(.spectrum-Button, .button, [role="button"]) {
-  text-decoration: underline;
+  color: rgb(4, 105, 227);
+
+  & strong {
+    color: inherit;
+  }
 }
 
 main strong a {
