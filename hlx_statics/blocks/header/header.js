@@ -1380,6 +1380,21 @@ export default async function decorate(block) {
   });
 
   setActiveTab();
+  const desktopNavigation = header.querySelector('#navigation-links');
+  desktopNavigation?.addEventListener('focusin', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)
+      || target.parentElement?.parentElement !== desktopNavigation
+      || !target.matches('a:focus-visible, button:focus-visible')) return;
+
+    const navBounds = desktopNavigation.getBoundingClientRect();
+    const targetBounds = target.getBoundingClientRect();
+    if (targetBounds.left < navBounds.left) {
+      desktopNavigation.scrollLeft += targetBounds.left - navBounds.left;
+    } else if (targetBounds.right > navBounds.right) {
+      desktopNavigation.scrollLeft += targetBounds.right - navBounds.right;
+    }
+  });
   focusRing(header);
 
   // Always handle menu button (removed template condition)

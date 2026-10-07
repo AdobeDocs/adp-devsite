@@ -215,6 +215,7 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
   transform: rotate(-90deg);
 }
 
+header.global-nav-header > ul#navigation-links > li > a:focus-visible,
 header.global-nav-header button.navigation-dropdown:focus-visible,
 header.global-nav-header .nav-sign-in > button:focus-visible {
   outline: 2px solid rgb(0, 84, 182);
