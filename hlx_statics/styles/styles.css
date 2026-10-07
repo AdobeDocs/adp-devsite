@@ -1248,6 +1248,10 @@ main a , main strong a, main .default-content-wrapper a strong{
   text-decoration: none;
 }
 
+main .default-content-wrapper :is(p, li, td, dd) a:not(.spectrum-Button, .button, [role="button"]) {
+  text-decoration: underline;
+}
+
 main strong a {
   font-weight: bold;
 }
