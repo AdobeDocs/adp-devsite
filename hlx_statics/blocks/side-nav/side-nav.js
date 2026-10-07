@@ -197,6 +197,13 @@ export default async function decorate(block) {
     buttons.push({ href: setExpectedOrigin(window.location.origin, '/console/'), title: 'Console' });
   }
 
+  // DEVSITE-2642 / DEVSITE-2643: the desktop "Distribute" CTA (header.js) is hidden below
+  // 768px/at 200% zoom with no accessible equivalent. Mirror it into this already-accessible
+  // side-nav buttons list, same as Console, scoped to developer-distribution pages only.
+  if (window.location.pathname.includes('/developer-distribution')) {
+    buttons.unshift({ href: setExpectedOrigin(window.location.origin, '/distribute'), title: 'Distribute' });
+  }
+
   buttons.forEach(({ href, title }, index) => {
     const style = index === 0 && buttons.length > 1 ? 'accent' : 'secondary';
     const buttonLi = createTag("li", { class: "spectrum-SideNav-item" });
