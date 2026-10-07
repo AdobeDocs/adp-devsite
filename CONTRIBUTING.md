@@ -129,7 +129,16 @@ snapshot_artifact=$(find .act-artifacts -name 'playwright-linux-snapshots-*.zip'
 unzip -o "$snapshot_artifact" -d tests/playwright
 ```
 
-To run Act against the current branch's deployed AEM preview instead, omit `playwright_base_url`. This requires pushing the branch first so that its preview is available.
+To run Act against the current branch's deployed AEM preview instead, pass the preview URL explicitly. Omitting `playwright_base_url` under Act targets the local AEM server at `http://host.docker.internal:3001`, not the preview. Running against the preview requires pushing the branch first so that its preview is available:
+
+```bash
+rm -rf .act-artifacts
+act workflow_dispatch \
+  -W .github/workflows/playwright.yml \
+  --input playwright_base_url=https://<branch>--adp-devsite--adobedocs.aem.page
+```
+
+Use the lowercased branch name with `/` replaced by `-`, matching the preview URL pattern shown above.
 
 GitHub Actions remains authoritative: after pushing locally generated snapshots, the normal pull request workflow must still pass.
 
