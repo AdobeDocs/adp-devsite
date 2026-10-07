@@ -127,6 +127,27 @@ main div.cards-wrapper div.cards.wide {
   max-width: 80%;
 }
 
+/* DevDocs authors wide examples as separate 33%-width blocks. Keep their
+   landscape images inside each card instead of letting intrinsic image width
+   force the flex item over its neighbors. DevBiz's multi-card layout is unchanged. */
+main.dev-docs div.cards-wrapper div.cards.wide {
+  max-width: 100%;
+}
+
+main.dev-docs div.cards-wrapper div.cards.wide > div {
+  min-width: 0;
+}
+
+main.dev-docs div.cards-wrapper div.cards.wide > div > div:has(picture) {
+  padding: 0;
+}
+
+main.dev-docs div.cards-wrapper div.cards.wide img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
 main div.cards-wrapper div.cards.wide div.three-card {
   width: 33.33%;
 }
