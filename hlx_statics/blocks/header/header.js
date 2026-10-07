@@ -1387,13 +1387,7 @@ export default async function decorate(block) {
       || target.parentElement?.parentElement !== desktopNavigation
       || !target.matches('a:focus-visible, button:focus-visible')) return;
 
-    const navBounds = desktopNavigation.getBoundingClientRect();
-    const targetBounds = target.getBoundingClientRect();
-    if (targetBounds.left < navBounds.left) {
-      desktopNavigation.scrollLeft += targetBounds.left - navBounds.left;
-    } else if (targetBounds.right > navBounds.right) {
-      desktopNavigation.scrollLeft += targetBounds.right - navBounds.right;
-    }
+    target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   });
   focusRing(header);
 
