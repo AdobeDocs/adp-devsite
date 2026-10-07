@@ -14,6 +14,10 @@ import {
   CHAT_BUTTON_LABEL_OPEN,
   CHAT_WINDOW_ID,
   CHAT_WINDOW_LABEL_ID,
+  CHAT_WINDOW_BUTTON_LABEL_EXPAND,
+  CHAT_WINDOW_DAA_LABEL_EXPAND,
+  CHAT_WINDOW_EXPAND_ICON_SRC,
+  CHAT_WINDOW_VIEW_TOGGLE_ID,
   ELEMENTS,
   SEND_ICON_SRC,
 } from "./ai-assistant_constants.js";
@@ -54,6 +58,23 @@ export const createChatWindowHeader = () => {
   });
   clearButton.appendChild(clearButtonIcon);
 
+  const viewToggle = createTag("button", {
+    class: "chat-window-view-toggle",
+    id: CHAT_WINDOW_VIEW_TOGGLE_ID,
+    type: "button",
+    "aria-controls": CHAT_WINDOW_ID,
+    "aria-expanded": "false",
+    "aria-label": CHAT_WINDOW_BUTTON_LABEL_EXPAND,
+    title: CHAT_WINDOW_BUTTON_LABEL_EXPAND,
+    "daa-ll": CHAT_WINDOW_DAA_LABEL_EXPAND,
+  });
+  const viewToggleIcon = createTag("img", {
+    src: CHAT_WINDOW_EXPAND_ICON_SRC,
+    alt: "",
+    "aria-hidden": true,
+  });
+  viewToggle.appendChild(viewToggleIcon);
+
   const closeButton = createTag("button", {
     class: "chat-window-close",
     type: "button",
@@ -70,8 +91,10 @@ export const createChatWindowHeader = () => {
   chatWindowHeader.appendChild(label);
   chatWindowHeader.appendChild(createTag("div", { style: "flex: 1;" }));
   chatWindowHeader.appendChild(clearButton);
+  chatWindowHeader.appendChild(viewToggle);
   chatWindowHeader.appendChild(closeButton);
   ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON = clearButton;
+  ELEMENTS.CHAT_WINDOW_VIEW_TOGGLE = viewToggle;
   ELEMENTS.CHAT_WINDOW_CLOSE_BUTTON = closeButton;
   return chatWindowHeader;
 };

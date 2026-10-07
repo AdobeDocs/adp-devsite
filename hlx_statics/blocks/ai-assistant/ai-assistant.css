@@ -89,6 +89,35 @@
     height: calc(100vh - 64px);
 }
 
+.ai-assistant-wrapper {
+    .chat-window-backdrop {
+        display: none;
+    }
+
+    &.ai-assistant-expanded {
+        inset: 0;
+        z-index: 1000002;
+        margin: 0;
+
+        .ai-assistant-panel {
+            display: block;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .chat-window-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            display: block;
+            background: rgb(0 0 0 / 50%);
+            pointer-events: auto;
+        }
+    }
+}
+
 /*
 * MARK: Chat Button
 */
@@ -178,6 +207,27 @@
     }
 }
 
+.ai-assistant-wrapper.ai-assistant-expanded {
+    .chat-window {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        z-index: 1;
+        width: 80vw;
+        height: 90dvh;
+        max-width: none;
+        box-sizing: border-box;
+        transform-origin: center;
+        translate: -50% -50%;
+
+        .chat-bubble {
+            max-width: min(100%, 800px);
+        }
+    }
+}
+
 /*
  * MARK: Chat Window Header
  */
@@ -196,7 +246,8 @@
     }
 
     .chat-window-close,
-    .chat-window-clear {
+    .chat-window-clear,
+    .chat-window-view-toggle {
         background: none;
         border: none;
         padding: 0;
@@ -210,15 +261,22 @@
         &:hover {
             background: #e1e1e1;
         }
+
+        &:focus-visible {
+            outline: 2px solid #1473e6;
+            outline-offset: 2px;
+        }
     }
 
-    .chat-window-clear {
+    .chat-window-clear,
+    .chat-window-view-toggle {
         display: flex;
         justify-content: center;
         align-items: center;
 
         img {
             width: 20px;
+            height: 20px;
         }
     }
 
@@ -876,5 +934,17 @@
             width: calc(100vw - 32px);
             max-width: 400px;
         }
+    }
+
+    .ai-assistant-wrapper.ai-assistant-expanded .chat-window {
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right)
+            env(safe-area-inset-bottom) env(safe-area-inset-left);
+        border-radius: 0;
+        translate: 0 0;
     }
 }
