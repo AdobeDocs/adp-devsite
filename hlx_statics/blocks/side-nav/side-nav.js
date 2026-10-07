@@ -33,7 +33,6 @@ export default async function decorate(block) {
     sideNavContainer.style.visibility = "hidden";
   }
 
-  // Unique id generator for disclosure button -> panel aria-controls wiring
   let sideNavGroupId = 0;
 
   const navigationLinks = createTag("nav", { role: "navigation" });
@@ -273,9 +272,6 @@ export default async function decorate(block) {
       } else if (getAnchorTag) {
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
-        // Navigation only - expand/collapse is handled by a separate disclosure
-        // button below, so a single control no longer both navigates AND
-        // toggles
         getAnchorTag.onclick = (e) => {
           if (currentUrl === getAnchorTag.href) {
             e.preventDefault();
@@ -286,7 +282,6 @@ export default async function decorate(block) {
             li.classList.add("is-selected");
             toggleParent(li, true);
           }
-          // Otherwise let the link navigate normally.
         };
 
         if (currentUrl === getAnchorTag.href) {
@@ -307,11 +302,6 @@ export default async function decorate(block) {
           const legacyIcon = getAnchorTag.querySelector('svg');
           if (legacyIcon) legacyIcon.remove();
 
-          // Separate expand/collapse disclosure button (decoupled from the
-          // navigation link) so expanding a section doesn't also navigate.
-          // The li becomes a wrapping flex row so the button stays pinned
-          // next to its own label instead of centering on the whole
-          // (possibly expanded) subtree.
           if (!childUl.id) {
             childUl.id = `side-nav-group-${sideNavGroupId++}`;
           }
@@ -357,8 +347,6 @@ export default async function decorate(block) {
     if (childUl) {
       childUl.style.display = isExpanded ? "block" : "none";
 
-      // Icon/aria-expanded live on the disclosure button (sibling of the
-      // anchor), not the navigation link itself
       const toggleButton = li.querySelector(':scope > button.spectrum-SideNav-toggleButton');
       if (toggleButton) {
         toggleButton.setAttribute('aria-expanded', isExpanded);
