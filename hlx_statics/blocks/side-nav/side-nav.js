@@ -33,6 +33,8 @@ export default async function decorate(block) {
     sideNavContainer.style.visibility = "hidden";
   }
 
+  let sideNavGroupId = 0;
+
   const navigationLinks = createTag("nav", { role: "navigation" });
   navigationLinks.setAttribute("aria-label", "Primary");
   navigationLinks.setAttribute("daa-lh", "side-nav");
@@ -44,9 +46,7 @@ export default async function decorate(block) {
   const mainMenuSection = createNavSection("side-nav-menu-section", "Global Navigation");
   navigationLinksContainer.append(mainMenuSection);
 
-  // Create navigation links UL that will be used in both cases
   const navigationLinksUl = createTag("ul", {
-    role: "tree",
     class: "spectrum-SideNav spectrum-SideNav--multiLevel",
   });
   navigationLinksUl.setAttribute("aria-label", "Table of contents");
@@ -67,9 +67,7 @@ export default async function decorate(block) {
     <path class="fill" d="M4,7.01a1,1,0,0,1,1.7055-.7055l3.289,3.286,3.289-3.286a1,1,0,0,1,1.437,1.3865l-.0245.0245L9.7,11.7075a1,1,0,0,1-1.4125,0L4.293,7.716A.9945.9945,0,0,1,4,7.01Z" />
   </svg>`;
 
-  // Create menu list
   let menuUl = createTag("ul", {
-    role: "tree",
     class: "spectrum-SideNav spectrum-SideNav--multiLevel main-menu",
   });
 
@@ -82,10 +80,14 @@ export default async function decorate(block) {
         const text = label.nodeType === Node.TEXT_NODE ? label.textContent.trim() : label.textContent;
 
         // Create the expandable link
+        if (!nestedUl.id) {
+          nestedUl.id = `side-nav-group-${sideNavGroupId++}`;
+        }
         const expandableLink = createTag('button', {
           class: 'spectrum-SideNav-itemLink',
           type: 'button',
-          'aria-expanded': 'false'
+          'aria-expanded': 'false',
+          'aria-controls': nestedUl.id,
         });
         expandableLink.innerHTML = text;
 
@@ -93,10 +95,7 @@ export default async function decorate(block) {
         li.removeChild(label);
         li.insertBefore(expandableLink, nestedUl);
 
-        // Set up proper nesting structure
-        li.setAttribute('role', 'treeitem');
         li.classList.add('header');
-        nestedUl.setAttribute('role', 'group');
         nestedUl.classList.add('spectrum-SideNav');
         nestedUl.style.display = 'none';
 
@@ -126,10 +125,10 @@ export default async function decorate(block) {
         // Add click handler
         expandableLink.onclick = (e) => {
           e.preventDefault();
-          const isExpanded = li.getAttribute('aria-expanded') === 'true';
+          const isExpanded = expandableLink.getAttribute('aria-expanded') === 'true';
           const newState = !isExpanded;
 
-          li.setAttribute('aria-expanded', newState);
+          expandableLink.setAttribute('aria-expanded', newState);
           li.classList.toggle('is-expanded', newState);
           nestedUl.style.display = newState ? 'block' : 'none';
           updateIcon(expandableLink, newState, true);
@@ -250,9 +249,6 @@ export default async function decorate(block) {
         li.classList.add("header");
       }
 
-      li.setAttribute("role", "treeitem");
-      li.setAttribute("aria-level", layer);
-
       const currentUrl = window.location.href.split('#')[0];
 
       // Handle header labels (items with "header")
@@ -275,41 +271,27 @@ export default async function decorate(block) {
           if (!li.contains(childUl)){
             li.appendChild(childUl);
           }
-          childUl.setAttribute("role", "group");
           childUl.classList.add("spectrum-SideNav");
           assignLayerNumbers(childUl, layer + 1);
         }
 
 
       } else if (getAnchorTag) {
-        // Normal anchor behavior (existing code unchanged)
         getAnchorTag.style.paddingLeft = `calc(${layer} * 12px)`;
 
         getAnchorTag.onclick = (e) => {
-          e.preventDefault();
-          const isExpanded = li.getAttribute("aria-expanded") === "true";
-
-          // Toggle expanded state if it has children
-          if (childUl) {
-            toggleNavItem(li, !isExpanded, childUl, getAnchorTag);
-          }
-
-          // Handle navigation and selection
           if (currentUrl === getAnchorTag.href) {
+            e.preventDefault();
             getAnchorTag.setAttribute("aria-current", "page");
             document.querySelectorAll('.is-selected').forEach(el => {
               el.classList.remove('is-selected');
             });
             li.classList.add("is-selected");
             toggleParent(li, true);
-          } else if (!childUl || !isExpanded) {
-            // Only navigate if it has no children or we're opening it
-            window.location.href = getAnchorTag.href;
           }
         };
 
         if (currentUrl === getAnchorTag.href) {
-          li.setAttribute("aria-expanded", true);
           getAnchorTag.setAttribute("aria-current", "page");
           // Check to make sure only the child is selected and not the parent
           const header = li.parentElement.closest("li");
@@ -321,10 +303,31 @@ export default async function decorate(block) {
         }
 
         if (childUl) {
-          childUl.setAttribute("role", "group");
           childUl.classList.add("spectrum-SideNav");
           assignLayerNumbers(childUl, layer + 1);
-          updateIcon(getAnchorTag, li.classList.contains("is-expanded"), true);
+
+          const legacyIcon = getAnchorTag.querySelector('svg');
+          if (legacyIcon) legacyIcon.remove();
+
+          if (!childUl.id) {
+            childUl.id = `side-nav-group-${sideNavGroupId++}`;
+          }
+          const isExpanded = li.classList.contains("is-expanded");
+          const toggleButton = createTag('button', {
+            type: 'button',
+            class: 'spectrum-SideNav-toggleButton',
+            'aria-expanded': isExpanded ? 'true' : 'false',
+            'aria-controls': childUl.id,
+            'aria-label': `Toggle ${getAnchorTag.textContent.trim()}`,
+          });
+          toggleButton.onclick = (e) => {
+            e.preventDefault();
+            const expanded = li.classList.contains('is-expanded');
+            toggleNavItem(li, !expanded, childUl, getAnchorTag);
+          };
+          li.classList.add('has-toggle-row');
+          li.insertBefore(toggleButton, childUl);
+          updateIcon(toggleButton, isExpanded, true);
         }
       }
     }
@@ -346,12 +349,16 @@ export default async function decorate(block) {
 
   // Unified function to toggle navigation item state
   function toggleNavItem(li, isExpanded, childUl, anchorTag) {
-    li.setAttribute("aria-expanded", isExpanded);
     li.classList.toggle("is-expanded", isExpanded);
 
     if (childUl) {
       childUl.style.display = isExpanded ? "block" : "none";
-      updateIcon(anchorTag, isExpanded, true);
+
+      const toggleButton = li.querySelector(':scope > button.spectrum-SideNav-toggleButton');
+      if (toggleButton) {
+        toggleButton.setAttribute('aria-expanded', isExpanded);
+        updateIcon(toggleButton, isExpanded, true);
+      }
 
       // Update session storage
       if (anchorTag?.href) {
@@ -381,7 +388,6 @@ export default async function decorate(block) {
     if (shouldExpand) {
       toggleNavItem(li, true, childUl, anchorTag);
     } else {
-      li.setAttribute("aria-expanded", false);
       anchorTag?.removeAttribute("aria-current");
       li.classList.remove("is-expanded", "is-selected");
       if (childUl) childUl.style.display = "none";

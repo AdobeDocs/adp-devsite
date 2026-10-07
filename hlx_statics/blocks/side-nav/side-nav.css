@@ -17,6 +17,50 @@ main div.side-nav-wrapper .spectrum-SideNav-item {
     margin-top: 4px;
 }
 
+main div.side-nav-wrapper {
+    .spectrum-SideNav-item.has-toggle-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+
+        & > a.spectrum-SideNav-itemLink {
+            flex: 1 1 0;
+            min-width: 0;
+            width: auto;
+        }
+
+        & > ul {
+            flex: 1 1 100%;
+            width: 100%;
+        }
+    }
+
+    .spectrum-SideNav-toggleButton {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        padding: 6px;
+        margin-right: 4px;
+        cursor: pointer;
+        border-radius: 4px;
+
+        &:hover,
+        &:focus-visible {
+            background-color: rgba(0, 0, 0, .06);
+        }
+
+        & > svg {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            flex-shrink: 0;
+        }
+    }
+}
+
 main div.side-nav-wrapper .spectrum-SideNav-itemLink {
     background-color: transparent;
     color: rgb(34, 34, 34);
