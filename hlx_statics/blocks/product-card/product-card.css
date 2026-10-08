@@ -58,8 +58,12 @@ main div.product-card-wrapper div.product-card.narrow {
 
 @media screen and (max-width : 1024px) {
     main div.product-card-wrapper div.product-card {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(var(--grid-columns-tablet, 2), 1fr);
         margin: 0px 20px;
+    }
+
+    main div.product-card-wrapper div.product-card:has(> :only-child) {
+        grid-template-columns: repeat(1, 1fr);
     }
 
     main div.product-card-wrapper div.product-card>div>div:last-child>p {

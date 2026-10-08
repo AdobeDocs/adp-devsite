@@ -71,5 +71,6 @@ export default async function decorate(block) {
     const cardCount = block.children.length;
     if (cardCount > 0) {
         block.style.setProperty('--grid-columns', Math.min(cardCount, 3));
+        block.style.setProperty('--grid-columns-tablet', Math.min(cardCount, 2));
     }
 }

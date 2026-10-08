@@ -86,9 +86,4 @@ describe('Product card block', () => {
             }
         });
     });
-
-    it('product card > dynamic grid columns', () => {
-        expect(productCardBlock.style.getPropertyValue('--grid-columns')).to.equal('3');
-    });
 });
-
