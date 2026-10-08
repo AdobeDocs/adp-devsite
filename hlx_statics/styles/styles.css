@@ -377,13 +377,15 @@ main .default-content-wrapper .header-content a .inline-code , .default-content-
 }
 
 /* animate anchor */
-main .heading2 h2,
-main .heading3 h3,
-main .heading4 h4,
-main .heading5 h5,
-main .heading6 h6,
-main .heading6 h6 {
-  & span a {
+main .heading-with-permalink {
+  & > :is(h2, h3, h4, h5, h6) {
+    display: inline;
+    font: inherit;
+    color: inherit;
+    margin: 0;
+  }
+
+  & > span a {
     opacity: 0;
     transition: opacity 130ms ease-in-out;
 
@@ -392,14 +394,14 @@ main .heading6 h6 {
     }
   }
 
-  &:hover span a {
+  &:hover > span a {
     opacity: 1;
   }
 }
 
-main .heading4 h4,
-main .heading5 h5,
-main .heading6 h6 {
+main .heading4 .heading-with-permalink,
+main .heading5 .heading-with-permalink,
+main .heading6 .heading-with-permalink {
   max-width: 1280px;
   margin: 32px auto 0 auto;
 
@@ -409,15 +411,15 @@ main .heading6 h6 {
   }
 }
 
-main .heading2 h2>span {
-  margin-left: 8px !important;
+main .heading2 .heading-with-permalink > span {
+  margin-left: 8px;
 }
 
-main .heading3 h3>span,
-main .heading4 h4>span,
-main .heading5 h5>span,
-main .heading6 h6>span {
-  margin-left: 4px !important;
+main .heading3 .heading-with-permalink > span,
+main .heading4 .heading-with-permalink > span,
+main .heading5 .heading-with-permalink > span,
+main .heading6 .heading-with-permalink > span {
+  margin-left: 4px;
 }
 
 .spectrum-Heading--sizeXXL {

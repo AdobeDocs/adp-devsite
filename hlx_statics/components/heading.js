@@ -20,6 +20,7 @@ export default function decorateHeading({ level, block }) {
   const isHeading2 = level === 2;
 
   block.querySelectorAll(HeadingTag).forEach((heading) => {
+    let headingRow = heading;
     if (!isHeading1) {
       const anchor = Anchor({ id: heading.id });
       heading.parentElement.insertBefore(anchor, heading);
@@ -31,9 +32,13 @@ export default function decorateHeading({ level, block }) {
     }
 
     if (!isHeading1) {
+      headingRow = document.createElement('div');
+      headingRow.classList.add('heading-with-permalink', 'spectrum-Heading', `spectrum-Heading--size${headingSizes[level - 1]}`);
+      heading.before(headingRow);
+      headingRow.appendChild(heading);
+
       const span = document.createElement('span');
-      span.style.marginLeft = `var(--spectrum-global-dimension-size-${isHeading2 ? '100' : '50'})`;
-      heading.appendChild(span);
+      headingRow.appendChild(span);
 
       const a = createAnchorLink(heading.id);
       decorateLink({ link: a });
@@ -42,7 +47,7 @@ export default function decorateHeading({ level, block }) {
 
     if (isHeading2) {
       const divider = createDivider({ size: 'S', style: { 'margin-bottom': 'calc(-1 * var(--spectrum-global-dimension-size-75)' , 'width' : '100%' } });
-      heading.parentElement.insertBefore(divider, heading.nextSibling);
+      headingRow.after(divider);
     }
   });
 }

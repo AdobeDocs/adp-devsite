@@ -4,6 +4,18 @@
 - `npm run test` : run all tests once and gernate test coverage report at coverage/lcov-report/index.html
 - `npm run test:watch`: run all(or focused only) test on any(or focused only) test file changes
 
+### Heading permalink regression
+
+Run `npx web-test-runner "test/blocks/heading2/heading2.test.js" --node-resolve`
+to check shared H2-H6 permalink semantics, fragment targets, keyboard reachability,
+fixed-header offsets and H2 divider placement. H1 remains unchanged. Permalink
+controls must be siblings of the real headings, not descendants; retain semantic
+headings for screen-reader heading navigation.
+
+The component depends on matching global and H2/H3 block CSS. For visual review,
+check Support and Guide at desktop and mobile widths, including long headings,
+hover and keyboard focus. Confirm independent permalink announcements with NVDA.
+
 ## Issues Found During Test
 ### Common Issues:
 - Error *Cannot access 'IS_DEV_DOCS' before initialization*
