@@ -16,6 +16,21 @@ The component depends on matching global and H2/H3 block CSS. For visual review,
 check Support and Guide at desktop and mobile widths, including long headings,
 hover and keyboard focus. Confirm independent permalink announcements with NVDA.
 
+Playwright coverage lives in `tests/playwright/blocks/heading2.spec.mjs` and uses
+the real Support and Guide pages without mocked responses. It checks accessible
+heading/link separation, hover, Tab focus, outline clipping, forced colours,
+Enter/fragment navigation and responsive wrapping. The Web Test Runner tests
+above remain unchanged.
+
+Focus checks wait for the site's delayed focus handlers to initialize before
+pressing Tab. They do not cover keyboard focus during the initial startup window.
+
+With a local preview running from this checkout, run:
+
+```sh
+PLAYWRIGHT_BASE_URL=http://localhost:3004 npm run test:e2e -- tests/playwright/blocks/heading2.spec.mjs
+```
+
 ## Issues Found During Test
 ### Common Issues:
 - Error *Cannot access 'IS_DEV_DOCS' before initialization*
