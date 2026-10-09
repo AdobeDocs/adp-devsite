@@ -809,7 +809,7 @@ async function loadLazy(doc) {
     }
   }
 
-  if (IS_AI_ASSISTANT_ENABLED) {
+  if (IS_AI_ASSISTANT_ENABLED && !doc.body.classList.contains('sidekick-library')) {
     buildAiAssistant(main);
     loadAiAssistant(doc.querySelector('.ai-assistant-wrapper'));
   }
@@ -844,26 +844,32 @@ function loadDelayed() {
 }
 
 function loadTitle() {
-  if (!IS_DEV_DOCS) {
-    // Use the first H1 that doesn't contain an image as the title
-    const h1Elements = document.querySelectorAll('h1');
-    let titleFromH1 = null;
+  // Priority: authored metadata title (already in <title>, mirrored to og:title)
+  // -> first H1 without an image -> URL as a last resort.
+  const metaTitle = getMetadata('og:title') || document.title;
+  if (metaTitle) {
+    return;
+  }
 
-    for (const h1 of h1Elements) {
-      // Skip H1 inside the nav profile dropdown popover
-      if (h1.closest('#nav-profile-dropdown-popover')) continue;
-      // Check if this H1 contains an image
-      const hasImage = h1.querySelector('img');
-      if (!hasImage) {
-        // Use the text content of this H1 (no HTML tags)
-        titleFromH1 = h1.textContent.trim();
-        break; // Use the first H1 without an image
-      }
+  // Use the first H1 that doesn't contain an image as the title
+  const h1Elements = document.querySelectorAll('h1');
+  let titleFromH1 = null;
+
+  for (const h1 of h1Elements) {
+    // Skip H1 inside the nav profile dropdown popover
+    if (h1.closest('#nav-profile-dropdown-popover')) continue;
+    // Check if this H1 contains an image
+    const hasImage = h1.querySelector('img');
+    if (!hasImage) {
+      // Use the text content of this H1 (no HTML tags)
+      titleFromH1 = h1.textContent.trim();
+      break; // Use the first H1 without an image
     }
-    if (titleFromH1) {
-      document.title = titleFromH1;
-    }
-  } else if (!document.title || document.title === '') {
+  }
+
+  if (titleFromH1) {
+    document.title = titleFromH1;
+  } else {
     // Fallback to URL if no suitable H1 found
     document.title = window.location.href;
   }

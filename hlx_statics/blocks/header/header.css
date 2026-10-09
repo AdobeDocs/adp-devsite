@@ -215,6 +215,13 @@ header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-P
   transform: rotate(-90deg);
 }
 
+header.global-nav-header > ul#navigation-links > li > a:focus-visible,
+header.global-nav-header button.navigation-dropdown:focus-visible,
+header.global-nav-header .nav-sign-in > button:focus-visible {
+  outline: 2px solid rgb(0, 84, 182);
+  outline-offset: -3px;
+}
+
 
 @media screen and (min-width: 769px) {
   header .nav-dropdown-mobile-popover {
@@ -916,6 +923,17 @@ header.global-nav-header div.nav-buttons-container {
   header .menu-btn:checked ~ .menu-icon .navicon:after {
     transform: rotate(45deg);
     top: 0;
+  }
+
+  header div.suggestion-results {
+    width: calc(100% - 32px);
+    max-width: calc(100% - 32px);
+    left: 16px;
+  }
+
+  header a.search-suggestions-a {
+    left: 0;
+    width: 100%;
   }
 }
 
