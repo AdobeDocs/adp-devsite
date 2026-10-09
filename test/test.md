@@ -4,6 +4,53 @@
 - `npm run test` : run all tests once and gernate test coverage report at coverage/lcov-report/index.html
 - `npm run test:watch`: run all(or focused only) test on any(or focused only) test file changes
 
+### Heading permalink fix coverage
+
+Run `npx web-test-runner "test/blocks/heading2/heading2.test.js" --node-resolve`
+to check shared H2-H6 permalink semantics, fragment targets, keyboard reachability,
+fixed-header offsets and H2 divider placement. H1 remains unchanged. Permalink
+controls must be siblings of the real headings, not descendants; retain semantic
+headings for screen-reader heading navigation.
+
+The component depends on matching global and H2/H3 block CSS. For visual review,
+check Support and Guide at desktop and mobile widths, including long headings,
+hover and keyboard focus. Confirm independent permalink announcements with NVDA.
+
+Playwright coverage lives in `tests/playwright/blocks/heading2.spec.mjs` and uses
+the real Support and Guide pages without mocked responses. It checks accessible
+heading/link separation, hover, Tab focus and outline clipping at 320px,
+Enter/fragment navigation and long-heading wrapping at 320px. The Web Test Runner
+tests above remain unchanged.
+
+H3-H6 coverage lives in `heading3.spec.mjs` through `heading6.spec.mjs` in the
+same directory. These browser integration tests insert short and long formatted
+heading fixtures into the real Guide page, then use the production block loader,
+styles and focus helper. They check the same interactions as H2, plus level-specific
+spacing, typography, inherited colour, preserved formatting and absence of H2
+dividers. They do not represent authored H3-H6 content on those pages.
+Shared assertions live in `tests/playwright/heading-permalink-test-utils.mjs`.
+
+Focus checks wait for the site's delayed focus handlers to initialize before
+pressing Tab. They do not cover keyboard focus during the initial startup window.
+Fixture focus handlers are attached explicitly after loading the added blocks.
+
+With a local preview running from this checkout, run:
+
+```sh
+PLAYWRIGHT_BASE_URL=http://localhost:3004 npm run test:e2e -- tests/playwright/blocks/heading2.spec.mjs
+```
+
+The fix-focused suite has 30 cases: five each for Support, Guide and the four
+H3-H6 fixture suites. The wider desktop/tablet/intermediate-width matrix and
+forced-colour coverage are deferred to a separate regression task, not included
+in this fix.
+
+To run all 30 H2-H6 cases:
+
+```sh
+PLAYWRIGHT_BASE_URL=http://localhost:3004 npm run test:e2e -- 'tests/playwright/blocks/heading[2-6].spec.mjs'
+```
+
 ## Issues Found During Test
 ### Common Issues:
 - Error *Cannot access 'IS_DEV_DOCS' before initialization*
