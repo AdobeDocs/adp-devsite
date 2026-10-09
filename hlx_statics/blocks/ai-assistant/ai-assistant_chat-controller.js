@@ -36,6 +36,56 @@ let documentOverflowBeforeExpansion = null;
 const backgroundInertStates = new Map();
 
 /**
+ * What the user was reading when the chat window last changed size: a bubble
+ * plus how far into it (as a fraction of its height, so the anchor survives the
+ * bubble reflowing to a new width), or no bubble when pinned to the bottom.
+ * Kept across close/open because closing from expanded also changes width.
+ * @type {{bubble: HTMLElement | null, ratio: number}}
+ */
+let chatScrollAnchor = { bubble: null, ratio: 0 };
+
+/**
+ * Records the current scroll anchor. Uses offsetTop (relative to the
+ * positioned content container) because, unlike bounding rects, it ignores the
+ * window's scale transform.
+ */
+const captureChatScrollAnchor = () => {
+  const container = ELEMENTS.CHAT_WINDOW_CONTENT;
+  if (!container) return;
+  const { scrollTop } = container;
+  const bubble = /** @type {HTMLElement | undefined} */ (
+    Array.from(container.querySelectorAll(".chat-bubble")).find(
+      (/** @type {HTMLElement} */ el) => el.offsetTop + el.offsetHeight > scrollTop,
+    )
+  );
+  chatScrollAnchor =
+    userScrolledUp && bubble
+      ? {
+          bubble,
+          ratio: Math.max(0, scrollTop - bubble.offsetTop) / (bubble.offsetHeight || 1),
+        }
+      : { bubble: null, ratio: 0 };
+};
+
+/**
+ * Re-applies the recorded anchor after a layout change. Reading layout here
+ * forces a synchronous reflow, so this can run right after the class change.
+ */
+const restoreChatScrollAnchor = () => {
+  const container = ELEMENTS.CHAT_WINDOW_CONTENT;
+  if (!container) return;
+  const { bubble, ratio } = chatScrollAnchor;
+  const anchored = !!bubble && container.contains(bubble);
+  container.scrollTop = bubble && anchored
+    ? bubble.offsetTop + ratio * bubble.offsetHeight
+    : container.scrollHeight;
+  // Keep the streaming auto-scroll state in sync so the resulting scroll event
+  // isn't read as the user scrolling up.
+  lastScrollTop = container.scrollTop;
+  userScrolledUp = anchored;
+};
+
+/**
  * Makes everything outside the assistant inert while the expanded dialog is open.
  * @param {boolean} shouldBeInert
  */
@@ -290,11 +340,13 @@ export const openChatWindow = () => {
   ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', trapFocusHandler);
 
   ELEMENTS.CHAT_TEXTAREA.focus();
+  restoreChatScrollAnchor();
 };
 
 export const closeChatWindow = () => {
   const chatWindow = ELEMENTS.CHAT_WINDOW;
   const wasExpanded = chatWindow?.classList.contains("expanded");
+  captureChatScrollAnchor();
   if (wasExpanded) {
     chatWindow.classList.add("instant-close");
     ELEMENTS.CHAT_BUTTON?.classList.add("instant-close");
@@ -365,7 +417,9 @@ export const toggleChatWindowView = () => {
   const chatWindow = ELEMENTS.CHAT_WINDOW;
   if (!chatWindow?.classList.contains("show")) return;
 
+  captureChatScrollAnchor();
   setChatWindowExpanded(!chatWindow.classList.contains("expanded"));
+  restoreChatScrollAnchor();
   resizeAssistantCodeBlockLineNumbersAfterLayout();
 };
 

@@ -300,6 +300,7 @@
  * MARK: Chat Window Content
  */
 .ai-assistant-panel .chat-window .chat-window-content {
+    position: relative;
     flex: 1;
     overflow-y: auto;
     padding: 24px;
