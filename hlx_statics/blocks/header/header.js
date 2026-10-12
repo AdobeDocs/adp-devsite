@@ -52,6 +52,11 @@ function localSearch() {
   return bestMatch;
 }
 
+function clearSearchStatus() {
+  const status = document.querySelector('header.global-nav-header .search-status');
+  if (status) status.textContent = '';
+}
+
 async function initSearch() {
   // Trigger validation if it hasn't been triggered yet
   if (window.adp_search.triggerIndexValidation && !window.adp_search.indicesValidationPromise) {
@@ -136,6 +141,40 @@ async function initSearch() {
 
   // Variable to keep track of results to modify how to render them later
   let results = new Map();
+
+  function updateSearchStatus(renderIndices) {
+    const status = document.querySelector('header.global-nav-header .search-status');
+    const searchButton = document.querySelector('header button.nav-dropdown-search');
+    const query = document.querySelector('#search-input').value.trim();
+    if (!searchButton.classList.contains('is-open') || !query) {
+      clearSearchStatus();
+      return;
+    }
+    if (renderIndices.length === 0
+      || renderIndices.some(({ results: indexResults }) => indexResults?.query?.trim() !== query)) {
+      return;
+    }
+    const container = document.querySelector(suggestionsFlag ? '.suggestion-results' : '.search-results');
+    const style = getComputedStyle(container);
+    if (style.display === 'none' || style.visibility === 'hidden') return;
+
+    const productsWithResults = new Set([...results.values()].map((result) => result.product));
+    const emptyProducts = selectedProducts.filter((product) => !productsWithResults.has(product));
+    let message = '';
+    if (selectedProducts.length === 0) {
+      message = 'No products selected.';
+    } else if (emptyProducts.length > 0) {
+      let scope = emptyProducts[0];
+      if (emptyProducts.length > 1) {
+        scope = emptyProducts.length === selectedProducts.length
+          ? `${emptyProducts.length} selected products`
+          : `${emptyProducts.length} of ${selectedProducts.length} selected products`;
+      }
+      const mode = suggestionsFlag ? 'Search suggestions.' : 'Search results.';
+      message = `${mode} No results found for "${query}" in ${scope}.`;
+    }
+    if (status.textContent !== message) status.textContent = message;
+  }
 
   search.start();
 
@@ -228,6 +267,7 @@ async function initSearch() {
 
           // Listen for user typing (suggestions appear before Enter is pressed)
           searchInput.addEventListener('input', () => {
+            clearSearchStatus();
             toggleClearButton(); // Update clear button visibility on input
             searchCleared = false; // Reset cleared flag when user starts typing
             if (searchExecuted) {
@@ -251,6 +291,7 @@ async function initSearch() {
           // When Enter is pressed, execute full search and prevent suggestions from reappearing
           searchInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
+              clearSearchStatus();
               searchCleared = false; // Reset cleared flag when user presses Enter
               const trimmed = searchInput.value.trim();
               if (trimmed === '') { // If users presses enter with an empty query while in a full search, clear results and show suggestions again
@@ -273,6 +314,7 @@ async function initSearch() {
 
           // Clear search query when clear button is clicked
           clearSearchQueryButton.addEventListener('click', () => {
+            clearSearchStatus();
             outerSearchSuggestions.style.display = "flex";
             searchInput.value = "";
             helper.setQuery('').search();
@@ -324,6 +366,7 @@ async function initSearch() {
       } else {
         renderMergedResults(); // Call to render the filtered results
       }
+      updateSearchStatus(indices);
     }
 
     const customMergedHits = connectAutocomplete(mergedHits);
@@ -712,6 +755,7 @@ function decorateSearchIframeContainer(header) {
 
   // Function to hide search completely
   function hideSearch() {
+    clearSearchStatus();
     searchBar.style.visibility = 'hidden';
     searchDiv.style.visibility = 'hidden';
     searchResultsDiv.style.visibility = 'hidden';
@@ -1286,6 +1330,12 @@ export default async function decorate(block) {
   rightContainer.appendChild(globalSignIn());
 
   header.append(rightContainer);
+  header.append(createTag('p', {
+    class: 'search-status',
+    role: 'status',
+    'aria-live': 'polite',
+    'aria-atomic': 'true',
+  }));
   header.append(globalNavSearchDropDown());
 
   //initialize search
