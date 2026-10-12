@@ -1380,6 +1380,15 @@ export default async function decorate(block) {
   });
 
   setActiveTab();
+  const desktopNavigation = header.querySelector('#navigation-links');
+  desktopNavigation?.addEventListener('focusin', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)
+      || target.parentElement?.parentElement !== desktopNavigation
+      || !target.matches('a:focus-visible, button:focus-visible')) return;
+
+    target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
   focusRing(header);
 
   // Always handle menu button (removed template condition)

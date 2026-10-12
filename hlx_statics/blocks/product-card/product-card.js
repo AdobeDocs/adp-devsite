@@ -67,4 +67,10 @@ export default async function decorate(block) {
     block.querySelectorAll('p, div').forEach(el => {
         if (!el.innerHTML.trim()) el.remove();
     });
+
+    const cardCount = block.children.length;
+    if (cardCount > 0) {
+        block.style.setProperty('--grid-columns', Math.min(cardCount, 3));
+        block.style.setProperty('--grid-columns-tablet', Math.min(cardCount, 2));
+    }
 }
