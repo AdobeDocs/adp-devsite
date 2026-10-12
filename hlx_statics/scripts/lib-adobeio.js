@@ -347,6 +347,8 @@ export function buildSideNav(main) {
   let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { id: 'side-nav', class: 'side-nav block', 'data-block-name': 'side-nav' });
+  sideNavBlock.inert = window.matchMedia('(max-width: 768px)').matches
+    && !document.querySelector('header .menu-btn')?.checked;
   sideNavWrapper.append(sideNavBlock);
   sideNavDiv.append(sideNavWrapper);
   main.prepend(sideNavDiv);

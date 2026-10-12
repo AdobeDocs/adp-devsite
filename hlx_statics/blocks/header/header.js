@@ -1002,6 +1002,16 @@ function handleMenuButton(header) {
   const menuBtn = header.querySelector('.menu-btn');
   const menuIcon = header.querySelector('.menu-icon');
   if (!menuBtn) return;
+  const mobileQuery = window.matchMedia('(max-width: 768px)');
+  const syncSideNavState = () => {
+    const sideNav = document.querySelector('.side-nav');
+    if (!sideNav) return;
+    const collapsed = mobileQuery.matches && !menuBtn.checked;
+    if (collapsed && sideNav.contains(document.activeElement)) {
+      menuIcon?.focus();
+    }
+    sideNav.inert = collapsed;
+  };
 
   menuBtn.addEventListener('change', () => {
     const sideNav = document.querySelector('.side-nav');
@@ -1013,6 +1023,7 @@ function handleMenuButton(header) {
       sideNav?.classList.remove('is-visible');
       document.body.style.overflow = ''; // Restore scrolling
     }
+    syncSideNavState();
   });
 
   menuIcon?.addEventListener('keydown', (event) => {
@@ -1026,7 +1037,6 @@ function handleMenuButton(header) {
   // Suppress the slide-out animation when resizing from desktop to mobile.
   // Without this, the sidenav animates from its desktop position to the hidden
   // mobile position even though it was never visible on desktop.
-  const mobileQuery = window.matchMedia('(max-width: 768px)');
   mobileQuery.addEventListener('change', () => {
     const sideNav = document.querySelector('.side-nav');
     if (!sideNav) return;
@@ -1038,12 +1048,14 @@ function handleMenuButton(header) {
       sideNav.classList.remove('is-visible');
       document.body.style.overflow = '';
     }
+    syncSideNavState();
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         sideNav.classList.remove('no-transition');
       });
     });
   });
+  syncSideNavState();
 }
 
 function hideSpinner() {
