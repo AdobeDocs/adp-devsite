@@ -608,7 +608,7 @@ header a.search-suggestions-a {
   position: relative;
   text-decoration: none;
   left: 24px;
-  width: calc(100% - 18px);
+  width: calc(100% - 24px);
 
   &:focus-visible {
     outline: 2px solid rgb(0, 84, 182);
