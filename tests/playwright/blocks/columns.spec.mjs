@@ -336,6 +336,9 @@ test.describe('Columns DevDocs reverse reference', () => {
 });
 
 test.describe('Columns DevBiz reference', () => {
+  // Set the viewport before navigation so every DevBiz baseline captures
+  // desktop columns rather than the 1280px stacked breakpoint.
+  test.use({ viewport: wideDesktopViewport });
   test.beforeEach(async ({ page }) => openDevBizColumnsPage(page));
 
   test('decorates the default gray rows, links, and buttons', async ({ page }) => {
