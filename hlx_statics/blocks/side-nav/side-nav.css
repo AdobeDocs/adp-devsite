@@ -85,7 +85,14 @@ main div.side-nav-wrapper .spectrum-SideNav-itemLink {
 
 main div.side-nav-wrapper .spectrum-SideNav-item.is-selected>.spectrum-SideNav-itemLink {
     background-color: rgba(0, 0, 0, .06);
-    color: rgb(0, 0, 0)
+    color: rgb(0, 0, 0);
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 4px auto 4px 0;
+        border-left: 3px solid rgb(0, 84, 182);
+    }
 }
 
 main div.side-nav-wrapper .spectrum-SideNav--multiLevel .spectrum-SideNav {
