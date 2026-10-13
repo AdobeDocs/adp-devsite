@@ -95,10 +95,8 @@ main div.side-nav-wrapper .spectrum-SideNav-item.is-selected>.spectrum-SideNav-i
     &::before {
         content: "";
         position: absolute;
-        inset: 50% auto auto 4px;
-        height: 18px;
+        inset: 8px auto 8px 4px;
         border-left: 2px solid currentColor;
-        transform: translateY(-50%);
     }
 }
 
