@@ -753,13 +753,24 @@ function decorateSearchIframeContainer(header) {
   });
 
   // close search
-  closeSearchButton.addEventListener('click', () => {
+  function closeSearch() {
     searchButton.classList.remove('is-open');
     closeSearchButton.classList.remove('is-open');
     hideSearch();
     searchButton.style.display = 'block';
     closeSearchButton.style.display = 'none';
     searchButton.focus();
+  }
+
+  closeSearchButton.addEventListener('click', closeSearch);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing
+      && searchButton.classList.contains('is-open')
+      && !(event.target instanceof Element && event.target.closest('[role="dialog"]'))) {
+      event.preventDefault();
+      closeSearch();
+    }
   });
 }
 
