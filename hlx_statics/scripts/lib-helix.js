@@ -719,6 +719,77 @@ export function buildBlock(blockName, content) {
 }
 
 /**
+ * Resolves optional project-specific block assets from page metadata.
+ * Here, "project" means a user's  repository, not the adp-devsite repository.
+ * Projects opt in with project-blocks and pathprefix metadata.
+ * The loader's default export returns { js, css } for custom blocks from the documentation repository,
+ * or null to use the default blocks bundled with this (adp-devsite) repository.
+ * Asset URLs are validated, but asset availability is not checked.
+ * @param {string} blockName The block name
+ * @returns {Promise<{js: string, css: string}|null>} Validated asset URLs or no override
+ */
+export async function getProjectBlockResources(blockName) {
+  const loaderPath = getMetadata('project-blocks');
+  const pathPrefix = getMetadata('pathprefix');
+
+  // Without explicit configuration, do not import a project loader.
+  if (!loaderPath || !pathPrefix || !blockName) {
+    return null;
+  }
+
+  try {
+    // Require a project directory boundary so prefix checks cannot match sibling paths.
+    if (!pathPrefix.endsWith('/')
+      || pathPrefix === '/'
+      || pathPrefix.includes('//')) {
+      return null;
+    }
+
+    // Reject paths that the URL parser normalizes to a different directory.
+    const projectURL = new URL(pathPrefix, window.location.origin);
+    if (projectURL.pathname !== pathPrefix) {
+      return null;
+    }
+
+    // Restrict loader and asset URLs to this page's origin and the configured project directory.
+    const isProjectResourceURL = (url, extension) => {
+      if (url.origin !== projectURL.origin) return false;
+      if (!url.pathname.startsWith(projectURL.pathname)) return false;
+
+      // Encoded dots and separators could change the path when decoded downstream.
+      const pathname = url.pathname.toLowerCase();
+      const hasEncodedPathCharacters = ['%2e', '%2f', '%5c']
+        .some((encodedCharacter) => pathname.includes(encodedCharacter));
+      if (hasEncodedPathCharacters) return false;
+
+      return url.pathname.endsWith(extension);
+    };
+
+    const loaderURL = new URL(loaderPath, projectURL);
+    if (!isProjectResourceURL(loaderURL, '.js')) return null;
+
+    // The loader's default export must resolve a complete JS/CSS pair for the block.
+    const { default: resolveResources } = await import(loaderURL.href);
+    const resources = await resolveResources(blockName);
+    // Accept overrides as a pair to avoid mixing project JS with this site's default CSS.
+    if (typeof resources?.js !== 'string' || typeof resources?.css !== 'string') {
+      return null;
+    }
+
+    const jsURL = new URL(resources.js, projectURL);
+    const cssURL = new URL(resources.css, projectURL);
+    if (!isProjectResourceURL(jsURL, '.js') || !isProjectResourceURL(cssURL, '.css')) {
+      return null;
+    }
+
+    return { js: jsURL.href, css: cssURL.href };
+  } catch {
+    // Loader/resolver failures return null so loadBlock tries the blocks bundled with adp-devsite.
+    return null;
+  }
+}
+
+/**
  * Loads JS and CSS for a block.
  * @param {Element} block The block element
  */
@@ -729,13 +800,17 @@ export async function loadBlock(block, eager = false) {
     const blockName = block.getAttribute('data-block-name');
     if (blockName !== 'nav') {
       try {
+        // Only asset selection changes. null uses adp-devsite's defaults in hlx_statics/blocks/.
+        // CSS completion, decoration arguments, and status handling retain their existing behavior.
+        // This is a resolution fallback, not a retry after custom asset loading fails.
+        const projectResources = await getProjectBlockResources(blockName);
         const cssLoaded = new Promise((resolve) => {
-          loadCSS(`${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`, resolve);
+          loadCSS(projectResources?.css || `${window.hlx.codeBasePath}/blocks/${blockName}/${blockName}.css`, resolve);
         });
         const decorationComplete = new Promise((resolve) => {
           (async () => {
             try {
-              const mod = await import(`../blocks/${blockName}/${blockName}.js`);
+              const mod = await import(projectResources?.js || `../blocks/${blockName}/${blockName}.js`);
               if (mod.default) {
                 await mod.default(block, blockName, document, eager);
               }
