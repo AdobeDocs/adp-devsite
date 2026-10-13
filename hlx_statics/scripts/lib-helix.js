@@ -722,8 +722,9 @@ export function buildBlock(blockName, content) {
  * Resolves optional project-specific block assets from page metadata.
  * Here, "project" means a user's  repository, not the adp-devsite repository.
  * Projects opt in with project-blocks and pathprefix metadata.
- * The loader's default export returns { js, css } for custom blocks from the documentation repository,
- * or null to use the default blocks bundled with this (adp-devsite) repository.
+ * The loader's default export returns { js, css } for custom blocks from the
+ * documentation repository, or null to use the default blocks bundled with this
+ * (adp-devsite) repository.
  * Asset URLs are validated, but asset availability is not checked.
  * @param {string} blockName The block name
  * @returns {Promise<{js: string, css: string}|null>} Validated asset URLs or no override
@@ -753,8 +754,12 @@ export async function getProjectBlockResources(blockName) {
 
     // Restrict loader and asset URLs to this page's origin and the configured project directory.
     const isProjectResourceURL = (url, extension) => {
-      if (url.origin !== projectURL.origin) return false;
-      if (!url.pathname.startsWith(projectURL.pathname)) return false;
+      if (url.origin !== projectURL.origin) {
+        return false;
+      }
+      if (!url.pathname.startsWith(projectURL.pathname)) {
+        return false;
+      }
 
       // Encoded dots and separators could change the path when decoded downstream.
       const pathname = url.pathname.toLowerCase();
