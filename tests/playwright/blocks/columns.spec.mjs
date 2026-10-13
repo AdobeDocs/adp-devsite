@@ -25,6 +25,7 @@ const reverseFixture = {
 const devBizPath = '/tools/sidekick/blocks/columns';
 const featureHeadings = ['Feature One', 'Feature Two', 'Feature Three'];
 const imageAlts = ['Feature 1', 'Feature 2', 'Feature 3'];
+const wideDesktopViewport = { width: 1281, height: 900 };
 const devBizVariants = [
   {
     name: 'default gray',
@@ -59,6 +60,7 @@ const devBizVariants = [
     className: 'full-width-background',
     rowCount: 3,
     imageCount: 3,
+    hasBackgroundImage: true,
     snapshot: 'columns-devbiz-full-width-background.png',
   },
 ];
@@ -146,13 +148,43 @@ async function waitForColumnImages(block, expectedCount) {
   ), expectedCount)).toBe(true);
 }
 
+async function waitForBackgroundImage(wrapper) {
+  await expect.poll(() => wrapper.evaluate(async (element) => {
+    const backgroundImage = getComputedStyle(element).backgroundImage;
+    if (backgroundImage === 'none') return false;
+
+    const url = backgroundImage.slice(4, -1).replace(/^['"]|['"]$/g, '');
+    const image = new Image();
+    image.src = url;
+    try {
+      await image.decode();
+      return image.naturalWidth > 0;
+    } catch {
+      return false;
+    }
+  })).toBe(true);
+}
+
 async function expectDesktopRowDirections(page, block, directions) {
-  await page.setViewportSize({ width: 1281, height: 900 });
+  // The default 1280px viewport is the CSS stacking breakpoint. Use the first
+  // wider desktop width so these assertions prove alternation rather than stack.
+  await page.setViewportSize(wideDesktopViewport);
   const rows = rowsIn(block);
 
   await expect.poll(() => rows.evaluateAll((elements) => (
     elements.map((element) => getComputedStyle(element).flexDirection)
   ))).toEqual(directions);
+}
+
+async function isolateDevBizWrapper(page, wrapper) {
+  await wrapper.evaluate((element) => element.setAttribute('data-columns-screenshot-target', ''));
+  // Fractional wrapper bounds can otherwise include a pixel row from a sibling
+  // block, making a snapshot depend on the next fixture's rendering.
+  await page.addStyleTag({ content: `
+    main .columns-wrapper:not([data-columns-screenshot-target]) {
+      visibility: hidden !important;
+    }
+  ` });
 }
 
 async function openDevBizColumnsPage(page) {
@@ -187,6 +219,7 @@ async function openDevBizColumnsPage(page) {
 
 async function prepareDevBizScreenshot(page, variant) {
   const block = devBizBlockAt(page, variant);
+  const wrapper = wrapperOf(block);
 
   if (variant.className) {
     await expect(block).toHaveClass(new RegExp(`(^|\\s)${variant.className}(\\s|$)`));
@@ -195,10 +228,12 @@ async function prepareDevBizScreenshot(page, variant) {
   }
   await expect(block).toHaveAttribute('data-block-status', 'loaded');
   await waitForColumnImages(block, variant.imageCount);
+  if (variant.hasBackgroundImage) await waitForBackgroundImage(wrapper);
   await page.evaluate(() => document.fonts.ready);
+  await isolateDevBizWrapper(page, wrapper);
   await hideColumnsScreenshotOverlays(page);
 
-  return { block, wrapper: wrapperOf(block) };
+  return { block, wrapper };
 }
 
 test.describe('Columns DevDocs image reference', () => {
@@ -226,6 +261,7 @@ test.describe('Columns DevDocs image reference', () => {
   });
 
   test('matches the image fixture visual snapshot', async ({ page }) => {
+    await page.setViewportSize(wideDesktopViewport);
     const block = await openDevDocsColumnsFixture(page, imageFixture);
 
     await expect(block).toHaveAttribute('data-slots', 'image, heading, text, buttons');
@@ -259,6 +295,7 @@ test.describe('Columns DevDocs video reference', () => {
   });
 
   test('matches the video fixture visual snapshot', async ({ page }) => {
+    await page.setViewportSize(wideDesktopViewport);
     const block = await openDevDocsColumnsFixture(page, videoFixture);
     const videos = block.locator('.video-container.first-column video');
 
@@ -287,6 +324,7 @@ test.describe('Columns DevDocs reverse reference', () => {
   });
 
   test('matches the reversed fixture visual snapshot', async ({ page }) => {
+    await page.setViewportSize(wideDesktopViewport);
     const block = await openDevDocsColumnsFixture(page, reverseFixture);
 
     await expect(block).toHaveClass(/\bisReversed\b/);
@@ -358,9 +396,7 @@ test.describe('Columns DevBiz reference', () => {
     await expect(block).toHaveClass(/\bfull-width-background\b/);
     await expect(block).toHaveClass(/\bfont-white\b/);
     await expectTwoColumnRows(block, devBizVariants[3].rowCount);
-    await expect.poll(() => wrapper.evaluate((element) => (
-      getComputedStyle(element).backgroundImage !== 'none'
-    ))).toBe(true);
+    await waitForBackgroundImage(wrapper);
     await expect(wrapper).toHaveCSS('background-repeat', 'no-repeat');
     await expect(wrapper).toHaveCSS('background-size', 'cover');
     await expect(wrapper).toHaveCSS('background-position', '50% 50%');
