@@ -4,21 +4,6 @@
 - `npm run test` : run all tests once and gernate test coverage report at coverage/lcov-report/index.html
 - `npm run test:watch`: run all(or focused only) test on any(or focused only) test file changes
 
-### Collapsed mobile navigation (DEVSITE-2646)
-
-With an AEM preview running on port 3001:
-
-```bash
-npm run test:e2e -- tests/playwright/blocks/header.spec.mjs
-```
-
-The Chromium cases check that closed drawers at 320, 375 and 768px are excluded
-from the accessibility tree and Tab navigation, including before decoration.
-They cover Enter/Space opening, closing and reopening, focus restoration,
-body scrolling, and a populated desktop documentation sidebar across the
-768/769px breakpoint. The tests use real pages without network mocks.
-Windows/NVDA speech verification remains a separate manual audit.
-
 ## Issues Found During Test
 ### Common Issues:
 - Error *Cannot access 'IS_DEV_DOCS' before initialization*

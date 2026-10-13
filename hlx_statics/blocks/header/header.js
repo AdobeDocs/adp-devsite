@@ -6,6 +6,7 @@ import {
   decorateProfile,
   fetchProfileAvatar,
   LoadingState,
+  syncSideNavState,
   setExpectedOrigin
 } from '../../scripts/lib-adobeio.js';
 import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, loadNavFragment, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
@@ -1003,15 +1004,6 @@ function handleMenuButton(header) {
   const menuIcon = header.querySelector('.menu-icon');
   if (!menuBtn) return;
   const mobileQuery = window.matchMedia('(max-width: 768px)');
-  const syncSideNavState = () => {
-    const sideNav = document.querySelector('.side-nav');
-    if (!sideNav) return;
-    const collapsed = mobileQuery.matches && !menuBtn.checked;
-    if (collapsed && sideNav.contains(document.activeElement)) {
-      menuIcon?.focus();
-    }
-    sideNav.inert = collapsed;
-  };
 
   menuBtn.addEventListener('change', () => {
     const sideNav = document.querySelector('.side-nav');
