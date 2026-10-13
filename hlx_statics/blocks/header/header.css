@@ -608,7 +608,12 @@ header a.search-suggestions-a {
   position: relative;
   text-decoration: none;
   left: 24px;
-  width: calc(100% - 18px)
+  width: calc(100% - 18px);
+
+  &:focus-visible {
+    outline: 2px solid rgb(0, 84, 182);
+    outline-offset: -3px;
+  }
 }
 
 header div.suggestion-product-group > a > span > div {
@@ -946,4 +951,3 @@ header.global-nav-header div.nav-buttons-container {
       width: 20px !important;
   }
 }
-
