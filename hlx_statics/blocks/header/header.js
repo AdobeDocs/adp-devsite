@@ -764,14 +764,15 @@ function decorateSearchIframeContainer(header) {
 
   closeSearchButton.addEventListener('click', closeSearch);
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing
-      && searchButton.classList.contains('is-open')
-      && !(event.target instanceof Element && event.target.closest('[role="dialog"]'))) {
+  function closeSearchOnEscape(event) {
+    if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing) {
       event.preventDefault();
       closeSearch();
     }
-  });
+  }
+
+  searchDiv.addEventListener('keydown', closeSearchOnEscape);
+  closeSearchButton.addEventListener('keydown', closeSearchOnEscape);
 }
 
 function globalDistributeButton() {
