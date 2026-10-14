@@ -494,6 +494,18 @@ function activeTabTemplate(width, isMainPage = false) {
   return `<div class="nav-link-active" style="width: ${calcWidth}px; transform:translate(12px,0); bottom: ${!isMainPage ? '0.5px' : '-1px'}"></div>`;
 }
 
+export function setCurrentPage(nav) {
+  const currentPath = window.location.pathname.replace(/\/$/, '');
+  nav.querySelectorAll('a[href]').forEach((link) => {
+    const url = new URL(link.href);
+    if (url.origin === window.location.origin && url.pathname.replace(/\/$/, '') === currentPath) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
+  });
+}
+
 /**
  * Sets the current tab as active
  * @param {*} isMainPage Defines whether the current page is main page or not
@@ -501,6 +513,7 @@ function activeTabTemplate(width, isMainPage = false) {
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
   if (nav) {
+    setCurrentPage(nav);
     const actTab = getActiveTab(nav);
     if (actTab) {
       activateTab(actTab);

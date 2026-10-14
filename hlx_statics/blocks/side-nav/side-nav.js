@@ -1,6 +1,7 @@
 import {
   createTag,
   isTopLevelNav,
+  setCurrentPage,
   setExpectedOrigin,
 } from "../../scripts/lib-adobeio.js";
 import {
@@ -215,6 +216,7 @@ export default async function decorate(block) {
   });
 
   mainMenuSection.append(menuUl);
+  setCurrentPage(menuUl);
 
   // Fetch and populate subpages
   if (IS_DEV_DOCS) {
