@@ -25,6 +25,7 @@ const reverseFixture = {
 const devBizPath = '/tools/sidekick/blocks/columns';
 const featureHeadings = ['Feature One', 'Feature Two', 'Feature Three'];
 const imageAlts = ['Feature 1', 'Feature 2', 'Feature 3'];
+const stackingBreakpointWidth = 1280;
 const wideDesktopViewport = { width: 1281, height: 900 };
 const devBizVariants = [
   {
@@ -165,15 +166,26 @@ async function waitForBackgroundImage(wrapper) {
   })).toBe(true);
 }
 
-async function expectDesktopRowDirections(page, block, directions) {
-  // The default 1280px viewport is the CSS stacking breakpoint. Use the first
-  // wider desktop width so these assertions prove alternation rather than stack.
-  await page.setViewportSize(wideDesktopViewport);
+async function expectRowDirections(block, directions) {
   const rows = rowsIn(block);
 
   await expect.poll(() => rows.evaluateAll((elements) => (
     elements.map((element) => getComputedStyle(element).flexDirection)
   ))).toEqual(directions);
+}
+
+async function expectDesktopRowDirections(page, block, directions) {
+  // The default 1280px viewport is the CSS stacking breakpoint. Use the first
+  // wider desktop width so these assertions prove alternation rather than stack.
+  await page.setViewportSize(wideDesktopViewport);
+  await expectRowDirections(block, directions);
+}
+
+async function expectStackedRowDirections(page, block, rowCount) {
+  // Assert the configured default width so this test continues to exercise
+  // the inclusive 1280px breakpoint without needing a resize.
+  expect(page.viewportSize()).toMatchObject({ width: stackingBreakpointWidth });
+  await expectRowDirections(block, Array(rowCount).fill('column'));
 }
 
 async function isolateDevBizWrapper(page, wrapper) {
@@ -269,6 +281,27 @@ test.describe('Columns DevDocs image reference', () => {
     await page.evaluate(() => document.fonts.ready);
     await hideColumnsScreenshotOverlays(page);
     await expect(wrapperOf(block)).toHaveScreenshot(imageFixture.snapshot);
+  });
+});
+
+test.describe('Columns DevDocs 1280px stack', () => {
+  test('stacks reversed rows at the breakpoint', async ({ page }) => {
+    const block = await openDevDocsColumnsFixture(page, reverseFixture);
+
+    await expect(block).toHaveClass(/\bisReversed\b/);
+    await expectTwoColumnRows(block, reverseFixture.rows);
+    await expectStackedRowDirections(page, block, reverseFixture.rows);
+  });
+
+  test('matches the stacked reversed fixture visual snapshot', async ({ page }) => {
+    const block = await openDevDocsColumnsFixture(page, reverseFixture);
+
+    await expect(block).toHaveClass(/\bisReversed\b/);
+    await expectStackedRowDirections(page, block, reverseFixture.rows);
+    await waitForColumnImages(block, reverseFixture.rows);
+    await page.evaluate(() => document.fonts.ready);
+    await hideColumnsScreenshotOverlays(page);
+    await expect(wrapperOf(block)).toHaveScreenshot('columns-reverse-stacked.png');
   });
 });
 
