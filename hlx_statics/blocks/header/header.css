@@ -685,7 +685,6 @@ header div.search-box{
 header div.search-box > form {
   width: 100%;
   height: 32px;
-  width: 688px;
   display: inline-block;
   position: relative;
 }

@@ -286,6 +286,7 @@ async function initSearch() {
             }
             searchCleared = true; // Mark that search was cleared
             toggleClearButton(); // Update clear button visibility after clearing
+            searchInput.focus({ preventScroll: true });
           });
         }, render() { },
       };
@@ -652,7 +653,7 @@ const globalNavSearchDropDown = () => {
             <path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path>
           </svg>
           <input id="search-input" type="text" placeholder="Search..." autocomplete="off" class="search-input">
-          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet" daa-ll="search-button-form-clear">
+          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet" daa-ll="search-button-form-clear" style="display: none;">
             <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="icon-right spectrum-Icon spectrum-Icon--sizeM">
               <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
             </svg>
@@ -687,6 +688,7 @@ function decorateSearchIframeContainer(header) {
   const closeSearchButton = header.querySelector('button.close-search-button');
   const searchResultsDiv = document.querySelector("div.search-results");
   const searchBar = document.querySelector("div.outer-search-box");
+  const searchInput = header.querySelector('#search-input');
 
   const urlParams = fetchSearchURLParams();
 
@@ -746,17 +748,31 @@ function decorateSearchIframeContainer(header) {
       searchButton.classList.add('is-open');
       searchButton.style.display = 'none';
       closeSearchButton.style.display = 'block';
+      searchInput.focus({ preventScroll: true });
     }
   });
 
   // close search
-  closeSearchButton.addEventListener('click', () => {
+  function closeSearch() {
     searchButton.classList.remove('is-open');
     closeSearchButton.classList.remove('is-open');
     hideSearch();
     searchButton.style.display = 'block';
     closeSearchButton.style.display = 'none';
-  });
+    searchButton.focus();
+  }
+
+  closeSearchButton.addEventListener('click', closeSearch);
+
+  function closeSearchOnEscape(event) {
+    if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing) {
+      event.preventDefault();
+      closeSearch();
+    }
+  }
+
+  searchDiv.addEventListener('keydown', closeSearchOnEscape);
+  closeSearchButton.addEventListener('keydown', closeSearchOnEscape);
 }
 
 function globalDistributeButton() {
@@ -1289,8 +1305,8 @@ export default async function decorate(block) {
   rightContainer.appendChild(globalSpinner());
   rightContainer.appendChild(globalSignIn());
 
-  header.append(rightContainer);
   header.append(globalNavSearchDropDown());
+  header.append(rightContainer);
 
   //initialize search
   if (window.adp_search.map_found) {
