@@ -192,7 +192,7 @@ header.global-nav-header a.nav-console-adobeio-link-text {
 }
 
 header.global-nav-header strong.icon-adobe-label {
-  color: #fa0f00;
+  color: var(--spectrum-global-color-static-red-600, #bb0202);
   font-size: 15px;
   white-space: nowrap;
 }
