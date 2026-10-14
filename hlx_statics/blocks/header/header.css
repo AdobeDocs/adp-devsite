@@ -588,7 +588,7 @@ header hr.search-suggestions-hr-bottom {
 
 header h4.search-suggestions-h4 {
   margin-left: 15px;
-  color: slategray;
+  color: rgb(110, 110, 110);
   margin-top: 5px;
   margin-bottom: 5px;
 }
