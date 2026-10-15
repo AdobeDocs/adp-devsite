@@ -1,13 +1,21 @@
 // @ts-check
 export const CHAT_BUTTON_LABEL_OPEN = "Open AI Assistant";
 export const CHAT_BUTTON_LABEL_CLOSE = "Close AI Assistant";
-export const CHAT_BUTTON_LABEL_MINIMIZE = "Minimize AI Assistant";
+export const CHAT_WINDOW_BUTTON_LABEL_EXPAND = "Expand to dialog view";
+export const CHAT_WINDOW_BUTTON_LABEL_RETURN_TO_COMPACT = "Return to compact view";
+export const CHAT_WINDOW_VIEW_TOGGLE_ID = "ai-assistant-view-toggle";
+export const CHAT_WINDOW_DAA_LABEL_EXPAND =
+  "DevsiteAI Assistant:Expand to dialog view";
+export const CHAT_WINDOW_DAA_LABEL_RETURN_TO_COMPACT =
+  "DevsiteAI Assistant:Return to compact view";
 export const CHAT_BUTTON_LABEL_CLEAR = "Clear AI Assistant";
 export const CHAT_SKIP_BUTTON_LABEL = "Skip to AI Assistant";
 export const CHAT_BUTTON_ID = "ai-assistant-chat-button";
 export const CHAT_WINDOW_ID = "ai-assistant-chat-window";
 export const CHAT_WINDOW_LABEL_ID = "ai-assistant-label";
 export const CHAT_WINDOW_CONTENT_LABEL = "Chat messages";
+export const CHAT_WINDOW_EXPAND_ICON_SRC = "/hlx_statics/icons/maximize.svg";
+export const CHAT_WINDOW_COMPACT_ICON_SRC = "/hlx_statics/icons/minimize.svg";
 export const CHAT_BUBBLE_USER_LABEL = "Your message";
 export const CHAT_BUBBLE_AI_LABEL = "Assistant";
 export const CHAT_ANNOUNCER_ID = "ai-assistant-announcer";
@@ -21,6 +29,7 @@ export const ELEMENTS = {
   CHAT_BUTTON: null,
   CHAT_WINDOW_CLOSE_BUTTON: null,
   CHAT_WINDOW_CLEAR_BUTTON: null,
+  CHAT_WINDOW_VIEW_TOGGLE: null,
   CHAT_SEND_BUTTON: null,
   CHAT_TEXTAREA: null,
   CHAT_WINDOW: null,
