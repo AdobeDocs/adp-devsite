@@ -217,6 +217,7 @@
 
 .ai-assistant-wrapper.ai-assistant-expanded {
     .chat-window {
+        --inline-padding: 15%;
         position: fixed;
         top: 50%;
         left: 50%;
@@ -232,6 +233,10 @@
 
         .chat-bubble {
             max-width: min(100%, 800px);
+        }
+
+        .chat-window-content, .chat-window-input-section {
+            padding-inline: var(--inline-padding);
         }
     }
 }
@@ -936,7 +941,7 @@
 * MARK: Responsive
 */
 /* TODO: Rethink/Retest this Responsive design */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 900px) {
     .ai-assistant-panel {
         --container-padding: 16px;
 
@@ -956,5 +961,6 @@
             env(safe-area-inset-bottom) env(safe-area-inset-left);
         border-radius: 0;
         translate: 0 0;
+        --inline-padding: 16px;
     }
 }
