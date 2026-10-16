@@ -105,6 +105,18 @@ main div.herosimple-wrapper div.herosimple h1 {
   font-size: 36px !important;
 }
 
+@media screen and (min-width: 1025px) {
+  main div.herosimple-wrapper div.herosimple:not(.halfWidth) {
+    height: auto;
+    min-height: 272px;
+
+    & > div {
+      height: auto;
+      min-height: inherit;
+    }
+  }
+}
+
 @media screen and (max-width: 1024px) {
   main div.herosimple-wrapper div.herosimple {
     height: auto;
