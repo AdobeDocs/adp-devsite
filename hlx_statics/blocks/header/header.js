@@ -53,6 +53,11 @@ function localSearch() {
   return bestMatch;
 }
 
+function clearSearchStatus() {
+  const status = document.querySelector('header.global-nav-header .search-status');
+  if (status) status.replaceChildren();
+}
+
 async function initSearch() {
   // Trigger validation if it hasn't been triggered yet
   if (window.adp_search.triggerIndexValidation && !window.adp_search.indicesValidationPromise) {
@@ -138,6 +143,43 @@ async function initSearch() {
   // Variable to keep track of results to modify how to render them later
   let results = new Map();
 
+  function updateSearchStatus(renderIndices) {
+    const status = document.querySelector('header.global-nav-header .search-status');
+    const query = document.querySelector('#search-input').value.trim();
+    const searchButton = document.querySelector('header button.nav-dropdown-search');
+    if (!query || !searchButton.classList.contains('is-open')) {
+      clearSearchStatus();
+      return;
+    }
+
+    const expectedIndices = indices.filter(
+      (indexName) => selectedProducts.includes(indexToProduct[indexName]),
+    );
+    if (!expectedIndices.length || expectedIndices.some((indexName) => !renderIndices.some(
+      ({ indexId, results: indexResults }) => indexId === indexName
+        && indexResults?.query?.trim() === query,
+    ))) return;
+
+    const container = document.querySelector(suggestionsFlag ? '.suggestion-results' : '.search-results');
+    if (!container.getClientRects().length || getComputedStyle(container).visibility === 'hidden') return;
+
+    const productsWithResults = new Set([...results.values()].map((result) => result.product));
+    const emptyProducts = selectedProducts.filter((product) => !productsWithResults.has(product));
+    if (!emptyProducts.length) {
+      clearSearchStatus();
+      return;
+    }
+
+    const scope = emptyProducts.length === 1
+      ? emptyProducts[0]
+      : `${emptyProducts.length} of ${selectedProducts.length} selected products`;
+    const mode = suggestionsFlag ? 'Search suggestions.' : 'Search results.';
+    const message = `${mode} No results found for "${query}" in ${scope}.`;
+    if (status.textContent !== message) {
+      status.replaceChildren(document.createTextNode(message));
+    }
+  }
+
   search.start();
 
   let currentDynamicWidgets = []; // Widgets that change on each call
@@ -145,6 +187,7 @@ async function initSearch() {
 
   // Function to initialize or update the search
   function updateSearch() {
+    clearSearchStatus();
     // Remove widgets from the previous call before adding new ones
     if (currentDynamicWidgets.length) {
       search.removeWidgets(currentDynamicWidgets);
@@ -229,6 +272,7 @@ async function initSearch() {
 
           // Listen for user typing (suggestions appear before Enter is pressed)
           searchInput.addEventListener('input', () => {
+            clearSearchStatus();
             toggleClearButton(); // Update clear button visibility on input
             searchCleared = false; // Reset cleared flag when user starts typing
             if (searchExecuted) {
@@ -252,6 +296,7 @@ async function initSearch() {
           // When Enter is pressed, execute full search and prevent suggestions from reappearing
           searchInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
+              clearSearchStatus();
               searchCleared = false; // Reset cleared flag when user presses Enter
               const trimmed = searchInput.value.trim();
               if (trimmed === '') { // If users presses enter with an empty query while in a full search, clear results and show suggestions again
@@ -274,6 +319,7 @@ async function initSearch() {
 
           // Clear search query when clear button is clicked
           clearSearchQueryButton.addEventListener('click', () => {
+            clearSearchStatus();
             outerSearchSuggestions.style.display = "flex";
             searchInput.value = "";
             helper.setQuery('').search();
@@ -326,6 +372,7 @@ async function initSearch() {
       } else {
         renderMergedResults(); // Call to render the filtered results
       }
+      updateSearchStatus(indices);
     }
 
     const customMergedHits = connectAutocomplete(mergedHits);
@@ -715,6 +762,7 @@ function decorateSearchIframeContainer(header) {
 
   // Function to hide search completely
   function hideSearch() {
+    clearSearchStatus();
     searchBar.style.visibility = 'hidden';
     searchDiv.style.visibility = 'hidden';
     searchResultsDiv.style.visibility = 'hidden';
@@ -1307,6 +1355,12 @@ export default async function decorate(block) {
 
   header.append(globalNavSearchDropDown());
   header.append(rightContainer);
+  header.append(createTag('div', {
+    class: 'search-status',
+    role: 'status',
+    'aria-live': 'polite',
+    'aria-atomic': 'true',
+  }));
 
   //initialize search
   if (window.adp_search.map_found) {

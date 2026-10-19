@@ -7,6 +7,20 @@ header.main-header {
   z-index: 2;
 }
 
+header.global-nav-header {
+  .search-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 header nav.header-nav {
   height: 100%;
 }
