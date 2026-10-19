@@ -58,13 +58,13 @@ export default async function decorate(block) {
     });
 
     if (isLink) {
-      card.querySelectorAll('p > a').forEach((a) => {
+      card.querySelectorAll('p > a, .button-container > a').forEach((a) => {
         a.classList.add('spectrum-Link', 'spectrum-Button--secondary');
       });
     } else {
-      const buttonPs = [...card.querySelectorAll('p > a')].map((a) => {
+      const buttonPs = [...card.querySelectorAll('p > a, .button-container > a')].map((a) => {
         a.classList.remove('spectrum-Button--secondary', 'spectrum-Button--outline');
-        a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button', 'card-button');
+        a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button', 'spectrum-Button--sizeM', 'card-button');
         return a.parentElement;
       });
 
