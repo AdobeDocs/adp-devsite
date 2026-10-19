@@ -21,7 +21,9 @@ function processImages(block) {
  */
 export default async function decorate(block) {
   // by default, we will use all links as button.  When the section metadata added a linkstyle to be link, it'll change that section's button to be link.
-  const isLink = block.classList.contains("links");
+  // devbiz uses a "links" class; devdocs passes it via slots="..., links".
+  const slots = (block.getAttribute('data-slots') || '').split(',').map((s) => s.trim());
+  const isLink = block.classList.contains("links") || slots.includes('links');
   if (!isLink) {
     decorateButtons(block);
   }
