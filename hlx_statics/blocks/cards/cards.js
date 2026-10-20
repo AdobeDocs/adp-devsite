@@ -61,7 +61,7 @@ export default async function decorate(block) {
 
     if (isLink) {
       card.querySelectorAll('p > a, .button-container > a').forEach((a) => {
-        a.classList.add('spectrum-Link', 'spectrum-Button--secondary');
+        a.classList.add('spectrum-Link', 'spectrum-Link--quiet');
       });
     } else {
       const buttonPs = [...card.querySelectorAll('p > a, .button-container > a')].map((a) => {
