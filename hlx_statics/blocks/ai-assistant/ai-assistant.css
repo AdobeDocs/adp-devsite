@@ -225,13 +225,17 @@
         z-index: 1;
         width: 80vw;
         height: 90dvh;
-        max-width: none;
+        max-width: 1400px;
         box-sizing: border-box;
         transform-origin: center;
         translate: -50% -50%;
 
         .chat-bubble {
-            max-width: min(100%, 800px);
+            max-width: 100%;
+
+            .chat-bubble-sources {
+                max-width: fit-content;
+            }
         }
     }
 }
