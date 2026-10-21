@@ -177,6 +177,7 @@ test.describe('CodeBlock with Picklist reference', () => {
     await expectSelectedTab(block, 'Server');
     await expectPickerOptions(block, ['server.js', 'server.py']);
     await expectVisiblePanel(block, 3);
+    await page.mouse.move(0, 0);
     await expect(block).toHaveScreenshot('codeblock-with-picklist-server-python.png');
   });
 });
@@ -221,6 +222,7 @@ test.describe('CodeBlock without Picklist reference', () => {
     await block.getByRole('button', { name: 'Collapse code', exact: true }).click();
     await expect(block).toHaveClass(/(^|\s)collapsed(\s|$)/);
     await expectAllPanelsHidden(block);
+    await page.mouse.move(0, 0);
     await expect(block).toHaveScreenshot('codeblock-collapsed.png');
   });
 });
