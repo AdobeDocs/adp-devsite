@@ -65,6 +65,13 @@ async function expectSelectedTab(block, name) {
   await expect(block.getByRole('tab', { name, exact: true })).toHaveAttribute('aria-selected', 'true');
 }
 
+async function expectSelectedPickerOption(picker, label) {
+  const selectedOptions = picker.locator('option:checked');
+
+  await expect(selectedOptions).toHaveCount(1);
+  await expect(selectedOptions).toHaveText(label);
+}
+
 async function expectVisiblePanel(block, index) {
   const panels = block.locator('[role="tabpanel"]');
 
@@ -116,7 +123,7 @@ test.describe('CodeBlock with Picklist reference', () => {
     await expect(block.getByRole('tab')).toHaveText(pickerFixture.tabs);
     await expect(picker).toBeVisible();
     await expect(picker.locator('option')).toHaveText(pickerFixture.options);
-    await expect(picker).toHaveValue('0');
+    await expectSelectedPickerOption(picker, 'client.js');
     await expectCodePanels(block, pickerFixture.panels);
     await expectSelectedTab(block, 'Client');
     await expectPickerOptions(page, block, ['client.js', 'client.py']);
@@ -127,21 +134,21 @@ test.describe('CodeBlock with Picklist reference', () => {
     const block = await openCodeBlockReferencePage(page, pickerFixture);
     const picker = block.locator('select');
 
-    await picker.selectOption('1');
+    await picker.selectOption({ label: 'client.py' });
     await expectSelectedTab(block, 'Client');
-    await expect(picker).toHaveValue('1');
+    await expectSelectedPickerOption(picker, 'client.py');
     await expectPickerOptions(page, block, ['client.js', 'client.py']);
     await expectVisiblePanel(block, 1);
 
     await block.getByRole('tab', { name: 'Server', exact: true }).click();
     await expectSelectedTab(block, 'Server');
-    await expect(picker).toHaveValue('2');
+    await expectSelectedPickerOption(picker, 'server.js');
     await expectPickerOptions(page, block, ['server.js', 'server.py']);
     await expectVisiblePanel(block, 2);
 
-    await picker.selectOption('3');
+    await picker.selectOption({ label: 'server.py' });
     await expectSelectedTab(block, 'Server');
-    await expect(picker).toHaveValue('3');
+    await expectSelectedPickerOption(picker, 'server.py');
     await expectVisiblePanel(block, 3);
   });
 
@@ -150,8 +157,9 @@ test.describe('CodeBlock with Picklist reference', () => {
     const picker = block.locator('select');
 
     await block.getByRole('tab', { name: 'Server', exact: true }).click();
-    await picker.selectOption('3');
+    await picker.selectOption({ label: 'server.py' });
     await expectSelectedTab(block, 'Server');
+    await expectSelectedPickerOption(picker, 'server.py');
     await expectVisiblePanel(block, 3);
 
     await block.getByRole('button', { name: 'Collapse code', exact: true }).click();
@@ -165,7 +173,7 @@ test.describe('CodeBlock with Picklist reference', () => {
     await expect(block.getByRole('button', { name: 'Collapse code', exact: true }))
       .toHaveAttribute('aria-expanded', 'true');
     await expectSelectedTab(block, 'Server');
-    await expect(picker).toHaveValue('3');
+    await expectSelectedPickerOption(picker, 'server.py');
     await expectVisiblePanel(block, 3);
   });
 
@@ -180,8 +188,9 @@ test.describe('CodeBlock with Picklist reference', () => {
     await expect(block).toHaveScreenshot('codeblock-with-picklist-client.png');
 
     await block.getByRole('tab', { name: 'Server', exact: true }).click();
-    await picker.selectOption('3');
+    await picker.selectOption({ label: 'server.py' });
     await expectSelectedTab(block, 'Server');
+    await expectSelectedPickerOption(picker, 'server.py');
     await expectPickerOptions(page, block, ['server.js', 'server.py']);
     await expectVisiblePanel(block, 3);
     await page.mouse.move(0, 0);
