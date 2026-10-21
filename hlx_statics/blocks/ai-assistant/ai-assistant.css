@@ -231,7 +231,7 @@
         translate: -50% -50%;
 
         .chat-bubble {
-            max-width: 100%;
+            max-width: 75%;
 
             .chat-bubble-sources {
                 max-width: fit-content;
