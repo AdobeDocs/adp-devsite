@@ -15,6 +15,8 @@ const ALGOLIA_CONFIG = {
   APP_KEY: window.adp_search.APP_KEY || '',
   API_KEY: window.adp_search.API_KEY || ''
 };
+const SEARCH_STATUS_DELAY_MS = 1000;
+let searchStatusTimeout;
 
 function isSourceGithub() {
   return getMetadata('source') === 'github';
@@ -54,6 +56,8 @@ function localSearch() {
 }
 
 function clearSearchStatus() {
+  clearTimeout(searchStatusTimeout);
+  searchStatusTimeout = undefined;
   const status = document.querySelector('header.global-nav-header .search-status');
   if (status) status.replaceChildren();
 }
@@ -175,9 +179,24 @@ async function initSearch() {
       : `${emptyProducts.length} of ${selectedProducts.length} selected products`;
     const mode = suggestionsFlag ? 'Search suggestions.' : 'Search results.';
     const message = `${mode} No results found for "${query}" in ${scope}.`;
-    if (status.textContent !== message) {
+    if (status.textContent === message) return;
+
+    const renderedSuggestionsFlag = suggestionsFlag;
+    const renderedProducts = selectedProducts.slice();
+    clearSearchStatus();
+    searchStatusTimeout = setTimeout(() => {
+      searchStatusTimeout = undefined;
+      if (!status.isConnected
+        || query !== document.querySelector('#search-input')?.value.trim()
+        || !searchButton.classList.contains('is-open')
+        || suggestionsFlag !== renderedSuggestionsFlag
+        || selectedProducts.length !== renderedProducts.length
+        || selectedProducts.some((product, index) => product !== renderedProducts[index])
+        || !container.getClientRects().length
+        || getComputedStyle(container).visibility === 'hidden') return;
+
       status.replaceChildren(document.createTextNode(message));
-    }
+    }, SEARCH_STATUS_DELAY_MS);
   }
 
   search.start();
