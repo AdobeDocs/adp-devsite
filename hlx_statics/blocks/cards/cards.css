@@ -49,6 +49,13 @@ main div.cards-wrapper div.cards > div {
   display: table-cell;
 }
 
+@media screen and (min-width: 1024px) {
+  main.dev-biz .cards-wrapper .cards.narrow > .four-card {
+    flex: 0 1 25%;
+    min-width: 0;
+  }
+}
+
 main div.cards-wrapper div.cards > div.three-cards {
   width: 33.33vw;
 }

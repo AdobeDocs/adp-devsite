@@ -339,6 +339,16 @@ export function buildHero(main) {
   }
 }
 
+export function syncSideNavState(sideNav = document.querySelector('.side-nav')) {
+  if (!sideNav) return;
+  const menuBtn = document.querySelector('header .menu-btn');
+  const collapsed = window.matchMedia('(max-width: 768px)').matches && !menuBtn?.checked;
+  if (collapsed && sideNav.contains(document.activeElement)) {
+    document.querySelector('header .menu-icon')?.focus();
+  }
+  sideNav.inert = collapsed;
+}
+
 /**
  * Builds the side nav
  * @param {*} main The grid container
@@ -347,6 +357,9 @@ export function buildSideNav(main) {
   let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
   let sideNavBlock = createTag('div', { id: 'side-nav', class: 'side-nav block', 'data-block-name': 'side-nav' });
+  const mobileQuery = window.matchMedia('(max-width: 768px)');
+  mobileQuery.addEventListener('change', () => syncSideNavState(sideNavBlock));
+  syncSideNavState(sideNavBlock);
   sideNavWrapper.append(sideNavBlock);
   sideNavDiv.append(sideNavWrapper);
   main.prepend(sideNavDiv);
@@ -481,6 +494,18 @@ function activeTabTemplate(width, isMainPage = false) {
   return `<div class="nav-link-active" style="width: ${calcWidth}px; transform:translate(12px,0); bottom: ${!isMainPage ? '0.5px' : '-1px'}"></div>`;
 }
 
+export function setCurrentPage(nav) {
+  const currentPath = window.location.pathname.replace(/\/$/, '');
+  nav.querySelectorAll('a[href]').forEach((link) => {
+    const url = new URL(link.href);
+    if (url.origin === window.location.origin && url.pathname.replace(/\/$/, '') === currentPath) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
+  });
+}
+
 /**
  * Sets the current tab as active
  * @param {*} isMainPage Defines whether the current page is main page or not
@@ -488,6 +513,7 @@ function activeTabTemplate(width, isMainPage = false) {
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
   if (nav) {
+    setCurrentPage(nav);
     const actTab = getActiveTab(nav);
     if (actTab) {
       activateTab(actTab);
