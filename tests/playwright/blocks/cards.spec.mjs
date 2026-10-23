@@ -323,7 +323,7 @@ test.describe('Cards DevBiz reference', () => {
   test('decorates links-style cards as links rather than buttons', async ({ page }) => {
     const block = blockAt(page, variants[2]);
 
-    const links = block.locator('a.spectrum-Link.spectrum-Button--secondary');
+    const links = block.locator('a.spectrum-Link.spectrum-Link--quiet');
     await expect(links).toHaveCount(3);
     await expect(block.locator('a.card-button')).toHaveCount(0);
     for (let index = 0; index < 3; index += 1) {
