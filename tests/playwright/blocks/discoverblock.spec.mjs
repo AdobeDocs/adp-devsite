@@ -78,25 +78,26 @@ async function expectInlineWidth(block, expectedWidth) {
     .toBe(expectedWidth);
 }
 
-async function getScreenshotClip(...locators) {
-  await locators[0].scrollIntoViewIfNeeded();
-  const boxes = await Promise.all(locators.map((locator) => locator.boundingBox()));
+async function hideDiscoverBlockScreenshotOverlays(page) {
+  await hideNonComponentContent(page);
+  // The fixed global header can overlap the top of a component container when
+  // Locator.screenshot scrolls that container into view.
+  await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
+}
 
-  if (boxes.some((box) => box === null)) {
-    throw new Error('Screenshot target must have visible bounds');
-  }
-
-  const left = Math.min(...boxes.map((box) => box.x));
-  const top = Math.min(...boxes.map((box) => box.y));
-  const right = Math.max(...boxes.map((box) => box.x + box.width));
-  const bottom = Math.max(...boxes.map((box) => box.y + box.height));
-
-  return {
-    x: left,
-    y: top,
-    width: right - left,
-    height: bottom - top,
-  };
+async function isolateScreenshotContainer(page, container, targets) {
+  await container.evaluate((element) => {
+    element.setAttribute('data-discoverblock-screenshot-container', '');
+  });
+  await Promise.all(targets.map((target) => target.evaluate((element) => {
+    element.setAttribute('data-discoverblock-screenshot-target', '');
+  })));
+  await page.addStyleTag({ content: `
+    [data-discoverblock-screenshot-container] >
+    :not([data-discoverblock-screenshot-target]) {
+      display: none !important;
+    }
+  ` });
 }
 
 test.describe('Discover Block reference', () => {
@@ -177,48 +178,44 @@ test.describe('Discover Block reference', () => {
     const getStarted = page.locator('main h2.discoverblock-heading');
     const developerGuide = getCard(page, 'Developer Guide');
     const apiReference = getCard(page, 'API Reference');
+    const container = wrapperOf(developerGuide).locator('..');
 
     await expect(getStarted).toHaveClass(/\bdiscoverblock-heading\b/);
     await expect(developerGuide).toHaveAttribute('data-block-status', 'loaded');
     await expect(apiReference).toHaveAttribute('data-block-status', 'loaded');
-    await hideNonComponentContent(page);
+    await hideDiscoverBlockScreenshotOverlays(page);
+    await isolateScreenshotContainer(page, container, [
+      getStarted,
+      wrapperOf(developerGuide),
+      wrapperOf(apiReference),
+    ]);
     await page.evaluate(() => document.fonts.ready);
 
-    await expect(page).toHaveScreenshot('discoverblock-basic.png', {
-      clip: await getScreenshotClip(
-        getStarted,
-        wrapperOf(developerGuide),
-        wrapperOf(apiReference),
-      ),
-    });
+    await expect(container).toHaveScreenshot('discoverblock-basic.png');
   });
 
   test('matches Grid Layout visuals', async ({ page }) => {
-    const gridLayout = page.locator('main').getByRole('heading', {
-      level: 3,
-      name: 'Grid Layout:',
-      exact: true,
-    });
+    const community = page.locator('main h3.discoverblock-heading');
     const forum = getCard(page, 'Forum');
     const portal = getCard(page, 'Portal');
     const contributing = getCard(page, 'Contributing');
+    const container = wrapperOf(forum).locator('..');
 
-    await expect(gridLayout).toBeVisible();
+    await expect(community).toHaveCount(1);
     await expect(forum).toHaveClass(/\bhas-image\b/);
     await expectLoadedImage(forum);
     await expectInlineWidth(forum, '369.333px');
     await expectInlineWidth(portal, '33%');
     await expectInlineWidth(contributing, '33%');
-    await hideNonComponentContent(page);
+    await hideDiscoverBlockScreenshotOverlays(page);
+    await isolateScreenshotContainer(page, container, [
+      community,
+      wrapperOf(forum),
+      wrapperOf(portal),
+      wrapperOf(contributing),
+    ]);
     await page.evaluate(() => document.fonts.ready);
 
-    await expect(page).toHaveScreenshot('discoverblock-grid-layout.png', {
-      clip: await getScreenshotClip(
-        gridLayout,
-        wrapperOf(forum),
-        wrapperOf(portal),
-        wrapperOf(contributing),
-      ),
-    });
+    await expect(container).toHaveScreenshot('discoverblock-grid-layout.png');
   });
 });
