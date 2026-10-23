@@ -5,6 +5,15 @@ import {
 } from '../visual-test-utils.mjs';
 
 const path = '/dev-docs-reference/blocks/discoverblock/';
+// discoverblock.js gives image cards a fixed width, (2 * 1280) / 12 + 156
+// pixels, so the image and text stay readable. Other cards use their authored
+// width but never shrink below the min-width in discoverblock.css; when a row
+// has no room, cards wrap instead.
+const imageCardWidth = (2 * 1280) / 12 + 156;
+const minCardWidth = 280;
+// The documented 3-column grid fits from roughly 1680px wide; use a common
+// wide desktop width with margin above that point.
+const wideDesktopViewport = { width: 1920, height: 900 };
 const cards = [
   {
     name: 'Developer Guide',
@@ -76,6 +85,19 @@ async function expectLoadedImage(block) {
 async function expectInlineWidth(block, expectedWidth) {
   await expect.poll(() => wrapperOf(block).evaluate((element) => element.style.width))
     .toBe(expectedWidth);
+}
+
+async function expectImageCardWidth(block) {
+  await expect.poll(async () => (await wrapperOf(block).boundingBox())?.width ?? 0)
+    .toBeCloseTo(imageCardWidth, 0);
+}
+
+async function getGridWrapperBoxes(page) {
+  const boxes = await Promise.all(['Forum', 'Portal', 'Contributing']
+    .map((name) => wrapperOf(getCard(page, name)).boundingBox()));
+  if (boxes.some((box) => box === null)) throw new Error('Grid cards must have visible bounds');
+
+  return boxes;
 }
 
 async function hideDiscoverBlockScreenshotOverlays(page) {
@@ -165,13 +187,24 @@ test.describe('Discover Block reference', () => {
     if (!imageBox || !contentBox) throw new Error('Forum image and content must have visible bounds');
     expect(imageBox.x + imageBox.width).toBeLessThanOrEqual(contentBox.x);
 
-    // Image cards intentionally override their authored width so the image and
-    // text remain together; non-image cards keep the authored grid width.
-    await expectInlineWidth(forum, '369.333px');
+    // Image cards keep their fixed readable width; other cards keep the
+    // authored grid width.
+    await expectImageCardWidth(forum);
     await expectInlineWidth(portal, '33%');
     await expectInlineWidth(contributing, '33%');
     await expect(portal).not.toHaveClass(/\bhas-image\b/);
     await expect(contributing).not.toHaveClass(/\bhas-image\b/);
+  });
+
+  test('wraps the grid instead of shrinking cards when the row is narrow', async ({ page }) => {
+    // The default 1280px viewport is too narrow for three grid columns.
+    await expectImageCardWidth(getCard(page, 'Forum'));
+    const [forumBox, portalBox, contributingBox] = await getGridWrapperBoxes(page);
+
+    expect(portalBox.y).toBeCloseTo(forumBox.y, 1);
+    expect(portalBox.width).toBeGreaterThanOrEqual(minCardWidth);
+    expect(contributingBox.y).toBeGreaterThan(forumBox.y + forumBox.height - 1);
+    expect(contributingBox.width).toBeGreaterThanOrEqual(minCardWidth);
   });
 
   test('matches Basic visuals', async ({ page }) => {
@@ -194,6 +227,24 @@ test.describe('Discover Block reference', () => {
     await expect(container).toHaveScreenshot('discoverblock-basic.png');
   });
 
+});
+
+test.describe('Discover Block reference on wide desktop', () => {
+  // Set the viewport before navigation so decoration and layout happen at the
+  // width where the documented 3-column grid fits.
+  test.use({ viewport: wideDesktopViewport });
+  test.beforeEach(async ({ page }) => openDiscoverBlockPage(page));
+
+  test('lays out the documented 3-column grid on one row', async ({ page }) => {
+    await expectImageCardWidth(getCard(page, 'Forum'));
+    const [forumBox, portalBox, contributingBox] = await getGridWrapperBoxes(page);
+
+    expect(portalBox.y).toBeCloseTo(forumBox.y, 1);
+    expect(contributingBox.y).toBeCloseTo(forumBox.y, 1);
+    expect(portalBox.x).toBeGreaterThan(forumBox.x);
+    expect(contributingBox.x).toBeGreaterThan(portalBox.x);
+  });
+
   test('matches Grid Layout visuals', async ({ page }) => {
     const community = page.locator('main h3.discoverblock-heading');
     const forum = getCard(page, 'Forum');
@@ -204,7 +255,7 @@ test.describe('Discover Block reference', () => {
     await expect(community).toHaveCount(1);
     await expect(forum).toHaveClass(/\bhas-image\b/);
     await expectLoadedImage(forum);
-    await expectInlineWidth(forum, '369.333px');
+    await expectImageCardWidth(forum);
     await expectInlineWidth(portal, '33%');
     await expectInlineWidth(contributing, '33%');
     await hideDiscoverBlockScreenshotOverlays(page);
