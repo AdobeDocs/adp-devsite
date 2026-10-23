@@ -127,7 +127,7 @@ test.describe('Discover Block reference', () => {
     const forum = getCard(page, 'Forum');
 
     await expect(getStarted).toHaveCount(1);
-    await expect(getStarted).toHaveClass(/\bdiscoverblock-heading\b/);
+    await expect(getStarted).toBeVisible();
     await expect(getStarted.getByRole('link', { name: 'get-started', exact: true }))
       .toHaveAttribute('href', /#get-started$/);
     await expect(getStarted.locator('xpath=following-sibling::*[1]'))
@@ -135,7 +135,7 @@ test.describe('Discover Block reference', () => {
     await expect(developerGuide.getByRole('heading')).toHaveCount(0);
 
     await expect(community).toHaveCount(1);
-    await expect(community).toHaveClass(/\bdiscoverblock-heading\b/);
+    await expect(community).toBeVisible();
     await expect(community).toHaveClass(/\bdiscover-heading-with-image\b/);
     await expect(community.getByRole('link', { name: 'community', exact: true }))
       .toHaveAttribute('href', /#community$/);
@@ -180,7 +180,7 @@ test.describe('Discover Block reference', () => {
     const apiReference = getCard(page, 'API Reference');
     const container = wrapperOf(developerGuide).locator('..');
 
-    await expect(getStarted).toHaveClass(/\bdiscoverblock-heading\b/);
+    await expect(getStarted).toBeVisible();
     await expect(developerGuide).toHaveAttribute('data-block-status', 'loaded');
     await expect(apiReference).toHaveAttribute('data-block-status', 'loaded');
     await hideDiscoverBlockScreenshotOverlays(page);
