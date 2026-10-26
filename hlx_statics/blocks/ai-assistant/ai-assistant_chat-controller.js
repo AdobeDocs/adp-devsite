@@ -5,8 +5,14 @@ import { chatHistory } from "./ai-assistant_chat-history.js";
 import {
   CHAT_BUBBLE_AI_LABEL,
   CHAT_BUBBLE_USER_LABEL,
-  CHAT_BUTTON_LABEL_MINIMIZE,
+  CHAT_BUTTON_LABEL_CLOSE,
   CHAT_BUTTON_LABEL_OPEN,
+  CHAT_WINDOW_BUTTON_LABEL_EXPAND,
+  CHAT_WINDOW_BUTTON_LABEL_RETURN_TO_COMPACT,
+  CHAT_WINDOW_COMPACT_ICON_SRC,
+  CHAT_WINDOW_DAA_LABEL_EXPAND,
+  CHAT_WINDOW_DAA_LABEL_RETURN_TO_COMPACT,
+  CHAT_WINDOW_EXPAND_ICON_SRC,
   ELEMENTS,
   GENERIC_ERROR_MESSAGE,
   INITIAL_SUGGESTED_QUESTIONS,
@@ -23,10 +29,157 @@ import { announce, setResponding } from "./ai-assistant_announcer.js";
 let userScrolledUp = false;
 let lastScrollTop = 0;
 let isResponding = false;
+let pageIsInert = false;
+let bodyOverflowBeforeExpansion = null;
+let documentOverflowBeforeExpansion = null;
+/** @type {Map<HTMLElement, boolean>} */
+const backgroundInertStates = new Map();
+
+/**
+ * What the user was reading when the chat window last changed size: a bubble
+ * plus how far into it (as a fraction of its height, so the anchor survives the
+ * bubble reflowing to a new width), or no bubble when pinned to the bottom.
+ * Kept across close/open because closing from expanded also changes width.
+ * @type {{bubble: HTMLElement | null, ratio: number}}
+ */
+let chatScrollAnchor = { bubble: null, ratio: 0 };
+
+/**
+ * Records the current scroll anchor. Uses offsetTop (relative to the
+ * positioned content container) because, unlike bounding rects, it ignores the
+ * window's scale transform.
+ */
+const captureChatScrollAnchor = () => {
+  const container = ELEMENTS.CHAT_WINDOW_CONTENT;
+  if (!container) return;
+  const { scrollTop } = container;
+  const bubble = /** @type {HTMLElement | undefined} */ (
+    Array.from(container.querySelectorAll(".chat-bubble")).find(
+      (/** @type {HTMLElement} */ el) => el.offsetTop + el.offsetHeight > scrollTop,
+    )
+  );
+  chatScrollAnchor =
+    userScrolledUp && bubble
+      ? {
+          bubble,
+          ratio: Math.max(0, scrollTop - bubble.offsetTop) / (bubble.offsetHeight || 1),
+        }
+      : { bubble: null, ratio: 0 };
+};
+
+/**
+ * Re-applies the recorded anchor after a layout change. Reading layout here
+ * forces a synchronous reflow, so this can run right after the class change.
+ */
+const restoreChatScrollAnchor = () => {
+  const container = ELEMENTS.CHAT_WINDOW_CONTENT;
+  if (!container) return;
+  const { bubble, ratio } = chatScrollAnchor;
+  const anchored = !!bubble && container.contains(bubble);
+  container.scrollTop = bubble && anchored
+    ? bubble.offsetTop + ratio * bubble.offsetHeight
+    : container.scrollHeight;
+  // Keep the streaming auto-scroll state in sync so the resulting scroll event
+  // isn't read as the user scrolling up.
+  lastScrollTop = container.scrollTop;
+  userScrolledUp = anchored;
+};
+
+/**
+ * Makes everything outside the assistant inert while the expanded dialog is open.
+ * @param {boolean} shouldBeInert
+ */
+const setPageBackgroundInert = (shouldBeInert) => {
+  const assistantWrapper = ELEMENTS.CHAT_WINDOW?.closest(
+    ".ai-assistant-wrapper",
+  );
+  if (!assistantWrapper || pageIsInert === shouldBeInert) return;
+
+  if (shouldBeInert) {
+    let branch = assistantWrapper;
+    while (branch.parentElement) {
+      const parent = branch.parentElement;
+      Array.from(parent.children).forEach((sibling) => {
+        if (sibling === branch) return;
+        const element = /** @type {HTMLElement} */ (sibling);
+        backgroundInertStates.set(element, element.inert);
+        element.inert = true;
+      });
+      if (parent === document.body) break;
+      branch = parent;
+    }
+
+    bodyOverflowBeforeExpansion = document.body.style.overflow;
+    documentOverflowBeforeExpansion = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    pageIsInert = true;
+    return;
+  }
+
+  backgroundInertStates.forEach((wasInert, element) => {
+    element.inert = wasInert;
+  });
+  backgroundInertStates.clear();
+  document.body.style.overflow = bodyOverflowBeforeExpansion ?? "";
+  document.documentElement.style.overflow =
+    documentOverflowBeforeExpansion ?? "";
+  bodyOverflowBeforeExpansion = null;
+  documentOverflowBeforeExpansion = null;
+  pageIsInert = false;
+};
+
+/**
+ * Switches the existing chat window between compact and expanded dialog layouts.
+ * @param {boolean} isExpanded
+ */
+const setChatWindowExpanded = (isExpanded) => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  const viewToggle = ELEMENTS.CHAT_WINDOW_VIEW_TOGGLE;
+  const assistantWrapper = chatWindow?.closest(".ai-assistant-wrapper");
+  if (!chatWindow || !viewToggle || !assistantWrapper) return;
+
+  chatWindow.classList.toggle("expanded", isExpanded);
+  assistantWrapper.classList.toggle("ai-assistant-expanded", isExpanded);
+  chatWindow.setAttribute("aria-modal", String(isExpanded));
+  const actionLabel = isExpanded
+    ? CHAT_WINDOW_BUTTON_LABEL_RETURN_TO_COMPACT
+    : CHAT_WINDOW_BUTTON_LABEL_EXPAND;
+  viewToggle.setAttribute("aria-expanded", String(isExpanded));
+  viewToggle.setAttribute("aria-label", actionLabel);
+  viewToggle.setAttribute("title", actionLabel);
+  viewToggle.setAttribute(
+    "daa-ll",
+    isExpanded
+      ? CHAT_WINDOW_DAA_LABEL_RETURN_TO_COMPACT
+      : CHAT_WINDOW_DAA_LABEL_EXPAND,
+  );
+
+  const icon = viewToggle.querySelector("img");
+  if (icon) {
+    icon.src = isExpanded
+      ? CHAT_WINDOW_COMPACT_ICON_SRC
+      : CHAT_WINDOW_EXPAND_ICON_SRC;
+  }
+
+  setPageBackgroundInert(isExpanded);
+};
+
+/**
+ * Recompute Prism line-number rows after the assistant content has adopted its
+ * new width. Two animation frames let the expanded/compact layout settle first.
+ */
+const resizeAssistantCodeBlockLineNumbersAfterLayout = () => {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      ChatBubble.resizeCodeBlockLineNumbers(ELEMENTS.CHAT_WINDOW_CONTENT);
+    });
+  });
+};
 
 /** @param {KeyboardEvent} e */
 const escapeKeyHandler = (e) => {
-  if (e.key === 'Escape') minimizeChatWindow();
+  if (e.key === 'Escape') closeChatWindow();
 };
 
 const FOCUSABLE_SELECTOR =
@@ -39,7 +192,9 @@ const FOCUSABLE_SELECTOR =
  */
 export const getFocusableElements = (container) =>
   Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
-    (/** @type {HTMLElement} */ el) => el.offsetParent !== null,
+    (/** @type {HTMLElement} */ el) =>
+      el.offsetParent !== null &&
+      window.getComputedStyle(el).visibility !== "hidden",
   );
 
 /**
@@ -147,8 +302,11 @@ export const openChatWindow = () => {
     return;
   }
 
+  setChatWindowExpanded(false);
+  ELEMENTS.CHAT_WINDOW.classList.remove("instant-close");
+  ELEMENTS.CHAT_BUTTON.classList.remove("instant-close");
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
-  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_MINIMIZE;
+  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_CLOSE;
   ELEMENTS.CHAT_WINDOW.classList.add("show");
   ELEMENTS.CHAT_BUTTON.classList.add("hidden");
 
@@ -176,23 +334,39 @@ export const openChatWindow = () => {
     sendInitialMessages();
   }
 
-  ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', escapeKeyHandler);
+  // Listen on the document so Escape still closes the chat if focus moves to
+  // the non-focusable backdrop or another area outside the panel.
+  document.addEventListener('keydown', escapeKeyHandler);
   ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', trapFocusHandler);
 
   ELEMENTS.CHAT_TEXTAREA.focus();
+  restoreChatScrollAnchor();
 };
 
-export const minimizeChatWindow = () => {
+export const closeChatWindow = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  const wasExpanded = chatWindow?.classList.contains("expanded");
+  captureChatScrollAnchor();
+  if (wasExpanded) {
+    chatWindow.classList.add("instant-close");
+    ELEMENTS.CHAT_BUTTON?.classList.add("instant-close");
+  }
+
+  setChatWindowExpanded(false);
   ELEMENTS.CHAT_BUTTON?.setAttribute("aria-expanded", "false");
   // @ts-expect-error - CHAT_BUTTON has to be defined for us to get this far
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
   ELEMENTS.CHAT_BUTTON?.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 
-  ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', escapeKeyHandler);
+  document.removeEventListener('keydown', escapeKeyHandler);
   ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', trapFocusHandler);
 
-  focusChatButtonAfterClose();
+  if (wasExpanded) {
+    ELEMENTS.CHAT_BUTTON?.focus();
+  } else {
+    focusChatButtonAfterClose();
+  }
 };
 
 /**
@@ -233,10 +407,20 @@ export const toggleChatWindow = () => {
   if (!ELEMENTS.CHAT_WINDOW) return;
 
   if (ELEMENTS.CHAT_WINDOW.classList.contains("show")) {
-    minimizeChatWindow();
+    closeChatWindow();
   } else {
     openChatWindow();
   }
+};
+
+export const toggleChatWindowView = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  if (!chatWindow?.classList.contains("show")) return;
+
+  captureChatScrollAnchor();
+  setChatWindowExpanded(!chatWindow.classList.contains("expanded"));
+  restoreChatScrollAnchor();
+  resizeAssistantCodeBlockLineNumbersAfterLayout();
 };
 
 const showStopButton = () => {
