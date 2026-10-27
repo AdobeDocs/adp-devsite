@@ -18,48 +18,83 @@ export function extractLanguageDirectives(container) {
   return '';
 }
 
-export function applyLanguageDirectives(pre, codeEl, languageText) {
-  if (!pre || !codeEl || !languageText) return;
-  const normalized = typeof languageText === 'string' ? languageText.trim() : '';
-  const firstSpaceIdx = normalized.indexOf(' ');
-  const langName = firstSpaceIdx === -1 ? normalized : normalized.slice(0, firstSpaceIdx);
-  const lang = `language-${langName}`;
-  pre.classList.add(lang);
-  codeEl.classList.add(lang);
-
-  const rest = firstSpaceIdx === -1 ? '' : normalized.slice(firstSpaceIdx + 1);
-  if (rest && rest.indexOf('disableLineNumbers') !== -1) {
-    pre.classList.add('disableLineNumbers');
+function readAttribute(source, name) {
+  const needle = `${name}=`;
+  const idx = source.indexOf(needle);
+  if (idx === -1) return null;
+  const start = idx + needle.length;
+  const quote = source[start];
+  if (quote === '"' || quote === "'") {
+    const end = source.indexOf(quote, start + 1);
+    if (end === -1) return null;
+    return source.slice(start + 1, end);
   }
-
-  const readAttr = (source, name) => {
-    const needle = `${name}=`;
-    const idx = source.indexOf(needle);
-    if (idx === -1) return null;
-    const start = idx + needle.length;
-    const quote = source[start];
-    if (quote === '"' || quote === "'") {
-      const end = source.indexOf(quote, start + 1);
-      if (end === -1) return null;
-      return source.slice(start + 1, end);
-    }
-    let end = source.indexOf(' ', start);
-    if (end === -1) end = source.length;
-    return source.slice(start, end);
-  };
-
-  const dataLineRaw = readAttr(rest, 'data-line');
-  if (dataLineRaw != null) {
-    let value = dataLineRaw;
-    if (value.endsWith(',')) value = value.slice(0, -1);
-    codeEl.setAttribute('data-line', value);
-  }
+  let end = source.indexOf(' ', start);
+  if (end === -1) end = source.length;
+  return source.slice(start, end);
 }
 
 /**
- * Strips leading lines in code text that contain data-playground-* attributes (e.g. on stage
- * the first line can be "-data-playground-url=\"https://...\""). Extracts attributes, sets
- * them on pre/code, and removes those lines from the displayed code.
+ * Parses a code block's language and directives (`disableLineNumbers`, `data-*` attributes).
+ * Accepts the dash-delimited form from markdown code fences (`js-disableLineNumbers-data-line="2"`)
+ * and the space-delimited form from tab blocks (`js disableLineNumbers data-line="2"`).
+ * @returns {{ language: string, disableLineNumbers: boolean, attributes: [string, string][] }}
+ */
+export function parseCodeDirectives(text, { devDocs = IS_DEV_DOCS } = {}) {
+  const normalized = (text || '').trim().replace(/^language-/, '');
+  const spaceIdx = normalized.indexOf(' ');
+  const head = spaceIdx === -1 ? normalized : normalized.slice(0, spaceIdx);
+  const rest = spaceIdx === -1 ? '' : normalized.slice(spaceIdx + 1);
+
+  const attributes = [];
+  let disableLineNumbers = rest.includes('disableLineNumbers');
+  const dataLine = readAttribute(rest, 'data-line');
+  if (dataLine != null) attributes.push(['data-line', dataLine.replace(/,$/, '')]);
+
+  const dataIdx = head.indexOf('-data');
+  let language = dataIdx === -1 ? head : head.slice(0, dataIdx);
+  if (dataIdx !== -1) {
+    head.slice(dataIdx).split('-data').forEach((part) => {
+      const match = part.match(/^-?([^=]+)="([^"]*)"/);
+      if (match) attributes.push([`data-${match[1]}`, match[2]]);
+    });
+  }
+
+  if (head.includes('disableLineNumbers')) {
+    if (devDocs) {
+      language = language.replace('-disableLineNumbers', '');
+      disableLineNumbers = true;
+    } else if (!language.includes('disableLineNumbers')) {
+      // DevBiz only supports disableLineNumbers in the space-delimited form for now.
+      language += '-disableLineNumbers';
+    }
+  }
+
+  return { language, disableLineNumbers, attributes };
+}
+
+function applyCodeDirectives(pre, code, { language, disableLineNumbers, attributes }) {
+  if (language) {
+    pre.classList.add(`language-${language}`);
+    code.classList.add(`language-${language}`);
+  }
+  if (disableLineNumbers) pre.classList.add('disableLineNumbers');
+  attributes.forEach(([name, value]) => {
+    pre.setAttribute(name, value);
+    code.setAttribute(name, value);
+  });
+}
+
+export function applyLanguageDirectives(pre, codeEl, languageText) {
+  if (!pre || !codeEl || !languageText) return;
+  applyCodeDirectives(pre, codeEl, parseCodeDirectives(languageText));
+}
+
+/**
+ * Strips leading lines in code text that contain data-playground-* attributes. Long code fence
+ * info strings inside grid tables (e.g. <CodeBlock>) get cut, and the rest spills into the first
+ * line of code (see DEVSITE-2746). Extracts attributes, sets them on pre/code, and removes those
+ * lines from the displayed code.
  */
 function stripPlaygroundMetadataFromCodeContent(pre, code) {
   if (!pre || !code) return;
@@ -92,88 +127,24 @@ function stripPlaygroundMetadataFromCodeContent(pre, code) {
   if (newText !== text) code.textContent = newText;
 }
 
-/**
- * Parses code element classes like "language-js-data-playground-session-id=\"x\"" and
- * sets the corresponding data attributes on both pre and code (e.g. data-playground-session-id).
- * Also cleans the class list to only keep the language class. Use so "Try in playground" works.
- */
-function applyDataAttributesFromCodeClasses(pre, code) {
-  if (!pre || !code) return;
-  [...code.classList].forEach((cls) => {
-    if (cls.includes('-data')) {
-      const parts = cls.split('-data');
-      const languagePart = parts.find((item) => item.includes('language-'));
-
-      parts.forEach((item) => {
-        if (!item.includes('language-') && item.includes('=')) {
-          const match = item.match(/^-?([^=]+)="([^"]*)"/);
-          if (match) {
-            const attrName = `data-${match[1]}`;
-            const attrValue = match[2];
-            pre.setAttribute(attrName, attrValue);
-            code.setAttribute(attrName, attrValue);
-          }
-        }
-      });
-
-      code.classList.remove(cls);
-      pre.classList.remove(cls);
-      if (languagePart) {
-        let cleanClass = languagePart.trim();
-        if (cls.includes('disableLineNumbers') && !cleanClass.includes('disableLineNumbers')) {
-          cleanClass += '-disableLineNumbers';
-        }
-        code.classList.add(cleanClass);
-        pre.classList.add(cleanClass);
-      }
-    } else {
-      pre.classList.add(cls);
-    }
-  });
-}
-
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre') || (block.tagName === 'PRE' && block) || null;
   const code = block.querySelector('code');
 
-  applyDataAttributesFromCodeClasses(pre, code);
-  stripPlaygroundMetadataFromCodeContent(pre, code);
-
-  if(pre && IS_DEV_DOCS){
-    const processClasses = (element) => {
-      element.className = Array.from(element.classList).map(className => {
-        let cleanClassName = className;
-
-        const dataLineMatch = className.match(/data-line="([^"]*)"/);
-        if(dataLineMatch) {
-          pre.setAttribute('data-line', dataLineMatch[1]);
-          code?.setAttribute('data-line', dataLineMatch[1]);
-          cleanClassName = cleanClassName.replace(/-data-line="[^"]*"/, '');
-        }
-
-        if(className.includes('disableLineNumbers')) {
-          pre.classList.add('disableLineNumbers');
-          cleanClassName = cleanClassName.replace(/-disableLineNumbers/, '');
-        }
-        
-        return cleanClassName;
-      }).filter(className => className.trim()).join(' ');
-    };
-    
-    processClasses(pre);
-    code && processClasses(code);
+  if (pre && code) {
+    [...code.classList].filter((cls) => cls.startsWith('language-')).forEach((cls) => {
+      const directives = parseCodeDirectives(cls);
+      code.classList.replace(cls, `language-${directives.language}`);
+      applyCodeDirectives(pre, code, directives);
+    });
   }
+  stripPlaygroundMetadataFromCodeContent(pre, code);
 
   if (pre?.classList.contains('disableLineNumbers')) {
     pre?.classList.add('no-line-numbers');
   }
   else {
     pre?.classList.add('line-numbers');
-  }
-  
-  const dataLine = code.getAttribute('data-line');
-  if (dataLine) {
-    pre.setAttribute('data-line', dataLine);
   }
   
   if (!code.className.match(/language-/)) {
