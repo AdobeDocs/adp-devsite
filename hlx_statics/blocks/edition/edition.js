@@ -1,58 +1,48 @@
-/**
- * decorates the title
- * @param {Element} block The title block element {Parameter Type} Name of the Parameter
- */
+const colorMap = {
+  red: 'rgb(187, 2, 2)',
+  green: 'rgb(0, 128, 0)',
+  blue: 'rgb(4, 105, 227)',
+  gray: 'rgb(71, 71, 71)',
+};
+
+function getBackgroundColor(block) {
+  const requested = block.dataset.backgroundcolor
+    || [...block.classList]
+      .find((name) => name.startsWith('background-color-'))
+      ?.replace('background-color-', '');
+  return colorMap[requested?.toLowerCase()] || colorMap.red;
+}
+
+function decorateLink(anchor) {
+  anchor.setAttribute('rel', 'noopener noreferrer');
+  anchor.setAttribute('target', '_blank');
+  anchor.removeAttribute('title');
+}
+
+// DevBiz authors the label and an optional link as separate paragraphs; merge
+// them into one inline label. DevDocs authors plain text or a link directly.
+function mergeParagraphs(cell) {
+  const [label, linkParagraph] = cell.querySelectorAll(':scope > p');
+  if (!label) return;
+
+  const span = document.createElement('span');
+  [...label.attributes].forEach(({ name, value }) => span.setAttribute(name, value));
+  span.append(...label.childNodes);
+  label.replaceWith(span);
+
+  const anchor = linkParagraph?.querySelector('a');
+  if (anchor) {
+    span.append(anchor);
+    linkParagraph.remove();
+  }
+}
+
 export default async function decorate(block) {
-    // Define allowed colors
-    const colorMap = {
-        'red': 'rgb(187, 2, 2)',
-        'green': 'rgb(0, 128, 0)',
-        'blue': 'rgb(4, 105, 227)',
-        'gray': 'rgb(71,71,71)'
-    };
+  const backgroundColor = getBackgroundColor(block);
 
-    // Get background color from data attribute or class name
-    let requestedColor = block.getAttribute('data-backgroundcolor')?.toLowerCase();
-
-    // If no data attribute, check for class name like 'background-color-blue'
-    if (!requestedColor) {
-        const classList = Array.from(block.classList);
-        const colorClass = classList.find(cls => cls.startsWith('background-color-'));
-        if (colorClass) {
-            requestedColor = colorClass.replace('background-color-', '');
-        }
-    }
-
-    const backgroundColor = colorMap[requestedColor] || colorMap['red'];
-
-    block.querySelectorAll('.edition > div > div').forEach((div) => {
-        Object.assign(div.style, {
-            backgroundColor: backgroundColor,
-            color: "white",
-            fontSize: "12px"
-        });
-    })
-
-    const contentElement = document.querySelector('.edition > div > div > p:first-of-type');
-    const spanElement = document.createElement('span');
-    spanElement.innerHTML = contentElement.innerHTML;
-
-    for (let i = 0; i < contentElement.attributes.length; i++) {
-        let attr = contentElement.attributes[i];
-        spanElement.setAttribute(attr.name, attr.value);
-    }
-
-    contentElement.parentNode.replaceChild(spanElement, contentElement);
-    const removeChildNode = document.querySelector('.edition > div > div > p');
-
-    if (removeChildNode) {
-        const anchorTag = removeChildNode.querySelector('a');
-        if (anchorTag) {
-            anchorTag.setAttribute('rel', 'noopener noreferrer');
-            anchorTag.setAttribute('target', '_blank');
-            anchorTag.removeAttribute('title');
-            removeChildNode.parentNode.replaceChild(anchorTag, removeChildNode);
-            spanElement.appendChild(anchorTag);
-        }
-    }
+  block.querySelectorAll(':scope > div > div').forEach((cell) => {
+    Object.assign(cell.style, { backgroundColor, color: 'white', fontSize: '12px' });
+    mergeParagraphs(cell);
+    cell.querySelectorAll('a').forEach(decorateLink);
+  });
 }
