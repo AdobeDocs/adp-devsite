@@ -21,7 +21,9 @@ function processImages(block) {
  */
 export default async function decorate(block) {
   // by default, we will use all links as button.  When the section metadata added a linkstyle to be link, it'll change that section's button to be link.
-  const isLink = block.classList.contains("links");
+  // devbiz uses a "links" class; devdocs passes it via slots="..., links".
+  const slots = (block.getAttribute('data-slots') || '').split(',').map((s) => s.trim());
+  const isLink = block.classList.contains("links") || slots.includes('links');
   if (!isLink) {
     decorateButtons(block);
   }
@@ -58,13 +60,13 @@ export default async function decorate(block) {
     });
 
     if (isLink) {
-      card.querySelectorAll('p > a').forEach((a) => {
-        a.classList.add('spectrum-Link', 'spectrum-Button--secondary');
+      card.querySelectorAll('p > a, .button-container > a').forEach((a) => {
+        a.classList.add('spectrum-Link', 'spectrum-Link--quiet');
       });
     } else {
-      const buttonPs = [...card.querySelectorAll('p > a')].map((a) => {
+      const buttonPs = [...card.querySelectorAll('p > a, .button-container > a')].map((a) => {
         a.classList.remove('spectrum-Button--secondary', 'spectrum-Button--outline');
-        a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button', 'card-button');
+        a.classList.add('spectrum-Button--accent', 'spectrum-Button--fill', 'spectrum-Button', 'spectrum-Button--sizeM', 'card-button');
         return a.parentElement;
       });
 
