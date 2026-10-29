@@ -1,5 +1,3 @@
-import { IS_DEV_DOCS } from "../scripts/lib-helix.js";
-
 export function extractLanguageDirectives(container) {
   if (!container) return '';
   const preEl = container.querySelector('pre');
@@ -18,59 +16,73 @@ export function extractLanguageDirectives(container) {
   return '';
 }
 
-function readAttribute(source, name) {
-  const needle = `${name}=`;
-  const idx = source.indexOf(needle);
-  if (idx === -1) return null;
-  const start = idx + needle.length;
-  const quote = source[start];
-  if (quote === '"' || quote === "'") {
-    const end = source.indexOf(quote, start + 1);
-    if (end === -1) return null;
-    return source.slice(start + 1, end);
-  }
-  let end = source.indexOf(' ', start);
-  if (end === -1) end = source.length;
-  return source.slice(start, end);
-}
+const SUPPORTED_ATTRIBUTES = new Set([
+  'data-line',
+  'data-playground-session-id',
+  'data-playground-mode',
+  'data-playground-execution-mode',
+  'data-playground-url',
+  'data-playground-url-stage',
+  // Not read anywhere (the playground URL always uses session=new), but used in existing content.
+  'data-playground-session',
+]);
+
+// An option starts after a space, or after a dash followed by "data-" or "disable". Splitting on
+// every dash would break dashed Prism languages like shell-session.
+const OPTION_BOUNDARY = /\s|-(?=data-|disable)/i;
+const LEADING_DELIMITERS = /^[\s-]+/;
+const QUOTED_ATTRIBUTE = /^(data-[\w-]+)=(?:"([^"]*)"|'([^']*)')/i;
 
 /**
- * Parses a code block's language and directives (`disableLineNumbers`, `data-*` attributes).
+ * Parses a code block's language and options (`disableLineNumbers`, supported `data-*` attributes).
  * Accepts the dash-delimited form from markdown code fences (`js-disableLineNumbers-data-line="2"`)
  * and the space-delimited form from tab blocks (`js disableLineNumbers data-line="2"`).
- * @returns {{ language: string, disableLineNumbers: boolean, attributes: [string, string][] }}
+ * Attribute values must be quoted. Anything unsupported is returned in `ignored`.
+ * @returns {{
+ *   language: string,
+ *   disableLineNumbers: boolean,
+ *   attributes: [string, string][],
+ *   ignored: string[],
+ * }}
  */
-export function parseCodeDirectives(text, { devDocs = IS_DEV_DOCS } = {}) {
-  const normalized = (text || '').trim().replace(/^language-/, '');
-  const spaceIdx = normalized.indexOf(' ');
-  const head = spaceIdx === -1 ? normalized : normalized.slice(0, spaceIdx);
-  const rest = spaceIdx === -1 ? '' : normalized.slice(spaceIdx + 1);
+export function parseCodeDirectives(text) {
+  const source = (text || '').trim().replace(/^language-/, '');
+  const languageEnd = source.search(OPTION_BOUNDARY);
+  const language = languageEnd === -1 ? source : source.slice(0, languageEnd);
+  let rest = languageEnd === -1 ? '' : source.slice(languageEnd).replace(LEADING_DELIMITERS, '');
 
+  let disableLineNumbers = false;
   const attributes = [];
-  let disableLineNumbers = rest.includes('disableLineNumbers');
-  const dataLine = readAttribute(rest, 'data-line');
-  if (dataLine != null) attributes.push(['data-line', dataLine.replace(/,$/, '')]);
-
-  const dataIdx = head.indexOf('-data');
-  let language = dataIdx === -1 ? head : head.slice(0, dataIdx);
-  if (dataIdx !== -1) {
-    head.slice(dataIdx).split('-data').forEach((part) => {
-      const match = part.match(/^-?([^=]+)="([^"]*)"/);
-      if (match) attributes.push([`data-${match[1]}`, match[2]]);
-    });
-  }
-
-  if (head.includes('disableLineNumbers')) {
-    if (devDocs) {
-      language = language.replace('-disableLineNumbers', '');
-      disableLineNumbers = true;
-    } else if (!language.includes('disableLineNumbers')) {
-      // DevBiz only supports disableLineNumbers in the space-delimited form for now.
-      language += '-disableLineNumbers';
+  const ignored = [];
+  while (rest) {
+    const attribute = rest.match(QUOTED_ATTRIBUTE);
+    let consumed;
+    if (attribute) {
+      const [match, name, doubleQuoted, singleQuoted] = attribute;
+      if (SUPPORTED_ATTRIBUTES.has(name)) attributes.push([name, doubleQuoted ?? singleQuoted]);
+      else ignored.push(name);
+      consumed = match.length;
+    } else {
+      const optionEnd = rest.search(OPTION_BOUNDARY);
+      const option = optionEnd === -1 ? rest : rest.slice(0, optionEnd);
+      if (option === 'disableLineNumbers') disableLineNumbers = true;
+      else ignored.push(option);
+      consumed = option.length;
     }
+    rest = rest.slice(consumed).replace(LEADING_DELIMITERS, '');
   }
 
-  return { language, disableLineNumbers, attributes };
+  return {
+    language, disableLineNumbers, attributes, ignored,
+  };
+}
+
+function parseAndWarn(text) {
+  const directives = parseCodeDirectives(text);
+  if (directives.ignored.length) {
+    console.warn(`[code] Ignoring unsupported options in "${text}": ${directives.ignored.join(', ')}`);
+  }
+  return directives;
 }
 
 function applyCodeDirectives(pre, code, { language, disableLineNumbers, attributes }) {
@@ -87,7 +99,7 @@ function applyCodeDirectives(pre, code, { language, disableLineNumbers, attribut
 
 export function applyLanguageDirectives(pre, codeEl, languageText) {
   if (!pre || !codeEl || !languageText) return;
-  applyCodeDirectives(pre, codeEl, parseCodeDirectives(languageText));
+  applyCodeDirectives(pre, codeEl, parseAndWarn(languageText));
 }
 
 /**
@@ -133,7 +145,7 @@ export default function decoratePreformattedCode(block) {
 
   if (pre && code) {
     [...code.classList].filter((cls) => cls.startsWith('language-')).forEach((cls) => {
-      const directives = parseCodeDirectives(cls);
+      const directives = parseAndWarn(cls);
       code.classList.replace(cls, `language-${directives.language}`);
       applyCodeDirectives(pre, code, directives);
     });
@@ -141,17 +153,16 @@ export default function decoratePreformattedCode(block) {
   stripPlaygroundMetadataFromCodeContent(pre, code);
 
   if (pre?.classList.contains('disableLineNumbers')) {
-    pre?.classList.add('no-line-numbers');
-  }
-  else {
+    pre.classList.add('no-line-numbers');
+  } else {
     pre?.classList.add('line-numbers');
   }
-  
+
   if (!code.className.match(/language-/)) {
     code.classList.add('language-none');
   }
 
-  code.classList.forEach(cls => pre?.classList.add(cls));
+  code.classList.forEach((cls) => pre?.classList.add(cls));
   code.setAttribute('data-prismjs-copy', 'Copy');
   code.setAttribute('data-prismjs-copy-success', 'Copied to your clipboard');
   code.setAttribute('data-prismjs-copy-timeout', '3000');
