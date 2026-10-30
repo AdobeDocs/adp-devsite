@@ -281,6 +281,18 @@
   color: #ffffff;
 }
 
+.changelog-badge.changelog-badge-open {
+  background-color: #fff1e5;
+  color: #b95000;
+  font-weight: 500;
+}
+
+.changelog-badge.changelog-badge-breaking {
+  background-color: #fdf2f2;
+  color: #d31510;
+  font-weight: 500;
+}
+
 /* Release Changes Column (Right) */
 .changelog-release-changes {
   flex: 1;

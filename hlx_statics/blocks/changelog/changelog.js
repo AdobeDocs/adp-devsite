@@ -1,23 +1,15 @@
-import { createTag, getResourceUrl } from '../../scripts/lib-adobeio.js';
-
-const DEFAULT_FEED_URL = 'https://raw.githubusercontent.com/AdobeDocs/cc-everywhere/refs/heads/main/src/pages/feed.xml';
+import { createTag } from '../../scripts/lib-adobeio.js';
+import { fetchReleases, fetchReleasesMetadata } from '../../scripts/lib-helix.js';
 
 const ALL_TYPES = [
-  { key: 'Breaking', label: 'Breaking', icon: 'breaking' },
-  { key: 'Removed', label: 'Removed', icon: 'removed' },
-  { key: 'Deprecated', label: 'Deprecated', icon: 'deprecated' },
-  { key: 'New', label: 'New', icon: 'new' },
-  { key: 'Improved', label: 'Improved', icon: 'improved' },
-  { key: 'Fixed', label: 'Fixed', icon: 'fixed' },
-  { key: 'Docs', label: 'Docs', icon: 'docs' },
+  { key: 'breaking', label: 'Breaking', icon: 'breaking' },
+  { key: 'removed', label: 'Removed', icon: 'removed' },
+  { key: 'deprecated', label: 'Deprecated', icon: 'deprecated' },
+  { key: 'new', label: 'New', icon: 'new' },
+  { key: 'improved', label: 'Improved', icon: 'improved' },
+  { key: 'fixed', label: 'Fixed', icon: 'fixed' },
+  { key: 'docs', label: 'Docs', icon: 'docs' },
 ];
-
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /**
  * Return inline SVG icons for change types and UI elements.
@@ -38,310 +30,238 @@ function getIconSvg(type) {
 }
 
 /**
- * Format markdown inline code (`code`) into HTML <code> tags.
+ * Lightweight YAML parser supporting subsets used in releases.yml and releases-metadata.yml.
  */
-function formatCodeChips(text) {
-  return text ? text.replace(/`([^`]+)`/g, '<code>$1</code>') : '';
+function parseYaml(text) {
+  if (!text || typeof text !== 'string') return null;
+
+  const rawLines = text.split(/\r?\n/);
+  const lines = [];
+
+  for (let i = 0; i < rawLines.length; i += 1) {
+    const raw = rawLines[i];
+    let inSingle = false;
+    let inDouble = false;
+    let commentIdx = -1;
+
+    for (let c = 0; c < raw.length; c += 1) {
+      const ch = raw[c];
+      if (ch === "'" && !inDouble) inSingle = !inSingle;
+      else if (ch === '"' && !inSingle) inDouble = !inDouble;
+      else if (ch === '#' && !inSingle && !inDouble) {
+        commentIdx = c;
+        break;
+      }
+    }
+
+    const lineWithoutComment = commentIdx >= 0 ? raw.slice(0, commentIdx) : raw;
+    if (lineWithoutComment.trim().length === 0) continue;
+
+    const indent = lineWithoutComment.search(/\S/);
+    lines.push({ indent, content: lineWithoutComment.trim() });
+  }
+
+  let index = 0;
+
+  function parseValue(valStr) {
+    if (valStr === undefined || valStr === null) return null;
+    valStr = valStr.trim();
+    if (valStr === '') return null;
+
+    // Flow array: [item1, item2]
+    if (valStr.startsWith('[') && valStr.endsWith(']')) {
+      const inner = valStr.slice(1, -1).trim();
+      if (!inner) return [];
+      const items = [];
+      let cur = '';
+      let s = false;
+      let d = false;
+      for (let i = 0; i < inner.length; i += 1) {
+        const c = inner[i];
+        if (c === "'" && !d) s = !s;
+        else if (c === '"' && !s) d = !d;
+        else if (c === ',' && !s && !d) {
+          items.push(parseValue(cur));
+          cur = '';
+          continue;
+        }
+        cur += c;
+      }
+      if (cur.trim()) items.push(parseValue(cur));
+      return items;
+    }
+
+    // Quoted string
+    if ((valStr.startsWith('"') && valStr.endsWith('"')) || (valStr.startsWith("'") && valStr.endsWith("'"))) {
+      return valStr.slice(1, -1).replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+    }
+
+    // Boolean
+    if (valStr.toLowerCase() === 'true') return true;
+    if (valStr.toLowerCase() === 'false') return false;
+    if (valStr.toLowerCase() === 'null' || valStr === '~') return null;
+
+    // Number
+    if (/^-?\d+(\.\d+)?$/.test(valStr)) {
+      return Number(valStr);
+    }
+
+    return valStr;
+  }
+
+  function parseBlock(minIndent) {
+    if (index >= lines.length) return null;
+
+    const currentLine = lines[index];
+    if (currentLine.indent < minIndent) return null;
+
+    const isList = currentLine.content.startsWith('- ') || currentLine.content === '-';
+
+    if (isList) {
+      const list = [];
+      const listIndent = currentLine.indent;
+
+      while (index < lines.length && lines[index].indent === listIndent && (lines[index].content.startsWith('- ') || lines[index].content === '-')) {
+        const line = lines[index];
+        index += 1;
+        const itemContent = line.content.slice(1).trim();
+
+        if (!itemContent) {
+          if (index < lines.length && lines[index].indent > listIndent) {
+            list.push(parseBlock(lines[index].indent));
+          } else {
+            list.push(null);
+          }
+        } else if (itemContent.includes(':')) {
+          const colonIdx = itemContent.indexOf(':');
+          const k = parseValue(itemContent.slice(0, colonIdx));
+          const restVal = itemContent.slice(colonIdx + 1).trim();
+          const obj = {};
+
+          if (restVal) {
+            obj[k] = parseValue(restVal);
+          } else if (index < lines.length && lines[index].indent > listIndent) {
+            obj[k] = parseBlock(lines[index].indent);
+          } else {
+            obj[k] = null;
+          }
+
+          while (index < lines.length && lines[index].indent > listIndent && !lines[index].content.startsWith('- ')) {
+            const nextLine = lines[index];
+            const cIdx = nextLine.content.indexOf(':');
+            if (cIdx !== -1) {
+              const subK = parseValue(nextLine.content.slice(0, cIdx));
+              const subRest = nextLine.content.slice(cIdx + 1).trim();
+              index += 1;
+              if (subRest) {
+                obj[subK] = parseValue(subRest);
+              } else if (index < lines.length && lines[index].indent > nextLine.indent) {
+                obj[subK] = parseBlock(lines[index].indent);
+              } else {
+                obj[subK] = null;
+              }
+            } else {
+              index += 1;
+            }
+          }
+
+          list.push(obj);
+        } else {
+          list.push(parseValue(itemContent));
+        }
+      }
+      return list;
+    }
+
+    const map = {};
+    const mapIndent = currentLine.indent;
+
+    while (index < lines.length && lines[index].indent === mapIndent) {
+      const line = lines[index];
+      if (line.content.startsWith('- ')) break;
+
+      const colonIdx = line.content.indexOf(':');
+      if (colonIdx === -1) {
+        index += 1;
+        continue;
+      }
+
+      const key = parseValue(line.content.slice(0, colonIdx));
+      const valStr = line.content.slice(colonIdx + 1).trim();
+      index += 1;
+
+      if (valStr) {
+        map[key] = parseValue(valStr);
+      } else if (index < lines.length && lines[index].indent > mapIndent) {
+        map[key] = parseBlock(lines[index].indent);
+      } else {
+        map[key] = null;
+      }
+    }
+    return map;
+  }
+
+  return parseBlock(0);
 }
 
 /**
- * Parses date string (RFC 822 pubDate, ISO YYYY-MM-DD, or formatted) into { year, monthNum, displayDate, rawDate }.
+ * Format markdown inline code (`code`), bold (**text**), italic (*text*), and links ([text](url)).
  */
-function parseDate(dateStr, fallbackStr) {
-  let str = (dateStr || '').trim();
-  if (!str && fallbackStr) {
-    const match = fallbackStr.match(/(\d{4}-\d{2}-\d{2})/);
-    if (match) str = match[1];
-  }
-  if (!str) return { year: '', monthNum: 0, displayDate: '', rawDate: '' };
+function renderMarkdown(text) {
+  if (!text) return '';
+  let out = String(text);
+  // Code chips `code`
+  out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Links [text](url)
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, href) => {
+    const isExternal = /^https?:\/\//i.test(href);
+    const targetAttr = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return `<a href="${href}"${targetAttr}>${label}</a>`;
+  });
+  // Bold **text**
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Italic *text*
+  out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  return out;
+}
 
-  const parsed = new Date(str);
-  if (!isNaN(parsed.getTime())) {
-    const y = String(parsed.getUTCFullYear());
-    const m = parsed.getUTCMonth();
-    const d = parsed.getUTCDate();
-    return {
-      year: y,
-      monthNum: m + 1,
-      displayDate: `${MONTH_ABBR[m]} ${d}, ${y}`,
-      rawDate: `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
-    };
-  }
+/**
+ * Parses date string (ISO YYYY-MM-DD, or fallback) into structured date metadata.
+ */
+function parseDate(dateStr) {
+  const str = (dateStr || '').trim();
+  if (!str) return { year: '', monthName: '', displayDate: '', rawDate: '' };
 
   const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (iso) {
     const [, y, m, d] = iso;
-    const mIdx = parseInt(m, 10) - 1;
+    const dateObj = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+    const monthName = dateObj.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+    const displayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
     return {
       year: y,
-      monthNum: parseInt(m, 10),
-      displayDate: `${MONTH_ABBR[mIdx] || m} ${parseInt(d, 10)}, ${y}`,
+      monthName,
+      displayDate,
       rawDate: `${y}-${m}-${d}`,
     };
   }
 
-  const written = str.match(/([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/);
-  if (written) {
-    const [, monthName, day, year] = written;
-    const mIdx = MONTH_ABBR.findIndex((abbr) => monthName.startsWith(abbr));
+  const parsed = new Date(str);
+  if (!isNaN(parsed.getTime())) {
+    const y = String(parsed.getUTCFullYear());
+    const monthName = parsed.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+    const displayDate = parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    const m = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(parsed.getUTCDate()).padStart(2, '0');
     return {
-      year,
-      monthNum: mIdx >= 0 ? mIdx + 1 : 1,
-      displayDate: `${monthName.slice(0, 3)} ${day}, ${year}`,
-      rawDate: `${year}-${String(mIdx >= 0 ? mIdx + 1 : 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      year: y,
+      monthName,
+      displayDate,
+      rawDate: `${y}-${m}-${d}`,
     };
   }
 
-  return { year: '', monthNum: 0, displayDate: str, rawDate: str };
-}
-
-/**
- * Dynamically extracts a module or component name from description text.
- */
-function extractDynamicModule(htmlText) {
-  if (!htmlText) return '';
-
-  const colonMatch = htmlText.match(/^(?:<[^>]+>)*([a-zA-Z0-9_$. -]{2,45}):/);
-  if (colonMatch) {
-    let candidate = colonMatch[1].replace(/^\d+\.\s*/, '').replace(/^ccEverywhere\./i, '').trim();
-    if (candidate.includes('.')) {
-      const parts = candidate.split('.');
-      candidate = parts.length > 2 ? `${parts[0]}.${parts[1]}` : parts[0];
-    }
-    const ignored = ['note', 'added', 'fixed', 'warning', 'important', 'tip', 'update', 'deprecated'];
-    if (candidate && candidate.length <= 40 && !ignored.includes(candidate.toLowerCase())) {
-      return candidate;
-    }
-  }
-
-  const prefixMatch = htmlText.match(/<code>(?:ccEverywhere\.)?([a-zA-Z0-9_$]+)\.[a-zA-Z0-9_$]+/i);
-  if (prefixMatch && prefixMatch[1].length <= 30 && !['prototype', 'length'].includes(prefixMatch[1])) {
-    return prefixMatch[1];
-  }
-
-  const codeMatch = htmlText.match(/<code>(?:ccEverywhere\.)?([a-zA-Z0-9_$]+)(?:\(\))?<\/code>/i);
-  if (codeMatch) {
-    const name = codeMatch[1].trim();
-    if (name.length >= 3 && name.length <= 35 && (/^[A-Z][a-zA-Z0-9]+$/.test(name) || /^[a-z]+[A-Z][a-zA-Z0-9]*$/.test(name))) {
-      return name;
-    }
-  }
-
-  const linkMatch = htmlText.match(/<a[^>]*>([^<]+(?:concept guide|guide|tutorial))<\/a>/i);
-  if (linkMatch) {
-    const title = linkMatch[1].replace(/\s*(concept guide|guide|tutorial)$/i, '').trim();
-    if (title && title.length <= 35) return title;
-  }
-
-  return '';
-}
-
-/**
- * Maps heading from feed description into standard change type.
- */
-function mapHeadingToType(heading) {
-  const h = (heading || '').trim().toLowerCase();
-  if (h.includes('breaking')) return 'Breaking';
-  if (h.includes('remove')) return 'Removed';
-  if (h.includes('deprecat')) return 'Deprecated';
-  if (h.includes('add') || h.includes('new')) return 'New';
-  if (h.includes('fix') || h.includes('bug')) return 'Fixed';
-  if (h.includes('doc')) return 'Docs';
-  if (h.includes('enhance') || h.includes('improve') || h.includes('maintenance')) return 'Improved';
-  return 'New';
-}
-
-/**
- * Parses description HTML into structured change rows.
- */
-function parseDescriptionHtml(html) {
-  if (!html) return [];
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-
-  const changes = [];
-  let currentHeading = '';
-  let currentType = 'New';
-  const children = Array.from(tempDiv.children);
-
-  if (children.length === 0) {
-    const text = tempDiv.textContent.trim();
-    if (text) changes.push({ type: 'Improved', module: extractDynamicModule(text), description: text });
-    return changes;
-  }
-
-  children.forEach((child) => {
-    const tag = child.tagName.toUpperCase();
-    if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(tag)) {
-      currentHeading = child.textContent.trim();
-      currentType = mapHeadingToType(currentHeading);
-      if (child.nextElementSibling && ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(child.nextElementSibling.tagName.toUpperCase())) {
-        changes.push({ type: currentType, module: extractDynamicModule(currentHeading), description: currentHeading });
-      }
-    } else if (tag === 'UL' || tag === 'OL') {
-      child.querySelectorAll('li').forEach((li) => {
-        const text = li.textContent.trim();
-        const htmlContent = li.innerHTML.trim();
-        if (htmlContent) {
-          changes.push({ type: currentType, module: extractDynamicModule(htmlContent || text), description: htmlContent });
-        }
-      });
-    } else if (tag === 'P') {
-      const text = child.textContent.trim();
-      const htmlContent = child.innerHTML.trim();
-      if (htmlContent) {
-        changes.push({ type: currentType, module: extractDynamicModule(htmlContent || text), description: htmlContent });
-      }
-    }
-  });
-
-  const lastChild = children[children.length - 1];
-  if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(lastChild.tagName.toUpperCase())) {
-    const heading = lastChild.textContent.trim();
-    changes.push({ type: mapHeadingToType(heading), module: extractDynamicModule(heading), description: heading });
-  }
-
-  if (changes.length === 0) {
-    const text = tempDiv.textContent.trim();
-    if (text) changes.push({ type: currentType || 'Improved', module: extractDynamicModule(text), description: text });
-  }
-
-  return changes;
-}
-
-/**
- * Resolves the raw GitHub feed URL from the block element.
- */
-function resolveFeedUrl(block) {
-  let path = block.getAttribute('data-path') || block.dataset?.path || block.closest('[data-path]')?.getAttribute('data-path');
-  if (!path) {
-    const link = block.querySelector('a[href$=".xml"], a[href*="feed.xml"], a[href*="raw.githubusercontent.com"]');
-    if (link) path = link.getAttribute('href');
-  }
-  if (!path) {
-    try {
-      const resourceUrl = getResourceUrl('/feed.xml');
-      if (resourceUrl && !resourceUrl.endsWith('/')) path = resourceUrl;
-    } catch (e) {
-      // ignore
-    }
-  }
-  if (!path) path = DEFAULT_FEED_URL;
-  if (path.includes('github.com') && path.includes('/blob/')) {
-    path = path.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
-  }
-  return path;
-}
-
-/**
- * Loads the feed XML text from the resolved feed URL with fallbacks.
- */
-async function loadChangelogFeed(feedUrl) {
-  const urls = [feedUrl, feedUrl !== DEFAULT_FEED_URL ? DEFAULT_FEED_URL : null, '/src/pages/feed.xml', '/feed.xml'].filter(Boolean);
-  for (const url of urls) {
-    try {
-      const resp = await fetch(url);
-      if (resp.ok) return await resp.text();
-    } catch (e) {
-      // ignore
-    }
-  }
-  return null;
-}
-
-/**
- * Parses XML feed text into structured releases, older releases, and channel metadata.
- */
-function parseFeedXml(xmlText) {
-  const items = [];
-  const channelInfo = { title: '', description: '', link: '' };
-
-  try {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-    if (!xmlDoc.querySelector('parsererror')) {
-      const channel = xmlDoc.querySelector('channel');
-      if (channel) {
-        channelInfo.title = channel.querySelector('title')?.textContent?.trim() || '';
-        channelInfo.description = channel.querySelector('description')?.textContent?.trim() || '';
-        channelInfo.link = channel.querySelector('link')?.textContent?.trim() || '';
-      }
-      xmlDoc.querySelectorAll('item').forEach((item) => {
-        let desc = item.querySelector('description')?.textContent || '';
-        if (desc.startsWith('<![CDATA[')) desc = desc.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
-        items.push({
-          title: item.querySelector('title')?.textContent?.trim() || '',
-          pubDate: item.querySelector('pubDate')?.textContent?.trim() || '',
-          link: item.querySelector('link')?.textContent?.trim() || '',
-          guid: item.querySelector('guid')?.textContent?.trim() || '',
-          description: desc.trim(),
-        });
-      });
-    }
-  } catch (e) {
-    // regex fallback
-  }
-
-  if (items.length === 0) {
-    const chMatch = xmlText.match(/<channel>([\s\S]*?)<\/channel>/i);
-    if (chMatch) {
-      channelInfo.title = (chMatch[1].match(/<title>([\s\S]*?)<\/title>/i) || [])[1]?.trim() || '';
-      channelInfo.description = (chMatch[1].match(/<description>([\s\S]*?)<\/description>/i) || [])[1]?.trim() || '';
-      channelInfo.link = (chMatch[1].match(/<link>([\s\S]*?)<\/link>/i) || [])[1]?.trim() || '';
-    }
-    const itemMatches = [...xmlText.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
-    itemMatches.forEach((m) => {
-      const content = m[1];
-      const descMatch = content.match(/<description>([\s\S]*?)<\/description>/i);
-      let desc = descMatch ? descMatch[1].trim() : '';
-      if (desc.startsWith('<![CDATA[')) desc = desc.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim();
-      items.push({
-        title: (content.match(/<title>([\s\S]*?)<\/title>/i) || [])[1]?.trim() || '',
-        pubDate: (content.match(/<pubDate>([\s\S]*?)<\/pubDate>/i) || [])[1]?.trim() || '',
-        link: (content.match(/<link>([\s\S]*?)<\/link>/i) || [])[1]?.trim() || '',
-        guid: (content.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i) || [])[1]?.trim() || '',
-        description: desc,
-      });
-    });
-  }
-
-  const releases = [];
-  const olderReleases = [];
-
-  items.forEach((item, index) => {
-    const { title, pubDate, guid, description } = item;
-    const { year, monthNum, displayDate, rawDate } = parseDate(pubDate, guid || title);
-
-    if (/^v[1-3]\./.test(title)) {
-      const cleanSummary = description.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
-      olderReleases.push({
-        version: title,
-        date: displayDate || pubDate,
-        releaseKind: 'Older release',
-        summary: cleanSummary.length > 200 ? `${cleanSummary.slice(0, 200)}...` : cleanSummary,
-        description,
-      });
-      return;
-    }
-
-    const isLatest = index === 0;
-    const isDocUpdate = /^\d{4}-\d{2}-\d{2}$/.test(title);
-    const releaseKind = isLatest ? 'Latest' : (isDocUpdate ? 'Documentation update' : '');
-
-    releases.push({
-      version: title,
-      date: displayDate,
-      rawDate,
-      year,
-      monthNum,
-      releaseKind,
-      isLatest,
-      guid,
-      changes: parseDescriptionHtml(description),
-    });
-  });
-
-  return { releases, olderReleases, channelInfo };
+  return { year: '', monthName: '', displayDate: str, rawDate: str };
 }
 
 /**
@@ -349,6 +269,37 @@ function parseFeedXml(xmlText) {
  * @param {Element} block The changelog block element
  */
 export default async function decorate(block) {
+  block.setAttribute('daa-lh', 'changelog');
+  block.innerHTML = '<div class="changelog-loading"><div class="changelog-spinner" aria-label="Loading changelog"></div></div>';
+
+  let releasesDoc;
+  let releasesMetadata;
+
+  try {
+    releasesDoc = await fetchReleases();
+  } catch (e) {
+    // ignore
+  }
+
+  try {
+    releasesMetadata = await fetchReleasesMetadata();
+  } catch (e) {
+    // ignore
+  }
+
+  const parsedReleasesDoc = typeof releasesDoc === 'string' ? parseYaml(releasesDoc) : releasesDoc;
+  const parsedReleasesMeta = typeof releasesMetadata === 'string' ? parseYaml(releasesMetadata) : releasesMetadata;
+
+  if (!parsedReleasesDoc) {
+    block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data. Please check back later.</p></div>';
+    return;
+  }
+
+  const modulesMap = parsedReleasesDoc?.modules || {};
+  const kindsMap = parsedReleasesMeta?.kinds || { sdk: 'SDK release', docs: 'Docs update', maintenance: 'Maintenance' };
+  const legacyInfo = parsedReleasesMeta?.legacy || { label: 'SDK v1–v3', note: '', hint: '' };
+  const rawReleases = Array.isArray(parsedReleasesDoc?.releases) ? parsedReleasesDoc.releases : [];
+
   const authoredTitle = block.querySelector('h1, h2, h3')?.textContent?.trim();
   const authoredDesc = block.querySelector('p')?.textContent?.trim();
   const authoredLinks = Array.from(block.querySelectorAll('a')).filter((a) => {
@@ -356,26 +307,82 @@ export default async function decorate(block) {
     return href && !href.endsWith('.xml') && !href.includes('feed.xml');
   });
 
-  const feedUrl = resolveFeedUrl(block);
-  block.setAttribute('daa-lh', 'changelog');
-  block.innerHTML = '<div class="changelog-loading"><div class="changelog-spinner" aria-label="Loading changelog"></div></div>';
+  const authoredFeedLink = block.querySelector('a[href$=".xml"], a[href*="feed.xml"]')?.getAttribute('href');
+  const feedUrl = authoredFeedLink || parsedReleasesMeta?.page?.url || '/feed.xml';
 
-  const xmlText = await loadChangelogFeed(feedUrl);
   block.innerHTML = '';
 
-  if (!xmlText) {
-    block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog feed. Please check back later.</p></div>';
-    return;
+  const releases = [];
+  const olderReleases = [];
+
+  rawReleases.forEach((rel) => {
+    const { year, monthName, displayDate, rawDate } = parseDate(rel.date);
+    const isLegacy = Boolean(rel.summary) || (rel.version && /^[1-3]\./.test(rel.version));
+
+    if (isLegacy) {
+      olderReleases.push({
+        version: rel.version ? `v${rel.version.replace(/^v/i, '')}` : (rel.version || ''),
+        date: displayDate || rel.date || '',
+        summary: rel.summary || '',
+        breaking: Boolean(rel.breaking),
+        rawDate,
+      });
+      return;
+    }
+
+    const isLatest = releases.length === 0;
+    const changes = Array.isArray(rel.changes) ? rel.changes.map((c) => ({
+      type: (c.type || 'new').toLowerCase(),
+      modules: Array.isArray(c.modules) ? c.modules : (c.modules ? [c.modules] : []),
+      text: c.text || '',
+      action: c.action || '',
+      open: Boolean(c.open),
+    })) : [];
+
+    releases.push({
+      version: rel.version || '',
+      date: displayDate,
+      rawDate,
+      year,
+      monthName,
+      kind: rel.kind || 'sdk',
+      title: rel.title || '',
+      isLatest,
+      changes,
+    });
+  });
+
+  // Extract filter options from metadata or releases
+  const moduleFilterMeta = (parsedReleasesMeta?.filters || []).find((f) => f.id === 'module');
+  const yearFilterMeta = (parsedReleasesMeta?.filters || []).find((f) => f.id === 'year');
+  const monthFilterMeta = (parsedReleasesMeta?.filters || []).find((f) => f.id === 'month');
+
+  let moduleOptions = [];
+  if (moduleFilterMeta?.options && Array.isArray(moduleFilterMeta.options)) {
+    moduleOptions = moduleFilterMeta.options.map((opt) => ({
+      value: opt.id,
+      text: opt.label || modulesMap[opt.id] || opt.id,
+    }));
+  } else if (Object.keys(modulesMap).length > 0) {
+    moduleOptions = Object.entries(modulesMap).map(([id, label]) => ({
+      value: id,
+      text: label,
+    }));
+  } else {
+    const uniqueModIds = Array.from(new Set(releases.flatMap((r) => r.changes.flatMap((c) => c.modules)))).filter(Boolean);
+    moduleOptions = uniqueModIds.map((id) => ({ value: id, text: id }));
   }
 
-  const { releases, olderReleases, channelInfo } = parseFeedXml(xmlText);
-  const availableYears = Array.from(new Set(releases.map((r) => r.year).filter(Boolean))).sort((a, b) => b.localeCompare(a));
-  const availableModules = Array.from(new Set(releases.flatMap((r) => r.changes.map((c) => c.module)).filter(Boolean))).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-  const latestRelease = releases[0] || null;
+  let yearOptions = [];
+  if (yearFilterMeta?.options && Array.isArray(yearFilterMeta.options)) {
+    yearOptions = yearFilterMeta.options.map(String);
+  } else {
+    yearOptions = Array.from(new Set(releases.map((r) => r.year).filter(Boolean))).sort((a, b) => b.localeCompare(a));
+  }
 
+  const latestRelease = releases[0] || null;
   const filterState = { module: 'all', year: 'all', month: 'all', types: new Set() };
 
-  // Read URL query params
   function readFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const mod = params.get('module');
@@ -383,9 +390,15 @@ export default async function decorate(block) {
     const mo = params.get('month');
     const typesParam = params.get('types') || params.get('type');
 
-    if (mod && (availableModules.includes(mod) || mod === 'all')) filterState.module = mod;
-    if (yr && (availableYears.includes(yr) || yr === 'all')) filterState.year = yr;
-    if (mo) filterState.month = mo;
+    if (mod && (mod === 'all' || moduleOptions.some((m) => m.value === mod))) {
+      filterState.module = mod;
+    }
+    if (yr && (yr === 'all' || yearOptions.includes(yr))) {
+      filterState.year = yr;
+    }
+    if (mo) {
+      filterState.month = mo;
+    }
     if (typesParam) {
       filterState.types.clear();
       typesParam.split(',').forEach((t) => {
@@ -407,7 +420,10 @@ export default async function decorate(block) {
     else params.delete('month');
 
     if (filterState.types.size > 0) params.set('types', Array.from(filterState.types).join(','));
-    else { params.delete('types'); params.delete('type'); }
+    else {
+      params.delete('types');
+      params.delete('type');
+    }
 
     const qs = params.toString();
     window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`);
@@ -420,22 +436,30 @@ export default async function decorate(block) {
   // 1. Header Section
   const headerSection = createTag('header', { class: 'changelog-header' });
   const title = createTag('h1', { class: 'spectrum-Heading spectrum-Heading--sizeXL changelog-title' });
-  title.textContent = authoredTitle || 'Changelog';
+  title.textContent = authoredTitle || parsedReleasesMeta?.page?.title || 'Changelog';
 
-  const descText = authoredDesc || channelInfo?.description || '';
+  const descText = authoredDesc || parsedReleasesMeta?.page?.description || '';
   const desc = descText ? createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL changelog-description' }) : null;
   if (desc) desc.textContent = descText;
 
   const subHeader = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-sub-header' });
   const latestInfo = createTag('span', { class: 'changelog-latest-info' });
   if (latestRelease && (latestRelease.version || latestRelease.date)) {
-    const parts = [latestRelease.version ? `<strong>${latestRelease.version}</strong>` : '', latestRelease.date].filter(Boolean);
+    const parts = [
+      latestRelease.version ? `<strong>${latestRelease.version}</strong>` : (latestRelease.title ? `<strong>${latestRelease.title}</strong>` : ''),
+      latestRelease.date,
+    ].filter(Boolean);
     latestInfo.innerHTML = `Latest: ${parts.join(' · ')}`;
   }
 
   const quickLinks = createTag('div', { class: 'changelog-quick-links' });
   authoredLinks.forEach((a) => {
-    const linkEl = createTag('a', { class: 'spectrum-Link changelog-quick-link', href: a.href, target: '_blank', rel: 'noopener noreferrer' });
+    const linkEl = createTag('a', {
+      class: 'spectrum-Link changelog-quick-link',
+      href: a.href,
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    });
     linkEl.textContent = a.textContent.trim() || a.href;
     quickLinks.append(linkEl);
   });
@@ -470,7 +494,7 @@ export default async function decorate(block) {
     options.forEach(({ value, text }) => {
       const opt = createTag('option', { value });
       opt.textContent = text;
-      if (value === currentValue) opt.selected = true;
+      if (String(value).toLowerCase() === String(currentValue).toLowerCase()) opt.selected = true;
       select.appendChild(opt);
     });
     group.append(label, select);
@@ -479,22 +503,60 @@ export default async function decorate(block) {
 
   const { group: moduleGroup, select: moduleSelect } = createDropdownGroup(
     'changelog-filter-module',
-    'Module',
-    [{ value: 'all', text: 'All modules' }, ...availableModules.map((m) => ({ value: m, text: m }))],
+    moduleFilterMeta?.label || 'Module',
+    [{ value: 'all', text: moduleFilterMeta?.allLabel || 'All modules' }, ...moduleOptions],
     filterState.module,
   );
 
   const { group: yearGroup, select: yearSelect } = createDropdownGroup(
     'changelog-filter-year',
-    'Year',
-    [{ value: 'all', text: 'All years' }, ...availableYears.map((y) => ({ value: y, text: y }))],
+    yearFilterMeta?.label || 'Year',
+    [{ value: 'all', text: yearFilterMeta?.allLabel || 'All years' }, ...yearOptions.map((y) => ({ value: y, text: y }))],
     filterState.year,
   );
 
+  function getMonthOptionsForYear(selectedYear) {
+    const allLabel = monthFilterMeta?.allLabel || 'All months';
+    const opts = [{ value: 'all', text: allLabel }];
+
+    if (selectedYear !== 'all' && monthFilterMeta?.optionsByYear?.[selectedYear]) {
+      const yearMonthNames = monthFilterMeta.optionsByYear[selectedYear];
+      yearMonthNames.forEach((monthName) => {
+        opts.push({ value: monthName, text: monthName });
+      });
+    } else if (monthFilterMeta?.optionsByYear) {
+      const seen = new Set();
+      Object.values(monthFilterMeta.optionsByYear).forEach((monthList) => {
+        if (Array.isArray(monthList)) {
+          monthList.forEach((monthName) => {
+            if (!seen.has(monthName)) {
+              seen.add(monthName);
+              opts.push({ value: monthName, text: monthName });
+            }
+          });
+        }
+      });
+    } else if (Array.isArray(monthFilterMeta?.options)) {
+      monthFilterMeta.options.forEach((opt) => {
+        const val = typeof opt === 'object' ? (opt.label || opt.id) : opt;
+        opts.push({ value: val, text: val });
+      });
+    } else {
+      const seen = new Set();
+      releases.forEach((rel) => {
+        if (rel.monthName && !seen.has(rel.monthName)) {
+          seen.add(rel.monthName);
+          opts.push({ value: rel.monthName, text: rel.monthName });
+        }
+      });
+    }
+    return opts;
+  }
+
   const { group: monthGroup, select: monthSelect } = createDropdownGroup(
     'changelog-filter-month',
-    'Month',
-    [{ value: 'all', text: 'All months' }, ...MONTH_NAMES.map((m, idx) => ({ value: String(idx + 1), text: m }))],
+    monthFilterMeta?.label || 'Month',
+    getMonthOptionsForYear(filterState.year),
     filterState.month,
   );
 
@@ -513,26 +575,28 @@ export default async function decorate(block) {
   const resultsContainer = createTag('div', { class: 'changelog-results' });
 
   // 3. Older releases section
-  const olderSection = createTag('section', { class: 'changelog-older-section', id: 'sdk-v1-v3', 'aria-label': 'Older releases SDK v1-v3' });
+  const olderSection = createTag('section', { class: 'changelog-older-section', id: 'sdk-v1-v3', 'aria-label': `Older releases ${legacyInfo.label || 'SDK v1-v3'}` });
   if (olderReleases.length > 0) {
     olderSection.innerHTML = `
       <div class="heading2 changelog-toc-target"><h2 id="sdk-v1-v3-heading" class="spectrum-Heading spectrum-Heading--sizeL changelog-year-heading">Older releases</h2></div>
       <div class="changelog-accordion">
         <button class="spectrum-Heading spectrum-Heading--sizeXS changelog-accordion-trigger" type="button" aria-expanded="false" aria-controls="changelog-older-content">
           <span class="changelog-accordion-left">
-            <span class="changelog-accordion-title">Older releases (v1–v3)</span>
+            <span class="changelog-accordion-title">Older releases (${legacyInfo.label || 'v1–v3'})</span>
             <span class="spectrum-Body spectrum-Body--sizeS changelog-accordion-count">${olderReleases.length} older releases</span>
           </span>
           <span class="changelog-accordion-arrow">${getIconSvg('chevron')}</span>
         </button>
         <div class="changelog-accordion-content" id="changelog-older-content" hidden>
+          ${legacyInfo.hint ? `<p class="spectrum-Body spectrum-Body--sizeS" style="color: #6e6e6e; margin: 0 0 16px 0;">${legacyInfo.hint}</p>` : ''}
           <div class="changelog-older-list">
             ${olderReleases.map((rel) => `
               <div class="changelog-older-item">
                 <div class="changelog-older-meta">
                   <span class="spectrum-Heading spectrum-Heading--sizeXS changelog-older-version">${rel.version}</span> · <span class="spectrum-Body spectrum-Body--sizeS changelog-older-date">${rel.date}</span>
+                  ${rel.breaking ? '<span class="changelog-badge changelog-badge-breaking">Breaking</span>' : ''}
                 </div>
-                <div class="spectrum-Body spectrum-Body--sizeS changelog-older-desc">${formatCodeChips(rel.summary || rel.description || '')}</div>
+                <div class="spectrum-Body spectrum-Body--sizeS changelog-older-desc">${renderMarkdown(rel.summary || '')}</div>
               </div>
             `).join('')}
           </div>
@@ -549,6 +613,34 @@ export default async function decorate(block) {
     });
   }
 
+  function updateMonthSelectOptions() {
+    const options = getMonthOptionsForYear(filterState.year);
+    monthSelect.innerHTML = '';
+    let hasCurrent = false;
+
+    options.forEach(({ value, text }) => {
+      const opt = createTag('option', { value });
+      opt.textContent = text;
+      if (String(value).toLowerCase() === String(filterState.month).toLowerCase()
+        || (filterState.month !== 'all' && text.toLowerCase() === String(filterState.month).toLowerCase())) {
+        opt.selected = true;
+        hasCurrent = true;
+      }
+      monthSelect.appendChild(opt);
+    });
+
+    if (!hasCurrent && filterState.month !== 'all') {
+      filterState.month = 'all';
+      monthSelect.value = 'all';
+      writeToUrl();
+    }
+  }
+
+  function matchesMonth(rel) {
+    if (filterState.month === 'all') return true;
+    return rel.monthName.toLowerCase() === String(filterState.month).toLowerCase();
+  }
+
   // Filtering & Rendering logic
   function getFilteredData() {
     let totalMatchingChanges = 0;
@@ -556,10 +648,17 @@ export default async function decorate(block) {
 
     releases.forEach((rel) => {
       if (filterState.year !== 'all' && rel.year !== filterState.year) return;
-      if (filterState.month !== 'all' && String(rel.monthNum) !== String(filterState.month)) return;
+      if (!matchesMonth(rel)) return;
+
+      if (rel.changes.length === 0) {
+        if (filterState.module === 'all' && filterState.types.size === 0) {
+          matchingReleases.push(rel);
+        }
+        return;
+      }
 
       const matchingChanges = rel.changes.filter((c) => {
-        if (filterState.module !== 'all' && c.module !== filterState.module) return false;
+        if (filterState.module !== 'all' && !c.modules.includes(filterState.module)) return false;
         if (filterState.types.size > 0 && !filterState.types.has(c.type)) return false;
         return true;
       });
@@ -575,16 +674,16 @@ export default async function decorate(block) {
 
   function renderPills() {
     pillsContainer.innerHTML = '';
-    const counts = { All: 0 };
+    const counts = { all: 0 };
     ALL_TYPES.forEach((t) => { counts[t.key] = 0; });
 
     releases.forEach((rel) => {
       if (filterState.year !== 'all' && rel.year !== filterState.year) return;
-      if (filterState.month !== 'all' && String(rel.monthNum) !== String(filterState.month)) return;
+      if (!matchesMonth(rel)) return;
 
       rel.changes.forEach((c) => {
-        if (filterState.module !== 'all' && c.module !== filterState.module) return;
-        counts.All += 1;
+        if (filterState.module !== 'all' && !c.modules.includes(filterState.module)) return;
+        counts.all += 1;
         if (counts[c.type] !== undefined) counts[c.type] += 1;
       });
     });
@@ -595,7 +694,7 @@ export default async function decorate(block) {
       class: `changelog-pill ${isAllSelected ? 'is-selected' : ''}`,
       'aria-pressed': String(isAllSelected),
     });
-    allPill.innerHTML = `<span>All types</span> <span class="changelog-pill-count">${counts.All}</span>`;
+    allPill.innerHTML = `<span>All types</span> <span class="changelog-pill-count">${counts.all}</span>`;
     allPill.addEventListener('click', () => {
       filterState.types.clear();
       writeToUrl();
@@ -652,38 +751,79 @@ export default async function decorate(block) {
       const releaseList = yearSection.querySelector('.changelog-release-list');
 
       relsInYear.forEach((rel) => {
-        const cardId = (rel.guid || rel.version).replace(/\./g, '-');
+        const cardId = (rel.version ? rel.version.replace(/\./g, '-') : `docs-${rel.rawDate}`);
         const releaseCard = createTag('article', { class: 'changelog-release-card', id: cardId });
-        const versionSlug = rel.version.replace(/\./g, '-');
-        if (versionSlug !== cardId) {
-          releaseCard.prepend(createTag('a', { id: versionSlug, class: 'sr-only' }));
+        if (rel.version) {
+          const versionSlug = rel.version.replace(/\./g, '-');
+          if (versionSlug !== cardId) {
+            releaseCard.prepend(createTag('a', { id: versionSlug, class: 'sr-only' }));
+          }
         }
 
-        const badgeHtml = rel.isLatest
-          ? '<span class="changelog-badge changelog-badge-latest">Latest</span>'
-          : (rel.releaseKind ? `<span class="changelog-badge">${rel.releaseKind}</span>` : '');
+        let badgeHtml = '';
+        if (rel.isLatest) {
+          badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
+        } else if (rel.kind === 'docs' && rel.version) {
+          badgeHtml = '<span class="changelog-badge">Docs update</span>';
+        } else if (rel.kind === 'maintenance') {
+          badgeHtml = '<span class="changelog-badge">Maintenance</span>';
+        } else if (rel.kind && rel.kind !== 'sdk') {
+          badgeHtml = `<span class="changelog-badge">${kindsMap[rel.kind] || rel.kind}</span>`;
+        }
 
-        const changesHtml = rel.changes.map((c) => {
-          const iconType = ALL_TYPES.find((item) => item.key === c.type)?.icon || 'new';
-          const moduleHtml = c.module ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${formatCodeChips(c.module)}</div>` : '';
-          return `
-            <div class="changelog-change-row type-${c.type.toLowerCase()}">
-              <div class="changelog-change-type-col">
-                <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${c.type.toLowerCase()}">
-                  ${getIconSvg(iconType)} <span>${c.type}</span>
-                </div>
-                ${moduleHtml}
-              </div>
+        let changesHtml = '';
+        if (rel.changes.length === 0) {
+          changesHtml = `
+            <div class="changelog-change-row">
               <div class="changelog-change-content">
-                <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">${formatCodeChips(c.description)}</div>
+                <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">Maintenance release.</div>
               </div>
             </div>
           `;
-        }).join('');
+        } else {
+          changesHtml = rel.changes.map((c) => {
+            const iconType = ALL_TYPES.find((item) => item.key === c.type)?.icon || 'new';
+            const typeLabel = ALL_TYPES.find((item) => item.key === c.type)?.label || c.type;
+            const moduleLabels = (c.modules || []).map((mId) => modulesMap[mId] || mId).filter(Boolean);
+            const moduleHtml = moduleLabels.length > 0
+              ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${renderMarkdown(moduleLabels.join(', '))}</div>`
+              : '';
+
+            const openBadge = c.open ? '<span class="changelog-badge changelog-badge-open">Still open</span>' : '';
+            const actionHtml = c.action ? `
+              <div class="changelog-what-to-do type-${c.type}">
+                <strong class="what-to-do-title">What to do:</strong>
+                <span>${renderMarkdown(c.action)}</span>
+              </div>
+            ` : '';
+
+            return `
+              <div class="changelog-change-row type-${c.type}">
+                <div class="changelog-change-type-col">
+                  <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${c.type}">
+                    ${getIconSvg(iconType)} <span>${typeLabel}</span>
+                  </div>
+                  ${moduleHtml}
+                </div>
+                <div class="changelog-change-content">
+                  <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">
+                    ${renderMarkdown(c.text)}
+                    ${openBadge}
+                  </div>
+                  ${actionHtml}
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        const releaseHeading = rel.version
+          ? (rel.title ? `${rel.version} · ${rel.title}` : rel.version)
+          : (rel.title || kindsMap[rel.kind] || 'Docs update');
 
         releaseCard.innerHTML = `
           <div class="changelog-release-meta">
-            <h3 class="spectrum-Heading spectrum-Heading--sizeS changelog-release-version">${rel.version}</h3>
+            <h3 class="spectrum-Heading spectrum-Heading--sizeS changelog-release-version">${releaseHeading}</h3>
             <time class="spectrum-Body spectrum-Body--sizeS changelog-release-date" datetime="${rel.rawDate}">${rel.date}</time>
             ${badgeHtml}
           </div>
@@ -720,6 +860,7 @@ export default async function decorate(block) {
 
     moduleSelect.value = 'all';
     yearSelect.value = 'all';
+    updateMonthSelectOptions();
     monthSelect.value = 'all';
 
     writeToUrl();
@@ -741,6 +882,7 @@ export default async function decorate(block) {
 
   yearSelect.addEventListener('change', (e) => {
     filterState.year = e.target.value;
+    updateMonthSelectOptions();
     writeToUrl();
     applyFilters();
   });

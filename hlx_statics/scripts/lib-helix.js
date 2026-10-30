@@ -222,6 +222,66 @@ export async function fetchSiteWideBanner() {
 }
 
 /**
+ * Retrieves the releases yml file
+ * @returns {string} The releases yml file
+ */
+export async function fetchReleases() {
+  const metadata = await fetchSiteMetadata();
+  if (!metadata) return undefined;
+
+  if (!metadata.has('releases')) return undefined;
+  const metadataPath = metadata.get('releases');
+
+  let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+  let releaseFile = metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/releases.yml`;
+  let releasesYAML = await fetch(releaseFile)
+    .then(response => {
+      if (response.ok) {
+        return response.text();
+      } else {
+        console.warn('Network response was not ok');
+      }
+    })
+    .then(data => data)
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+  return releasesYAML;
+}
+
+/**
+ * Retrieves the site-wide-banner json file
+ * @returns {string} The site-wide-banner json file
+ */
+export async function fetchReleasesMetadata() {
+  const metadata = await fetchSiteMetadata();
+  if (!metadata) return undefined;
+
+  if (!metadata.has('releases-metadata')) return undefined;
+  const metadataPath = metadata.get('releases-metadata');
+
+  let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
+  let releaseFile = metadataPath
+    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
+    : `${window.location.origin}/${pathPrefix}/releases-metadata.yml`;
+  let releasesYAML = await fetch(releaseFile)
+    .then(response => {
+      if (response.ok) {
+        return response.text();
+      } else {
+        console.warn('Network response was not ok');
+      }
+    })
+    .then(data => data)
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+  return releasesYAML;
+}
+
+/**
  * Retrieves the discovery-interface json file
  * @returns {string} The discovery-interface json file
  */
@@ -484,7 +544,7 @@ export async function decorateIcons(element = document) {
       });
     iconPromises.push(iconPromise);
   });
-  
+
   // Wait for all icons to be processed
   await Promise.all(iconPromises);
 }
@@ -660,16 +720,16 @@ function decodeHtmlEntitiesExceptInCode(element) {
   // Store code element contents temporarily
   const codeElements = [];
   const placeholder = '___ADP_DEV_SITE_CODE_ELEMENT_PLACEHOLDER___';
-  
+
   // Replace code elements with placeholders and save their content
   element.innerHTML = element.innerHTML.replace(/<code[^>]*>[\s\S]*?<\/code>/gi, (match) => {
     codeElements.push(match);
     return `${placeholder}${codeElements.length - 1}${placeholder}`;
   });
-  
+
   // Now do the entity replacement on everything except code elements
   element.innerHTML = element.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  
+
   // Restore code elements with their original content
   element.innerHTML = element.innerHTML.replace(new RegExp(`${placeholder}(\\d+)${placeholder}`, 'g'), (_, index) => {
     return codeElements[parseInt(index)];
