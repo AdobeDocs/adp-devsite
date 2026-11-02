@@ -111,10 +111,12 @@ describe('parseCodeDirectives', () => {
     });
   });
 
-  it('ignores unknown space-delimited words', () => {
-    expect(parseCodeDirectives('js foo')).to.deep.equal({
-      language: 'js', disableLineNumbers: false, attributes: [], ignored: ['foo'],
+  it('reads options with no language', () => {
+    expect(parseCodeDirectives('language-disableLineNumbers')).to.deep.equal({
+      language: '', disableLineNumbers: true, attributes: [], ignored: [],
     });
+    expect(parseCodeDirectives('data-line="2"')).to.deep.include({ language: '', attributes: [['data-line', '2']] });
+    expect(parseCodeDirectives('language-dataweave').language).to.equal('dataweave');
   });
 });
 
@@ -153,6 +155,12 @@ describe('decoratePreformattedCode', () => {
     const { pre, code } = decorate('');
     expect(code.classList.contains('language-none')).to.be.true;
     expect(pre.classList.contains('language-none')).to.be.true;
+  });
+
+  it('falls back to language-none when only options are given', () => {
+    const { pre, code } = decorate('language-disableLineNumbers');
+    expect(code.className).to.equal('language-none');
+    expect(pre.classList.contains('no-line-numbers')).to.be.true;
   });
 
   it('leaves non-language classes alone', () => {

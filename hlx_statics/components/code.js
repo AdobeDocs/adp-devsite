@@ -22,6 +22,8 @@ const isSupportedAttribute = (name) => name === 'data-line' || name.startsWith('
 // Options start after a space or at "-data-"/"-disable", not at every dash, because shell-session
 // is a language. Case-insensitive so -DisableLineNumbers is ignored, not added to the language.
 const OPTION_BOUNDARY = /\s|-(?=data-|disable)/i;
+// Also matches an option at the very start, which means there's no language (```disableLineNumbers).
+const LANGUAGE_END = /\s|(?:^|-)(?=data-|disable)/i;
 const LEADING_DELIMITERS = /^[\s-]+/;
 const QUOTED_ATTRIBUTE = /^(data-[\w-]+)=(?:"([^"]*)"|'([^']*)')/;
 
@@ -32,7 +34,7 @@ const QUOTED_ATTRIBUTE = /^(data-[\w-]+)=(?:"([^"]*)"|'([^']*)')/;
  */
 export function parseCodeDirectives(text) {
   const source = (text || '').trim().replace(/^language-/, '');
-  const languageEnd = source.search(OPTION_BOUNDARY);
+  const languageEnd = source.search(LANGUAGE_END);
   const language = languageEnd === -1 ? source : source.slice(0, languageEnd);
   let rest = languageEnd === -1 ? '' : source.slice(languageEnd).replace(LEADING_DELIMITERS, '');
 
@@ -130,9 +132,8 @@ export default function decoratePreformattedCode(block) {
 
   if (pre && code) {
     [...code.classList].filter((cls) => cls.startsWith('language-')).forEach((cls) => {
-      const directives = parseAndWarn(cls);
-      code.classList.replace(cls, `language-${directives.language}`);
-      applyCodeDirectives(pre, code, directives);
+      code.classList.remove(cls);
+      applyCodeDirectives(pre, code, parseAndWarn(cls));
     });
   }
   stripPlaygroundMetadataFromCodeContent(pre, code);
