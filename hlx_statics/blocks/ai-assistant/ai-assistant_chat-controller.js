@@ -511,7 +511,7 @@ export const handleUserQuery = async (
     targetBubble.clearSources();
     targetBubble.updateContent(message, { alert: true });
     responseContent = message;
-    chatHistory.updateLast({ content: message, references: [] });
+    chatHistory.updateLast({ content: message, references: [], citations: [] });
     return;
   };
 
@@ -538,12 +538,13 @@ export const handleUserQuery = async (
     answerFinalized = true;
     targetBubble.hideThinking();
     const citations = normalizeCitations(responseContent, accumulatedCitations);
-    targetBubble.renderCitations(responseContent, citations);
+    const placements = targetBubble.renderCitations(responseContent, citations);
     targetBubble.completeBubble();
     const { references } = citations;
     chatHistory.updateLast({
       content: responseContent,
       references,
+      citations: placements,
     });
     scrollToBottom();
   };
@@ -628,7 +629,7 @@ export const handleUserQuery = async (
           targetBubble.hideStreamingCursor();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
-          chatHistory.updateLast({ content: responseContent, references: [] });
+          chatHistory.updateLast({ content: responseContent, references: [], citations: [] });
           endResponding();
           showFallbackSuggestions();
           return;
@@ -674,6 +675,8 @@ const sendMessage = ({
   shouldAppendToHistory = true,
   timestamp = Date.now(),
   feedback,
+  references,
+  citations,
 }) => {
   const bubble = new ChatBubble({
     id,
@@ -682,6 +685,8 @@ const sendMessage = ({
     isContinuingConversation,
     timestamp,
     feedback,
+    references,
+    citations,
   });
 
   if (shouldAppendToHistory) {
@@ -715,11 +720,11 @@ export const restoreChatHistory = async () => {
   if (messages.length > 0) {
     for (const [
       index,
-      { id, content, source, references, timestamp, feedback },
+      { id, content, source, references, citations, timestamp, feedback },
     ] of messages.entries()) {
       const isLastOfGroup =
         index === messages.length - 1 || messages[index + 1]?.source !== source;
-      const bubble = sendMessage({
+      sendMessage({
         id,
         content,
         source,
@@ -728,10 +733,9 @@ export const restoreChatHistory = async () => {
           index > 0 && source === messages[index - 1]?.source,
         shouldAppendToHistory: false,
         feedback,
+        references,
+        citations,
       });
-      if (references?.length) {
-        bubble.renderSources(references);
-      }
     }
     scrollToBottom({ force: true });
   }
