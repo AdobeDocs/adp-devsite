@@ -537,7 +537,9 @@ export const handleUserQuery = async (
     if (answerFinalized) return;
     answerFinalized = true;
     targetBubble.hideThinking();
-    const citations = normalizeCitations(responseContent, accumulatedCitations);
+    const citations = normalizeCitations(
+      responseContent, accumulatedCitations, ChatBubble.parseMarkdown,
+    );
     const placements = targetBubble.renderCitations(responseContent, citations);
     targetBubble.completeBubble();
     const { references } = citations;

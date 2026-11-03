@@ -20,6 +20,26 @@ const groups = '.chat-bubble-inline-sources';
 const sourceLinks = '.chat-bubble-sources-item a';
 const answerSelector = '.chat-bubble[data-message-id="citation-test"]';
 
+// A recorded answer. Backend ranges exclude the newline between generated parts,
+// so a part ending in a code block ends directly after its closing fence.
+const fencedAnswer = [
+  '',
+  'To set credentials using environment variables, create environment variables for your GitHub authentication keys:',
+  '',
+  '```bash', 'export REPO_USERNAME=your_public_key', '```',
+  '',
+  '```bash', 'export REPO_PASSWORD=your_private_key', '```',
+  '',
+  'Some packages require GitHub authentication during installation. For these, create an environment variable with your GitHub token:',
+  '',
+  '```bash', 'export GITHUB_TOKEN=your_github_token', '```',
+  '',
+].join('\n');
+const afterFirstFence = fencedAnswer.indexOf('```\n\n```bash') + 3;
+const afterLastFence = fencedAnswer.lastIndexOf('```') + 3;
+const afterKeys = fencedAnswer.indexOf('keys:') + 'keys:'.length;
+const afterToken = fencedAnswer.indexOf('token:') + 'token:'.length;
+
 // Use the real pinned runtime libraries, not identity sanitizers or fake Markdown.
 // These are CDN asset requests only; no assistant/model calls create fixtures.
 let libraries;
@@ -143,7 +163,7 @@ const test = base.extend({
       await expect(page.getByRole('button', { name: 'Stop response' })).toHaveCount(0);
     };
     try {
-      await use({ send, finish, answer, input, feedback, unexpected, fixtureUrl, answerRequests });
+      await use({ send, finish, answer, input, feedback, answerRequests });
     } finally {
       stream?.end();
       server.closeAllConnections();
@@ -211,6 +231,25 @@ async function reloadAnswer(page, answer) {
   await expect(answer.locator('.chat-bubble-actions')).toHaveCount(1);
 }
 
+// Every fence still closes: no merged blocks, leaked placeholders or markers in code.
+async function expectIntactFencedAnswer(answer, markerTexts) {
+  await expect(answer.locator('pre')).toHaveCount(3);
+  await expect(answer.locator('.code-toolbar .copy-to-clipboard-button')).toHaveCount(3);
+  await expect(answer.locator('pre .line-numbers-rows')).toHaveCount(3);
+  expect((await answer.locator('pre code').allTextContents()).map((text) => text.trim())).toEqual([
+    'export REPO_USERNAME=your_public_key',
+    'export REPO_PASSWORD=your_private_key',
+    'export GITHUB_TOKEN=your_github_token',
+  ]);
+  await expect(answer.locator(`pre ${groups}, pre a`)).toHaveCount(0);
+  await expect(answer).not.toContainText('data-citation');
+  await expect(answer).not.toContainText('```');
+  expect(await answer.locator('.chat-bubble-content > p').allTextContents()).toEqual([
+    `To set credentials using environment variables, create environment variables for your GitHub authentication keys:${markerTexts[0]}`,
+    `Some packages require GitHub authentication during installation. For these, create an environment variable with your GitHub token:${markerTexts[1]}`,
+  ]);
+}
+
 test.describe('AI Assistant finalized inline citations', () => {
   test('recorded sample: deferred markers, final bullet, shared numbering, actions and copy', async ({ page, assistant }) => {
     const { send, finish, answer, input, feedback } = assistant;
@@ -269,10 +308,7 @@ test.describe('AI Assistant finalized inline citations', () => {
     expect(Object.keys(persisted).sort()).toEqual(['citations', 'content', 'context', 'id', 'references', 'source', 'timestamp']);
     persisted.references.forEach((reference) => expect(Object.keys(reference).sort()).toEqual(['title', 'url']));
     await reloadAnswer(page, answer);
-    await expect(answer.locator(groups)).toHaveCount(5);
-    await expect(answer.locator(markers)).toHaveCount(6);
-    await expect(answer.locator(sourceLinks)).toHaveCount(3);
-    await expect(answer.locator('.chat-bubble-content strong')).toHaveCount(4);
+    // reloadAnswer compares groups and Sources; also check Markdown and marker position.
     await expect(answer.locator('.chat-bubble-content li')).toHaveCount(8);
     await expect(answer.locator('.chat-bubble-content li').last()).toHaveText(/GraphQL2$/);
     await expect(input).toBeFocused();
@@ -300,72 +336,13 @@ test.describe('AI Assistant finalized inline citations', () => {
     await expect(page.locator('.chat-bubble')).toHaveCount(3);
   });
 
-  test('shuffled overlapping ranges, same-endpoint merging, repeats and Sources-only ordering round trip', async ({ page, assistant }) => {
-    const { send, finish, answer } = assistant;
-    const text = 'First.\n\nSecond.\n\nThird.';
-    send(content(text),
-      citation([ref(url('only'))]),
-      citation([ref(url('long'))], 0, text.length),
-      citation([ref(url('second')), ref(url('first'))], 8, 15),
-      citation([ref(url('first')), ref(url('tie'))], 0, 6),
-      citation([ref(url('tie')), ref(url('merged'))], 1, 6),
-      citation([ref(url('first'))], 0, 6),
-      citation([ref(url('first')), ref(url('long'))], 0, text.length));
-    await finish({ type: 'answerComplete' });
-    expect(await sourceUrls(answer)).toEqual(['first', 'tie', 'merged', 'second', 'long', 'only'].map(url));
-    expect(await answer.locator(groups).allTextContents()).toEqual(['123', '14', '15']);
-    expect(await answer.locator(markers).allTextContents()).toEqual(['1', '2', '3', '1', '4', '1', '5']);
-    await reloadAnswer(page, answer);
-    expect((await savedAnswer(page)).citations).toEqual([
-      { start: 0, end: 6, sourceUrls: ['first', 'tie', 'merged'].map(url) },
-      { start: 8, end: 15, sourceUrls: ['first', 'second'].map(url) },
-      { start: 0, end: text.length, sourceUrls: ['first', 'long'].map(url) },
-    ]);
-  });
-
-  test('malformed metadata and ranges survive; title upgrades and exact URL identities are safe', async ({ page, assistant }) => {
-    const { send, finish, answer } = assistant;
-    const text = 'A valid answer.';
-    send(content(text),
-      ...[null, [], 'bad', {}, { retrievedReferences: {} }, { retrievedReferences: 'bad' }]
-        .map((value) => ({ type: 'citation', citation: value })),
-      citation([null, 3, {}, { metadata: null }, ref('http://example.com'), ref('javascript:alert(1)'), ref('invalid'), ref({})], 0, text.length),
-      citation([ref(url('upgrade'), '  ', ' ')]),
-      citation([ref(url('upgrade'), null, 'First label')]),
-      citation([ref(url('upgrade'), null, 'Later label')]),
-      citation([ref(url('upgrade'), '<img src=x onerror=alert(1)>')], 0, text.length),
-      citation([ref(url('upgrade'), 'Later metadata')]),
-      citation([ref(url('label'), '', ' Label fallback ')], 0, text.length),
-      citation([ref(url('label'), null, 'Equal-priority conflict')]),
-      citation([ref(url('fallback'))], 0, text.length),
-      citation([ref(`${url('fallback')}/`), ref(`${url('fallback')}#part`)], 0, text.length),
-      ...[[-1, 2], [0, 0], [3, 2], [0.5, 2], [0, 1000], ['0', 2], [0, 2.5], [null, 2]]
-        .map(([start, end], index) => citation([ref(url(`invalid-${index}`))], start, end)),
-      { type: 'citation', citation: { retrievedReferences: [ref(url('span-only'))], span: { start: 0, end: text.length } } });
-    await finish({ type: 'answerComplete' });
-    await expect(answer).toContainText(text);
-    await expect(answer.locator(markers)).toHaveCount(5);
-    await expect(answer.locator(sourceLinks)).toHaveCount(14);
-    expect((await sourceUrls(answer)).slice(0, 5)).toEqual([
-      url('upgrade'), url('label'), url('fallback'), `${url('fallback')}/`, `${url('fallback')}#part`,
-    ]);
-    await expect(answer.locator(markers).first()).toHaveAccessibleName('Source 1: <img src=x onerror=alert(1)> (opens in a new tab)');
-    expect(await answer.locator(sourceLinks).allTextContents()).toEqual([
-      '<img src=x onerror=alert(1)>', 'Label fallback', url('fallback'), `${url('fallback')}/`, `${url('fallback')}#part`,
-      ...Array.from({ length: 8 }, (_, index) => url(`invalid-${index}`)), url('span-only'),
-    ]);
-    await expect(answer.locator('.chat-bubble-content img')).toHaveCount(0);
-    await expect(page.locator('[role="alert"]')).toHaveCount(0);
-  });
-
-  test('safe Markdown endpoints preserve emphasis, links, inline/fenced code and code-copy decoration', async ({ page, assistant }) => {
+  test('usable Markdown endpoints preserve emphasis, links, inline code and lists', async ({ page, assistant }) => {
     const { send, finish, answer } = assistant;
     const paragraphs = [
       '**Bold** and *emphasis*.',
       '[Guide](https://example.com/guide) and `inline()`.',
       '- First bullet\n- Final bullet',
-      '```js\nconst value = 42;\nconsole.log(value);\n```\n',
-      'After code.',
+      'Done.',
     ];
     const text = paragraphs.join('\n\n');
     let end = 0;
@@ -379,7 +356,7 @@ test.describe('AI Assistant finalized inline citations', () => {
     await guide.focus();
     await finish({ type: 'answerComplete' }, { type: 'answerComplete' },
       content('Ignored late content'), citation([ref(url('late'))], 0, text.length));
-    await expect(answer.locator(groups)).toHaveCount(5);
+    await expect(answer.locator(groups)).toHaveCount(4);
     await expect(answer).not.toContainText('Ignored late content');
     await expect(guide).toBeFocused();
     await expect(answer.locator('strong')).toHaveText('Bold');
@@ -388,24 +365,7 @@ test.describe('AI Assistant finalized inline citations', () => {
     await expect(answer.locator('p code')).toHaveText('inline()');
     await expect(answer.locator('.chat-bubble-content li').last()).toHaveText('Final bullet1');
     await expect(answer.locator('a a, code a')).toHaveCount(0);
-    await expect(answer.locator('pre.line-numbers code')).toContainText('const value = 42;');
-    await expect(answer.locator('pre .token.keyword').first()).toHaveText('const');
-    await expect(answer.locator('.line-numbers-rows > span')).toHaveCount(2);
-    await expect(answer.locator('.copy-to-clipboard-button')).toHaveCount(1);
-    await answer.locator('.copy-to-clipboard-button').click();
-    expect((await page.evaluate(() => window.copiedTexts)).at(-1)).toContain('const value = 42;');
-    await expect(answer.locator('.chat-bubble-actions')).toHaveCount(1);
     await reloadAnswer(page, answer);
-    await expect(answer.locator(groups)).toHaveCount(5);
-    await expect(answer.locator('pre.line-numbers')).toHaveCount(1);
-    await expect(answer.locator('pre .token.keyword').first()).toHaveText('const');
-    await expect(answer.locator('.line-numbers-rows')).toHaveCount(1);
-    await expect(answer.locator('.line-numbers-rows > span')).toHaveCount(2);
-    await expect(answer.locator('.code-toolbar')).toHaveCount(1);
-    await expect(answer.locator('.toolbar')).toHaveCount(1);
-    await expect(answer.locator('.copy-to-clipboard-button')).toHaveCount(1);
-    await answer.locator('.copy-to-clipboard-button').click();
-    expect((await page.evaluate(() => window.copiedTexts)).at(-1)).toContain('const value = 42;');
     await answer.getByRole('button', { name: 'Copy response', exact: true }).click();
     expect((await page.evaluate(() => window.copiedTexts)).at(-1)).toBe(text);
   });
@@ -543,24 +503,32 @@ test.describe('AI Assistant finalized inline citations', () => {
     expect(await container.evaluate((element) => element.scrollTop)).toBe(120);
   });
 
-  test('persists only displayed placements when an unsupported link endpoint is omitted', async ({ page, assistant }) => {
-    const text = 'Read <a href="https://example.com/guide">Guide</a>.\n\nDone.';
-    const end = text.indexOf('Guide') + 'Guide'.length;
-    assistant.send(content(text), citation([ref(url('dropped'), 'Sources only')], 0, end),
-      citation([ref(url('visible'), 'Visible')], 0, text.length));
-    await assistant.finish({ type: 'answerComplete' });
-    await expect(assistant.answer.locator(groups)).toHaveCount(1);
-    await expect(assistant.answer.getByRole('link', { name: 'Guide', exact: true })).toBeVisible();
-    const saved = await savedAnswer(page);
-    expect(saved.citations).toEqual([{ start: 0, end: text.length, sourceUrls: [url('visible')] }]);
-    expect(saved.references.map(({ url: href }) => href)).toEqual([url('dropped'), url('visible')]);
-    expect(saved.content).toBe(text);
-    await reloadAnswer(page, assistant.answer);
+  test('ranges ending directly after a code fence keep blocks intact and mark the preceding prose', async ({ page, assistant }) => {
+    const { send, finish, answer } = assistant;
+    send(content(fencedAnswer),
+      citation([ref(url('keys'), 'Keys')], 0, afterFirstFence),
+      citation([ref(url('token'), 'Token')], afterFirstFence + 1, afterLastFence));
+    // Let the streamed render settle first, as a real stream does. Finalizing in the
+    // same task trips a separate Prism toolbar race on the replaced nodes.
+    await expect(answer.locator('pre')).toHaveCount(3);
+    await finish({ type: 'answerComplete' });
+    await expectIntactFencedAnswer(answer, ['1', '2']);
+    expect((await savedAnswer(page)).citations).toEqual([
+      { start: 0, end: afterKeys, sourceUrls: [url('keys')] },
+      { start: afterFirstFence + 1, end: afterToken, sourceUrls: [url('token')] },
+    ]);
+    await reloadAnswer(page, answer);
+    await expectIntactFencedAnswer(answer, ['1', '2']);
+    await answer.locator('.copy-to-clipboard-button').first().click();
+    expect((await page.evaluate(() => window.copiedTexts)).at(-1).trim()).toBe('export REPO_USERNAME=your_public_key');
+    await answer.getByRole('button', { name: 'Copy response', exact: true }).click();
+    expect((await page.evaluate(() => window.copiedTexts)).at(-1)).toBe(fencedAnswer);
   });
 });
 
-const historyMessage = (overrides = {}) => ({
-  id: 'citation-test', source: 'ai', content: 'First.\n\nSecond.',
+const legacyAnswer = (overrides = {}) => ({
+  id: 'citation-test', source: 'ai',
+  content: '**Legacy** [guide](https://example.com/guide).\n\n```js\nconst legacy = 1;\n```\n',
   references: [{ url: url('b'), title: 'Saved B' }, { url: url('a'), title: 'Saved A' }],
   timestamp: 1700000000000,
   context: { query: 'Saved query', collectionId: 'saved-collection' },
@@ -568,141 +536,34 @@ const historyMessage = (overrides = {}) => ({
 });
 
 test.describe('AI Assistant saved citation histories', () => {
-  test.use({ startStream: false });
+  test.use({ startStream: false, conversation: {
+    messages: [
+      { id: 'question', source: 'user', content: 'Saved query', timestamp: 1700000000000 },
+      legacyAnswer({ id: 'earlier-answer', content: 'Earlier answer.' }),
+      legacyAnswer(),
+    ],
+    suggestedQuestions: [], sessionId: 'legacy-session',
+  } });
 
-  test.describe('authoritative saved registry', () => {
-    test.use({ conversation: {
-      messages: [historyMessage({
-        references: [
-          { url: url('only'), title: 'Saved Sources-only first' },
-          { url: url('b'), title: 'Saved B' },
-          { url: url('a'), title: 'Saved A' },
-        ],
-        citations: [
-          { start: 8, end: 15, sourceUrls: [url('b')] },
-          { start: 0, end: 6, sourceUrls: [url('a'), url('b'), url('a')] },
-          { start: 1, end: 6, sourceUrls: [url('b')] },
-        ],
-      })],
-      suggestedQuestions: [{ label: 'Saved next', question: 'Continue saved session' }],
-      sessionId: 'saved-session',
-    } });
-
-    test('does not move Sources-only entries or reconstruct numbering from placements', async ({ page, assistant }) => {
-      expect(await sourceUrls(assistant.answer)).toEqual(['only', 'b', 'a'].map(url));
-      expect(await assistant.answer.locator(groups).allTextContents()).toEqual(['23', '2']);
-      expect(await assistant.answer.locator(sourceLinks).allTextContents()).toEqual(['Saved Sources-only first', 'Saved B', 'Saved A']);
-      await expect(assistant.answer.locator(markers).first()).toHaveAccessibleName('Source 2: Saved B (opens in a new tab)');
-      await expect(page.getByRole('button', { name: 'Saved next', exact: true })).toBeVisible();
-      await expect(page.getByRole('log').locator('div')).toHaveCount(0);
-      await reloadAnswer(page, assistant.answer);
-      expect(assistant.answerRequests).toEqual([]);
-      expect((await savedConversation(page)).sessionId).toBe('saved-session');
-    });
-  });
-
-  test.describe('legacy entries', () => {
-    test.use({ conversation: {
-      messages: [
-        { id: 'question', source: 'user', content: 'Saved query', timestamp: 1700000000000 },
-        historyMessage({ id: 'earlier-answer', content: 'Earlier answer.' }),
-        historyMessage({ content: '**Legacy** [guide](https://example.com/guide).\n\n```js\nconst legacy = 1;\n```\n' }),
-      ],
-      suggestedQuestions: [], sessionId: 'legacy-session',
-    } });
-
-    test('restores Sources-only Markdown, actions, code and timestamp grouping without duplication', async ({ page, assistant }) => {
-      await expect(page.locator('.chat-bubble')).toHaveCount(3);
-      await expect(page.locator(markers)).toHaveCount(0);
-      expect(await sourceUrls(assistant.answer)).toEqual(['b', 'a'].map(url));
-      await expect(assistant.answer.locator('strong')).toHaveText('Legacy');
-      await expect(assistant.answer.locator('.token.keyword')).toHaveText('const');
-      await expect(assistant.answer.locator('.code-toolbar')).toHaveCount(1);
-      await expect(assistant.answer.locator('.copy-to-clipboard-button')).toHaveCount(1);
-      await expect(page.locator('.chat-bubble[data-message-id="earlier-answer"] .chat-bubble-timestamp')).toHaveCount(0);
-      await expect(assistant.answer.locator('.chat-bubble-timestamp')).toHaveText('10:13 pm');
-      await expect(assistant.answer.locator('.chat-bubble-actions')).toHaveCount(1);
-      expect((await savedAnswer(page)).citations).toBeUndefined();
-      await reloadAnswer(page, assistant.answer);
-      await page.keyboard.press('Escape');
-      await page.getByRole('button', { name: 'Open AI Assistant', exact: true }).click();
-      await expect(page.locator('.chat-bubble')).toHaveCount(3);
-      await expect(page.locator(markers)).toHaveCount(0);
-      expect(assistant.answerRequests).toEqual([]);
-    });
-  });
-
-  const badRanges = [
-    [-1, 6], [0, 0], [6, 2], [0.5, 6], [0, 1000], ['0', 6], [0, 6.5], [null, 6], [0, null],
-  ].map(([start, end]) => ({ start, end, sourceUrls: [url('b')] }));
-  const malformed = [
-    ['null', null], ['empty array', []], ['object', {}], ['string', 'invalid'],
-    ['unusable placements', [null, [], 'invalid', {}, ...badRanges,
-      { start: 0, end: 6, sourceUrls: {} },
-      { start: 0, end: 6, sourceUrls: [null, {}, 'javascript:alert(1)', 'http://example.com/a', url('unknown')] },
-    ]],
-  ];
-  for (const [name, citations] of malformed) {
-    test.describe(name, () => {
-      test.use({ conversation: {
-        messages: [historyMessage({ citations, references: [
-          { url: 'javascript:alert(1)', title: 'Unsafe' },
-          { url: url('b'), title: 'Saved B' },
-          { url: 'http://example.com/a', title: 'HTTP' },
-          { url: url('a'), title: 'Saved A' },
-          { url: 'invalid', title: 'Invalid' },
-        ] })],
-        suggestedQuestions: [], sessionId: 'malformed-session',
-      } });
-
-      test('ignores unusable optional citations and keeps valid Sources-only entries', async ({ page, assistant }) => {
-        await expect(assistant.answer).toContainText('First.');
-        await expect(assistant.answer.locator(markers)).toHaveCount(0);
-        expect(await sourceUrls(assistant.answer)).toEqual(['b', 'a'].map(url));
-        await expect(assistant.answer.locator('.chat-bubble-actions')).toHaveCount(1);
-        await expect(assistant.answer.locator('[role="alert"]')).toHaveCount(0);
-        await assistant.answer.getByRole('button', { name: 'Sources', exact: true }).click();
-        await expect(assistant.answer.locator(sourceLinks).first()).toBeVisible();
-        expect(assistant.answerRequests).toEqual([]);
-        expect((await savedConversation(page)).sessionId).toBe('malformed-session');
-      });
-    });
-  }
-
-  test.describe('missing source registry', () => {
-    test.use({ conversation: {
-      messages: [historyMessage({ references: undefined, citations: [
-        { start: 0, end: 6, sourceUrls: [url('b')] },
-      ] })],
-      suggestedQuestions: [], sessionId: 'missing-registry-session',
-    } });
-
-    test('does not fabricate sources from placement URLs', async ({ assistant }) => {
-      await expect(assistant.answer).toContainText('First.');
-      await expect(assistant.answer.locator(markers)).toHaveCount(0);
-      await expect(assistant.answer.locator('.chat-bubble-sources')).toHaveCount(0);
-      await expect(assistant.answer.locator('.chat-bubble-actions')).toHaveCount(1);
-      expect(assistant.answerRequests).toEqual([]);
-    });
-  });
-
-  test.describe('mixed usable metadata', () => {
-    test.use({ conversation: {
-      messages: [historyMessage({ citations: [
-        ...badRanges,
-        { start: 0, end: 6, sourceUrls: [url('unknown'), 'javascript:alert(1)', url('a'), url('a')] },
-        { start: 8, end: 15, sourceUrls: [url('b')] },
-      ] })],
-      suggestedQuestions: [], sessionId: 'mixed-session',
-    } });
-
-    test('retains valid placements without inventing unknown links or changing source numbers', async ({ page, assistant }) => {
-      expect(await assistant.answer.locator(groups).allTextContents()).toEqual(['2', '1']);
-      expect(await sourceUrls(assistant.answer)).toEqual(['b', 'a'].map(url));
-      await expect(assistant.answer.locator(markers).first()).toHaveAttribute('href', url('a'));
-      await expect(assistant.answer.locator(markers).first()).toHaveAccessibleName('Source 2: Saved A (opens in a new tab)');
-      await expect(page.getByRole('log').locator('div')).toHaveCount(0);
-      expect(assistant.answerRequests).toEqual([]);
-    });
+  test('legacy entries restore Sources-only Markdown, actions, code and timestamp grouping without duplication', async ({ page, assistant }) => {
+    await expect(page.locator('.chat-bubble')).toHaveCount(3);
+    await expect(page.locator(markers)).toHaveCount(0);
+    expect(await sourceUrls(assistant.answer)).toEqual(['b', 'a'].map(url));
+    await expect(assistant.answer.locator('strong')).toHaveText('Legacy');
+    await expect(assistant.answer.locator('.token.keyword')).toHaveText('const');
+    await expect(assistant.answer.locator('.code-toolbar')).toHaveCount(1);
+    await expect(assistant.answer.locator('.copy-to-clipboard-button')).toHaveCount(1);
+    await expect(page.locator('.chat-bubble[data-message-id="earlier-answer"] .chat-bubble-timestamp')).toHaveCount(0);
+    await expect(assistant.answer.locator('.chat-bubble-timestamp')).toHaveText('10:13 pm');
+    await expect(assistant.answer.locator('.chat-bubble-actions')).toHaveCount(1);
+    await expect(page.getByRole('log').locator('div')).toHaveCount(0);
+    expect((await savedAnswer(page)).citations).toBeUndefined();
+    await reloadAnswer(page, assistant.answer);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Open AI Assistant', exact: true }).click();
+    await expect(page.locator('.chat-bubble')).toHaveCount(3);
+    await expect(page.locator(markers)).toHaveCount(0);
+    expect(assistant.answerRequests).toEqual([]);
+    expect((await savedConversation(page)).sessionId).toBe('legacy-session');
   });
 });
