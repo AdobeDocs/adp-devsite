@@ -4,6 +4,7 @@ import decoratePreformattedCode from "../../components/code.js";
 import { ensurePrismLoaded } from "../../scripts/prism-loader.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
+import { isSourceUrl } from "./ai-assistant_citations.js";
 import { createAiAvatar } from "./ai-assistant_chat-ui.js";
 import {
   CHAT_BUBBLE_AI_LABEL,
@@ -274,12 +275,80 @@ export class ChatBubble {
    * Renders this.content into a content element via marked + DOMPurify.
    * @param {Element} contentElement
    */
-  #_renderContent(contentElement) {
+  #_renderContent(contentElement, markdown = this.content) {
     // @ts-expect-error - DOMPurify is not on the Window object
     contentElement.innerHTML = window.DOMPurify.sanitize(
       // @ts-expect-error - marked is not on the Window object
-      window.marked.parse(this.content),
+      window.marked.parse(markdown),
     );
+    this.plainText = contentElement.textContent?.trim() ?? "";
+  }
+
+  /**
+   * Render one derived Markdown document, then replace trusted placeholders with
+   * DOM-created links. Call before completeBubble attaches actions and decorates code.
+   * @param {string} content
+   * @param {{references: import('./ai-assistant_citations.js').Source[], placements: import('./ai-assistant_citations.js').Placement[]}} citations
+   */
+  renderCitations(content, { references, placements }) {
+    this.content = content;
+    const contentElement = this.element.querySelector(".chat-bubble-content");
+    if (!contentElement) return;
+    // Keep an existing answer control focused across the final Markdown reparse.
+    // Placeholders themselves are not focusable, so this order remains unchanged.
+    const focusableSelector = "a[href], button, input, textarea, select, [tabindex]";
+    const focusedIndex = [...contentElement.querySelectorAll(focusableSelector)]
+      .indexOf(document.activeElement);
+    const placeholderId = `citation-${crypto.randomUUID()}`;
+    let markdown = content;
+    // Reverse insertion keeps all offsets relative to the original Markdown.
+    [...placements].reverse().forEach(({ end }, index) => {
+      const placeholder = `<span data-citation-placeholder="${placeholderId}-${index}"></span>`;
+      markdown = markdown.slice(0, end) + placeholder + markdown.slice(end);
+    });
+    this.#_renderContent(contentElement, markdown);
+    if (focusedIndex >= 0) {
+      const control = /** @type {HTMLElement} */ (
+        contentElement.querySelectorAll(focusableSelector)[focusedIndex]
+      );
+      control?.focus({ preventScroll: true });
+    }
+    const sources = new Map(references.map((reference, index) => [
+      reference.url, { ...reference, number: index + 1 },
+    ]));
+    [...placements].reverse().forEach(({ urls }, index) => {
+      const placeholder = contentElement.querySelector(`[data-citation-placeholder="${placeholderId}-${index}"]`);
+      if (!placeholder) return;
+      // Internal link/code endpoints are outside this delivery's safe-endpoint
+      // assumption. Never deliberately create nested anchors or links in code.
+      if (placeholder.closest("a, code, pre")) {
+        placeholder.remove();
+        return;
+      }
+      const group = createTag("span", { class: "chat-bubble-inline-sources" });
+      urls.forEach((url) => {
+        const source = sources.get(url);
+        if (!source) return;
+        const link = createTag("a", {
+          class: "chat-bubble-inline-source chat-bubble-sources-item-marker",
+          href: url,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          "aria-label": `Source ${source.number}: ${source.title} (opens in a new tab)`,
+          "daa-ll": "DevsiteAI Assistant:Message:InlineSources:Link",
+        });
+        link.textContent = String(source.number);
+        group.appendChild(link);
+      });
+      placeholder.replaceWith(group);
+    });
+    if (references.length) this.renderSources(references);
+  }
+
+  /** Clear the old registry when an answer is replaced by an error/placeholder. */
+  clearSources() {
+    this.references = null;
+    this.element.querySelector(".chat-bubble-sources")?.remove();
   }
 
   /**
@@ -306,8 +375,8 @@ export class ChatBubble {
    * @returns {string}
    */
   getPlainText() {
-    const contentElement = this.element.querySelector(".chat-bubble-content");
-    return contentElement?.textContent?.trim() ?? "";
+    // Captured before inline digits, actions, and code-copy controls are added.
+    return this.plainText ?? "";
   }
 
   scrollIntoView() {
@@ -355,7 +424,8 @@ export class ChatBubble {
    * Final processing that needs to be done after streaming finishes.
    */
   completeBubble() {
-    if (this.source !== "ai" || !this._actionsContainer) return;
+    if (this.source !== "ai" || !this._actionsContainer || this.completed) return;
+    this.completed = true;
 
     this.hideStreamingCursor();
 
@@ -416,14 +486,8 @@ export class ChatBubble {
    * @param {Array<{url: string, title: string}>} references
    */
   renderSources(references) {
-    const validReferences = references?.filter((reference) => {
-      if (typeof reference?.url !== "string" || !reference.url) return false;
-      try {
-        return new URL(reference.url).protocol === "https:";
-      } catch {
-        return false;
-      }
-    }) ?? [];
+    const validReferences = Array.isArray(references)
+      ? references.filter((reference) => isSourceUrl(reference?.url)) : [];
 
     if (!validReferences.length) {
       console.warn("[AI Assistant] No references provided");
