@@ -57,7 +57,9 @@ export class ChatBubble {
       // Restore the finalized presentation before actions and code decoration.
       // No metadata means legacy Sources-only rendering, with no inference.
       if (citations !== undefined) {
-        this.renderCitations(content, restoreCitations(content, references, citations));
+        this.renderCitations(content, restoreCitations(
+          content, references, citations, ChatBubble.parseMarkdown,
+        ));
       } else if (references?.length) {
         this.renderSources(references);
       }
@@ -284,14 +286,24 @@ export class ChatBubble {
   }
 
   /**
+   * Renders answer Markdown to unsanitized HTML. Citation placement checks use
+   * this same renderer, so it must stay the only Markdown renderer for answers.
+   * @param {string} markdown
+   * @returns {string}
+   */
+  static parseMarkdown(markdown) {
+    // @ts-expect-error - marked is not on the Window object
+    return window.marked.parse(markdown);
+  }
+
+  /**
    * Renders this.content into a content element via marked + DOMPurify.
    * @param {Element} contentElement
    */
   #_renderContent(contentElement, markdown = this.content) {
     // @ts-expect-error - DOMPurify is not on the Window object
     contentElement.innerHTML = window.DOMPurify.sanitize(
-      // @ts-expect-error - marked is not on the Window object
-      window.marked.parse(markdown),
+      ChatBubble.parseMarkdown(markdown),
     );
     this.plainText = contentElement.textContent?.trim() ?? "";
   }
@@ -334,8 +346,9 @@ export class ChatBubble {
       const { sourceUrls } = placement;
       const placeholder = contentElement.querySelector(`[data-citation-placeholder="${placeholderId}-${index}"]`);
       if (!placeholder) return;
-      // Internal link/code endpoints are outside this delivery's safe-endpoint
-      // assumption. Never deliberately create nested anchors or links in code.
+      // Placements are checked against this renderer before numbering, so this
+      // only guards against a combination of markers changing the result.
+      // Never deliberately create nested anchors or links in code.
       if (placeholder.closest("a, code, pre")) {
         placeholder.remove();
         return;
