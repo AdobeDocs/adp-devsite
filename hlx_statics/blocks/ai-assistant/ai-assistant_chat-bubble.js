@@ -4,7 +4,7 @@ import decoratePreformattedCode from "../../components/code.js";
 import { ensurePrismLoaded } from "../../scripts/prism-loader.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
-import { isSourceUrl } from "./ai-assistant_citations.js";
+import { isSourceUrl, restoreCitations } from "./ai-assistant_citations.js";
 import { createAiAvatar } from "./ai-assistant_chat-ui.js";
 import {
   CHAT_BUBBLE_AI_LABEL,
@@ -27,6 +27,8 @@ export class ChatBubble {
    * @param {string} [options.id] - Optional message ID (used for AI messages and copy button)
    * @param {string|number|null} [options.timestamp] - Optional Unix timestamp in ms; when nullish, no timestamp is shown
    * @param {import('./ai-assistant_chat-history.js').ChatMessage['feedback']} [options.feedback]
+   * @param {import('./ai-assistant_chat-history.js').ChatMessage['references']} [options.references]
+   * @param {import('./ai-assistant_chat-history.js').ChatMessage['citations']} [options.citations]
    */
   constructor({
     content,
@@ -35,6 +37,8 @@ export class ChatBubble {
     id,
     timestamp,
     feedback,
+    references,
+    citations,
   }) {
     this.content = content;
     this.source = source;
@@ -43,10 +47,22 @@ export class ChatBubble {
     this.timestamp = timestamp;
     this.feedback = feedback;
     this.references = null;
+    /** @type {import('./ai-assistant_citations.js').Placement[]} */
+    this.citations = [];
     this._actionsContainer = null;
     this._speakerLabelId = `chat-bubble-speaker-${ChatBubble.#labelCounter++}`;
     /** @type {HTMLElement} */
     this.element = this.#_init();
+    if (this.source === "ai") {
+      // Restore the finalized presentation before actions and code decoration.
+      // No metadata means legacy Sources-only rendering, with no inference.
+      if (citations !== undefined) {
+        this.renderCitations(content, restoreCitations(content, references, citations));
+      } else if (references?.length) {
+        this.renderSources(references);
+      }
+      if (this.id) this.completeBubble();
+    }
   }
 
   /**
@@ -94,12 +110,8 @@ export class ChatBubble {
 
       if (this.id) {
         bubble.dataset.messageId = this.id;
-        // If we have an ID already (e.g., restored from history), append the actions
-        contentElement.appendChild(this._actionsContainer);
-        // Restored-history bubbles never call completeBubble(), so decorate here.
-        this.#_decorateCodeBlocks(contentElement);
       }
-      // Otherwise, the actions will be appended when completeBubble is called
+      // Actions and code decoration follow citation rendering in completeBubble().
     }
 
     if (this.timestamp) {
@@ -289,11 +301,13 @@ export class ChatBubble {
    * DOM-created links. Call before completeBubble attaches actions and decorates code.
    * @param {string} content
    * @param {{references: import('./ai-assistant_citations.js').Source[], placements: import('./ai-assistant_citations.js').Placement[]}} citations
+   * @returns {import('./ai-assistant_citations.js').Placement[]} Successfully displayed placements
    */
   renderCitations(content, { references, placements }) {
     this.content = content;
     const contentElement = this.element.querySelector(".chat-bubble-content");
-    if (!contentElement) return;
+    this.citations = [];
+    if (!contentElement) return this.citations;
     // Keep an existing answer control focused across the final Markdown reparse.
     // Placeholders themselves are not focusable, so this order remains unchanged.
     const focusableSelector = "a[href], button, input, textarea, select, [tabindex]";
@@ -316,7 +330,8 @@ export class ChatBubble {
     const sources = new Map(references.map((reference, index) => [
       reference.url, { ...reference, number: index + 1 },
     ]));
-    [...placements].reverse().forEach(({ urls }, index) => {
+    [...placements].reverse().forEach((placement, index) => {
+      const { sourceUrls } = placement;
       const placeholder = contentElement.querySelector(`[data-citation-placeholder="${placeholderId}-${index}"]`);
       if (!placeholder) return;
       // Internal link/code endpoints are outside this delivery's safe-endpoint
@@ -326,7 +341,7 @@ export class ChatBubble {
         return;
       }
       const group = createTag("span", { class: "chat-bubble-inline-sources" });
-      urls.forEach((url) => {
+      sourceUrls.forEach((url) => {
         const source = sources.get(url);
         if (!source) return;
         const link = createTag("a", {
@@ -340,14 +355,22 @@ export class ChatBubble {
         link.textContent = String(source.number);
         group.appendChild(link);
       });
-      placeholder.replaceWith(group);
+      if (group.childElementCount) {
+        placeholder.replaceWith(group);
+        this.citations.unshift(placement);
+      } else {
+        placeholder.remove();
+      }
     });
     if (references.length) this.renderSources(references);
+    return this.citations;
   }
 
   /** Clear the old registry when an answer is replaced by an error/placeholder. */
   clearSources() {
     this.references = null;
+    this.citations = [];
+    this.element.querySelectorAll(".chat-bubble-inline-sources").forEach((group) => group.remove());
     this.element.querySelector(".chat-bubble-sources")?.remove();
   }
 
