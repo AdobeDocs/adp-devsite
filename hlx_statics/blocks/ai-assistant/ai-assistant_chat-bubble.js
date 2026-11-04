@@ -58,9 +58,7 @@ export class ChatBubble {
       // No metadata means legacy Sources-only rendering, with no inference.
       if (citations !== undefined) {
         try {
-          this.renderCitations(content, restoreCitations(
-            content, references, citations, ChatBubble.parseMarkdown,
-          ));
+          this.renderCitations(content, restoreCitations(content, references, citations));
         } catch (error) {
           console.error("[AI Assistant] Could not restore inline citations:", error);
           this.renderWithoutInlineCitations(content, references);
