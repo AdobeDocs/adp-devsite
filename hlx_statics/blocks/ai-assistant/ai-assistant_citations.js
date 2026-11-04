@@ -2,9 +2,8 @@
 
 /** @typedef {{url: string, title: string}} Source */
 /**
- * A marker group. `end` is the Markdown offset where the marker is inserted:
- * the cited range's endpoint, or the end of an earlier line in the range when
- * the endpoint itself is unsafe (see markerOffset).
+ * A marker group. `end` is the supplied exclusive Markdown endpoint.
+ * Unsafe endpoints are omitted.
  * @typedef {{start: number, end: number, sourceUrls: string[]}} Placement
  */
 /** @typedef {(markdown: string) => string} RenderMarkdown */
@@ -60,36 +59,6 @@ const createMarkerGuard = (content, render) => {
   };
 };
 
-/**
- * The latest usable marker offset in (start, end]: the endpoint itself, or else
- * the end of an earlier line in the range, such as the prose introducing a code
- * block or table. Moving back keeps the marker within the cited text.
- * @param {{start: number, end: number}} range
- * @param {string} content
- * @param {(offset: number) => boolean} isUsable
- * @returns {number} The offset, or -1 when the range has no usable position
- */
-const markerOffset = ({ start, end }, content, isUsable) => {
-  if (isUsable(end)) return end;
-  for (let lineEnd = content.lastIndexOf("\n", end - 1); lineEnd > start;
-    lineEnd = content.lastIndexOf("\n", lineEnd - 1)) {
-    let offset = lineEnd;
-    while (offset > start && /[ \t\r]/.test(content[offset - 1])) offset -= 1;
-    if (offset > start && content[offset - 1] !== "\n" && isUsable(offset)) return offset;
-  }
-  return -1;
-};
-
-/**
- * @param {string} content
- * @param {RenderMarkdown} render
- * @returns {(range: {start: number, end: number}) => number}
- */
-const createMarkerLocator = (content, render) => {
-  const isUsable = createMarkerGuard(content, render);
-  return (range) => markerOffset(range, content, isUsable);
-};
-
 // One group per marker offset. Its encompassing range retains validated raw
 // starts; starts do not affect marker placement or numbering.
 const addPlacement = (endpoints, { start, end }, sourceUrls) => {
@@ -106,15 +75,13 @@ const orderedPlacements = (endpoints) => [...endpoints.values()]
 /**
  * Validate saved placements without rebuilding event order, titles or numbering.
  * Only identities in the saved valid registry may become links. Legacy sources
- * use their existing rendering path instead. Saved offsets are rechecked, so
- * entries saved with unsafe offsets are moved or dropped like new ones.
+ * use their existing rendering path instead.
  * @param {string} content
  * @param {unknown} references
  * @param {unknown} citations
- * @param {RenderMarkdown} render - The renderer used to display the answer
  * @returns {{references: Source[], placements: Placement[]}}
  */
-export function restoreCitations(content, references, citations, render) {
+export function restoreCitations(content, references, citations) {
   const sources = new Map();
   if (Array.isArray(references)) {
     references.forEach((reference) => {
@@ -127,14 +94,11 @@ export function restoreCitations(content, references, citations, render) {
     });
   }
   const endpoints = new Map();
-  const locateMarker = createMarkerLocator(content, render);
   if (Array.isArray(citations)) {
     citations.forEach((placement) => {
       if (!isValidRange(placement, content) || !Array.isArray(placement.sourceUrls)) return;
       const urls = placement.sourceUrls.filter((url) => sources.has(url));
-      if (!urls.length) return;
-      const end = locateMarker(placement);
-      if (end >= 0) addPlacement(endpoints, { start: placement.start, end }, urls);
+      if (urls.length) addPlacement(endpoints, placement, urls);
     });
   }
   const numbers = new Map([...sources.keys()].map((url, index) => [url, index]));
@@ -155,12 +119,12 @@ export function restoreCitations(content, references, citations, render) {
 export function normalizeCitations(content, citations, render) {
   const sources = new Map();
   const endpoints = new Map();
-  const locateMarker = createMarkerLocator(content, render);
+  const isUsable = createMarkerGuard(content, render);
   citations.forEach((citation) => {
     if (!citation || typeof citation !== "object" || Array.isArray(citation)) return;
     const { retrievedReferences, textRange } = /** @type {import('./ai-assistant_api-client.js').Citation} */ (citation);
     if (!Array.isArray(retrievedReferences)) return;
-    const end = isValidRange(textRange, content) ? locateMarker(textRange) : -1;
+    const validRange = isValidRange(textRange, content) && isUsable(textRange.end);
     retrievedReferences.forEach((reference) => {
       const url = reference?.metadata?.url;
       if (!isSourceUrl(url)) return;
@@ -170,7 +134,7 @@ export function normalizeCitations(content, citations, render) {
       const title = metadataTitle || label || url;
       const existing = sources.get(url);
       if (!existing || priority > existing.priority) sources.set(url, { url, title, priority });
-      if (end >= 0) addPlacement(endpoints, { start: textRange.start, end }, [url]);
+      if (validRange) addPlacement(endpoints, textRange, [url]);
     });
   });
 

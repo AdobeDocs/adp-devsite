@@ -519,13 +519,32 @@ test.describe('AI Assistant finalized inline citations', () => {
     expect(await container.evaluate((element) => element.scrollTop)).toBe(120);
   });
 
-  test('same-chunk completion preserves fenced code, citations and copy controls without UI errors', async ({ page, assistant }) => {
+  test('unsafe endpoints stay Sources-only', async ({ page, assistant }) => {
     const { finish, answer } = assistant;
-    // No intermediate render wait: real streams can coalesce content and completion.
     await finish(content(fencedAnswer),
       citation([ref(url('keys'), 'Keys')], 0, afterFirstFence),
       citation([ref(url('token'), 'Token')], afterFirstFence + 1, afterLastFence),
       { type: 'answerComplete' });
+    await expect(answer.locator(markers)).toHaveCount(0);
+    expect(await sourceUrls(answer)).toEqual([url('keys'), url('token')]);
+    await expectIntactFencedAnswer(answer, ['', '']);
+    expect((await savedAnswer(page)).citations).toBeUndefined();
+    expect((await savedAnswer(page)).content).toBe(fencedAnswer);
+    await reloadAnswer(page, answer);
+    await expectIntactFencedAnswer(answer, ['', '']);
+  });
+
+  test('same-chunk completion keeps safe markers numbered consecutively and the unsafe source last', async ({ page, assistant }) => {
+    const { finish, answer } = assistant;
+    // No intermediate render wait: real streams can coalesce content and completion.
+    await finish(content(fencedAnswer),
+      citation([ref(url('keys'), 'Keys')], 0, afterKeys),
+      citation([ref(url('code'), 'Code')], afterKeys + 1, afterLastFence),
+      citation([ref(url('token'), 'Token')], afterFirstFence + 1, afterToken),
+      { type: 'answerComplete' });
+    await expect(answer.locator(markers)).toHaveCount(2);
+    expect(await answer.locator(markers).allTextContents()).toEqual(['1', '2']);
+    expect(await sourceUrls(answer)).toEqual([url('keys'), url('token'), url('code')]);
     await expectIntactFencedAnswer(answer, ['1', '2']);
     expect((await savedAnswer(page)).citations).toEqual([
       { start: 0, end: afterKeys, sourceUrls: [url('keys')] },
