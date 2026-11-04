@@ -971,7 +971,7 @@ async function loadPrism(document) {
                 } else if (m.type === 'childList') {
                   // New nodes added: only highlight if they contain code blocks with language classes
                   m.addedNodes.forEach((node) => {
-                    if (!(node instanceof HTMLElement)) return;
+                    if (!(node instanceof HTMLElement) || !node.isConnected) return;
                     const hasCodeBlocks = node.querySelector && node.querySelector('code[class*="language-"], [class*="language-"] code');
                     if (hasCodeBlocks && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
                       window.Prism.highlightAllUnder(node);

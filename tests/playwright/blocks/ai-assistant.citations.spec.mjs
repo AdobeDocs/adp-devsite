@@ -148,7 +148,9 @@ const test = base.extend({
     });
     await openLoadedAssistant(page);
     const input = page.getByRole('textbox', { name: 'Enter a question for the AI Assistant' });
-    const send = (...events) => events.forEach((event) => stream.write(`data: ${JSON.stringify(event)}\n\n`));
+    // Keep each batch together so content and completion can share one SSE chunk.
+    const send = (...events) => stream.write(events
+      .map((event) => `data: ${JSON.stringify(event)}\n\n`).join(''));
     const answer = page.locator(answerSelector);
     if (startStream) {
       await input.fill('Citation verification');
@@ -517,15 +519,13 @@ test.describe('AI Assistant finalized inline citations', () => {
     expect(await container.evaluate((element) => element.scrollTop)).toBe(120);
   });
 
-  test('ranges ending directly after a code fence keep blocks intact and mark the preceding prose', async ({ page, assistant }) => {
-    const { send, finish, answer } = assistant;
-    send(content(fencedAnswer),
+  test('same-chunk completion preserves fenced code, citations and copy controls without UI errors', async ({ page, assistant }) => {
+    const { finish, answer } = assistant;
+    // No intermediate render wait: real streams can coalesce content and completion.
+    await finish(content(fencedAnswer),
       citation([ref(url('keys'), 'Keys')], 0, afterFirstFence),
-      citation([ref(url('token'), 'Token')], afterFirstFence + 1, afterLastFence));
-    // Let the streamed render settle first, as a real stream does. Finalizing in the
-    // same task trips a separate Prism toolbar race on the replaced nodes.
-    await expect(answer.locator('pre')).toHaveCount(3);
-    await finish({ type: 'answerComplete' });
+      citation([ref(url('token'), 'Token')], afterFirstFence + 1, afterLastFence),
+      { type: 'answerComplete' });
     await expectIntactFencedAnswer(answer, ['1', '2']);
     expect((await savedAnswer(page)).citations).toEqual([
       { start: 0, end: afterKeys, sourceUrls: [url('keys')] },
