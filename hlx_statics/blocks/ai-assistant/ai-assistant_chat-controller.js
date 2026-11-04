@@ -537,12 +537,22 @@ export const handleUserQuery = async (
     if (answerFinalized) return;
     answerFinalized = true;
     targetBubble.hideThinking();
-    const citations = normalizeCitations(
-      responseContent, accumulatedCitations, ChatBubble.parseMarkdown,
-    );
-    const placements = targetBubble.renderCitations(responseContent, citations);
+    /** @type {import('./ai-assistant_citations.js').Source[]} */
+    let references = [];
+    /** @type {import('./ai-assistant_citations.js').Placement[]} */
+    let placements = [];
+    try {
+      const citations = normalizeCitations(
+        responseContent, accumulatedCitations, ChatBubble.parseMarkdown,
+      );
+      references = citations.references;
+      placements = targetBubble.renderCitations(responseContent, citations);
+    } catch (error) {
+      console.error("[AI Assistant] Could not render inline citations:", error);
+      placements = [];
+      targetBubble.renderWithoutInlineCitations(responseContent, references);
+    }
     targetBubble.completeBubble();
-    const { references } = citations;
     chatHistory.updateLast({
       content: responseContent,
       references,

@@ -57,9 +57,14 @@ export class ChatBubble {
       // Restore the finalized presentation before actions and code decoration.
       // No metadata means legacy Sources-only rendering, with no inference.
       if (citations !== undefined) {
-        this.renderCitations(content, restoreCitations(
-          content, references, citations, ChatBubble.parseMarkdown,
-        ));
+        try {
+          this.renderCitations(content, restoreCitations(
+            content, references, citations, ChatBubble.parseMarkdown,
+          ));
+        } catch (error) {
+          console.error("[AI Assistant] Could not restore inline citations:", error);
+          this.renderWithoutInlineCitations(content, references);
+        }
       } else if (references?.length) {
         this.renderSources(references);
       }
@@ -325,7 +330,8 @@ export class ChatBubble {
     const focusableSelector = "a[href], button, input, textarea, select, [tabindex]";
     const focusedIndex = [...contentElement.querySelectorAll(focusableSelector)]
       .indexOf(document.activeElement);
-    const placeholderId = `citation-${crypto.randomUUID()}`;
+    // A random suffix keeps answer Markdown from matching our placeholders.
+    const placeholderId = `citation-${Math.random().toString(36).slice(2)}`;
     let markdown = content;
     // Reverse insertion keeps all offsets relative to the original Markdown.
     [...placements].reverse().forEach(({ end }, index) => {
@@ -385,6 +391,19 @@ export class ChatBubble {
     this.citations = [];
     this.element.querySelectorAll(".chat-bubble-inline-sources").forEach((group) => group.remove());
     this.element.querySelector(".chat-bubble-sources")?.remove();
+  }
+
+  /**
+   * Fallback when inline citations cannot be rendered.
+   * @param {string} content
+   * @param {unknown} references
+   */
+  renderWithoutInlineCitations(content, references) {
+    this.clearSources();
+    this.updateContent(content);
+    if (Array.isArray(references) && references.length) {
+      this.renderSources(references);
+    }
   }
 
   /**
