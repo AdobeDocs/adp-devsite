@@ -358,12 +358,24 @@ test.describe('AI Assistant finalized inline citations', () => {
       content('Ignored late content'), citation([ref(url('late'))], 0, text.length));
     await expect(answer.locator(groups)).toHaveCount(4);
     await expect(answer).not.toContainText('Ignored late content');
+    expect(await answer.locator(markers).allTextContents()).toEqual(['1', '1', '1', '1']);
+    expect(await sourceUrls(answer)).toEqual([url('code')]);
+    expect((await savedAnswer(page)).references).toEqual([{ url: url('code'), title: 'Code guide' }]);
     await expect(guide).toBeFocused();
     await expect(answer.locator('strong')).toHaveText('Bold');
     await expect(answer.locator('em')).toHaveText('emphasis');
     await expect(answer.getByRole('link', { name: 'Guide', exact: true })).toHaveAttribute('target', '_blank');
     await expect(answer.locator('p code')).toHaveText('inline()');
-    await expect(answer.locator('.chat-bubble-content li').last()).toHaveText('Final bullet1');
+    // Each marker follows its own paragraph's endpoint; only the final bullet is marked.
+    expect(await answer.locator('.chat-bubble-content > p').allTextContents()).toEqual([
+      'Bold and emphasis.1',
+      'Guide and inline().1',
+      'Done.1',
+    ]);
+    expect(await answer.locator('.chat-bubble-content li').allTextContents()).toEqual([
+      'First bullet',
+      'Final bullet1',
+    ]);
     await expect(answer.locator('a a, code a')).toHaveCount(0);
     await reloadAnswer(page, answer);
     await answer.getByRole('button', { name: 'Copy response', exact: true }).click();
@@ -394,6 +406,8 @@ test.describe('AI Assistant finalized inline citations', () => {
     await page.getByRole('button', { name: 'Stop response', exact: true }).click();
     await expect(assistant.answer.locator(markers)).toHaveText('1');
     await expect(assistant.answer.locator('.chat-bubble-actions')).toHaveCount(1);
+    // Finalization must not move focus into the answer, e.g. onto a new marker.
+    expect(await assistant.answer.evaluate((answer) => answer.contains(document.activeElement))).toBe(false);
     expect((await savedAnswer(page)).content).toBe('Stopped partial.');
   });
 
