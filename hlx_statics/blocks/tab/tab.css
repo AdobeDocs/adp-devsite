@@ -46,11 +46,11 @@ main div.tab-wrapper div.tab-content:has(.sub-content-wrapper) .code-toolbar pre
     border-radius: 0 0 2vh 2vh;
 }
 
-main div.tab-wrapper div.code-toolbar pre.line-numbers {
+main div.tab-wrapper div.code-toolbar pre[class*=language-] {
     padding-top: 3.5em;
 }
 
-main div.tab-wrapper div.code-toolbar pre.line-numbers .line-highlight {
+main div.tab-wrapper div.code-toolbar pre[class*=language-] .line-highlight {
     margin-top: 3.5em;
 }
 
