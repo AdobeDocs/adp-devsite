@@ -36,21 +36,29 @@ import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
 /**
  * @typedef {Object} RetrievedReferenceMetadata
  * @property {string} url
- * @property {string} collectionId
+ * @property {string|string[]} [collectionId]
  * @property {string} [title]
- * @property {string[]} [keywords]
+ * @property {string|string[]} [keywords]
  */
 
 /**
  * @typedef {Object} RetrievedReference
  * @property {string} content
  * @property {RetrievedReferenceMetadata} metadata
+ * @property {string} [label]
+ */
+
+/**
+ * Exclusive range in original raw Markdown.
+ * @typedef {{start: number, end: number}} CitationRange
  */
 
 /**
  * @typedef {Object} Citation
  * @property {string} generatedResponsePart
  * @property {RetrievedReference[]} retrievedReferences
+ * @property {CitationRange} [textRange] - Placement field; missing/invalid means Sources-only
+ * @property {CitationRange} [span] - Present in the sample, not used for placement
  */
 
 /**
