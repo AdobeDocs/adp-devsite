@@ -252,20 +252,18 @@ export async function fetchReleases() {
 }
 
 /**
- * Retrieves the site-wide-banner json file
- * @returns {string} The site-wide-banner json file
+ * Retrieves the releases yaml file
+ * @returns {string} The releases yaml file
  */
 export async function fetchReleasesMetadata() {
   const metadata = await fetchSiteMetadata();
-  if (!metadata) return undefined;
-
-  if (!metadata.has('releases-metadata')) return undefined;
-  const metadataPath = metadata.get('releases-metadata');
+  const metadataPath = metadata?.has('releases-metadata') ? metadata.get('releases-metadata') : null;
 
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  let releaseFile = metadataPath
-    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
-    : `${window.location.origin}/${pathPrefix}/releases-metadata.yml`;
+  const cleanPath = metadataPath?.replace(/^(\.\/|\/)?(src\/pages\/)?/, '');
+  let releaseFile = cleanPath
+    ? `${window.location.origin}/${pathPrefix}/${cleanPath}`
+    : `${window.location.origin}/${pathPrefix}/releases-metadata.yaml`;
   let releasesYAML = await fetch(releaseFile)
     .then(response => {
       if (response.ok) {
