@@ -52,7 +52,7 @@ describe('Cards block - three cards', () => {
 
             card.querySelectorAll('p > a').forEach((a) => {
                 expect(a.classList.contains('spectrum-Link')).to.be.true;
-                expect(a.classList.contains('spectrum-Button--secondary')).to.be.true;
+                expect(a.classList.contains('spectrum-Link--quiet')).to.be.true;
             });
 
             expect(card.classList.contains('three-card')).to.be.true;
