@@ -157,6 +157,20 @@ test.describe('Product Card DevBiz reference', () => {
     await expect(devBizBlock(page, devBizVariants[2])).toHaveCSS('width', '1000px');
   });
 
+  test('shows two columns at 900px', async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 900 });
+    for (const variant of devBizVariants) {
+      await expectColumns(devBizBlock(page, variant), 2);
+    }
+  });
+
+  test('shows one column at 600px', async ({ page }) => {
+    await page.setViewportSize({ width: 600, height: 900 });
+    for (const variant of devBizVariants) {
+      await expectColumns(devBizBlock(page, variant), 1);
+    }
+  });
+
   for (const variant of devBizVariants) {
     test(`matches the ${variant.name} visual`, async ({ page }) => {
       const block = devBizBlock(page, variant);
