@@ -64,6 +64,22 @@ test.describe('On This Page reference', () => {
     })).toHaveCount(0);
   });
 
+  test('hides the sidebar at 1228px and restores it above the breakpoint', async ({ page }) => {
+    await page.setViewportSize({ width: 1229, height: 900 });
+    await openOnThisPage(page);
+    const aside = getAside(page);
+
+    await expect(aside).toBeVisible();
+    await page.setViewportSize({ width: 1228, height: 900 });
+    await expect(aside).toBeHidden();
+    // Narrow layouts hide the existing sidebar rather than removing its links.
+    await expect(aside.getByRole('link', { includeHidden: true })).toHaveCount(entries.length);
+
+    await page.setViewportSize({ width: 1229, height: 900 });
+    await expect(aside).toBeVisible();
+    await expect(aside.getByRole('link')).toHaveText(entries.map(({ name }) => name));
+  });
+
   for (const { title, hash, href } of [
     { title: 'activates the first entry initially without a hash', hash: '', href: '#syntax' },
     { title: 'activates the matching entry initially when loaded with a hash', hash: '#basic-accordion', href: '#basic-accordion' },
@@ -139,7 +155,7 @@ test.describe('On This Page reference', () => {
     }).toEqual({ activeHrefs: ['#with-table-and-code'], observationComplete: true });
   });
 
-  test('scroll-spy moves the active link when a later heading enters view', async ({ page }) => {
+  test('scroll-spy moves the active link when scrolling down and back up', async ({ page }) => {
     await openOnThisPage(page);
     const aside = getAside(page);
     const target = page.getByRole('heading', { level: 3, name: 'With Table and Code', exact: true });
@@ -159,6 +175,21 @@ test.describe('On This Page reference', () => {
       message: 'fixture spacing: Basic Accordion must end above the scroll-spy band before With Table and Code can be the sole candidate',
     }).toBeLessThanOrEqual(page.viewportSize().height * 0.2);
     await expect.poll(() => aside.locator('a.active').getAttribute('href')).toBe('#with-table-and-code');
+    await expect(aside.locator('a.active')).toHaveCount(1);
+    expect(new URL(page.url()).hash).toBe('');
+
+    const earlierHeading = page.getByRole('heading', { level: 2, name: 'Syntax', exact: true });
+    await expect(earlierHeading).not.toBeInViewport();
+    const scrolledDownY = await page.evaluate(() => window.scrollY);
+    // Re-enter the observer's band from above without clicking a TOC link.
+    await earlierHeading.evaluate((heading) => window.scrollTo({
+      top: window.scrollY + heading.getBoundingClientRect().top - window.innerHeight * 0.3,
+      behavior: 'instant',
+    }));
+
+    await expect(earlierHeading).toBeInViewport();
+    expect(await page.evaluate(() => window.scrollY)).toBeLessThan(scrolledDownY);
+    await expect(aside.locator('a.active')).toHaveAttribute('href', '#syntax');
     await expect(aside.locator('a.active')).toHaveCount(1);
     expect(new URL(page.url()).hash).toBe('');
   });
