@@ -225,7 +225,7 @@ export async function fetchSiteWideBanner() {
  * Retrieves the changelog data yml file
  * @returns {Promise<string>} The changelog data file
  */
-export async function fetchChangelogData() {
+export async function fetchChangelog() {
   // const metadata = await fetchSiteMetadata();
   // if (!metadata) return undefined;
 
@@ -233,11 +233,11 @@ export async function fetchChangelogData() {
   // const metadataPath = metadata.get('changelog-data');
 
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  let releaseFile =
+  let changelogFile =
     // metadataPath
     //   ? `${window.location.origin}/${pathPrefix}/${metadataPath}`:
-    `${window.location.origin}/${pathPrefix}/changelog-data.yml`;
-  let releasesYAML = await fetch(releaseFile)
+    `${window.location.origin}/${pathPrefix}/changelog.json`;
+  let changelogJson = await fetch(changelogFile)
     .then(response => {
       if (response.ok) {
         return response.text();
@@ -249,7 +249,7 @@ export async function fetchChangelogData() {
     .catch(error => {
       console.error('There was a problem with the fetch operation:', error);
     });
-  return releasesYAML;
+  return changelogJson;
 }
 
 /**

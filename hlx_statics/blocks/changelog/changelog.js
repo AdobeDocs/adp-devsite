@@ -1,5 +1,5 @@
 import { createTag } from '../../scripts/lib-adobeio.js';
-import { fetchChangelogData, fetchChangelogSettings } from '../../scripts/lib-helix.js';
+import { fetchChangelog } from '../../scripts/lib-helix.js';
 
 const ALL_TYPES = [
   { key: 'breaking', label: 'Breaking', icon: 'breaking' },
@@ -29,220 +29,32 @@ function getIconSvg(changeType) {
 }
 
 /**
- * Lightweight YAML parser supporting subsets used in releases.yaml and releases-metadata.yaml.
+ * Parses changelog JSON response 
  */
-function parseYaml(yamlText) {
-  if (!yamlText || typeof yamlText !== 'string') {
+function parseChangelogPayload(rawChangelog) {
+  if (!rawChangelog) {
     return null;
   }
 
-  const rawLines = yamlText.split(/\r?\n/);
-  const parsedLines = [];
-
-  for (let lineIndex = 0; lineIndex < rawLines.length; lineIndex += 1) {
-    const rawLine = rawLines[lineIndex];
-    let inSingleQuote = false;
-    let inDoubleQuote = false;
-    let commentIndex = -1;
-
-    for (let charIndex = 0; charIndex < rawLine.length; charIndex += 1) {
-      const currentChar = rawLine[charIndex];
-      if (currentChar === "'" && !inDoubleQuote) {
-        inSingleQuote = !inSingleQuote;
-      }
-      else if (currentChar === '"' && !inSingleQuote) {
-        inDoubleQuote = !inDoubleQuote;
-      }
-      else if (currentChar === '#' && !inSingleQuote && !inDoubleQuote) {
-        commentIndex = charIndex;
-        break;
-      }
+  let parsedPayload = rawChangelog;
+  if (typeof rawChangelog === 'string') {
+    try {
+      parsedPayload = JSON.parse(rawChangelog);
+    } catch (error) {
+      console.error('Failed to parse changelog JSON:', error);
+      return null;
     }
-
-    const lineWithoutComment = commentIndex >= 0 ? rawLine.slice(0, commentIndex) : rawLine;
-    if (lineWithoutComment.trim().length === 0) {
-      continue;
-    }
-
-    const indentLevel = lineWithoutComment.search(/\S/);
-    parsedLines.push({ indent: indentLevel, content: lineWithoutComment.trim() });
   }
 
-  let currentLineIndex = 0;
-
-  function parseValue(rawValueString) {
-    if (rawValueString === undefined || rawValueString === null) {
-      return null;
-    }
-    const trimmedValue = rawValueString.trim();
-    if (trimmedValue === '') {
-      return null;
-    }
-
-    // Flow array: [item1, item2]
-    if (trimmedValue.startsWith('[') && trimmedValue.endsWith(']')) {
-      const arrayContent = trimmedValue.slice(1, -1).trim();
-      if (!arrayContent) {
-        return [];
-      }
-      const arrayItems = [];
-      let currentItemString = '';
-      let insideSingleQuotes = false;
-      let insideDoubleQuotes = false;
-      for (let charIndex = 0; charIndex < arrayContent.length; charIndex += 1) {
-        const char = arrayContent[charIndex];
-        if (char === "'" && !insideDoubleQuotes) {
-          insideSingleQuotes = !insideSingleQuotes;
-        }
-        else if (char === '"' && !insideSingleQuotes) {
-          insideDoubleQuotes = !insideDoubleQuotes;
-        }
-        else if (char === ',' && !insideSingleQuotes && !insideDoubleQuotes) {
-          arrayItems.push(parseValue(currentItemString));
-          currentItemString = '';
-          continue;
-        }
-        currentItemString += char;
-      }
-      if (currentItemString.trim()) {
-        arrayItems.push(parseValue(currentItemString));
-      }
-      return arrayItems;
-    }
-
-    // Quoted string
-    if ((trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) || (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))) {
-      return trimmedValue.slice(1, -1).replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
-    }
-
-    // Boolean
-    if (trimmedValue.toLowerCase() === 'true') {
-      return true;
-    }
-    if (trimmedValue.toLowerCase() === 'false') {
-      return false;
-    }
-    if (trimmedValue.toLowerCase() === 'null' || trimmedValue === '~') {
-      return null;
-    }
-
-    // Number
-    if (/^-?\d+(\.\d+)?$/.test(trimmedValue)) {
-      return Number(trimmedValue);
-    }
-
-    return trimmedValue;
+  const changelogEntry = parsedPayload?.data?.[0];
+  if (!changelogEntry) {
+    return null;
   }
 
-  function parseBlock(minimumIndent) {
-    if (currentLineIndex >= parsedLines.length) {
-      return null;
-    }
-    const currentLine = parsedLines[currentLineIndex];
-    if (currentLine.indent < minimumIndent) {
-      return null;
-    }
-
-    const isListItem = currentLine.content.startsWith('- ') || currentLine.content === '-';
-
-    if (isListItem) {
-      const listItems = [];
-      const listIndentLevel = currentLine.indent;
-
-      while (
-        currentLineIndex < parsedLines.length
-        && parsedLines[currentLineIndex].indent === listIndentLevel
-        && (parsedLines[currentLineIndex].content.startsWith('- ') || parsedLines[currentLineIndex].content === '-')
-      ) {
-        const line = parsedLines[currentLineIndex];
-        currentLineIndex += 1;
-        const itemContent = line.content.slice(1).trim();
-
-        if (!itemContent) {
-          if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > listIndentLevel) {
-            listItems.push(parseBlock(parsedLines[currentLineIndex].indent));
-          } else {
-            listItems.push(null);
-          }
-        } else if (itemContent.includes(':')) {
-          const colonIndex = itemContent.indexOf(':');
-          const itemKey = parseValue(itemContent.slice(0, colonIndex));
-          const itemValueString = itemContent.slice(colonIndex + 1).trim();
-          const listItemObject = {};
-
-          if (itemValueString) {
-            listItemObject[itemKey] = parseValue(itemValueString);
-          } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > listIndentLevel) {
-            listItemObject[itemKey] = parseBlock(parsedLines[currentLineIndex].indent);
-          } else {
-            listItemObject[itemKey] = null;
-          }
-
-          while (
-            currentLineIndex < parsedLines.length
-            && parsedLines[currentLineIndex].indent > listIndentLevel
-            && !parsedLines[currentLineIndex].content.startsWith('- ')
-          ) {
-            const nextPropertyLine = parsedLines[currentLineIndex];
-            const nextColonIndex = nextPropertyLine.content.indexOf(':');
-            if (nextColonIndex !== -1) {
-              const propertyKey = parseValue(nextPropertyLine.content.slice(0, nextColonIndex));
-              const propertyValueString = nextPropertyLine.content.slice(nextColonIndex + 1).trim();
-              currentLineIndex += 1;
-              if (propertyValueString) {
-                listItemObject[propertyKey] = parseValue(propertyValueString);
-              } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > nextPropertyLine.indent) {
-                listItemObject[propertyKey] = parseBlock(parsedLines[currentLineIndex].indent);
-              } else {
-                listItemObject[propertyKey] = null;
-              }
-            } else {
-              currentLineIndex += 1;
-            }
-          }
-
-          listItems.push(listItemObject);
-        } else {
-          listItems.push(parseValue(itemContent));
-        }
-      }
-      return listItems;
-    }
-
-    const mappingObject = {};
-    const mappingIndentLevel = currentLine.indent;
-
-    while (
-      currentLineIndex < parsedLines.length
-      && parsedLines[currentLineIndex].indent === mappingIndentLevel
-    ) {
-      const line = parsedLines[currentLineIndex];
-      if (line.content.startsWith('- ')) {
-        break;
-      }
-
-      const colonIndex = line.content.indexOf(':');
-      if (colonIndex === -1) {
-        currentLineIndex += 1;
-        continue;
-      }
-
-      const mapKey = parseValue(line.content.slice(0, colonIndex));
-      const mapValueString = line.content.slice(colonIndex + 1).trim();
-      currentLineIndex += 1;
-
-      if (mapValueString) {
-        mappingObject[mapKey] = parseValue(mapValueString);
-      } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > mappingIndentLevel) {
-        mappingObject[mapKey] = parseBlock(parsedLines[currentLineIndex].indent);
-      } else {
-        mappingObject[mapKey] = null;
-      }
-    }
-    return mappingObject;
-  }
-
-  return parseBlock(0);
+  return {
+    parsedReleasesDocument: changelogEntry.data,
+    parsedReleasesMetadata: changelogEntry.settings,
+  };
 }
 
 /**
@@ -406,17 +218,10 @@ export default async function decorate(block) {
   block.setAttribute('daa-lh', 'changelog');
   block.innerHTML = '<div class="changelog-loading"><div class="changelog-spinner" aria-label="Loading changelog"></div></div>';
 
-  const [releasesDocumentData, releasesMetadataData] = await Promise.all([
-    fetchChangelogData().catch(() => null),
-    fetchChangelogSettings().catch(() => null),
-  ]);
-
-  const parsedReleasesDocument = typeof releasesDocumentData === 'string'
-    ? parseYaml(releasesDocumentData)
-    : releasesDocumentData;
-  const parsedReleasesMetadata = typeof releasesMetadataData === 'string'
-    ? parseYaml(releasesMetadataData)
-    : releasesMetadataData;
+  const rawChangelog = await fetchChangelog().catch(() => null);
+  const parsedChangelog = parseChangelogPayload(rawChangelog);
+  const parsedReleasesDocument = parsedChangelog?.parsedReleasesDocument;
+  const parsedReleasesMetadata = parsedChangelog?.parsedReleasesMetadata;
 
   if (!parsedReleasesDocument) {
     block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data. Please check back later.</p></div>';
