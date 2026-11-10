@@ -1,5 +1,5 @@
 import { createTag } from '../../scripts/lib-adobeio.js';
-import { fetchReleases, fetchReleasesMetadata } from '../../scripts/lib-helix.js';
+import { fetchChangelogData, fetchChangelogSettings } from '../../scripts/lib-helix.js';
 
 const ALL_TYPES = [
   { key: 'breaking', label: 'Breaking', icon: 'breaking' },
@@ -407,8 +407,8 @@ export default async function decorate(block) {
   block.innerHTML = '<div class="changelog-loading"><div class="changelog-spinner" aria-label="Loading changelog"></div></div>';
 
   const [releasesDocumentData, releasesMetadataData] = await Promise.all([
-    fetchReleases().catch(() => null),
-    fetchReleasesMetadata().catch(() => null),
+    fetchChangelogData().catch(() => null),
+    fetchChangelogSettings().catch(() => null),
   ]);
 
   const parsedReleasesDocument = typeof releasesDocumentData === 'string'
