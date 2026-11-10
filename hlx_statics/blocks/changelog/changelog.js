@@ -408,7 +408,7 @@ export default async function decorate(block) {
 
   const [releasesDocumentData, releasesMetadataData] = await Promise.all([
     fetchReleases().catch(() => null),
-    fetchReleasesMetadata()
+    fetchReleasesMetadata().catch(() => null),
   ]);
 
   const parsedReleasesDocument = typeof releasesDocumentData === 'string'
@@ -597,213 +597,213 @@ export default async function decorate(block) {
       searchParameters.delete('month');
     }
 
-      if (filterState.types.size > 0) {
-        searchParameters.set('types', Array.from(filterState.types).join(','));
-      } else {
-        searchParameters.delete('types');
-        searchParameters.delete('type');
-      }
-
-      const queryString = searchParameters.toString();
-      window.history.replaceState({}, '', `${window.location.pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`);
+    if (filterState.types.size > 0) {
+      searchParameters.set('types', Array.from(filterState.types).join(','));
+    } else {
+      searchParameters.delete('types');
+      searchParameters.delete('type');
     }
 
-    readFromUrl();
+    const queryString = searchParameters.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`);
+  }
 
-    const container = createTag('div', { class: 'changelog-container' });
+  readFromUrl();
 
-    // 1. Header Section
-    const headerSection = createTag('header', { class: 'changelog-header' });
-    const titleHeading = createTag('h1', { class: 'spectrum-Heading spectrum-Heading--sizeXL spectrum-Heading--light changelog-title' });
-    titleHeading.textContent = authoredTitle || parsedReleasesMetadata?.page?.title || 'Changelog';
+  const container = createTag('div', { class: 'changelog-container' });
 
-    const descriptionText = authoredDescription || parsedReleasesMetadata?.page?.description || '';
-    let descriptionParagraph = null;
-    if (descriptionText) {
-      descriptionParagraph = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL changelog-description' });
-      descriptionParagraph.textContent = descriptionText;
-    }
+  // 1. Header Section
+  const headerSection = createTag('header', { class: 'changelog-header' });
+  const titleHeading = createTag('h1', { class: 'spectrum-Heading spectrum-Heading--sizeXL spectrum-Heading--light changelog-title' });
+  titleHeading.textContent = authoredTitle || parsedReleasesMetadata?.page?.title || 'Changelog';
 
-    const subHeaderContainer = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-sub-header' });
-    const latestInfoSpan = createTag('span', { class: 'changelog-latest-info' });
-    if (latestRelease && (latestRelease.version || latestRelease.date)) {
-      const latestReleaseParts = [
-        latestRelease.version ? `<strong>${latestRelease.version}</strong>` : (latestRelease.title ? `<strong>${latestRelease.title}</strong>` : ''),
-        latestRelease.date,
-      ].filter(Boolean);
-      latestInfoSpan.innerHTML = `Latest: ${latestReleaseParts.join(' · ')}`;
-    }
+  const descriptionText = authoredDescription || parsedReleasesMetadata?.page?.description || '';
+  let descriptionParagraph = null;
+  if (descriptionText) {
+    descriptionParagraph = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeL changelog-description' });
+    descriptionParagraph.textContent = descriptionText;
+  }
 
-    const quickLinksContainer = createTag('div', { class: 'changelog-quick-links' });
-    authoredLinks.forEach((authoredLinkElement) => {
-      const linkElement = createTag('a', {
-        class: 'spectrum-Link changelog-quick-link',
-        href: authoredLinkElement.href,
-        target: '_blank',
-        rel: 'noopener noreferrer',
-      });
-      linkElement.textContent = authoredLinkElement.textContent.trim() || authoredLinkElement.href;
-      quickLinksContainer.append(linkElement);
-    });
+  const subHeaderContainer = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-sub-header' });
+  const latestInfoSpan = createTag('span', { class: 'changelog-latest-info' });
+  if (latestRelease && (latestRelease.version || latestRelease.date)) {
+    const latestReleaseParts = [
+      latestRelease.version ? `<strong>${latestRelease.version}</strong>` : (latestRelease.title ? `<strong>${latestRelease.title}</strong>` : ''),
+      latestRelease.date,
+    ].filter(Boolean);
+    latestInfoSpan.innerHTML = `Latest: ${latestReleaseParts.join(' · ')}`;
+  }
 
-    const rssLinkElement = createTag('a', {
-      class: 'spectrum-Link changelog-quick-link changelog-rss-link',
-      href: feedUrl,
+  const quickLinksContainer = createTag('div', { class: 'changelog-quick-links' });
+  authoredLinks.forEach((authoredLinkElement) => {
+    const linkElement = createTag('a', {
+      class: 'spectrum-Link changelog-quick-link',
+      href: authoredLinkElement.href,
       target: '_blank',
       rel: 'noopener noreferrer',
-      'aria-label': 'Subscribe to RSS feed',
     });
-    rssLinkElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><circle cx="6.18" cy="17.82" r="2.18" fill="#eb1000"></circle><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" fill="#eb1000"></path></svg> <span>Subscribe to RSS feed</span>`;
-    quickLinksContainer.append(rssLinkElement);
+    linkElement.textContent = authoredLinkElement.textContent.trim() || authoredLinkElement.href;
+    quickLinksContainer.append(linkElement);
+  });
 
-    subHeaderContainer.append(latestInfoSpan, quickLinksContainer);
-    if (descriptionParagraph) {
-      headerSection.append(titleHeading, descriptionParagraph, subHeaderContainer);
+  const rssLinkElement = createTag('a', {
+    class: 'spectrum-Link changelog-quick-link changelog-rss-link',
+    href: feedUrl,
+    target: '_blank',
+    rel: 'noopener noreferrer',
+    'aria-label': 'Subscribe to RSS feed',
+  });
+  rssLinkElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><circle cx="6.18" cy="17.82" r="2.18" fill="#eb1000"></circle><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" fill="#eb1000"></path></svg> <span>Subscribe to RSS feed</span>`;
+  quickLinksContainer.append(rssLinkElement);
+
+  subHeaderContainer.append(latestInfoSpan, quickLinksContainer);
+  if (descriptionParagraph) {
+    headerSection.append(titleHeading, descriptionParagraph, subHeaderContainer);
+  } else {
+    headerSection.append(titleHeading, subHeaderContainer);
+  }
+
+  // 2. Filter Card
+  const filterCard = createTag('section', { id: 'filters', class: 'changelog-filter-card', 'aria-label': 'Changelog filters' });
+  const dropdownRow = createTag('div', { class: 'changelog-filter-row-dropdowns' });
+
+  function createDropdownGroup(id, labelText, options, currentValue) {
+    const groupContainer = createTag('div', { class: 'changelog-filter-group' });
+    const labelElement = createTag('label', { class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label', for: id });
+    labelElement.textContent = labelText;
+    const selectElement = createTag('select', { id, name: id.replace('changelog-filter-', ''), 'aria-label': `Filter by ${labelText}` });
+    options.forEach(({ value, text }) => {
+      const optionElement = createTag('option', { value });
+      optionElement.textContent = text;
+      if (String(value).toLowerCase() === String(currentValue).toLowerCase()) {
+        optionElement.selected = true;
+      }
+      selectElement.appendChild(optionElement);
+    });
+    groupContainer.append(labelElement, selectElement);
+    return { group: groupContainer, select: selectElement };
+  }
+
+  let moduleSelect = null;
+  if (showModuleFilter) {
+    const { group: moduleGroup, select } = createDropdownGroup(
+      'changelog-filter-module',
+      moduleFilterMetadata?.label || 'Module',
+      [{ value: 'all', text: moduleFilterMetadata?.allLabel || 'All modules' }, ...moduleOptions],
+      filterState.module,
+    );
+    moduleSelect = select;
+    dropdownRow.append(moduleGroup);
+  }
+
+  let yearSelect = null;
+  if (showYearFilter) {
+    const { group: yearGroup, select } = createDropdownGroup(
+      'changelog-filter-year',
+      yearFilterMetadata?.label || 'Year',
+      [{ value: 'all', text: yearFilterMetadata?.allLabel || 'All years' }, ...yearOptions.map((yearOption) => ({ value: yearOption, text: yearOption }))],
+      filterState.year,
+    );
+    yearSelect = select;
+    dropdownRow.append(yearGroup);
+  }
+
+  function getMonthOptionsForYear(selectedYear) {
+    const allMonthsLabel = monthFilterMetadata?.allLabel || 'All months';
+    let rawMonthNames = [];
+
+    if (selectedYear !== 'all') {
+      rawMonthNames = monthFilterMetadata?.optionsByYear?.[selectedYear]
+        || Array.from(new Set(releases.filter((releaseEntry) => releaseEntry.year === selectedYear).map((releaseEntry) => releaseEntry.monthName).filter(Boolean)));
+    } else if (monthFilterMetadata?.optionsByYear) {
+      rawMonthNames = Array.from(new Set(Object.values(monthFilterMetadata.optionsByYear).flat()));
+    } else if (Array.isArray(monthFilterMetadata?.options)) {
+      rawMonthNames = monthFilterMetadata.options.map((optionItem) => (
+        typeof optionItem === 'object' ? (optionItem.label || optionItem.id) : optionItem
+      ));
     } else {
-      headerSection.append(titleHeading, subHeaderContainer);
+      rawMonthNames = Array.from(new Set(releases.map((releaseEntry) => releaseEntry.monthName).filter(Boolean)));
     }
 
-    // 2. Filter Card
-    const filterCard = createTag('section', { id: 'filters', class: 'changelog-filter-card', 'aria-label': 'Changelog filters' });
-    const dropdownRow = createTag('div', { class: 'changelog-filter-row-dropdowns' });
-
-    function createDropdownGroup(id, labelText, options, currentValue) {
-      const groupContainer = createTag('div', { class: 'changelog-filter-group' });
-      const labelElement = createTag('label', { class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label', for: id });
-      labelElement.textContent = labelText;
-      const selectElement = createTag('select', { id, name: id.replace('changelog-filter-', ''), 'aria-label': `Filter by ${labelText}` });
-      options.forEach(({ value, text }) => {
-        const optionElement = createTag('option', { value });
-        optionElement.textContent = text;
-        if (String(value).toLowerCase() === String(currentValue).toLowerCase()) {
-          optionElement.selected = true;
-        }
-        selectElement.appendChild(optionElement);
-      });
-      groupContainer.append(labelElement, selectElement);
-      return { group: groupContainer, select: selectElement };
-    }
-
-    let moduleSelect = null;
-    if (showModuleFilter) {
-      const { group: moduleGroup, select } = createDropdownGroup(
-        'changelog-filter-module',
-        moduleFilterMetadata?.label || 'Module',
-        [{ value: 'all', text: moduleFilterMetadata?.allLabel || 'All modules' }, ...moduleOptions],
-        filterState.module,
-      );
-      moduleSelect = select;
-      dropdownRow.append(moduleGroup);
-    }
-
-    let yearSelect = null;
-    if (showYearFilter) {
-      const { group: yearGroup, select } = createDropdownGroup(
-        'changelog-filter-year',
-        yearFilterMetadata?.label || 'Year',
-        [{ value: 'all', text: yearFilterMetadata?.allLabel || 'All years' }, ...yearOptions.map((yearOption) => ({ value: yearOption, text: yearOption }))],
-        filterState.year,
-      );
-      yearSelect = select;
-      dropdownRow.append(yearGroup);
-    }
-
-    function getMonthOptionsForYear(selectedYear) {
-      const allMonthsLabel = monthFilterMetadata?.allLabel || 'All months';
-      let rawMonthNames = [];
-
-      if (selectedYear !== 'all') {
-        rawMonthNames = monthFilterMetadata?.optionsByYear?.[selectedYear]
-          || Array.from(new Set(releases.filter((releaseEntry) => releaseEntry.year === selectedYear).map((releaseEntry) => releaseEntry.monthName).filter(Boolean)));
-      } else if (monthFilterMetadata?.optionsByYear) {
-        rawMonthNames = Array.from(new Set(Object.values(monthFilterMetadata.optionsByYear).flat()));
-      } else if (Array.isArray(monthFilterMetadata?.options)) {
-        rawMonthNames = monthFilterMetadata.options.map((optionItem) => (
-          typeof optionItem === 'object' ? (optionItem.label || optionItem.id) : optionItem
-        ));
-      } else {
-        rawMonthNames = Array.from(new Set(releases.map((releaseEntry) => releaseEntry.monthName).filter(Boolean)));
-      }
-
-      const sortedMonthNames = [...rawMonthNames].sort((firstMonth, secondMonth) => {
-        const firstMonthDate = new Date(Date.parse(`${firstMonth} 1, 2000`));
-        const secondMonthDate = new Date(Date.parse(`${secondMonth} 1, 2000`));
-        return (firstMonthDate.getMonth() || 0) - (secondMonthDate.getMonth() || 0);
-      });
-
-      return [
-        { value: 'all', text: allMonthsLabel },
-        ...sortedMonthNames.map((monthName) => ({ value: monthName, text: monthName })),
-      ];
-    }
-
-    let monthSelect = null;
-    if (showMonthFilter) {
-      const { group: monthGroup, select } = createDropdownGroup(
-        'changelog-filter-month',
-        monthFilterMetadata?.label || 'Month',
-        getMonthOptionsForYear(filterState.year),
-        filterState.month,
-      );
-      monthSelect = select;
-      dropdownRow.append(monthGroup);
-    }
-
-    const typeRow = createTag('div', { class: 'changelog-filter-row-types' });
-    typeRow.innerHTML = '<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">Type of change</div>';
-    const pillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': 'Filter by change type' });
-    typeRow.append(pillsContainer);
-
-    const summaryRow = createTag('div', { class: 'changelog-filter-summary-row' });
-    const summaryText = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-filter-summary-text', 'aria-live': 'polite' });
-    summaryRow.append(summaryText);
-    if (showModuleFilter || showYearFilter || showMonthFilter) {
-      filterCard.append(dropdownRow);
-    }
-    filterCard.append(typeRow, summaryRow);
-
-    const resultsContainer = createTag('div', { class: 'changelog-results' });
-
-    // 3. Dynamic Archive / Older releases section
-    const archiveSection = createTag('section', {
-      class: 'changelog-archive-section changelog-older-section',
-      'aria-label': archiveSectionLabel,
+    const sortedMonthNames = [...rawMonthNames].sort((firstMonth, secondMonth) => {
+      const firstMonthDate = new Date(Date.parse(`${firstMonth} 1, 2000`));
+      const secondMonthDate = new Date(Date.parse(`${secondMonth} 1, 2000`));
+      return (firstMonthDate.getMonth() || 0) - (secondMonthDate.getMonth() || 0);
     });
 
-    if (isArchiveEnabled && totalArchivedReleasesCount > 0) {
-      const archiveHeadingTarget = createTag('div', { class: 'heading2 changelog-toc-target' });
-      const archiveHeading = createTag('h2', {
-        id: 'archive-releases-heading',
-        class: 'spectrum-Heading spectrum-Heading--sizeM changelog-year-heading',
-      });
-      archiveHeading.textContent = archiveSectionLabel;
-      archiveHeadingTarget.append(archiveHeading);
-      archiveSection.append(archiveHeadingTarget);
+    return [
+      { value: 'all', text: allMonthsLabel },
+      ...sortedMonthNames.map((monthName) => ({ value: monthName, text: monthName })),
+    ];
+  }
 
-      if (archiveSectionDescription) {
-        const archiveDescriptionParagraph = createTag('p', {
-          class: 'spectrum-Body spectrum-Body--sizeM changelog-archive-description',
-        });
-        archiveDescriptionParagraph.textContent = archiveSectionDescription;
-        archiveSection.append(archiveDescriptionParagraph);
+  let monthSelect = null;
+  if (showMonthFilter) {
+    const { group: monthGroup, select } = createDropdownGroup(
+      'changelog-filter-month',
+      monthFilterMetadata?.label || 'Month',
+      getMonthOptionsForYear(filterState.year),
+      filterState.month,
+    );
+    monthSelect = select;
+    dropdownRow.append(monthGroup);
+  }
+
+  const typeRow = createTag('div', { class: 'changelog-filter-row-types' });
+  typeRow.innerHTML = '<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">Type of change</div>';
+  const pillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': 'Filter by change type' });
+  typeRow.append(pillsContainer);
+
+  const summaryRow = createTag('div', { class: 'changelog-filter-summary-row' });
+  const summaryText = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-filter-summary-text', 'aria-live': 'polite' });
+  summaryRow.append(summaryText);
+  if (showModuleFilter || showYearFilter || showMonthFilter) {
+    filterCard.append(dropdownRow);
+  }
+  filterCard.append(typeRow, summaryRow);
+
+  const resultsContainer = createTag('div', { class: 'changelog-results' });
+
+  // 3. Dynamic Archive / Older releases section
+  const archiveSection = createTag('section', {
+    class: 'changelog-archive-section changelog-older-section',
+    'aria-label': archiveSectionLabel,
+  });
+
+  if (isArchiveEnabled && totalArchivedReleasesCount > 0) {
+    const archiveHeadingTarget = createTag('div', { class: 'heading2 changelog-toc-target' });
+    const archiveHeading = createTag('h2', {
+      id: 'archive-releases-heading',
+      class: 'spectrum-Heading spectrum-Heading--sizeM changelog-year-heading',
+    });
+    archiveHeading.textContent = archiveSectionLabel;
+    archiveHeadingTarget.append(archiveHeading);
+    archiveSection.append(archiveHeadingTarget);
+
+    if (archiveSectionDescription) {
+      const archiveDescriptionParagraph = createTag('p', {
+        class: 'spectrum-Body spectrum-Body--sizeM changelog-archive-description',
+      });
+      archiveDescriptionParagraph.textContent = archiveSectionDescription;
+      archiveSection.append(archiveDescriptionParagraph);
+    }
+
+    configuredArchiveGroups.forEach((groupDefinition) => {
+      const groupData = archiveGroupReleasesMap.get(groupDefinition.id);
+      if (!groupData || groupData.releasesList.length === 0) {
+        return;
       }
 
-      configuredArchiveGroups.forEach((groupDefinition) => {
-        const groupData = archiveGroupReleasesMap.get(groupDefinition.id);
-        if (!groupData || groupData.releasesList.length === 0) {
-          return;
-        }
+      const groupAccordion = createTag('div', {
+        class: 'changelog-accordion changelog-archive-group',
+        id: `archive-group-${groupDefinition.id}`,
+      });
 
-        const groupAccordion = createTag('div', {
-          class: 'changelog-accordion changelog-archive-group',
-          id: `archive-group-${groupDefinition.id}`,
-        });
+      const accordionContentId = `changelog-archive-content-${groupDefinition.id}`;
+      const groupReleasesCount = groupData.releasesList.length;
+      const groupCountLabel = `${groupReleasesCount} release${groupReleasesCount === 1 ? '' : 's'}`;
 
-        const accordionContentId = `changelog-archive-content-${groupDefinition.id}`;
-        const groupReleasesCount = groupData.releasesList.length;
-        const groupCountLabel = `${groupReleasesCount} release${groupReleasesCount === 1 ? '' : 's'}`;
-
-        groupAccordion.innerHTML = `
+      groupAccordion.innerHTML = `
         <button class="spectrum-Heading spectrum-Heading--sizeXS changelog-accordion-trigger" type="button" aria-expanded="false" aria-controls="${accordionContentId}">
           <span class="changelog-accordion-left">
             <span class="changelog-accordion-title">${groupDefinition.label}</span>
@@ -827,152 +827,152 @@ export default async function decorate(block) {
         </div>
       `;
 
-        const accordionTrigger = groupAccordion.querySelector('.changelog-accordion-trigger');
-        const accordionContent = groupAccordion.querySelector('.changelog-accordion-content');
-        accordionTrigger.addEventListener('click', () => {
-          const isCurrentlyExpanded = accordionTrigger.getAttribute('aria-expanded') === 'true';
-          accordionTrigger.setAttribute('aria-expanded', String(!isCurrentlyExpanded));
-          accordionContent.hidden = isCurrentlyExpanded;
-        });
-
-        archiveSection.append(groupAccordion);
+      const accordionTrigger = groupAccordion.querySelector('.changelog-accordion-trigger');
+      const accordionContent = groupAccordion.querySelector('.changelog-accordion-content');
+      accordionTrigger.addEventListener('click', () => {
+        const isCurrentlyExpanded = accordionTrigger.getAttribute('aria-expanded') === 'true';
+        accordionTrigger.setAttribute('aria-expanded', String(!isCurrentlyExpanded));
+        accordionContent.hidden = isCurrentlyExpanded;
       });
-    }
 
-    function updateMonthSelectOptions() {
-      if (!monthSelect) {
+      archiveSection.append(groupAccordion);
+    });
+  }
+
+  function updateMonthSelectOptions() {
+    if (!monthSelect) {
+      return;
+    }
+    const updatedMonthOptions = getMonthOptionsForYear(filterState.year);
+    monthSelect.innerHTML = '';
+    let hasCurrentSelection = false;
+
+    updatedMonthOptions.forEach(({ value, text }) => {
+      const optionElement = createTag('option', { value });
+      optionElement.textContent = text;
+      if (String(value).toLowerCase() === String(filterState.month).toLowerCase()
+        || (filterState.month !== 'all' && text.toLowerCase() === String(filterState.month).toLowerCase())) {
+        optionElement.selected = true;
+        hasCurrentSelection = true;
+      }
+      monthSelect.appendChild(optionElement);
+    });
+
+    if (!hasCurrentSelection && filterState.month !== 'all') {
+      filterState.month = 'all';
+      monthSelect.value = 'all';
+      writeToUrl();
+    }
+  }
+
+  function matchesMonth(releaseItem) {
+    return filterState.month === 'all'
+      || releaseItem.monthName.toLowerCase() === String(filterState.month).toLowerCase();
+  }
+
+  // Filtering & Rendering logic
+  function getFilteredData() {
+    let totalMatchingChanges = 0;
+    const matchingReleases = [];
+
+    releases.forEach((releaseItem) => {
+      if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
         return;
       }
-      const updatedMonthOptions = getMonthOptionsForYear(filterState.year);
-      monthSelect.innerHTML = '';
-      let hasCurrentSelection = false;
-
-      updatedMonthOptions.forEach(({ value, text }) => {
-        const optionElement = createTag('option', { value });
-        optionElement.textContent = text;
-        if (String(value).toLowerCase() === String(filterState.month).toLowerCase()
-          || (filterState.month !== 'all' && text.toLowerCase() === String(filterState.month).toLowerCase())) {
-          optionElement.selected = true;
-          hasCurrentSelection = true;
-        }
-        monthSelect.appendChild(optionElement);
-      });
-
-      if (!hasCurrentSelection && filterState.month !== 'all') {
-        filterState.month = 'all';
-        monthSelect.value = 'all';
-        writeToUrl();
+      if (!matchesMonth(releaseItem)) {
+        return;
       }
-    }
 
-    function matchesMonth(releaseItem) {
-      return filterState.month === 'all'
-        || releaseItem.monthName.toLowerCase() === String(filterState.month).toLowerCase();
-    }
-
-    // Filtering & Rendering logic
-    function getFilteredData() {
-      let totalMatchingChanges = 0;
-      const matchingReleases = [];
-
-      releases.forEach((releaseItem) => {
-        if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
-          return;
+      if (releaseItem.changes.length === 0) {
+        if (filterState.module === 'all' && filterState.types.size === 0) {
+          matchingReleases.push(releaseItem);
         }
-        if (!matchesMonth(releaseItem)) {
-          return;
-        }
+        return;
+      }
 
-        if (releaseItem.changes.length === 0) {
-          if (filterState.module === 'all' && filterState.types.size === 0) {
-            matchingReleases.push(releaseItem);
-          }
-          return;
+      const matchingChanges = releaseItem.changes.filter((changeItem) => {
+        if (filterState.module !== 'all' && !changeItem.modules.includes(filterState.module)) {
+          return false;
         }
-
-        const matchingChanges = releaseItem.changes.filter((changeItem) => {
-          if (filterState.module !== 'all' && !changeItem.modules.includes(filterState.module)) {
-            return false;
-          }
-          if (filterState.types.size > 0 && !filterState.types.has(changeItem.type)) {
-            return false;
-          }
-          return true;
-        });
-
-        if (matchingChanges.length > 0) {
-          totalMatchingChanges += matchingChanges.length;
-          matchingReleases.push({ ...releaseItem, changes: matchingChanges });
+        if (filterState.types.size > 0 && !filterState.types.has(changeItem.type)) {
+          return false;
         }
+        return true;
       });
 
-      return { matchingReleases, totalMatchingChanges };
-    }
+      if (matchingChanges.length > 0) {
+        totalMatchingChanges += matchingChanges.length;
+        matchingReleases.push({ ...releaseItem, changes: matchingChanges });
+      }
+    });
 
-    function renderPills() {
-      pillsContainer.innerHTML = '';
-      const changeTypeCounts = { all: 0 };
-      ALL_TYPES.forEach((typeDefinition) => { changeTypeCounts[typeDefinition.key] = 0; });
+    return { matchingReleases, totalMatchingChanges };
+  }
 
-      releases.forEach((releaseItem) => {
-        if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
+  function renderPills() {
+    pillsContainer.innerHTML = '';
+    const changeTypeCounts = { all: 0 };
+    ALL_TYPES.forEach((typeDefinition) => { changeTypeCounts[typeDefinition.key] = 0; });
+
+    releases.forEach((releaseItem) => {
+      if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
+        return;
+      }
+      if (!matchesMonth(releaseItem)) {
+        return;
+      }
+
+      releaseItem.changes.forEach((changeItem) => {
+        if (filterState.module !== 'all' && !changeItem.modules.includes(filterState.module)) {
           return;
         }
-        if (!matchesMonth(releaseItem)) {
-          return;
+        changeTypeCounts.all += 1;
+        if (changeTypeCounts[changeItem.type] !== undefined) {
+          changeTypeCounts[changeItem.type] += 1;
         }
-
-        releaseItem.changes.forEach((changeItem) => {
-          if (filterState.module !== 'all' && !changeItem.modules.includes(filterState.module)) {
-            return;
-          }
-          changeTypeCounts.all += 1;
-          if (changeTypeCounts[changeItem.type] !== undefined) {
-            changeTypeCounts[changeItem.type] += 1;
-          }
-        });
       });
+    });
 
-      const isAllTypesSelected = filterState.types.size === 0;
-      const allPill = createTag('button', {
+    const isAllTypesSelected = filterState.types.size === 0;
+    const allPill = createTag('button', {
+      type: 'button',
+      class: `changelog-pill ${isAllTypesSelected ? 'is-selected' : ''}`,
+      'aria-pressed': String(isAllTypesSelected),
+    });
+    allPill.innerHTML = `<span>All types</span> <span class="changelog-pill-count">${changeTypeCounts.all}</span>`;
+    allPill.addEventListener('click', () => {
+      filterState.types.clear();
+      writeToUrl();
+      applyFilters();
+    });
+    pillsContainer.appendChild(allPill);
+
+    ALL_TYPES.forEach((typeDefinition) => {
+      const isSelected = filterState.types.has(typeDefinition.key);
+      const typePill = createTag('button', {
         type: 'button',
-        class: `changelog-pill ${isAllTypesSelected ? 'is-selected' : ''}`,
-        'aria-pressed': String(isAllTypesSelected),
+        class: `changelog-pill ${isSelected ? 'is-selected' : ''}`,
+        'aria-pressed': String(isSelected),
       });
-      allPill.innerHTML = `<span>All types</span> <span class="changelog-pill-count">${changeTypeCounts.all}</span>`;
-      allPill.addEventListener('click', () => {
-        filterState.types.clear();
+      typePill.innerHTML = `${getIconSvg(typeDefinition.icon)} <span>${typeDefinition.label}</span> <span class="changelog-pill-count">${changeTypeCounts[typeDefinition.key]}</span>`;
+      typePill.addEventListener('click', () => {
+        if (filterState.types.has(typeDefinition.key)) {
+          filterState.types.delete(typeDefinition.key);
+        } else {
+          filterState.types.add(typeDefinition.key);
+        }
         writeToUrl();
         applyFilters();
       });
-      pillsContainer.appendChild(allPill);
+      pillsContainer.appendChild(typePill);
+    });
+  }
 
-      ALL_TYPES.forEach((typeDefinition) => {
-        const isSelected = filterState.types.has(typeDefinition.key);
-        const typePill = createTag('button', {
-          type: 'button',
-          class: `changelog-pill ${isSelected ? 'is-selected' : ''}`,
-          'aria-pressed': String(isSelected),
-        });
-        typePill.innerHTML = `${getIconSvg(typeDefinition.icon)} <span>${typeDefinition.label}</span> <span class="changelog-pill-count">${changeTypeCounts[typeDefinition.key]}</span>`;
-        typePill.addEventListener('click', () => {
-          if (filterState.types.has(typeDefinition.key)) {
-            filterState.types.delete(typeDefinition.key);
-          } else {
-            filterState.types.add(typeDefinition.key);
-          }
-          writeToUrl();
-          applyFilters();
-        });
-        pillsContainer.appendChild(typePill);
-      });
-    }
+  function renderReleasesList(matchingReleases) {
+    resultsContainer.innerHTML = '';
 
-    function renderReleasesList(matchingReleases) {
-      resultsContainer.innerHTML = '';
-
-      if (matchingReleases.length === 0) {
-        resultsContainer.innerHTML = `
+    if (matchingReleases.length === 0) {
+      resultsContainer.innerHTML = `
         <div class="changelog-empty-state">
           <p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">No changes match the selected filters.</p>
           <button type="button" class="changelog-clear-btn spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM">
@@ -980,68 +980,68 @@ export default async function decorate(block) {
           </button>
         </div>
       `;
-        resultsContainer.querySelector('button').addEventListener('click', clearAllFilters);
-        return;
+      resultsContainer.querySelector('button').addEventListener('click', clearAllFilters);
+      return;
+    }
+
+    const releasesByYear = new Map();
+    matchingReleases.forEach((releaseItem) => {
+      if (!releasesByYear.has(releaseItem.year)) {
+        releasesByYear.set(releaseItem.year, []);
       }
+      releasesByYear.get(releaseItem.year).push(releaseItem);
+    });
 
-      const releasesByYear = new Map();
-      matchingReleases.forEach((releaseItem) => {
-        if (!releasesByYear.has(releaseItem.year)) {
-          releasesByYear.set(releaseItem.year, []);
-        }
-        releasesByYear.get(releaseItem.year).push(releaseItem);
-      });
-
-      releasesByYear.forEach((releasesInYear, year) => {
-        const yearSection = createTag('section', { class: 'changelog-year-section', 'aria-labelledby': `heading-year-${year}` });
-        yearSection.innerHTML = `
+    releasesByYear.forEach((releasesInYear, year) => {
+      const yearSection = createTag('section', { class: 'changelog-year-section', 'aria-labelledby': `heading-year-${year}` });
+      yearSection.innerHTML = `
         <div class="heading2 changelog-toc-target"><h2 id="${year}" class="spectrum-Heading spectrum-Heading--sizeM changelog-year-heading">${year}</h2></div>
         <div class="changelog-release-list"></div>
       `;
-        const releaseList = yearSection.querySelector('.changelog-release-list');
+      const releaseList = yearSection.querySelector('.changelog-release-list');
 
-        releasesInYear.forEach((releaseItem) => {
-          const cardId = (releaseItem.version ? releaseItem.version.replace(/\./g, '-') : `docs-${releaseItem.rawDate}`);
-          const releaseCard = createTag('article', { class: 'changelog-release-card', id: cardId });
+      releasesInYear.forEach((releaseItem) => {
+        const cardId = (releaseItem.version ? releaseItem.version.replace(/\./g, '-') : `docs-${releaseItem.rawDate}`);
+        const releaseCard = createTag('article', { class: 'changelog-release-card', id: cardId });
 
-          let badgeHtml = '';
-          if (releaseItem.isLatest) {
-            badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
-          } else if (releaseItem.kind && releaseKindsMap[releaseItem.kind]) {
-            if (!releaseItem.version || releaseItem.kind !== defaultReleaseKind) {
-              badgeHtml = `<span class="changelog-badge">${releaseKindsMap[releaseItem.kind]}</span>`;
-            }
-          } else if (releaseItem.kind && releaseItem.kind !== defaultReleaseKind) {
-            badgeHtml = `<span class="changelog-badge">${releaseItem.kind}</span>`;
+        let badgeHtml = '';
+        if (releaseItem.isLatest) {
+          badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
+        } else if (releaseItem.kind && releaseKindsMap[releaseItem.kind]) {
+          if (!releaseItem.version || releaseItem.kind !== defaultReleaseKind) {
+            badgeHtml = `<span class="changelog-badge">${releaseKindsMap[releaseItem.kind]}</span>`;
           }
+        } else if (releaseItem.kind && releaseItem.kind !== defaultReleaseKind) {
+          badgeHtml = `<span class="changelog-badge">${releaseItem.kind}</span>`;
+        }
 
-          let changesHtml = '';
-          if (releaseItem.changes.length === 0) {
-            changesHtml = `
+        let changesHtml = '';
+        if (releaseItem.changes.length === 0) {
+          changesHtml = `
             <div class="changelog-change-row">
               <div class="changelog-change-content">
                 <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">Maintenance release.</div>
               </div>
             </div>
           `;
-          } else {
-            changesHtml = releaseItem.changes.map((changeItem) => {
-              const iconType = ALL_TYPES.find((typeItem) => typeItem.key === changeItem.type)?.icon || 'new';
-              const typeLabel = ALL_TYPES.find((typeItem) => typeItem.key === changeItem.type)?.label || changeItem.type;
-              const moduleLabels = (changeItem.modules || []).map((moduleId) => modulesMap[moduleId] || moduleId).filter(Boolean);
-              const moduleHtml = moduleLabels.length > 0
-                ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${renderMarkdown(moduleLabels.join(', '))}</div>`
-                : '';
+        } else {
+          changesHtml = releaseItem.changes.map((changeItem) => {
+            const iconType = ALL_TYPES.find((typeItem) => typeItem.key === changeItem.type)?.icon || 'new';
+            const typeLabel = ALL_TYPES.find((typeItem) => typeItem.key === changeItem.type)?.label || changeItem.type;
+            const moduleLabels = (changeItem.modules || []).map((moduleId) => modulesMap[moduleId] || moduleId).filter(Boolean);
+            const moduleHtml = moduleLabels.length > 0
+              ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${renderMarkdown(moduleLabels.join(', '))}</div>`
+              : '';
 
-              const openBadgeHtml = changeItem.open ? '<span class="changelog-badge changelog-badge-open">Still open</span>' : '';
-              const actionHtml = changeItem.action ? `
+            const openBadgeHtml = changeItem.open ? '<span class="changelog-badge changelog-badge-open">Still open</span>' : '';
+            const actionHtml = changeItem.action ? `
               <div class="changelog-what-to-do type-${changeItem.type}">
                 <strong class="what-to-do-title">What to do:</strong>
                 <span>${renderMarkdown(changeItem.action)}</span>
               </div>
             ` : '';
 
-              return `
+            return `
               <div class="changelog-change-row type-${changeItem.type}">
                 <div class="changelog-change-type-col">
                   <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${changeItem.type}">
@@ -1058,14 +1058,14 @@ export default async function decorate(block) {
                 </div>
               </div>
             `;
-            }).join('');
-          }
+          }).join('');
+        }
 
-          const releaseHeading = releaseItem.version
-            ? (releaseItem.title ? `${releaseItem.version} · ${releaseItem.title}` : releaseItem.version)
-            : (releaseItem.title || releaseKindsMap[releaseItem.kind] || 'Update');
+        const releaseHeading = releaseItem.version
+          ? (releaseItem.title ? `${releaseItem.version} · ${releaseItem.title}` : releaseItem.version)
+          : (releaseItem.title || releaseKindsMap[releaseItem.kind] || 'Update');
 
-          releaseCard.innerHTML = `
+        releaseCard.innerHTML = `
           <div class="changelog-release-meta">
             <h3 class="spectrum-Heading spectrum-Heading--sizeS changelog-release-version">${releaseHeading}</h3>
             <time class="spectrum-Body spectrum-Body--sizeS changelog-release-date" datetime="${releaseItem.rawDate}">${releaseItem.date}</time>
@@ -1074,90 +1074,90 @@ export default async function decorate(block) {
           <div class="changelog-release-changes">${changesHtml}</div>
         `;
 
-          releaseList.appendChild(releaseCard);
-        });
-
-        resultsContainer.appendChild(yearSection);
+        releaseList.appendChild(releaseCard);
       });
+
+      resultsContainer.appendChild(yearSection);
+    });
+  }
+
+  function updateSummary(totalMatchingChanges, matchingReleasesCount) {
+    const isFiltered = filterState.module !== 'all' || filterState.year !== 'all' || filterState.month !== 'all' || filterState.types.size > 0;
+    summaryText.innerHTML = '';
+    const archiveSummaryText = isArchiveEnabled && totalArchivedReleasesCount > 0
+      ? ` and ${totalArchivedReleasesCount} in ${archiveSectionLabel.toLowerCase()}`
+      : '';
+
+    if (!isFiltered) {
+      summaryText.innerHTML = `Showing <strong>${totalMatchingChanges} changes</strong> in <strong>${matchingReleasesCount} releases</strong>${archiveSummaryText}`;
+    } else {
+      const summaryMessage = createTag('span');
+      summaryMessage.innerHTML = `Showing <strong>${totalMatchingChanges} changes</strong> in <strong>${matchingReleasesCount} releases</strong> · `;
+      const clearFiltersButton = createTag('button', { type: 'button', class: 'spectrum-Link changelog-clear-link' });
+      clearFiltersButton.textContent = 'Clear filters';
+      clearFiltersButton.addEventListener('click', clearAllFilters);
+      summaryText.append(summaryMessage, clearFiltersButton);
     }
+  }
 
-    function updateSummary(totalMatchingChanges, matchingReleasesCount) {
-      const isFiltered = filterState.module !== 'all' || filterState.year !== 'all' || filterState.month !== 'all' || filterState.types.size > 0;
-      summaryText.innerHTML = '';
-      const archiveSummaryText = isArchiveEnabled && totalArchivedReleasesCount > 0
-        ? ` and ${totalArchivedReleasesCount} in ${archiveSectionLabel.toLowerCase()}`
-        : '';
-
-      if (!isFiltered) {
-        summaryText.innerHTML = `Showing <strong>${totalMatchingChanges} changes</strong> in <strong>${matchingReleasesCount} releases</strong>${archiveSummaryText}`;
-      } else {
-        const summaryMessage = createTag('span');
-        summaryMessage.innerHTML = `Showing <strong>${totalMatchingChanges} changes</strong> in <strong>${matchingReleasesCount} releases</strong> · `;
-        const clearFiltersButton = createTag('button', { type: 'button', class: 'spectrum-Link changelog-clear-link' });
-        clearFiltersButton.textContent = 'Clear filters';
-        clearFiltersButton.addEventListener('click', clearAllFilters);
-        summaryText.append(summaryMessage, clearFiltersButton);
-      }
-    }
-
-    function clearAllFilters() {
-      filterState.module = 'all';
-      filterState.year = 'all';
-      filterState.month = 'all';
-      filterState.types.clear();
-
-      if (moduleSelect) {
-        moduleSelect.value = 'all';
-      }
-      if (yearSelect) {
-        yearSelect.value = 'all';
-      }
-      updateMonthSelectOptions();
-      if (monthSelect) {
-        monthSelect.value = 'all';
-      }
-
-      writeToUrl();
-      applyFilters();
-    }
-
-    function applyFilters() {
-      const { matchingReleases, totalMatchingChanges } = getFilteredData();
-      renderPills();
-      renderReleasesList(matchingReleases);
-      updateSummary(totalMatchingChanges, matchingReleases.length);
-    }
+  function clearAllFilters() {
+    filterState.module = 'all';
+    filterState.year = 'all';
+    filterState.month = 'all';
+    filterState.types.clear();
 
     if (moduleSelect) {
-      moduleSelect.addEventListener('change', (event) => {
-        filterState.module = event.target.value;
-        writeToUrl();
-        applyFilters();
-      });
+      moduleSelect.value = 'all';
     }
-
     if (yearSelect) {
-      yearSelect.addEventListener('change', (event) => {
-        filterState.year = event.target.value;
-        updateMonthSelectOptions();
-        writeToUrl();
-        applyFilters();
-      });
+      yearSelect.value = 'all';
     }
-
+    updateMonthSelectOptions();
     if (monthSelect) {
-      monthSelect.addEventListener('change', (event) => {
-        filterState.month = event.target.value;
-        writeToUrl();
-        applyFilters();
-      });
+      monthSelect.value = 'all';
     }
 
-    container.append(headerSection, filterCard, resultsContainer);
-    if (isArchiveEnabled && totalArchivedReleasesCount > 0) {
-      container.append(archiveSection);
-    }
-    block.appendChild(container);
-
+    writeToUrl();
     applyFilters();
   }
+
+  function applyFilters() {
+    const { matchingReleases, totalMatchingChanges } = getFilteredData();
+    renderPills();
+    renderReleasesList(matchingReleases);
+    updateSummary(totalMatchingChanges, matchingReleases.length);
+  }
+
+  if (moduleSelect) {
+    moduleSelect.addEventListener('change', (event) => {
+      filterState.module = event.target.value;
+      writeToUrl();
+      applyFilters();
+    });
+  }
+
+  if (yearSelect) {
+    yearSelect.addEventListener('change', (event) => {
+      filterState.year = event.target.value;
+      updateMonthSelectOptions();
+      writeToUrl();
+      applyFilters();
+    });
+  }
+
+  if (monthSelect) {
+    monthSelect.addEventListener('change', (event) => {
+      filterState.month = event.target.value;
+      writeToUrl();
+      applyFilters();
+    });
+  }
+
+  container.append(headerSection, filterCard, resultsContainer);
+  if (isArchiveEnabled && totalArchivedReleasesCount > 0) {
+    container.append(archiveSection);
+  }
+  block.appendChild(container);
+
+  applyFilters();
+}

@@ -223,7 +223,7 @@ export async function fetchSiteWideBanner() {
 
 /**
  * Retrieves the releases yml file
- * @returns {string} The releases yml file
+ * @returns {Promise<string>} The releases yml file
  */
 export async function fetchReleases() {
   const metadata = await fetchSiteMetadata();
@@ -235,7 +235,7 @@ export async function fetchReleases() {
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
   let releaseFile = metadataPath
     ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
-    : `${window.location.origin}/${pathPrefix}/releases.yml`;
+    : `${window.location.origin}/${pathPrefix}/releases.yaml`;
   let releasesYAML = await fetch(releaseFile)
     .then(response => {
       if (response.ok) {
@@ -253,7 +253,7 @@ export async function fetchReleases() {
 
 /**
  * Retrieves the releases yaml file
- * @returns {string} The releases yaml file
+ * @returns {Promise<string>} The releases yaml file
  */
 export async function fetchReleasesMetadata() {
   const metadata = await fetchSiteMetadata();
