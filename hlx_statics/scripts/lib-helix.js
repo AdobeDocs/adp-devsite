@@ -226,16 +226,17 @@ export async function fetchSiteWideBanner() {
  * @returns {Promise<string>} The changelog data file
  */
 export async function fetchChangelogData() {
-  const metadata = await fetchSiteMetadata();
-  if (!metadata) return undefined;
+  // const metadata = await fetchSiteMetadata();
+  // if (!metadata) return undefined;
 
-  if (!metadata.has('changelog-data')) return undefined;
-  const metadataPath = metadata.get('changelog-data');
+  // if (!metadata.has('changelog-data')) return undefined;
+  // const metadataPath = metadata.get('changelog-data');
 
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  let releaseFile = metadataPath
-    ? `${window.location.origin}/${pathPrefix}/${metadataPath}`
-    : `${window.location.origin}/${pathPrefix}/changelog-data.yml`;
+  let releaseFile =
+    // metadataPath
+    //   ? `${window.location.origin}/${pathPrefix}/${metadataPath}`:
+    `${window.location.origin}/${pathPrefix}/changelog-data.yml`;
   let releasesYAML = await fetch(releaseFile)
     .then(response => {
       if (response.ok) {
@@ -256,14 +257,15 @@ export async function fetchChangelogData() {
  * @returns {Promise<string>} The changelog setting file
  */
 export async function fetchChangelogSettings() {
-  const metadata = await fetchSiteMetadata();
-  const metadataPath = metadata?.has('changelog-settings') ? metadata.get('changelog-settings') : null;
+  // const metadata = await fetchSiteMetadata();
+  // const metadataPath = metadata?.has('changelog-settings') ? metadata.get('changelog-settings') : null;
 
   let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  const cleanPath = metadataPath?.replace(/^(\.\/|\/)?(src\/pages\/)?/, '');
-  let releaseFile = cleanPath
-    ? `${window.location.origin}/${pathPrefix}/${cleanPath}`
-    : `${window.location.origin}/${pathPrefix}/changelog-settings.yml`;
+  // const cleanPath = metadataPath?.replace(/^(\.\/|\/)?(src\/pages\/)?/, '');
+  let releaseFile =
+    // cleanPath
+    // ? `${window.location.origin}/${pathPrefix}/${cleanPath}`: 
+    `${window.location.origin}/${pathPrefix}/changelog-settings.yml`;
   let releasesYAML = await fetch(releaseFile)
     .then(response => {
       if (response.ok) {
