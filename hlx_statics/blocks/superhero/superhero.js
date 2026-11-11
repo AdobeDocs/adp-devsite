@@ -218,7 +218,7 @@ async function decorateDevBizDefault(block) {
 
   const existingBackground = block.style.background;
   const backgroundLayers = [
-    `url(${url}) center center / cover no-repeat`,
+    url && `url(${url}) center center / cover no-repeat`,
     existingBackground,
   ].filter(Boolean);
   block.style.background = backgroundLayers.join(', ');
