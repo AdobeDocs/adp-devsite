@@ -46,10 +46,15 @@ main div.changelog-wrapper div.changelog {
   }
 
   .changelog-quick-links {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 16px;
+    margin: 0 0 14px 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   .changelog-quick-link {
@@ -309,14 +314,23 @@ main div.changelog-wrapper div.changelog {
     overflow-wrap: anywhere;
   }
 
+  .changelog-change-types {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+  }
+
   .changelog-change-type {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    white-space: nowrap;
+    color: #505050;
+    line-height: 1.3;
 
     &.type-new,
-    &.type-improved {
+    &.type-improved,
+    &.type-update {
       color: #0265dc;
     }
 
@@ -354,29 +368,59 @@ main div.changelog-wrapper div.changelog {
     overflow-wrap: anywhere;
   }
 
+  .changelog-change-heading {
+    color: #111111;
+    margin: 0 0 4px 0;
+  }
+
+  .changelog-release-summary,
   .changelog-change-description {
     color: #222222;
     word-break: break-word;
     overflow-wrap: anywhere;
     line-height: 1.5;
 
+    p {
+      margin: 0 0 8px 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .changelog-release-summary,
+  .changelog-change-description,
+  .changelog-change-heading,
+  .changelog-what-to-do,
+  .changelog-archive-desc,
+  .changelog-older-desc {
     a {
-      color: rgb(0, 84, 182);
-      text-decoration: underline;
+      color: rgb(4, 105, 227);
+      text-decoration: none;
       text-underline-offset: 2px;
       transition: color 0.13s ease-in-out;
       word-break: break-word;
       overflow-wrap: anywhere;
 
+      code {
+        color: inherit;
+      }
+
       &:hover {
         color: #0265dc;
+        text-decoration: underline;
       }
     }
   }
 
+  .changelog-release-summary code,
   .changelog-change-description code,
+  .changelog-change-heading code,
   .changelog-what-to-do code,
-  .changelog-change-module code {
+  .changelog-change-module code,
+  .changelog-archive-desc code,
+  .changelog-older-desc code {
     font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
     background-color: #f4f4f4;
     color: #222222;
@@ -386,6 +430,29 @@ main div.changelog-wrapper div.changelog {
     word-break: break-word;
     overflow-wrap: anywhere;
     white-space: normal;
+  }
+
+  pre.changelog-code-block {
+    margin: 10px 0 4px 0;
+    padding: 14px 16px;
+    border-radius: 6px;
+    background-color: #262626;
+    color: #f4f4f4;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+
+    code {
+      font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      white-space: pre;
+      word-break: normal;
+      overflow-wrap: normal;
+    }
   }
 
   .changelog-loading {
@@ -561,19 +628,6 @@ main div.changelog-wrapper div.changelog {
   .changelog-older-desc {
     flex: 1;
     color: #4b4b4b;
-
-    a {
-      color: rgb(0, 84, 182);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      transition: color 0.13s ease-in-out;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-
-      &:hover {
-        color: #0265dc;
-      }
-    }
   }
 
   @media (max-width: 860px) {
