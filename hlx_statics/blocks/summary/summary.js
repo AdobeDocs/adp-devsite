@@ -42,10 +42,9 @@ export default async function decorate(block) {
       buttonParagraphs.push(p);
     }
     hasLinks.forEach((button) => {
-      const isPrimaryButton = block.classList.contains('primarybutton') || button.classList.contains('spectrum-Button--fill');
       button.className = '';
       // Keep bold primary links filled with accent styling; default plain links to secondary button.
-      if (isPrimaryButton) {
+      if (block.classList.contains('primarybutton')) {
         button.classList.add('spectrum-Button', 'spectrum-Button--fill', 'spectrum-Button--accent', 'spectrum-Button--sizeM');
       } else {
         button.classList.add('spectrum-Button', 'spectrum-Button--secondary', 'spectrum-Button--sizeM', 'spectrumButton--overBackground', 'spectrum-Button--outline');
