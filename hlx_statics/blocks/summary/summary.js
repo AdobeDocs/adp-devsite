@@ -43,7 +43,7 @@ export default async function decorate(block) {
     }
     hasLinks.forEach((button) => {
       button.className = '';
-      // Keep bold primary links filled with accent styling; default plain links to secondary button.
+      // make default to secondary button.  The author can add 'primarybutton' to change the button to filled with blue.
       if (block.classList.contains('primarybutton')) {
         button.classList.add('spectrum-Button', 'spectrum-Button--fill', 'spectrum-Button--accent', 'spectrum-Button--sizeM');
       } else {
