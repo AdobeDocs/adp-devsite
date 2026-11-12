@@ -101,7 +101,22 @@ main div.summary-wrapper div.summary p {
   margin-top: 0;
 }
 
-main div.summary-wrapper  div.summary p a:hover {
+main div.summary-wrapper div.summary .summary-button-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+main div.summary-wrapper div.summary .summary-button-container p {
+  margin-bottom: 0 !important;
+}
+
+main div.summary-wrapper div.summary p a.spectrum-Button:hover {
+  text-decoration: none;
+}
+
+main div.summary-wrapper div.summary p a:not(.spectrum-Button--fill):hover {
   color: rgb(84, 84, 84);
 }
 
@@ -138,7 +153,7 @@ main div.summary-wrapper div.summary.background-color-white .spectrum-Button--se
   border-color: rgb(44, 44, 44) !important;
 }
 
-main div.summary-wrapper div.summary.background-color-white p a:hover, main div.summary-wrapper div.summary.background-color-gray p a:hover {
+main div.summary-wrapper div.summary.background-color-white p a:not(.spectrum-Button--fill):hover, main div.summary-wrapper div.summary.background-color-gray p a:not(.spectrum-Button--fill):hover {
   color: rgb(44, 44, 44);
 }
 
