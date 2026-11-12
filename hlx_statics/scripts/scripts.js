@@ -461,7 +461,7 @@ export async function loadSearch() {
   }
 
   window.adp_search.APP_KEY = 'E642SEDTHL';
-  window.adp_search.API_KEY = '6d498e750458eb371e764fcc11212df4';
+  window.adp_search.API_KEY = 'fb8c09ab9a22389c7535557f72743020';
   window.adp_search.map_found = true;
 
   //if no map found then don't initialze search at all
