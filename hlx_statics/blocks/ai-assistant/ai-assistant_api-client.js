@@ -411,20 +411,18 @@ export class AiApiClient {
     sessionId = null,
     callbacks = {},
   }) {
-    const defaultSystemPrompt = `
-      Use markdown formatting and codeblocks for the response.
-    `;
-
-    /** @type {RequestBody} */
-    const body = {
-      query: `
-        <system>
-          ${systemPrompt || defaultSystemPrompt}
-        </system>
+    let queryContent = query;
+    if(systemPrompt?.length) {
+      queryContent = `
+        <system>${systemPrompt}</system>
         <question>
           ${query}
         </question>
-      `,
+      `;
+    }
+    /** @type {RequestBody} */
+    const body = {
+      query: queryContent,
       includeFollowupQuestions: true,
       followupQuestionsCount: 2,
     };
