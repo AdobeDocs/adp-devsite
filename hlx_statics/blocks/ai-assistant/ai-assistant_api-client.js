@@ -36,21 +36,29 @@ import { isProdEnvironment } from "../../scripts/lib-adobeio.js";
 /**
  * @typedef {Object} RetrievedReferenceMetadata
  * @property {string} url
- * @property {string} collectionId
+ * @property {string|string[]} [collectionId]
  * @property {string} [title]
- * @property {string[]} [keywords]
+ * @property {string|string[]} [keywords]
  */
 
 /**
  * @typedef {Object} RetrievedReference
  * @property {string} content
  * @property {RetrievedReferenceMetadata} metadata
+ * @property {string} [label]
+ */
+
+/**
+ * Exclusive range in original raw Markdown.
+ * @typedef {{start: number, end: number}} CitationRange
  */
 
 /**
  * @typedef {Object} Citation
  * @property {string} generatedResponsePart
  * @property {RetrievedReference[]} retrievedReferences
+ * @property {CitationRange} [textRange] - Placement field; missing/invalid means Sources-only
+ * @property {CitationRange} [span] - Present in the sample, not used for placement
  */
 
 /**
@@ -403,20 +411,18 @@ export class AiApiClient {
     sessionId = null,
     callbacks = {},
   }) {
-    const defaultSystemPrompt = `
-      Use markdown formatting and codeblocks for the response.
-    `;
-
-    /** @type {RequestBody} */
-    const body = {
-      query: `
-        <system>
-          ${systemPrompt || defaultSystemPrompt}
-        </system>
+    let queryContent = query;
+    if(systemPrompt?.length) {
+      queryContent = `
+        <system>${systemPrompt}</system>
         <question>
           ${query}
         </question>
-      `,
+      `;
+    }
+    /** @type {RequestBody} */
+    const body = {
+      query: queryContent,
       includeFollowupQuestions: true,
       followupQuestionsCount: 2,
     };
