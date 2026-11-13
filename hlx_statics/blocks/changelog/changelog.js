@@ -30,8 +30,6 @@ function getIconSvg(changeType) {
   return iconSvgs[changeType] || defaultIcon;
 }
 
-const TYPE_ACRONYMS = new Set(['api', 'cli', 'css', 'dom', 'html', 'json', 'pdf', 'sdk', 'ui', 'url', 'uxp', 'xml']);
-
 /**
  * Splits a comma-separated change type string or array into trimmed tokens.
  * @param {string|string[]|null|undefined} rawType Raw change type value
@@ -71,7 +69,7 @@ function parseChangeTypes(rawType) {
 }
 
 /**
- * Formats a type key into a display label, preserving authored casing/acronyms when available.
+ * Formats a type key into a display label, preserving authored casing when available.
  * @param {string} typeKey Normalized type key
  * @param {string} [rawToken] Original authored token
  * @returns {string}
@@ -83,7 +81,7 @@ function formatTypeLabel(typeKey, rawToken = '') {
   return typeKey
     .split(/[-_\s]+/)
     .filter(Boolean)
-    .map((word) => (TYPE_ACRONYMS.has(word) ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1)))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
 
@@ -129,21 +127,39 @@ function escapeHtml(text) {
 }
 
 /**
- * Formats markdown prose segments (inline code, links, bold, italic, and line breaks).
+ * Formats inline code (`code`), bold (**text**), and italic (*text*) in a prose fragment.
+ */
+function formatInlineCodeAndEmphasis(textFragment) {
+  return textFragment
+    .split(/(`[^`]+`)/g)
+    .map((fragment) => {
+      if (fragment.startsWith('`') && fragment.endsWith('`') && fragment.length >= 2) {
+        return `<code>${escapeHtml(fragment.slice(1, -1))}</code>`;
+      }
+      return fragment
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    })
+    .join('');
+}
+
+/**
+ * Formats markdown prose segments (inline code, links, bold, italic).
  */
 function formatMarkdownProse(proseText) {
-  let formattedProse = proseText;
-  // Links [text](url)
-  formattedProse = formattedProse.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, linkLabel, linkUrl) => {
-    const isExternalLink = /^https?:\/\//i.test(linkUrl);
-    const targetAttribute = isExternalLink ? ' target="_blank" rel="noopener noreferrer"' : '';
-    return `<a href="${linkUrl}"${targetAttribute}>${linkLabel}</a>`;
-  });
-  // Bold **text**
-  formattedProse = formattedProse.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  // Italic *text*
-  formattedProse = formattedProse.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  return formattedProse;
+  return proseText
+    .split(/(`[^`]+`|\[[^\]]+\]\([^)]+\))/g)
+    .map((fragment) => {
+      const linkMatch = !fragment.startsWith('`') && fragment.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        const [, linkLabel, linkUrl] = linkMatch;
+        const isExternalLink = /^https?:\/\//i.test(linkUrl);
+        const targetAttribute = isExternalLink ? ' target="_blank" rel="noopener noreferrer"' : '';
+        return `<a href="${linkUrl}"${targetAttribute}>${formatInlineCodeAndEmphasis(linkLabel)}</a>`;
+      }
+      return formatInlineCodeAndEmphasis(fragment);
+    })
+    .join('');
 }
 
 /**
@@ -155,32 +171,16 @@ function renderMarkdown(markdownText) {
     return '';
   }
 
-  const codeBlocks = [];
-  const inlineCodeTokens = [];
-  let tokenizedText = String(markdownText);
+  const rawText = String(markdownText);
+  const segments = rawText.split(/(```[a-z0-9_-]*\r?\n[\s\S]*?```)/gi);
+  const hasBlockContent = segments.length > 1 || /\r?\n{2,}/.test(rawText);
 
-  // Extract fenced code blocks before inline formatting so code contents stay untouched
-  tokenizedText = tokenizedText.replace(/```([a-z0-9_-]*)\r?\n([\s\S]*?)```/gi, (_, language, codeContent) => {
-    const languageClass = language ? ` class="language-${language.toLowerCase()}"` : '';
-    const token = `__CHANGELOG_CODE_BLOCK_${codeBlocks.length}__`;
-    codeBlocks.push(`<pre class="changelog-code-block"><code${languageClass}>${escapeHtml(codeContent.replace(/\r?\n$/, ''))}</code></pre>`);
-    return token;
-  });
-
-  // Extract inline code chips `code` so links/emphasis do not mutate code text
-  tokenizedText = tokenizedText.replace(/`([^`]+)`/g, (_, codeText) => {
-    const token = `__CHANGELOG_INLINE_CODE_${inlineCodeTokens.length}__`;
-    inlineCodeTokens.push(`<code>${escapeHtml(codeText)}</code>`);
-    return token;
-  });
-
-  const hasBlockContent = codeBlocks.length > 0 || /\r?\n{2,}/.test(tokenizedText);
-  const segments = tokenizedText.split(/(__CHANGELOG_CODE_BLOCK_\d+__)/g);
-
-  let formattedHtml = segments.map((segment) => {
-    const codeBlockMatch = segment.match(/^__CHANGELOG_CODE_BLOCK_(\d+)__$/);
+  return segments.map((segment) => {
+    const codeBlockMatch = segment.match(/^```([a-z0-9_-]*)\r?\n([\s\S]*?)```$/i);
     if (codeBlockMatch) {
-      return codeBlocks[Number(codeBlockMatch[1])] || '';
+      const [, language, codeContent] = codeBlockMatch;
+      const languageClass = language ? ` class="language-${language.toLowerCase()}"` : '';
+      return `<pre class="changelog-code-block"><code${languageClass}>${escapeHtml(codeContent.replace(/\r?\n$/, ''))}</code></pre>`;
     }
 
     const trimmedSegment = hasBlockContent ? segment.replace(/^\r?\n+|\r?\n+$/g, '') : segment;
@@ -200,9 +200,6 @@ function renderMarkdown(markdownText) {
       .map((paragraph) => `<p>${paragraph.replace(/\r?\n/g, '<br>')}</p>`)
       .join('');
   }).join('');
-
-  formattedHtml = formattedHtml.replace(/__CHANGELOG_INLINE_CODE_(\d+)__/g, (_, index) => inlineCodeTokens[Number(index)] || '');
-  return formattedHtml;
 }
 
 /**
@@ -401,9 +398,7 @@ export default async function decorate(block) {
 
   let totalArchivedReleasesCount = 0;
   const rawReleasesList = Array.isArray(parsedReleasesDocument?.releases) ? parsedReleasesDocument.releases : [];
-  const defaultReleaseKind = parsedReleasesMetadata?.defaultKind
-    || rawReleasesList.find((releaseItem) => releaseItem.version && releaseItem.kind)?.kind
-    || '';
+  const defaultReleaseKind = parsedReleasesMetadata?.defaultKind || '';
 
   const authoredTitle = block.querySelector('h1, h2, h3')?.textContent?.trim();
   const authoredDescription = block.querySelector('p')?.textContent?.trim();
@@ -473,38 +468,64 @@ export default async function decorate(block) {
   });
 
   const configuredTypesMap = parsedReleasesMetadata?.types || {};
-  const availableTypes = [];
-  const addedTypeKeys = new Set();
-
-  ALL_TYPES.forEach((typeItem) => {
-    if (authoredTypeLabels.has(typeItem.key)) {
-      const configuredType = configuredTypesMap[typeItem.key];
-      availableTypes.push({
-        ...typeItem,
-        label: configuredType?.label || typeItem.label,
-        icon: configuredType?.icon || typeItem.icon,
-      });
-      addedTypeKeys.add(typeItem.key);
-    }
-  });
-
-  authoredTypeLabels.forEach((rawToken, typeKey) => {
-    if (!addedTypeKeys.has(typeKey)) {
-      const configuredType = configuredTypesMap[typeKey];
-      availableTypes.push({
-        key: typeKey,
-        label: configuredType?.label || formatTypeLabel(typeKey, rawToken),
-        icon: configuredType?.icon || typeKey,
-      });
-      addedTypeKeys.add(typeKey);
-    }
-  });
-
-  // Extract filter definitions from metadata
   const configuredFilters = parsedReleasesMetadata
     ? (Array.isArray(parsedReleasesMetadata.filters) ? parsedReleasesMetadata.filters : [])
     : null;
+  const typeFilterMetadata = (parsedReleasesMetadata?.filters || []).find((filterDefinition) => filterDefinition.id === 'type');
+  const defaultTypesByKey = new Map(ALL_TYPES.map((typeItem) => [typeItem.key, typeItem]));
 
+  const availableTypes = [];
+  const addedTypeKeys = new Set();
+
+  if (Array.isArray(typeFilterMetadata?.options)) {
+    typeFilterMetadata.options.forEach((optionItem) => {
+      const rawOptionId = typeof optionItem === 'object'
+        ? (optionItem?.id || optionItem?.key || optionItem?.value || '')
+        : String(optionItem || '');
+      const typeKey = normalizeTypeKey(rawOptionId);
+      if (!typeKey || addedTypeKeys.has(typeKey)) {
+        return;
+      }
+
+      const defaultType = defaultTypesByKey.get(typeKey);
+      const configuredType = configuredTypesMap[typeKey];
+      const optionLabel = typeof optionItem === 'object' ? optionItem?.label : '';
+      const optionIcon = typeof optionItem === 'object' ? optionItem?.icon : '';
+
+      availableTypes.push({
+        key: typeKey,
+        label: optionLabel || configuredType?.label || defaultType?.label || formatTypeLabel(typeKey, rawOptionId),
+        icon: optionIcon || configuredType?.icon || defaultType?.icon || typeKey,
+      });
+      addedTypeKeys.add(typeKey);
+    });
+  } else {
+    ALL_TYPES.forEach((typeItem) => {
+      if (authoredTypeLabels.has(typeItem.key)) {
+        const configuredType = configuredTypesMap[typeItem.key];
+        availableTypes.push({
+          ...typeItem,
+          label: configuredType?.label || typeItem.label,
+          icon: configuredType?.icon || typeItem.icon,
+        });
+        addedTypeKeys.add(typeItem.key);
+      }
+    });
+
+    authoredTypeLabels.forEach((rawToken, typeKey) => {
+      if (!addedTypeKeys.has(typeKey)) {
+        const configuredType = configuredTypesMap[typeKey];
+        availableTypes.push({
+          key: typeKey,
+          label: configuredType?.label || formatTypeLabel(typeKey, rawToken),
+          icon: configuredType?.icon || typeKey,
+        });
+        addedTypeKeys.add(typeKey);
+      }
+    });
+  }
+
+  // Extract remaining filter definitions from metadata
   const isFilterConfigured = (filterId) => {
     if (configuredFilters === null) {
       return true;
@@ -754,7 +775,7 @@ export default async function decorate(block) {
   }
 
   const typeRow = createTag('div', { class: 'changelog-filter-row-types' });
-  typeRow.innerHTML = '<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">Type of change</div>';
+  typeRow.innerHTML = `<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">${escapeHtml(typeFilterMetadata?.label || 'Type of change')}</div>`;
   const pillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': 'Filter by change type' });
   typeRow.append(pillsContainer);
 
@@ -940,12 +961,13 @@ export default async function decorate(block) {
     });
 
     const isAllTypesSelected = filterState.types.size === 0;
+    const allTypesLabel = typeFilterMetadata?.allLabel || 'All types';
     const allPill = createTag('button', {
       type: 'button',
       class: `changelog-pill ${isAllTypesSelected ? 'is-selected' : ''}`,
       'aria-pressed': String(isAllTypesSelected),
     });
-    allPill.innerHTML = `<span>All types</span> <span class="changelog-pill-count">${changeTypeCounts.all}</span>`;
+    allPill.innerHTML = `<span>${escapeHtml(allTypesLabel)}</span> <span class="changelog-pill-count">${changeTypeCounts.all}</span>`;
     allPill.addEventListener('click', () => {
       filterState.types.clear();
       writeToUrl();
@@ -960,7 +982,7 @@ export default async function decorate(block) {
         class: `changelog-pill ${isSelected ? 'is-selected' : ''}`,
         'aria-pressed': String(isSelected),
       });
-      typePill.innerHTML = `${getIconSvg(typeDefinition.icon)} <span>${typeDefinition.label}</span> <span class="changelog-pill-count">${changeTypeCounts[typeDefinition.key]}</span>`;
+      typePill.innerHTML = `${getIconSvg(typeDefinition.icon)} <span>${escapeHtml(typeDefinition.label)}</span> <span class="changelog-pill-count">${changeTypeCounts[typeDefinition.key]}</span>`;
       typePill.addEventListener('click', () => {
         if (filterState.types.has(typeDefinition.key)) {
           filterState.types.delete(typeDefinition.key);
@@ -1032,7 +1054,9 @@ export default async function decorate(block) {
           badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
         } else if (releaseItem.kind) {
           const kindLabel = releaseKindsMap[releaseItem.kind] || releaseItem.kind;
-          const isDefaultVersionedRelease = Boolean(releaseItem.version && releaseItem.kind === defaultReleaseKind);
+          const isDefaultVersionedRelease = Boolean(
+            defaultReleaseKind && releaseItem.version && releaseItem.kind === defaultReleaseKind,
+          );
           const isFilteredBySameKind = filterState.types.has(String(releaseItem.kind).toLowerCase());
           if (!isDefaultVersionedRelease && !isFilteredBySameKind && kindLabel.toLowerCase() !== releaseHeading.toLowerCase()) {
             badgeHtml = `<span class="changelog-badge">${kindLabel}</span>`;
@@ -1061,12 +1085,17 @@ export default async function decorate(block) {
               .join(' ');
             const typesHtml = changeItem.types.map((typeKey) => {
               const typeDefinition = availableTypes.find((typeItem) => typeItem.key === typeKey);
-              const iconType = typeDefinition?.icon || typeKey;
-              const typeLabel = typeDefinition?.label || formatTypeLabel(typeKey);
+              const configuredType = configuredTypesMap[typeKey];
+              const defaultType = defaultTypesByKey.get(typeKey);
+              const iconType = typeDefinition?.icon || configuredType?.icon || defaultType?.icon || typeKey;
+              const typeLabel = typeDefinition?.label
+                || configuredType?.label
+                || defaultType?.label
+                || formatTypeLabel(typeKey, authoredTypeLabels.get(typeKey));
               const safeTypeClass = typeKey.replace(/[^a-z0-9_-]/g, '-');
               return `
                 <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${safeTypeClass}">
-                  ${getIconSvg(iconType)} <span>${typeLabel}</span>
+                  ${getIconSvg(iconType)} <span>${escapeHtml(typeLabel)}</span>
                 </div>
               `;
             }).join('');
