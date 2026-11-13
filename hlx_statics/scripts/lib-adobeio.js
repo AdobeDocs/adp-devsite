@@ -46,7 +46,11 @@ export function checkExternalLink(main) {
       const [_, queryString] = url.split('?');
       const searchParams = new URLSearchParams(queryString);
       const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live', 'aem.page', 'aem.live', 'localhost', '127.0.0.1'];
-      const isExternal = !internalDomains.some(domain => url.includes(domain)) || searchParams.has('aio_external');
+      // Same-origin links are internal on any host, including local test hosts
+      // such as host.docker.internal that are not in the domain list.
+      const isInternal = a.origin === window.location.origin
+        || internalDomains.some(domain => url.includes(domain));
+      const isExternal = !isInternal || searchParams.has('aio_external');
       if (isExternal) {
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
