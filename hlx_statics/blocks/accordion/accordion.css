@@ -7,8 +7,8 @@ main div.accordion-wrapper div.accordion .accordion-div {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 1280px !important;
-    margin: auto !important;
+    width: 1280px;
+    margin: auto;
 }
 
 main div.accordion-wrapper {
