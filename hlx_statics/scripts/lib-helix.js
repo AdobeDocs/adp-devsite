@@ -476,6 +476,9 @@ export async function decorateIcons(element = document) {
           if (iconHTML.match(/<style/i)) {
             const img = document.createElement('img');
             img.src = `data:image/svg+xml,${encodeURIComponent(iconHTML)}`;
+            // Icons are decorative; an empty alt keeps screen readers from
+            // announcing an unnamed image.
+            img.alt = '';
             span.appendChild(img);
           } else {
             span.innerHTML = iconHTML;
