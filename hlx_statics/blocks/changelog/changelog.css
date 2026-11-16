@@ -91,7 +91,7 @@ main div.changelog-wrapper div.changelog {
 
   .changelog-filter-row-dropdowns {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
     margin-bottom: 20px;
   }
@@ -132,12 +132,136 @@ main div.changelog-wrapper div.changelog {
     }
   }
 
+  .changelog-multiselect-group {
+    position: relative;
+  }
+
+  .changelog-multiselect-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .changelog-multiselect-trigger {
+    width: 100%;
+    height: 38px;
+    padding: 0 32px 0 12px;
+    border: 1px solid #c1c1c1;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #222222;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+    position: relative;
+
+    &:hover:not(:focus) {
+      border-color: #999999;
+    }
+
+    &:focus,
+    &[aria-expanded="true"] {
+      outline: none;
+      border: 2px solid #0265dc;
+      padding-left: 11px;
+    }
+  }
+
+  .changelog-multiselect-trigger-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    max-width: calc(100% - 16px);
+  }
+
+  .changelog-multiselect-trigger-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    color: #4b4b4b;
+    transition: transform 0.15s ease;
+  }
+
+  .changelog-multiselect-trigger[aria-expanded="true"] .changelog-multiselect-trigger-icon {
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  .changelog-multiselect-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    min-width: 200px;
+    max-height: 280px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 1px solid #d5d5d5;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+    padding: 6px 0;
+    box-sizing: border-box;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .changelog-multiselect-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #222222;
+    transition: background-color 0.1s ease;
+    user-select: none;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+
+    input[type="checkbox"] {
+      margin: 0;
+      width: 16px;
+      height: 16px;
+      accent-color: #0265dc;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+  }
+
+  .changelog-multiselect-option-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .changelog-multiselect-divider {
+    height: 1px;
+    background-color: #e6e6e6;
+    margin: 4px 0;
+  }
+
   .changelog-filter-label {
     color: #222222;
     margin-bottom: 6px;
   }
 
-  .changelog-filter-row-types {
+  .changelog-filter-row-types,
+  .changelog-filter-row-pills {
     margin-bottom: 18px;
   }
 
@@ -224,8 +348,45 @@ main div.changelog-wrapper div.changelog {
     margin-top: 10px;
   }
 
+  .changelog-table-header {
+    display: flex;
+    gap: 32px;
+    margin: 0 0 16px 0;
+    padding: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #111111;
+  }
+
+  .changelog-header-col-version {
+    width: 180px;
+    flex-shrink: 0;
+  }
+
+  .changelog-header-changes {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 20px;
+  }
+
+  .changelog-header-col-type {
+    width: 140px;
+    flex-shrink: 0;
+  }
+
+  .changelog-header-col-desc {
+    flex: 1;
+    min-width: 0;
+  }
+
   .changelog-year-section {
     margin-bottom: 48px;
+
+    &:first-child .changelog-year-heading {
+      margin-top: 12px;
+    }
   }
 
   .changelog-year-heading {
@@ -248,7 +409,8 @@ main div.changelog-wrapper div.changelog {
   }
 
   .changelog-release-list .changelog-release-card:first-child {
-    border-top: 1px solid #e6e6e6;
+    border-top: none;
+    padding-top: 0;
   }
 
   .changelog-release-meta {
@@ -343,12 +505,48 @@ main div.changelog-wrapper div.changelog {
       color: #e68619;
     }
 
+    &.type-duplicate {
+      color: #b37800;
+    }
+
     &.type-fixed {
-      color: #222222;
+      color: #0a7c52;
     }
 
     &.type-docs {
-      color: #444ad0;
+      color: #6e6e6e;
+    }
+
+    &.type-test,
+    &.type-navy {
+      color: #001f5c;
+    }
+
+    /* Experimental pill badge - only inside the changelog table */
+    &.type-experimental,
+    &.type-api {
+      background-color: #b84a00;
+      /* WCAG 2.1 AA compliant orange: 5.23:1 contrast against white */
+      color: #ffffff !important;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+
+      .changelog-type-icon {
+        display: none;
+      }
+    }
+  }
+
+  .changelog-markdown-list {
+    margin: 6px 0 6px 18px;
+    padding-left: 0;
+    line-height: 1.5;
+
+    li {
+      margin-bottom: 4px;
     }
   }
 
@@ -631,6 +829,10 @@ main div.changelog-wrapper div.changelog {
   }
 
   @media (max-width: 860px) {
+    .changelog-table-header {
+      display: none;
+    }
+
     .changelog-filter-row-dropdowns {
       grid-template-columns: 1fr;
       gap: 12px;
