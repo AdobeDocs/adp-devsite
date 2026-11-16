@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { hideNonComponentContent } from '../visual-test-utils.mjs';
 
@@ -315,38 +316,15 @@ async function expectButtons(block, buttons) {
   }
 }
 
-function relativeLuminance([r, g, b]) {
-  const [rl, gl, bl] = [r, g, b].map((channel) => {
-    const c = channel / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
-}
-
-function contrastRatio(foreground, background) {
-  const [lighter, darker] = [relativeLuminance(foreground), relativeLuminance(background)]
-    .sort((a, b) => b - a);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-function parseRgb(value) {
-  return value.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number);
-}
-
-async function textStyle(locator) {
-  return locator.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return {
-      color: style.color,
-      fontSize: Number.parseFloat(style.fontSize),
-      fontWeight: Number.parseInt(style.fontWeight, 10),
-    };
-  });
-}
-
-// WCAG large text is at least 24px, or 18.66px when bold.
-function requiredContrast({ fontSize, fontWeight }) {
-  return fontSize >= 24 || (fontSize >= 18.66 && fontWeight >= 700) ? 3 : 4.5;
+/**
+ * Known WCAG AA contrast failures that axe reports. Remove each case once fixed.
+ */
+function hasKnownContrastIssue(example) {
+  // 20px white body text on the default rgb(29, 125, 238) background is 4.02:1.
+  const whiteOnDefaultBlue = example.background === defaultBlue && !example.image;
+  // 14px gray #6e6e6e secondary button text on light blue #c5dbff is 3.63:1.
+  const grayButtonOnLightBlue = example.background === lightBlue;
+  return whiteOnDefaultBlue || grayButtonOnLightBlue;
 }
 
 async function expectButtonContainer(block, example) {
@@ -641,30 +619,21 @@ test.describe('Superhero reference', () => {
     });
   });
 
-  test.describe('Contrast', () => {
-    allExamples
-      .filter((example) => !example.image && !example.backgroundImage)
-      .forEach((example) => {
-        test(`${example.slug} text meets WCAG AA contrast`, async ({ page }) => {
-          // Known issue: 20px white body text on the default rgb(29, 125, 238)
-          // background is 4.02:1, below the 4.5:1 AA minimum. Remove test.fail once fixed.
-          test.fail(example.background === defaultBlue);
-          const block = await openSuperheroPage(page, example.path);
-          const backgroundOwner = example.variantClass === 'half-width' ? getWrapper(page) : block;
-          const background = parseRgb(await backgroundOwner.evaluate(
-            (el) => getComputedStyle(el).backgroundColor,
-          ));
+  test.describe('Accessibility', () => {
+    allExamples.forEach((example) => {
+      test(`${example.slug} has no axe WCAG A/AA violations`, async ({ page }) => {
+        test.fail(hasKnownContrastIssue(example));
+        await openSuperheroPage(page, example.path);
 
-          for (const [label, locator] of [
-            ['heading', block.getByRole('heading', { name: headingText })],
-            ['description', block.getByText(descriptionText, { exact: true })],
-          ]) {
-            const style = await textStyle(locator);
-            const ratio = contrastRatio(parseRgb(style.color), background);
-            expect(ratio, `${label} contrast ${ratio.toFixed(2)}:1 at ${style.fontSize}px`)
-              .toBeGreaterThanOrEqual(requiredContrast(style));
-          }
-        });
+        // Scan the wrapper: Half Width paints its background color there.
+        // Axe cannot measure contrast over background images; it reports
+        // those as incomplete, not as violations.
+        const results = await new AxeBuilder({ page })
+          .include('main .superhero-wrapper')
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+          .analyze();
+        expect(results.violations).toEqual([]);
       });
+    });
   });
 });
