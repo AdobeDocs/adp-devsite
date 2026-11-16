@@ -359,7 +359,7 @@ function restructureAsDevBiz(block) {
 function applyDataAttributeStyles(block) {
   const variant = block.getAttribute('data-variant') || VARIANTS.default;
 
-  const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(29, 125, 238)';
+  const defaultBackgroundColor = variant === VARIANTS.halfWidth ? 'rgb(255, 255, 255)' : 'rgb(19, 115, 230)';
   const background = block.getAttribute('data-background') || defaultBackgroundColor;
   if(variant === VARIANTS.halfWidth) {
     const wrapper = block.parentElement;
