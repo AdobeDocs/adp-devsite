@@ -13,12 +13,12 @@ const resources = [
   },
   {
     name: 'Endpoint guides',
-    href: `${path}endpoints/`,
+    href: `https://developer.adobe.com${path}endpoints/`,
     external: false,
   },
   {
     name: 'API reference',
-    href: 'https://example.com/api-reference',
+    href: '/dev-docs-reference/blocks/redoclyapiblock/redocly-api-block-default?aio_external',
     external: true,
   },
   {
@@ -129,21 +129,22 @@ test.describe('Resources DevDocs reference', () => {
     expect(resourcesBox.y + resourcesBox.height).toBeLessThanOrEqual(onThisPageBox.y + 1);
   });
 
-  test('follows an internal resource in the same tab', async ({ page, context }) => {
-    const block = await openResourcesPage(page);
-    const resource = resources[0];
-    const destination = new URL(resource.href, page.url()).href;
-    await mockDestination(context, destination);
+  for (const resource of resources.filter((entry) => !entry.external)) {
+    test(`follows the internal "${resource.name}" resource in the same tab`, async ({ page, context }) => {
+      const block = await openResourcesPage(page);
+      const destination = new URL(resource.href, page.url()).href;
+      await mockDestination(context, destination);
 
-    await Promise.all([
-      page.waitForURL(destination),
-      block.getByRole('link', { name: resource.name, exact: true }).click(),
-    ]);
+      await Promise.all([
+        page.waitForURL(destination),
+        block.getByRole('link', { name: resource.name, exact: true }).click(),
+      ]);
 
-    await expect(page).toHaveURL(destination);
-    await expect(page.getByRole('heading', { name: 'Resource destination', exact: true })).toBeVisible();
-    expect(context.pages()).toEqual([page]);
-  });
+      await expect(page).toHaveURL(destination);
+      await expect(page.getByRole('heading', { name: 'Resource destination', exact: true })).toBeVisible();
+      expect(context.pages()).toEqual([page]);
+    });
+  }
 
   test('tabs through resource links without icon stops and opens external links safely', async ({ page, context }) => {
     const block = await openResourcesPage(page);
@@ -167,7 +168,8 @@ test.describe('Resources DevDocs reference', () => {
     // Context routing also intercepts a popup's initial navigation request.
     const externalResources = resources.filter((resource) => resource.external).reverse();
     for (const [index, resource] of externalResources.entries()) {
-      await mockDestination(context, resource.href);
+      const destination = new URL(resource.href, originalUrl).href;
+      await mockDestination(context, destination);
       const popupPromise = page.waitForEvent('popup');
       if (index === 0) {
         await page.keyboard.press('Enter');
@@ -176,7 +178,7 @@ test.describe('Resources DevDocs reference', () => {
       }
       const popup = await popupPromise;
       try {
-        await expect(popup).toHaveURL(resource.href);
+        await expect(popup).toHaveURL(destination);
         await expect(popup.getByRole('heading', { name: 'Resource destination', exact: true })).toBeVisible();
         expect(await popup.evaluate(() => window.opener === null)).toBe(true);
         await expect(page).toHaveURL(originalUrl);
