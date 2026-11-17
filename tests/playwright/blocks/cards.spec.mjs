@@ -38,17 +38,8 @@ async function openCardsReferencePage(page, { path, heading }) {
 }
 
 async function expectCardImageLoaded(block) {
-  const image = block.locator('img');
-
-  await expect(image).toHaveCount(1);
-  // Cards optimize images when their block intersects the viewport; scrolling
-  // also triggers the fixture's lazy-loaded image before checking pixels.
-  await image.scrollIntoViewIfNeeded();
-  await expect.poll(() => image.evaluate((element) => (
-    element.complete && element.naturalWidth > 0
-  ))).toBe(true);
-
-  return image;
+  await waitForCardImages(block, 1);
+  return block.locator('img');
 }
 
 async function expectWideImageFitsCard(block) {
