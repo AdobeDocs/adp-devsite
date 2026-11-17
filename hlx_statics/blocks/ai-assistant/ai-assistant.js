@@ -8,6 +8,7 @@ import {
   onUserScroll,
   restoreChatHistory,
   toggleChatWindow,
+  toggleChatWindowView,
 } from "./ai-assistant_chat-controller.js";
 import {
   createClearDialog,
@@ -94,6 +95,11 @@ export default async function decorate(block) {
   );
 
   const panel = createTag("div", { class: "ai-assistant-panel" });
+  const backdrop = createTag("div", {
+    class: "chat-window-backdrop",
+    "aria-hidden": true,
+  });
+  panel.appendChild(backdrop);
 
   const chatWindow = createTag("div", {
     class: "chat-window",
@@ -127,6 +133,10 @@ export default async function decorate(block) {
 
   ELEMENTS.CHAT_WINDOW_CONTENT?.addEventListener("scroll", onUserScroll);
   ELEMENTS.CHAT_BUTTON?.addEventListener("click", toggleChatWindow);
+  ELEMENTS.CHAT_WINDOW_VIEW_TOGGLE?.addEventListener(
+    "click",
+    toggleChatWindowView,
+  );
   ELEMENTS.CHAT_WINDOW_CLEAR_BUTTON?.addEventListener("click", () => {
     const dialog = createClearDialog();
     chatWindow.appendChild(dialog);
