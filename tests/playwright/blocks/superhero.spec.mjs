@@ -8,7 +8,7 @@ const descriptionText = 'This is a sample description text with an inline link f
 
 const white = 'rgb(255, 255, 255)';
 const navy = 'rgb(15, 55, 95)';
-const defaultBlue = 'rgb(29, 125, 238)';
+const defaultBlue = 'rgb(19, 115, 230)';
 const lightBlue = 'rgb(197, 219, 255)';
 // Half Width documents black as its default text color; with no text-color
 // modifier the Spectrum lightest theme renders these near-black grays.
@@ -298,7 +298,9 @@ async function expectCoreRendering(block, example) {
   }
 }
 
-async function expectButtons(block, buttons) {
+async function expectButtons(block, example) {
+  const { buttons } = example;
+  const textColor = example.descriptionColor ?? example.textColor;
   const links = block.locator('a.spectrum-Button');
   await expect(links).toHaveText(buttons.map(({ name }) => name));
   for (const [index, { name, href }] of buttons.entries()) {
@@ -312,19 +314,11 @@ async function expectButtons(block, buttons) {
     } else {
       await expect(link).toHaveClass(hasClass('spectrum-Button--secondary'));
       await expect(link).toHaveClass(hasClass('spectrum-Button--outline'));
+      // Secondary buttons follow the block's text color to keep its contrast.
+      await expect(link).toHaveCSS('color', textColor);
+      await expect(link).toHaveCSS('border-color', textColor);
     }
   }
-}
-
-/**
- * Known WCAG AA contrast failures that axe reports. Remove each case once fixed.
- */
-function hasKnownContrastIssue(example) {
-  // 20px white body text on the default rgb(29, 125, 238) background is 4.02:1.
-  const whiteOnDefaultBlue = example.background === defaultBlue && !example.image;
-  // 14px gray #6e6e6e secondary button text on light blue #c5dbff is 3.63:1.
-  const grayButtonOnLightBlue = example.background === lightBlue;
-  return whiteOnDefaultBlue || grayButtonOnLightBlue;
 }
 
 async function expectButtonContainer(block, example) {
@@ -491,7 +485,7 @@ function describeExamples(title, examples, expectLayout) {
         ));
         if (example.buttons) {
           await test.step('renders buttons in authored order', async () => {
-            await expectButtons(block, example.buttons);
+            await expectButtons(block, example);
             await expectButtonContainer(block, example);
           });
         }
@@ -622,7 +616,6 @@ test.describe('Superhero reference', () => {
   test.describe('Accessibility', () => {
     allExamples.forEach((example) => {
       test(`${example.slug} has no axe WCAG A/AA violations`, async ({ page }) => {
-        test.fail(hasKnownContrastIssue(example));
         await openSuperheroPage(page, example.path);
 
         // Scan the wrapper: Half Width paints its background color there.
