@@ -39,6 +39,7 @@ import {
   buildSiteWideBanner,
   buildAside,
   buildOnThisPage,
+  getOnThisPageHeadings,
   createTag,
   toggleScale,
   decorateAnchorLink,
@@ -768,8 +769,7 @@ async function loadLazy(doc) {
 
     const hasResources = Boolean(document.querySelector('.resources-wrapper'));
     const hasCredential = Boolean(document.querySelector('.getcredential-wrapper'));
-    
-    const hasHeading = main.querySelectorAll('.heading2:not(.side-nav .heading2):not(footer .heading2) h2, .heading3:not(.side-nav .heading3):not(footer .heading3) h3').length !== 0;
+    const hasHeading = getOnThisPageHeadings(main).length !== 0;
     const hideOnThisPage = document.querySelector('meta[name="hideonthispage"]')?.content === 'true';
     const hasOnThisPage = !hasHero && hasHeading && !hasCredential && !hideOnThisPage;
 
