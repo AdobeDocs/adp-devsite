@@ -206,3 +206,24 @@ test.describe('On This Page reference', () => {
     await expect(aside).toHaveScreenshot('onthispage.png');
   });
 });
+
+// Every h2/h3 on this fixture is inside a Cards block, so there are no page headings to list.
+const cardsOnlyPath = '/github-actions-test/test/cards';
+
+test.describe('On This Page with only block-internal headings', () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test('does not render an empty aside', async ({ page }) => {
+    await openDevDocsReferencePage(page, { path: cardsOnlyPath, heading: 'Getting started' });
+
+    // Prove the block-internal headings exist, so broadening the heading check would fail here.
+    const cards = page.locator('main .cards.block[data-block-status="loaded"]');
+    await expect(cards.first()).toBeVisible();
+    await expect(cards.getByRole('heading', { level: 2, name: 'Before you begin', exact: true })).toHaveCount(1);
+    await expect(cards.getByRole('heading', { level: 3, name: 'Set up your developer account', exact: true })).toHaveCount(1);
+
+    await expect(page.locator('main')).toHaveClass(/\bno-aside\b/);
+    await expect(page.locator('.aside-wrapper')).toHaveCount(0);
+    await expect(page.locator('.onthispage.block')).toHaveCount(0);
+  });
+});
