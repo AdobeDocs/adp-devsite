@@ -274,15 +274,12 @@ async function waitForCardImages(block, expectedCount) {
   await expect(images).toHaveCount(expectedCount);
   if (expectedCount === 0) return;
 
-  // Cards replaces every picture when the block intersects the viewport. An
-  // individual image can detach during scrollIntoViewIfNeeded, so scroll the
-  // stable block and wait for its optimized replacement images instead.
   await block.scrollIntoViewIfNeeded();
   await expect.poll(() => images.evaluateAll((elements, count) => (
-    elements.length === count && elements.every((image) => (
-      image.getAttribute('src')?.startsWith(window.location.origin)
-      && image.complete && image.naturalWidth > 0
-    ))
+    elements.length === count && elements.every((image) => {
+      const optimizedSource = image.parentElement?.querySelector('source[media="(min-width: 400px)"]');
+      return Boolean(optimizedSource) && image.complete && image.naturalWidth > 0;
+    })
   ), expectedCount)).toBe(true);
 }
 
