@@ -38,17 +38,8 @@ async function openCardsReferencePage(page, { path, heading }) {
 }
 
 async function expectCardImageLoaded(block) {
-  const image = block.locator('img');
-
-  await expect(image).toHaveCount(1);
-  // Cards optimize images when their block intersects the viewport; scrolling
-  // also triggers the fixture's lazy-loaded image before checking pixels.
-  await image.scrollIntoViewIfNeeded();
-  await expect.poll(() => image.evaluate((element) => (
-    element.complete && element.naturalWidth > 0
-  ))).toBe(true);
-
-  return image;
+  await waitForCardImages(block, 1);
+  return block.locator('img');
 }
 
 async function expectWideImageFitsCard(block) {
@@ -283,15 +274,12 @@ async function waitForCardImages(block, expectedCount) {
   await expect(images).toHaveCount(expectedCount);
   if (expectedCount === 0) return;
 
-  // Cards replaces every picture when the block intersects the viewport. An
-  // individual image can detach during scrollIntoViewIfNeeded, so scroll the
-  // stable block and wait for its optimized replacement images instead.
   await block.scrollIntoViewIfNeeded();
   await expect.poll(() => images.evaluateAll((elements, count) => (
-    elements.length === count && elements.every((image) => (
-      image.getAttribute('src')?.startsWith(window.location.origin)
-      && image.complete && image.naturalWidth > 0
-    ))
+    elements.length === count && elements.every((image) => {
+      const optimizedSource = image.parentElement?.querySelector('source[media="(min-width: 400px)"]');
+      return Boolean(optimizedSource) && image.complete && image.naturalWidth > 0;
+    })
   ), expectedCount)).toBe(true);
 }
 
@@ -323,7 +311,7 @@ test.describe('Cards DevBiz reference', () => {
   test('decorates links-style cards as links rather than buttons', async ({ page }) => {
     const block = blockAt(page, variants[2]);
 
-    const links = block.locator('a.spectrum-Link.spectrum-Button--secondary');
+    const links = block.locator('a.spectrum-Link.spectrum-Link--quiet');
     await expect(links).toHaveCount(3);
     await expect(block.locator('a.card-button')).toHaveCount(0);
     for (let index = 0; index < 3; index += 1) {

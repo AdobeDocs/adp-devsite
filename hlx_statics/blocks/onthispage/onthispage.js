@@ -1,5 +1,6 @@
 import {
     createTag,
+    getOnThisPageHeadings,
     scrollWithLayoutAdjustment
 } from '../../scripts/lib-adobeio.js';
 import insertWrapperContainer from '../../components/wrapperContainer.js';
@@ -16,7 +17,7 @@ export default async function decorate(block) {
     block.append(aside);
 
     const mainContainer = document.querySelector('main');
-    const headings = mainContainer.querySelectorAll('.heading2:not(.side-nav .heading2):not(footer .heading2) h2, .heading3:not(.side-nav .heading3):not(footer .heading3) h3');
+    const headings = getOnThisPageHeadings(mainContainer);
 
     Object.assign(aside.style, {
         display: 'flex',

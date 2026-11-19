@@ -115,6 +115,7 @@ After the server is available at `http://localhost:3001`, run the workflow from 
 ```bash
 rm -rf .act-artifacts
 act workflow_dispatch \
+  --trust-project-actrc \
   -W .github/workflows/playwright.yml \
   --input playwright_base_url=http://host.docker.internal:3001 \
   --input update_snapshots=true
@@ -134,6 +135,7 @@ To run Act against the current branch's deployed AEM preview instead, pass the p
 ```bash
 rm -rf .act-artifacts
 act workflow_dispatch \
+  --trust-project-actrc \
   -W .github/workflows/playwright.yml \
   --input playwright_base_url=https://<branch>--adp-devsite--adobedocs.aem.page
 ```
