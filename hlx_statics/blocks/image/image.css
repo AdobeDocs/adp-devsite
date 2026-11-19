@@ -1,0 +1,10 @@
+main div.image-wrapper {
+  margin: 16px 0;
+}
+
+main div.image-wrapper div.image img {
+  display: block;
+  max-width: min(100%, var(--image-max-width, 100%));
+  height: auto;
+  padding: 20px 0;
+}
