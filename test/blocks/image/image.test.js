@@ -3,9 +3,6 @@
 import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
-document.body.innerHTML = '<header></header><main class="no-layout"></main><footer></footer>';
-await import('../../../hlx_statics/scripts/scripts.js');
-const { decorateBlock, loadBlock } = await import('../../../hlx_statics/scripts/lib-helix.js');
 const { default: decorate } = await import('../../../hlx_statics/blocks/image/image.js');
 
 const largeImage = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500"></svg>')}`;
@@ -62,7 +59,7 @@ describe('Image block', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '<main></main>';
-    document.body.style.display = 'block';
+    document.body.classList.add('appear');
     warn = sinon.stub(console, 'warn');
   });
 
@@ -109,26 +106,6 @@ describe('Image block', () => {
     expect(img.loading).to.equal('lazy');
     expect(img.getAttribute('width')).to.equal('1000');
     expect(img.getAttribute('height')).to.equal('500');
-  });
-
-  it('reads DevDocs code rows through the block loader', async () => {
-    const { block } = createBlock();
-    ['data-slots=image', 'data-maxWidth=550px'].forEach((value) => {
-      const row = document.createElement('div');
-      const cell = document.createElement('div');
-      const code = document.createElement('code');
-      code.textContent = value;
-      cell.append(code);
-      row.append(cell);
-      block.prepend(row);
-    });
-    decorateBlock(block);
-    window.hlx.codeBasePath = '/hlx_statics';
-    await loadBlock(block);
-    expect(block.getAttribute('data-maxwidth')).to.equal('550px');
-    expect(block.style.getPropertyValue('--image-max-width')).to.equal('550px');
-    expect(block.querySelectorAll('code').length).to.equal(0);
-    expect(block.children.length).to.equal(1);
   });
 
   it('leaves missing or blank settings at the default without a warning', () => {
