@@ -1,0 +1,189 @@
+data: {"type":"metadata","sessionId":"f3e178ad-1dfc-491a-8fc1-c845ff7be645","sessionRotated":true,"requestId":"01a1865b-a089-7686-99f2-3b7c287c04e9","vendorRequestId":"ca28de24-dba6-4a74-a097-aa8c3b3f7535","collectionId":"__all-collections__"}
+
+data: {"type":"content","text":"\nApp Builder is a"}
+
+data: {"type":"timing","metric":"timeToFirstToken","value":2692.5161669999943}
+
+data: {"type":"content","text":" complete platform for enterprise developers to build and"}
+
+data: {"type":"content","text":" deploy custom web applications that extend Adobe Experience"}
+
+data: {"type":"content","text":" Cloud solutions and run on Adobe infrastructure."}
+
+data: {"type":"content","text":" It is"}
+
+data: {"type":"content","text":" also"}
+
+data: {"type":"content","text":" described"}
+
+data: {"type":"content","text":" as a complete"}
+
+data: {"type":"content","text":" design, application, and runtime platform for"}
+
+data: {"type":"content","text":" building third-party cloud-native applications"}
+
+data: {"type":"content","text":" that extend"}
+
+data: {"type":"content","text":" Adobe Experience Cloud and Adobe Experience Platform."}
+
+data: {"type":"content","text":"\n"}
+
+data: {"type":"content","text":"\nIts"}
+
+data: {"type":"content","text":" main components include"}
+
+data: {"type":"content","text":":"}
+
+data: {"type":"content","text":"\n\n- **"}
+
+data: {"type":"content","text":"Single-Page Applications (SPAs)"}
+
+data: {"type":"content","text":"** built"}
+
+data: {"type":"content","text":" with React Spectrum for the client side"}
+
+data: {"type":"content","text":"\n- **Adobe"}
+
+data: {"type":"content","text":" I/O Runtime**,"}
+
+data: {"type":"content","text":" Adobe's serverless platform, used to"}
+
+data: {"type":"content","text":" create backend microservices and orchestrate"}
+
+data: {"type":"content","text":" APIs\n- **Developer tools** including"}
+
+data: {"type":"content","text":" a"}
+
+data: {"type":"content","text":" Command-Line Interface (CLI), SD"}
+
+data: {"type":"content","text":"Ks, Adobe Services,"}
+
+data: {"type":"content","text":" and Developer Console\n- **Adobe Experience"}
+
+data: {"type":"content","text":" Cloud execution environment**, so custom apps live"}
+
+data: {"type":"content","text":" side by side with Adobe Experience Cloud solutions"}
+
+data: {"type":"content","text":"\n\nSupport"}
+
+data: {"type":"content","text":" for Adobe authentication, end-user access"}
+
+data: {"type":"content","text":" control, publishing/consuming custom events,"}
+
+data: {"type":"content","text":" file/"}
+
+data: {"type":"content","text":"state/database storage, CI/CD"}
+
+data: {"type":"content","text":" pipelines, Content Delivery Network,"}
+
+data: {"type":"content","text":" and developer sandboxes are all included"}
+
+data: {"type":"content","text":".\n"}
+
+data: {"type":"content","text":"\nApp"}
+
+data: {"type":"content","text":" Builder uses"}
+
+data: {"type":"content","text":" modern technologies like"}
+
+data: {"type":"content","text":" JAM stack, serverless computing,"}
+
+data: {"type":"content","text":" Node, and React, and helps developers"}
+
+data: {"type":"content","text":" build applications using best practices including event-"}
+
+data: {"type":"content","text":"driven architecture, microservices, and"}
+
+data: {"type":"content","text":" CI"}
+
+data: {"type":"content","text":"/CD."}
+
+data: {"type":"content","text":"\n"}
+
+data: {"type":"content","text":"\nCommon"}
+
+data: {"type":"content","text":" use cases include:\n\n- Creating small"}
+
+data: {"type":"content","text":" actions that run in"}
+
+data: {"type":"content","text":" response to events or triggers"}
+
+data: {"type":"content","text":" ("}
+
+data: {"type":"content","text":"e"}
+
+data: {"type":"content","text":".g., publishing A"}
+
+data: {"type":"content","text":"EM page"}
+
+data: {"type":"content","text":" details"}
+
+data: {"type":"content","text":" to a"}
+
+data: {"type":"content","text":" Slack channel)\n- Managing"}
+
+data: {"type":"content","text":" marketing"}
+
+data: {"type":"content","text":" campaigns"}
+
+data: {"type":"content","text":" and"}
+
+data: {"type":"content","text":" tracking codes\n- Creating"}
+
+data: {"type":"content","text":" UI"}
+
+data: {"type":"content","text":" extensions for A"}
+
+data: {"type":"content","text":"EM authoring,"}
+
+data: {"type":"content","text":" Adobe"}
+
+data: {"type":"content","text":" Commerce"}
+
+data: {"type":"content","text":" Admin"}
+
+data: {"type":"content","text":" UI, Adobe"}
+
+data: {"type":"content","text":" Workfront, and Adobe GenSt"}
+
+data: {"type":"content","text":"udio for"}
+
+data: {"type":"content","text":" Performance Marketing\n- Building API Mesh"}
+
+data: {"type":"content","text":" for"}
+
+data: {"type":"content","text":" Adobe"}
+
+data: {"type":"content","text":" Commerce to"}
+
+data: {"type":"content","text":" aggregate API requests from multiple"}
+
+data: {"type":"content","text":" back"}
+
+data: {"type":"content","text":"-end services using"}
+
+data: {"type":"content","text":" GraphQL\n"}
+
+data: {"type":"content","text":"\nApp Builder is intended"}
+
+data: {"type":"content","text":" for Adobe enterprise customers and Adobe partners working"}
+
+data: {"type":"content","text":" with them to extend the capabilities of Adobe"}
+
+data: {"type":"content","text":" Experience Cloud solutions.\n"}
+
+data: {"type":"citation","citation":{"generatedResponsePart":"\nApp Builder is a complete platform for enterprise developers to build and deploy custom web applications that extend Adobe Experience Cloud solutions and run on Adobe infrastructure. It is also described as a complete design, application, and runtime platform for building third-party cloud-native applications that extend Adobe Experience Cloud and Adobe Experience Platform.","retrievedReferences":[{"content":"## What is App Builder? App Builder is a complete platform for enterprise developers to build and deploy custom web applications that extend Adobe Experience Cloud solutions and run on Adobe infrastructure. It uses modern technologies like JAM stack, serverless computing, Node, and React, and helps developers build applications using best practices including event-driven architecture, microservices, and Continuous Integration/Continuous Delivery (CI/CD). Its main components are: - **Single-Page Applications** (SPAs) that use React Spectrum for the client side - the same UI toolkit used by Adobe solutions - **I/O Runtime**, Adobe's serverless platform, used to create backend microservices and orchestrate APIs - **Developer tools** including the Command-Line Interface (CLI), SDKs, Adobe Services and Developer Console. Support for Adobe authentication, end-user access control, publishing/consuming custom events, file, state, and database storage, CI/CD pipelines, Content Delivery Network, and developer sandboxes are all included. - **[Adobe Experience Cloud](https://experience.adobe.com/)** execution environment, so custom apps will live side by side with Adobe Experience Cloud solutions and will execute in the context of the organization and its authenticated employees. ## What is Adobe I/O Runtime? Adobe I/O Runtime is Adobe's serverless computing platform, included as a component of App Builder. Serverless computing abstracts server infrastructure from developers so they can concentrate on application logic, not infrastructure.","metadata":{"url":"https://developer.adobe.com/app-builder/docs/intro_and_overview/what-is-app-builder","title":"How it Works","keywords":"Adobe I/O, Extensibility, API Documentation, Developer Tooling","collectionId":["__all-collections__","app-builder-docs"]},"label":"How it Works"},{"content":"# Frequently Asked Questions ## About App Builder ### What is App Builder? App Builder is a complete design, application, and runtime platform for building third-party cloud-native applications that run on Adobe infrastructure to extend the functionality of Adobe Experience Cloud and Adobe Experience Platform. Developers use App Builder to create custom integrations between Adobe and third-party products, to improve operational efficiency and workflow. ### What is it used for? App Builder is ideal for creating small actions that run repeatedly in response to events or other triggers - for example, publishing details of new pages published in AEM to a Slack channel, to keep the extended team up to date. App Builder can also be used to create more complex applications. For example, Adobe's marketing team uses an App Builder application to manage tracking codes for marketing campaigns, and makes it available to the extended team using the same Experience Cloud URL they use to access other Adobe Experience Cloud solutions. Adobe Experience Manager and Adobe Commerce customers can use App Builder to create UI extensions that let users work their own way during AEM authoring or in the Commerce Admin UI. In addition, UI extensions are now available in both Adobe Workfront and Adobe GenStudio for Performance Marketing! Adobe Commerce customers can also create an API Mesh, a powerful capability that uses a GraphQL mesh to aggregate API requests from a variety of back-end services. This dramatically increases performance by calling only required objects from APIs.  ### How does it compare to other application frameworks?","metadata":{"url":"https://developer.adobe.com/app-builder/docs/intro_and_overview/faq","title":"Frequently Asked Questions","keywords":"App Builder, Extensibility, API Documentation, Developer Tooling","collectionId":["__all-collections__","app-builder-docs"]},"label":"Frequently Asked Questions"}],"span":{"start":0,"end":377},"textRange":{"start":0,"end":377}}}
+
+data: {"type":"citation","citation":{"generatedResponsePart":"\nIts main components include:\n\n- **Single-Page Applications (SPAs)** built with React Spectrum for the client side\n- **Adobe I/O Runtime**, Adobe's serverless platform, used to create backend microservices and orchestrate APIs\n- **Developer tools** including a Command-Line Interface (CLI), SDKs, Adobe Services, and Developer Console\n- **Adobe Experience Cloud execution environment**, so custom apps live side by side with Adobe Experience Cloud solutions\n\nSupport for Adobe authentication, end-user access control, publishing/consuming custom events, file/state/database storage, CI/CD pipelines, Content Delivery Network, and developer sandboxes are all included.","retrievedReferences":[{"content":"## What is App Builder? App Builder is a complete platform for enterprise developers to build and deploy custom web applications that extend Adobe Experience Cloud solutions and run on Adobe infrastructure. It uses modern technologies like JAM stack, serverless computing, Node, and React, and helps developers build applications using best practices including event-driven architecture, microservices, and Continuous Integration/Continuous Delivery (CI/CD). Its main components are: - **Single-Page Applications** (SPAs) that use React Spectrum for the client side - the same UI toolkit used by Adobe solutions - **I/O Runtime**, Adobe's serverless platform, used to create backend microservices and orchestrate APIs - **Developer tools** including the Command-Line Interface (CLI), SDKs, Adobe Services and Developer Console. Support for Adobe authentication, end-user access control, publishing/consuming custom events, file, state, and database storage, CI/CD pipelines, Content Delivery Network, and developer sandboxes are all included. - **[Adobe Experience Cloud](https://experience.adobe.com/)** execution environment, so custom apps will live side by side with Adobe Experience Cloud solutions and will execute in the context of the organization and its authenticated employees. ## What is Adobe I/O Runtime? Adobe I/O Runtime is Adobe's serverless computing platform, included as a component of App Builder. Serverless computing abstracts server infrastructure from developers so they can concentrate on application logic, not infrastructure.","metadata":{"url":"https://developer.adobe.com/app-builder/docs/intro_and_overview/what-is-app-builder","title":"How it Works","keywords":"Adobe I/O, Extensibility, API Documentation, Developer Tooling","collectionId":["__all-collections__","app-builder-docs"]},"label":"How it Works"}],"span":{"start":378,"end":1045},"textRange":{"start":378,"end":1045}}}
+
+data: {"type":"citation","citation":{"generatedResponsePart":"\nApp Builder uses modern technologies like JAM stack, serverless computing, Node, and React, and helps developers build applications using best practices including event-driven architecture, microservices, and CI/CD.","retrievedReferences":[{"content":"## What is App Builder? App Builder is a complete platform for enterprise developers to build and deploy custom web applications that extend Adobe Experience Cloud solutions and run on Adobe infrastructure. It uses modern technologies like JAM stack, serverless computing, Node, and React, and helps developers build applications using best practices including event-driven architecture, microservices, and Continuous Integration/Continuous Delivery (CI/CD). Its main components are: - **Single-Page Applications** (SPAs) that use React Spectrum for the client side - the same UI toolkit used by Adobe solutions - **I/O Runtime**, Adobe's serverless platform, used to create backend microservices and orchestrate APIs - **Developer tools** including the Command-Line Interface (CLI), SDKs, Adobe Services and Developer Console. Support for Adobe authentication, end-user access control, publishing/consuming custom events, file, state, and database storage, CI/CD pipelines, Content Delivery Network, and developer sandboxes are all included. - **[Adobe Experience Cloud](https://experience.adobe.com/)** execution environment, so custom apps will live side by side with Adobe Experience Cloud solutions and will execute in the context of the organization and its authenticated employees. ## What is Adobe I/O Runtime? Adobe I/O Runtime is Adobe's serverless computing platform, included as a component of App Builder. Serverless computing abstracts server infrastructure from developers so they can concentrate on application logic, not infrastructure.","metadata":{"url":"https://developer.adobe.com/app-builder/docs/intro_and_overview/what-is-app-builder","title":"How it Works","keywords":"Adobe I/O, Extensibility, API Documentation, Developer Tooling","collectionId":["__all-collections__","app-builder-docs"]},"label":"How it Works"}],"span":{"start":1046,"end":1262},"textRange":{"start":1046,"end":1262}}}
+
+data: {"type":"citation","citation":{"generatedResponsePart":"\nCommon use cases include:\n\n- Creating small actions that run in response to events or triggers (e.g., publishing AEM page details to a Slack channel)\n- Managing marketing campaigns and tracking codes\n- Creating UI extensions for AEM authoring, Adobe Commerce Admin UI, Adobe Workfront, and Adobe GenStudio for Performance Marketing\n- Building API Mesh for Adobe Commerce to aggregate API requests from multiple back-end services using GraphQL","retrievedReferences":[{"content":"# Frequently Asked Questions ## About App Builder ### What is App Builder? App Builder is a complete design, application, and runtime platform for building third-party cloud-native applications that run on Adobe infrastructure to extend the functionality of Adobe Experience Cloud and Adobe Experience Platform. Developers use App Builder to create custom integrations between Adobe and third-party products, to improve operational efficiency and workflow. ### What is it used for? App Builder is ideal for creating small actions that run repeatedly in response to events or other triggers - for example, publishing details of new pages published in AEM to a Slack channel, to keep the extended team up to date. App Builder can also be used to create more complex applications. For example, Adobe's marketing team uses an App Builder application to manage tracking codes for marketing campaigns, and makes it available to the extended team using the same Experience Cloud URL they use to access other Adobe Experience Cloud solutions. Adobe Experience Manager and Adobe Commerce customers can use App Builder to create UI extensions that let users work their own way during AEM authoring or in the Commerce Admin UI. In addition, UI extensions are now available in both Adobe Workfront and Adobe GenStudio for Performance Marketing! Adobe Commerce customers can also create an API Mesh, a powerful capability that uses a GraphQL mesh to aggregate API requests from a variety of back-end services. This dramatically increases performance by calling only required objects from APIs.  ### How does it compare to other application frameworks?","metadata":{"url":"https://developer.adobe.com/app-builder/docs/intro_and_overview/faq","title":"Frequently Asked Questions","keywords":"App Builder, Extensibility, API Documentation, Developer Tooling","collectionId":["__all-collections__","app-builder-docs"]},"label":"Frequently Asked Questions"}],"span":{"start":1263,"end":1706},"textRange":{"start":1263,"end":1706}}}
+
+data: {"type":"citation","citation":{"generatedResponsePart":"\nApp Builder is intended for Adobe enterprise customers and Adobe partners working with them to extend the capabilities of Adobe Experience Cloud solutions.","retrievedReferences":[{"content":"# App Builder Overview This documentation describes App Builder, a complete platform for enterprise Developers to build and deploy custom web applications. App Builder applications extend Adobe Experience Cloud solutions and run on Adobe infrastructure, including Adobe I/O Runtime, the serverless, event-driven, on-demand computing platform included with App Builder. The documentation includes guides, references, and tools to help Developers understand App Builder, learn how to use it, resolve technical issues, optimize performance, and contribute to its development. ## Who is App Builder for? App Builder is for Adobe enterprise customers and Adobe partners working with them to extend the capabilities of Adobe Experience Cloud solutions. ## How to use these documents **Stay informed** about the latest updates, features, and improvements by reviewing the [Release Notes](release-notes.md). **Business users and decision-makers** can review the [Business Case for App Builder](business-case.md), outlining the agility, efficiency, and security App Builder brings to the modern enterprise, as well as the most pertinent App Builder [use cases](business-case.md#example-use-cases) and links to [real-world success stories](business-case.md#examples-from-the-real-world) from Adobe customers and partners. Please refer to the [FAQ](faq.md) for information about licensing or trial of App Builder, or contact your Adobe Sales representative.","metadata":{"url":"https://developer.adobe.com/app-builder/docs/intro_and_overview/","collectionId":["__all-collections__","app-builder-docs"]},"label":"https://developer.adobe.com/app-builder/docs/intro_and_overview/"}],"span":{"start":1707,"end":1863},"textRange":{"start":1707,"end":1863}}}
+
+data: {"type":"answerComplete","timingDataMs":{"vendorCommand":2690.6039170000004,"timeToFirstToken":2692.5161669999943,"streamingTime":5685.514083999995,"total":6955.512166}}
+
+data: {"type":"followupQuestions","followupQuestions":[{"label":"Get started guide","text":"How do I get started building my first App Builder application?"},{"label":"Pricing and access","text":"How do I get access to App Builder, and is it included with my Adobe Experience Cloud license?"},{"label":"App Builder vs extensions","text":"What is the difference between an App Builder app and a UI extension?"}],"timingDataMs":{"followupQuestions":3954.9354590000003}}
+
+data: {"type":"complete","timingDataMs":{"vendorCommand":2690.6039170000004,"timeToFirstToken":2692.5161669999943,"streamingTime":5685.514083999995,"total":10910.801540999993,"followupQuestions":3954.9354590000003}}

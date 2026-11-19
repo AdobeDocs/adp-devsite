@@ -755,6 +755,43 @@
         }
     }
 
+    /* Shared number badge for inline citations and the Sources list. */
+    .chat-bubble-sources-item-marker {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 16px;
+        height: 20px;
+        border-radius: 4px;
+        background-color: #e1e1e1;
+        font-size: 11px;
+        line-height: 18px;
+    }
+
+    .chat-bubble-inline-sources {
+        margin-inline-start: 4px;
+        white-space: normal;
+
+        a.chat-bubble-inline-source {
+            vertical-align: baseline;
+            margin-inline: 2px;
+            min-width: 16px;
+            min-height: 20px;
+            color: #292929;
+            text-decoration: none;
+
+            &:hover {
+                background-color: #d1d1d1;
+            }
+
+            &:focus-visible {
+                outline: 2px solid #1473e6;
+                outline-offset: 2px;
+            }
+        }
+    }
+
     .chat-bubble-sources {
         grid-area: sources;
         width: 100%;
@@ -848,19 +885,6 @@
 
             &:last-child {
                 margin-bottom: 0;
-            }
-
-            .chat-bubble-sources-item-marker {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                width: 16px;
-                height: 20px;
-                border-radius: 4px;
-                background-color: #e1e1e1;
-                font-size: 11px;
-                line-height: 18px;
             }
 
             a {
@@ -960,5 +984,14 @@
             env(safe-area-inset-bottom) env(safe-area-inset-left);
         border-radius: 0;
         translate: 0 0;
+    }
+
+    /* Inline citation markers need 24px touch targets on mobile. */
+    .chat-window-content .chat-bubble .chat-bubble-inline-sources a.chat-bubble-inline-source {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        min-height: 24px;
+        line-height: 24px;
     }
 }

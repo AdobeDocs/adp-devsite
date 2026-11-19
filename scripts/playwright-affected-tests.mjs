@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import { rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,8 +17,8 @@ export const TEST_DIR_PREFIX = 'tests/playwright/';
 
 // Files whose changes can affect every spec. Everything else under
 // hlx_statics/ and tests/playwright/ is shared infrastructure and also
-// triggers the full suite; only hlx_statics/blocks/<block>/ and
-// tests/playwright/blocks/<block>.spec.mjs map to a single spec.
+// triggers the full suite; only hlx_statics/blocks/<block>/ and the block's
+// specs map to that block, which selects every spec the block has.
 export const FULL_SUITE_FILES = new Set([
   '.github/workflows/playwright.yml',
   'package.json',
@@ -27,14 +27,36 @@ export const FULL_SUITE_FILES = new Set([
 ]);
 
 const BLOCK_SOURCE_PATTERN = /^hlx_statics\/blocks\/([^/]+)\//;
-const SPEC_PATTERN = /^tests\/playwright\/blocks\/([^/]+?)\.spec\.mjs(?:$|-snapshots\/)/;
+export const BLOCK_SPECS_DIR = 'tests/playwright/blocks';
+// A block's specs are <block>.spec.mjs plus optional <block>.<feature>.spec.mjs
+// files. Block folders never contain dots, so the first dot ends the block
+// name; a hyphen would be ambiguous (`info` versus `info-card`).
+const SPEC_FILE_PATTERN = /^([^/.]+)(?:\.[^/.]+)?\.spec\.mjs$/;
+const SPEC_PATTERN = /^tests\/playwright\/blocks\/([^/.]+)(?:\.[^/.]+)?\.spec\.mjs(?:$|-snapshots\/)/;
 
 function warn(message) {
   console.warn(String(message ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, 300));
 }
 
 export function blockToSpec(block) {
-  return `tests/playwright/blocks/${block}.spec.mjs`;
+  return `${BLOCK_SPECS_DIR}/${block}.spec.mjs`;
+}
+
+/**
+ * Lists every existing spec for a block: <block>.spec.mjs and any
+ * <block>.<feature>.spec.mjs, as repo-root-relative paths.
+ */
+export function findBlockSpecs(block, cwd = process.cwd()) {
+  let entries;
+  try {
+    entries = readdirSync(path.join(cwd, BLOCK_SPECS_DIR), { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.match(SPEC_FILE_PATTERN)?.[1] === block)
+    .map((entry) => `${BLOCK_SPECS_DIR}/${entry.name}`)
+    .sort();
 }
 
 export function classifyChangedFile(file) {
@@ -56,7 +78,7 @@ export function classifyChangedFile(file) {
   return { type: 'unrelated' };
 }
 
-export function computeAffectedSpecs(changedFiles, specExists = () => true) {
+export function computeAffectedSpecs(changedFiles, listBlockSpecs = (block) => [blockToSpec(block)]) {
   const specs = new Set();
   const skipped = new Set();
 
@@ -66,9 +88,9 @@ export function computeAffectedSpecs(changedFiles, specExists = () => true) {
       return { mode: 'all', specs: [], skipped: [] };
     }
     if (change.type === 'block' || change.type === 'spec') {
-      const spec = blockToSpec(change.block);
-      if (specExists(spec)) {
-        specs.add(spec);
+      const blockSpecs = listBlockSpecs(change.block);
+      if (blockSpecs.length) {
+        blockSpecs.forEach((spec) => specs.add(spec));
       } else {
         skipped.add(change.block);
       }
@@ -201,7 +223,7 @@ export async function resolveAffectedTests({
 
   const result = computeAffectedSpecs(
     changedFiles,
-    (spec) => existsSync(path.join(cwd, spec)),
+    (block) => findBlockSpecs(block, cwd),
   );
 
   if (result.mode === 'all') {

@@ -2,6 +2,7 @@
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { ChatBubble } from "./ai-assistant_chat-bubble.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
+import { normalizeCitations } from "./ai-assistant_citations.js";
 import {
   CHAT_BUBBLE_AI_LABEL,
   CHAT_BUBBLE_USER_LABEL,
@@ -507,19 +508,23 @@ export const handleUserQuery = async (
     setResponding(false);
     targetBubble.hideThinking();
     targetBubble.hideStreamingCursor();
+    targetBubble.clearSources();
     targetBubble.updateContent(message, { alert: true });
+    responseContent = message;
+    chatHistory.updateLast({ content: message, references: [], citations: [] });
     return;
   };
 
   let responseContent = "";
-  /** @type {Map<string, {url: string, title: string, hasTitle: boolean}>} */
-  const accumulatedReferences = new Map();
+  /** @type {unknown[]} */
+  const accumulatedCitations = [];
   // The backend sends `answerComplete`, then `followupQuestions`, then the
   // terminal `complete`. These flags let `onComplete` act as a safety net:
   // finalizing the bubble and falling back to default suggestions when those
   // earlier events don't arrive (e.g. an aborted stream).
   let answerFinalized = false;
   let followupsReceived = false;
+  let terminalCompleted = false;
 
   const showFallbackSuggestions = () => {
     updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
@@ -532,16 +537,26 @@ export const handleUserQuery = async (
     if (answerFinalized) return;
     answerFinalized = true;
     targetBubble.hideThinking();
-    targetBubble.completeBubble();
-    const references = [...accumulatedReferences.values()].map(
-      ({ url, title }) => ({ url, title }),
-    );
-    if (references.length) {
-      targetBubble.renderSources(references);
+    /** @type {import('./ai-assistant_citations.js').Source[]} */
+    let references = [];
+    /** @type {import('./ai-assistant_citations.js').Placement[]} */
+    let placements = [];
+    try {
+      const citations = normalizeCitations(
+        responseContent, accumulatedCitations, ChatBubble.parseMarkdown,
+      );
+      references = citations.references;
+      placements = targetBubble.renderCitations(responseContent, citations);
+    } catch (error) {
+      console.error("[AI Assistant] Could not render inline citations:", error);
+      placements = [];
+      targetBubble.renderWithoutInlineCitations(responseContent, references);
     }
+    targetBubble.completeBubble();
     chatHistory.updateLast({
       content: responseContent,
       references,
+      citations: placements,
     });
     scrollToBottom();
   };
@@ -555,7 +570,9 @@ export const handleUserQuery = async (
     hideStopButton();
     setResponding(false);
     // a11y: announce the completed reply once, as plain text.
-    announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
+    const sourceCount = targetBubble.references?.length ?? 0;
+    const sourceCue = sourceCount ? ` ${sourceCount} sources available.` : "";
+    announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}${sourceCue}`);
   };
 
   showStopButton();
@@ -582,7 +599,7 @@ export const handleUserQuery = async (
         }
       },
       onContent: (data) => {
-        if (data.text) {
+        if (!answerFinalized && data.text) {
           responseContent += data.text;
           targetBubble.hideThinking();
           targetBubble.showStreamingCursor();
@@ -591,35 +608,11 @@ export const handleUserQuery = async (
         }
       },
       onCitation: (data) => {
-        data.citation?.retrievedReferences?.forEach((ref) => {
-          const url = ref.metadata?.url;
-          if (typeof url !== "string" || !url) return;
-
-          try {
-            if (new URL(url).protocol !== "https:") return;
-          } catch {
-            return;
-          }
-
-          const rawTitle = ref.metadata?.title;
-          const title =
-            typeof rawTitle === "string" && rawTitle.trim()
-              ? rawTitle.trim()
-              : null;
-          const existing = accumulatedReferences.get(url);
-          if (!existing) {
-            accumulatedReferences.set(url, {
-              url,
-              title: title || url,
-              hasTitle: !!title,
-            });
-          } else if (!existing.hasTitle && title) {
-            accumulatedReferences.set(url, { url, title, hasTitle: true });
-          }
-        });
+        if (!answerFinalized) accumulatedCitations.push(data.citation);
       },
       // Fired once the answer text is complete, before the follow-up questions.
       onAnswerComplete: () => {
+        if (answerFinalized || !responseContent) return;
         finalizeAnswer();
         endResponding();
         updateSuggestedQuestions(null);
@@ -638,11 +631,17 @@ export const handleUserQuery = async (
       // Terminal safety net: covers aborted/partial streams where
       // `answerComplete` never fired, and always reveals the suggestions.
       onComplete: () => {
-        if (!responseContent) {
+        if (terminalCompleted) return;
+        terminalCompleted = true;
+        if (!responseContent && !answerFinalized) {
+          answerFinalized = true;
+          accumulatedCitations.length = 0;
+          targetBubble.clearSources();
           targetBubble.hideThinking();
           targetBubble.hideStreamingCursor();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
+          chatHistory.updateLast({ content: responseContent, references: [], citations: [] });
           endResponding();
           showFallbackSuggestions();
           return;
@@ -657,7 +656,10 @@ export const handleUserQuery = async (
       },
       onError: (error) => {
         hideStopButton();
-        accumulatedReferences.clear();
+        accumulatedCitations.length = 0;
+        answerFinalized = true;
+        respondingEnded = true;
+        terminalCompleted = true;
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
@@ -685,6 +687,8 @@ const sendMessage = ({
   shouldAppendToHistory = true,
   timestamp = Date.now(),
   feedback,
+  references,
+  citations,
 }) => {
   const bubble = new ChatBubble({
     id,
@@ -693,6 +697,8 @@ const sendMessage = ({
     isContinuingConversation,
     timestamp,
     feedback,
+    references,
+    citations,
   });
 
   if (shouldAppendToHistory) {
@@ -726,11 +732,11 @@ export const restoreChatHistory = async () => {
   if (messages.length > 0) {
     for (const [
       index,
-      { id, content, source, references, timestamp, feedback },
+      { id, content, source, references, citations, timestamp, feedback },
     ] of messages.entries()) {
       const isLastOfGroup =
         index === messages.length - 1 || messages[index + 1]?.source !== source;
-      const bubble = sendMessage({
+      sendMessage({
         id,
         content,
         source,
@@ -739,10 +745,9 @@ export const restoreChatHistory = async () => {
           index > 0 && source === messages[index - 1]?.source,
         shouldAppendToHistory: false,
         feedback,
+        references,
+        citations,
       });
-      if (references?.length) {
-        bubble.renderSources(references);
-      }
     }
     scrollToBottom({ force: true });
   }

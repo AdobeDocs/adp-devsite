@@ -27,6 +27,21 @@ const testConversation = {
 };
 
 async function openAssistant(page) {
+  // Legacy view tests must not fall through to assistant endpoints either.
+  await page.route('**/*', async (route) => {
+    const request = route.request();
+    const target = new URL(request.url());
+    if (target.hostname.includes('devsite-rag') || request.headers()['x-api-key']) {
+      if (request.method() === 'GET' && target.pathname === '/v1/inference/collections') {
+        await route.fulfill({ json: [] });
+      } else {
+        await route.abort('blockedbyclient');
+        throw new Error(`Unexpected assistant request: ${request.method()} ${request.url()}`);
+      }
+    } else {
+      await route.continue();
+    }
+  });
   await page.route(
     '**/marked@18.0.5/lib/marked.umd.js*',
     (route) => route.fulfill({

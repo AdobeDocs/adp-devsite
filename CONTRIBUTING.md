@@ -61,7 +61,7 @@ The workflow tests the component reference pages under `/dev-docs-reference/bloc
 
 ### Which tests run on a pull request
 
-To keep feedback fast, the workflow runs only the specs affected by the pull request's changed files. `scripts/playwright-affected-tests.mjs` lists the pull request's files through the GitHub API (falling back to a git diff against the base branch) and maps changes to specs by naming convention: `hlx_statics/blocks/<block>/` changes run `tests/playwright/blocks/<block>.spec.mjs`. Spec and snapshot changes under `tests/playwright/blocks/` select their own spec the same way.
+To keep feedback fast, the workflow runs only the specs affected by the pull request's changed files. `scripts/playwright-affected-tests.mjs` lists the pull request's files through the GitHub API (falling back to a git diff against the base branch) and maps changes to specs by naming convention: `hlx_statics/blocks/<block>/` changes run every spec for that block — `tests/playwright/blocks/<block>.spec.mjs` plus any feature specs named `tests/playwright/blocks/<block>.<feature>.spec.mjs` (for example, `ai-assistant.citations.spec.mjs`). Spec and snapshot changes under `tests/playwright/blocks/` select all of their block's specs the same way. Use a dot, not a hyphen, before the feature name: block names can contain hyphens (`info` and `info-card` are different blocks). Feature specs are discovered by Playwright directly; do not import them from the block's main spec.
 
 Two exceptions:
 

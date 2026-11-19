@@ -20,6 +20,7 @@
  * @property {string} content
  * @property {'user'|'ai'} source
  * @property {ChatReference[]} [references]
+ * @property {import('./ai-assistant_citations.js').Placement[]} [citations] - Finalized inline ranges and source identities only
  * @property {string|null|number} [timestamp]
  * @property {{type: 'THUMBS_UP_DOWN'; score: 0|1}} [feedback]
  * @property {ChatMessageContext} [context] - For AI messages: how the response was generated
@@ -241,11 +242,19 @@ export class ChatHistory {
    */
   _sanitizeMessages(messages) {
     return messages.map(
-      ({ id, content, source, references, timestamp, feedback, context }) => ({
+      ({ id, content, source, references, citations, timestamp, feedback, context }) => ({
         ...(id && { id }),
         content,
         source,
         ...(references?.length && { references }),
+        ...(Array.isArray(citations) && citations.length && {
+          citations: citations.map((placement) => ({
+            start: placement?.start,
+            end: placement?.end,
+            sourceUrls: Array.isArray(placement?.sourceUrls)
+              ? placement.sourceUrls.filter((url) => typeof url === "string") : [],
+          })),
+        }),
         ...(timestamp && { timestamp }),
         ...(feedback && { feedback }),
         ...(context && { context }),
