@@ -390,6 +390,16 @@ export function buildAside(main) {
 }
 
 /**
+ * Returns the headings listed in the "On this page" aside: section-level h2/h3 wrapped
+ * by buildHeadings(), excluding the side nav, footer, and headings inside other blocks.
+ * @param {ParentNode} container The element to search
+ * @returns {NodeListOf<HTMLHeadingElement>}
+ */
+export function getOnThisPageHeadings(container) {
+  return container.querySelectorAll('.heading2:not(.side-nav .heading2):not(footer .heading2) h2, .heading3:not(.side-nav .heading3):not(footer .heading3) h3');
+}
+
+/**
  * Builds the on this page wrapper
  * @param {*} main The grid container
  */
