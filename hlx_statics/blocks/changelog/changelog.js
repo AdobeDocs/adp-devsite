@@ -960,12 +960,11 @@ function renderReleaseCard({
 export default async function decorate(block) {
   console.log("block", block.children)
   const rawChangelog = await fetchChangelog();
-  const parsedPayload = null
-  // const parsedPayload = parseChangelogPayload(rawChangelog);
+  const parsedPayload = parseChangelogPayload(rawChangelog);
 
   if (!parsedPayload) {
-    // block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data.</p></div>';
-    // return;
+    block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data.</p></div>';
+    return;
   }
 
   const { parsedReleasesDocument, parsedReleasesMetadata } = parsedPayload;
