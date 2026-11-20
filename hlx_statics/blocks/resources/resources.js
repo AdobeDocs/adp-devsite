@@ -1,4 +1,4 @@
-import { createTag, decorateButtons, removeEmptyPTags } from '../../scripts/lib-adobeio.js';
+import { checkExternalLink, createTag } from '../../scripts/lib-adobeio.js';
 
 /**
  * Decorates the resources block.  This block is only allowed 1 block in the md file.
@@ -6,12 +6,12 @@ import { createTag, decorateButtons, removeEmptyPTags } from '../../scripts/lib-
  */
 export default async function decorate(block) {
   block.setAttribute('daa-lh', 'resources');
+  checkExternalLink(block);
 
   block.querySelectorAll('a').forEach((link) =>{
     link.classList.add('spectrum-Link', 'spectrum-Link--quiet');
-    // Check if it's an external link
-    const href = link.getAttribute('href');
-    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+    // Keep the icon consistent with the shared new-tab handling.
+    if (link.target === '_blank') {
       const externalLink = createTag('div', {class: 'external-icon'});
       externalLink.innerHTML = `<svg viewBox="0 0 36 36" class="spectrum-Icon spectrum-Icon--sizeS" focusable="false" aria-hidden="true" role="img">
       <path d="M33 18h-2a1 1 0 0 0-1 1v11H6V6h11a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v30a1 1 0 0 0 1 1h30a1 1 0 0 0 1-1V19a1 1 0 0 0-1-1z"></path>
