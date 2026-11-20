@@ -60,6 +60,8 @@ describe('Image block', () => {
   beforeEach(() => {
     document.body.innerHTML = '<main></main>';
     document.body.classList.add('appear');
+    // Page initialization fails in tests and leaves the body hidden. See DEVSITE-1811.
+    document.body.style.display = '';
     warn = sinon.stub(console, 'warn');
   });
 
@@ -106,6 +108,47 @@ describe('Image block', () => {
     expect(img.loading).to.equal('lazy');
     expect(img.getAttribute('width')).to.equal('1000');
     expect(img.getAttribute('height')).to.equal('500');
+  });
+
+  it('uses shared config normalization and preserves unrelated rows', () => {
+    const { block } = createBlock('unused', true);
+    const configRow = block.lastElementChild;
+    configRow.firstElementChild.textContent = ' Max / width ';
+    configRow.lastElementChild.innerHTML = '<p>550px</p>';
+    const otherRow = document.createElement('div');
+    otherRow.innerHTML = '<div>Other</div><div>Content</div>';
+    block.append(otherRow);
+
+    decorate(block);
+    expect(block.style.getPropertyValue('--image-max-width')).to.equal('550px');
+    expect(block.contains(configRow)).to.be.false;
+    expect(block.contains(otherRow)).to.be.true;
+  });
+
+  it('uses the last DevBiz setting unless a DevDocs attribute is present', () => {
+    const { block } = createBlock('300px', true);
+    const secondRow = block.lastElementChild.cloneNode(true);
+    secondRow.lastElementChild.textContent = '550px';
+    block.append(secondRow);
+    decorate(block);
+    expect(block.style.getPropertyValue('--image-max-width')).to.equal('550px');
+    expect(block.children.length).to.equal(1);
+
+    const both = createBlock('300px', true).block;
+    both.setAttribute('data-maxwidth', 'large');
+    decorate(both);
+    expect(both.style.getPropertyValue('--image-max-width')).to.equal('600px');
+    expect(both.children.length).to.equal(1);
+  });
+
+  it('warns when a DevBiz setting contains multiple values', () => {
+    const { block } = createBlock('unused', true);
+    block.lastElementChild.lastElementChild.innerHTML = '<p>300px</p><p>550px</p>';
+
+    decorate(block);
+    expect(block.style.getPropertyValue('--image-max-width')).to.equal('');
+    expect(block.children.length).to.equal(1);
+    expect(warn.calledOnce).to.be.true;
   });
 
   it('leaves missing or blank settings at the default without a warning', () => {
