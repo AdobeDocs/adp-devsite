@@ -2,6 +2,11 @@ main div.image-wrapper {
   margin: 16px 0;
 }
 
+main div.image-wrapper > div.image {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
 main div.image-wrapper div.image img {
   display: block;
   max-width: min(100%, var(--image-max-width, 100%));
