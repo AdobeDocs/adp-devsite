@@ -1,33 +1,40 @@
-import { createTag } from '../../scripts/lib-adobeio.js';
+import { createTag, decorateInlineCodes } from '../../scripts/lib-adobeio.js';
+import decoratePreformattedCode from '../../components/code.js';
 import { fetchChangelog } from '../../scripts/lib-helix.js';
 
-const COLOR_PALETTE = {
-  // Standard changelog / Spectrum semantic colors
+// Color map for standard changelog and Spectrum semantic colors
+const COLOR_HEX_MAP = {
   red: '#D31510',
   orange: '#E68619',
   yellow: '#D48800',
-  blue: '#0265DC',
   green: '#0A7C52',
-  grey: '#6E6E6E',
+  blue: '#0265DC',
+  navy: '#001F5C',
   gray: '#6E6E6E',
+  grey: '#6E6E6E',
 };
 
+// Month names and short abbreviations for date formatting and filtering
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+const MONTH_SHORT_NAMES = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+// Function to resolve authored color names or hex codes
 function resolveColorHex(colorValue, fallbackHex = '#0265DC') {
   if (!colorValue) return fallbackHex;
   const normalized = String(colorValue).trim().toLowerCase();
-  if (COLOR_PALETTE[normalized]) {
-    return COLOR_PALETTE[normalized];
-  }
-  if (/^#|^rgb|^hsl/i.test(normalized)) {
-    return colorValue;
-  }
-  // Allow any valid CSS color keyword
-  if (/^[a-z]+$/i.test(normalized)) {
-    return normalized;
-  }
+  if (COLOR_HEX_MAP[normalized]) return COLOR_HEX_MAP[normalized];
+  if (/^#|^rgb|^hsl/i.test(normalized)) return colorValue;
+  if (/^[a-z]+$/i.test(normalized)) return normalized;
   return fallbackHex;
 }
 
+// Standard change types
 const ALL_TYPES = [
   { key: 'breaking', label: 'Breaking', icon: 'breaking', color: 'red' },
   { key: 'removed', label: 'Removed', icon: 'removed', color: 'red' },
@@ -38,11 +45,7 @@ const ALL_TYPES = [
   { key: 'docs', label: 'Docs', icon: 'docs', color: 'grey' },
 ];
 
-/**
- * Return inline SVG icons for change types and UI elements.
- * @param {string} changeType Type key
- * @param {string} [customColor] Optional override hex color
- */
+// Function to get inline SVG icons for change types and UI elements
 function getIconSvg(changeType, customColor) {
   const defaultColors = {
     breaking: '#D31510',
@@ -63,120 +66,55 @@ function getIconSvg(changeType, customColor) {
     breaking: `<svg class="changelog-type-icon icon-breaking" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="${color}" d="M8 1l7 7-7 7-7-7z"/></svg>`,
     removed: `<svg class="changelog-type-icon icon-removed" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="2" d="M8 2.5l5.5 5.5-5.5 5.5-5.5-5.5z"/></svg>`,
     deprecated: `<svg class="changelog-type-icon icon-deprecated" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="${color}" d="M8 2l7 12H1z"/></svg>`,
-    experimental: `<svg class="changelog-type-icon icon-experimental" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 2h4M7 2v3.5L3 13a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9 5.5V2"/></svg>`,
-    api: `<svg class="changelog-type-icon icon-api" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 2h4M7 2v3.5L3 13a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9 5.5V2"/></svg>`,
-    test: `<svg class="changelog-type-icon icon-test" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 2h4M7 2v3.5L3 13a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9 5.5V2"/><path fill="${color}" opacity="0.35" d="M4.6 11l1.5-3.5h3.8l1.5 3.5H4.6z"/></svg>`,
-    duplicate: `<svg class="changelog-type-icon icon-duplicate" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><rect x="5" y="5" width="8" height="8" rx="1.5" fill="none" stroke="${color}" stroke-width="1.6"/><path fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M3 11V3.5A1.5 1.5 0 0 1 4.5 2H11"/></svg>`,
     new: `<svg class="changelog-type-icon icon-new" viewBox="0 0 16 16" width="9" height="9" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="${color}"/></svg>`,
     improved: `<svg class="changelog-type-icon icon-improved" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="none" stroke="${color}" stroke-width="2"/></svg>`,
     fixed: `<svg class="changelog-type-icon icon-fixed" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.5 3.5 6.5-7"/></svg>`,
     docs: `<svg class="changelog-type-icon icon-docs" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 2h5.5L13 5.5V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 2v4h4"/></svg>`,
     update: `<svg class="changelog-type-icon icon-update" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M13 8a5 5 0 1 1-1-3M12 2v3H9"/></svg>`,
     chevron: '<svg class="changelog-chevron-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 6l4 4 4-4"/></svg>',
+    close: '<svg class="changelog-tag-close-icon" viewBox="0 0 36 36" width="9" height="9" aria-hidden="true" fill="currentColor"><path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"/></svg>',
+    filter: '<svg class="changelog-filters-header-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M1.5 2.5h13a.5.5 0 0 1 .38.82l-5.38 6.18V13.5a.5.5 0 0 1-.72.45l-2-1A.5.5 0 0 1 6.5 12.5V9.5L1.12 3.32a.5.5 0 0 1 .38-.82z"/></svg>',
+    layers: '<svg class="changelog-label-icon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l6 3.5-6 3.5-6-3.5 6-3.5z"/><path d="M2 8.5l6 3.5 6-3.5"/><path d="M2 12l6 3.5 6-3.5"/></svg>',
+    calendar: '<svg class="changelog-label-icon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10.5" rx="2"/><path d="M2 7h12"/><path d="M5 2v3"/><path d="M11 2v3"/></svg>',
+    tag: '<svg class="changelog-label-icon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5V2.5a1 1 0 0 1 1-1H8.5l6.5 6.5a1 1 0 0 1 0 1.41l-5.59 5.59a1 1 0 0 1-1.41 0L1.5 8.5z"/><circle cx="5" cy="5" r="1" fill="currentColor"/></svg>',
+    clock: '<svg class="changelog-badge-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 4.5V8l2.5 1.5"/></svg>',
+    search: '<svg class="changelog-search-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4"/></svg>',
   };
-  const defaultIcon = `<svg class="changelog-type-icon icon-default" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M2 2h5.5l6.5 6.5-5.5 5.5L2 7.5V2z"/><circle cx="5" cy="5" r="1" fill="${color}"/></svg>`;
-  return iconSvgs[changeType] || defaultIcon;
+  return iconSvgs[changeType] || `<svg class="changelog-type-icon icon-default" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M2 2h5.5l6.5 6.5-5.5 5.5L2 7.5V2z"/><circle cx="5" cy="5" r="1" fill="${color}"/></svg>`;
 }
 
-/**
- * Splits a comma-separated change type string or array into trimmed tokens.
- * @param {string|string[]|null|undefined} rawType Raw change type value
- * @returns {string[]}
- */
+// Function to split raw change type string into tokens
 function splitRawTypeTokens(rawType) {
-  const rawTypeList = Array.isArray(rawType)
-    ? rawType
-    : String(rawType || 'new').split(',');
-
-  return rawTypeList
-    .map((typeValue) => String(typeValue).trim())
-    .filter(Boolean);
+  const list = Array.isArray(rawType) ? rawType : String(rawType || 'new').split(',');
+  return list.map((item) => String(item).trim()).filter(Boolean);
 }
 
-/**
- * Normalizes a raw change type token to a canonical hyphenated key.
- * @param {string} rawToken Raw change type token
- * @returns {string}
- */
-function normalizeTypeKey(rawToken) {
-  return String(rawToken || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[-_\s]+/g, '-')
-    .replace(/^-|-$/g, '');
+// Function to normalize a type token to lowercase trimmed string
+function normalizeTypeKey(token) {
+  return String(token || '').trim().toLowerCase();
 }
 
-/**
- * Splits a comma-separated change type string or array into normalized, deduplicated type keys.
- * @param {string|string[]|null|undefined} rawType Raw change type value
- * @returns {string[]}
- */
+// Function to parse change types into deduplicated normalized keys
 function parseChangeTypes(rawType) {
-  const normalizedTypes = splitRawTypeTokens(rawType).map(normalizeTypeKey).filter(Boolean);
-  return normalizedTypes.length > 0 ? Array.from(new Set(normalizedTypes)) : ['new'];
+  const keys = splitRawTypeTokens(rawType).map(normalizeTypeKey).filter(Boolean);
+  return keys.length > 0 ? Array.from(new Set(keys)) : ['new'];
 }
 
-/**
- * Formats a type key into a display label, preserving authored casing when available.
- * @param {string} typeKey Normalized type key
- * @param {string} [rawToken] Original authored token
- * @returns {string}
- */
+// Function to format a type key into a human-readable display label
 function formatTypeLabel(typeKey, rawToken = '') {
-  if (rawToken && rawToken !== rawToken.toLowerCase()) {
-    return rawToken;
-  }
-  return typeKey
-    .split(/[-_\s]+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  if (rawToken && rawToken !== rawToken.toLowerCase()) return rawToken;
+  return typeKey.split(/[-_\s]+/).filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-/**
- * Parses changelog JSON response 
- */
-function parseChangelogPayload(rawChangelog) {
-  if (!rawChangelog) {
-    return null;
-  }
-
-  let parsedPayload = rawChangelog;
-  if (typeof rawChangelog === 'string') {
-    try {
-      parsedPayload = JSON.parse(rawChangelog);
-    } catch (error) {
-      console.error('Failed to parse changelog JSON:', error);
-      return null;
-    }
-  }
-
-  const changelogEntry = parsedPayload?.data?.[0];
-  if (!changelogEntry) {
-    return null;
-  }
-
-  return {
-    parsedReleasesDocument: changelogEntry.data,
-    parsedReleasesMetadata: changelogEntry.settings,
-  };
-}
-
-/**
- * Escapes HTML special characters in plain text snippets such as code blocks.
- * @param {string} text Plain text input
- * @returns {string}
- */
+// Function to escape HTML characters
 function escapeHtml(text) {
-  return String(text)
+  return String(text ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
 
-/**
- * Formats inline code (`code`), bold (**text** or __text__), and italic (*text* or _text_) in a prose fragment.
- */
+// Function to format inline code and text emphasis
 function formatInlineCodeAndEmphasis(textFragment) {
   return textFragment
     .split(/(`[^`]+`)/g)
@@ -193,9 +131,7 @@ function formatInlineCodeAndEmphasis(textFragment) {
     .join('');
 }
 
-/**
- * Formats markdown prose segments (inline code, links, bold, italic).
- */
+// Function to format markdown prose segments including links
 function formatMarkdownProse(proseText) {
   return proseText
     .split(/(`[^`]+`|\[[^\]]+\]\([^)]+\))/g)
@@ -212,9 +148,7 @@ function formatMarkdownProse(proseText) {
     .join('');
 }
 
-/**
- * Parses bullet lists (- item, * item) and numbered lists (1. item) within a text block.
- */
+// Function to format markdown blocks including unordered and ordered lists
 function formatMarkdownBlock(blockText) {
   const lines = blockText.split(/\r?\n/);
   const output = [];
@@ -234,41 +168,27 @@ function formatMarkdownBlock(blockText) {
     const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
 
     if (bulletMatch) {
-      if (currentList && currentList.type !== 'ul') {
-        flushList();
-      }
-      if (!currentList) {
-        currentList = { type: 'ul', items: [] };
-      }
+      if (currentList && currentList.type !== 'ul') flushList();
+      if (!currentList) currentList = { type: 'ul', items: [] };
       currentList.items.push(bulletMatch[2]);
     } else if (orderedMatch) {
-      if (currentList && currentList.type !== 'ol') {
-        flushList();
-      }
-      if (!currentList) {
-        currentList = { type: 'ol', items: [] };
-      }
+      if (currentList && currentList.type !== 'ol') flushList();
+      if (!currentList) currentList = { type: 'ol', items: [] };
       currentList.items.push(orderedMatch[2]);
     } else {
       flushList();
-      if (line.trim().length > 0) {
-        output.push(formatMarkdownProse(line));
+      if (line.trim()) {
+        output.push(`<p>${formatMarkdownProse(line)}</p>`);
       }
     }
   }
-
   flushList();
-  return output.join('<br>');
+  return output.join('');
 }
 
-/**
- * Format markdown fenced code blocks (```lang ... ```), inline code (`code`),
- * bold (**text**), italic (*text*), links ([text](url)), lists (bullet & numbered), and paragraphs.
- */
+// Function to render markdown text with fenced code blocks and lists
 function renderMarkdown(markdownText) {
-  if (!markdownText) {
-    return '';
-  }
+  if (!markdownText) return '';
 
   const rawText = String(markdownText);
   const segments = rawText.split(/(```[a-z0-9_-]*\r?\n[\s\S]*?```)/gi);
@@ -283,9 +203,7 @@ function renderMarkdown(markdownText) {
     }
 
     const trimmedSegment = hasMultipleBlocks ? segment.replace(/^\r?\n+|\r?\n+$/g, '') : segment;
-    if (!trimmedSegment) {
-      return '';
-    }
+    if (!trimmedSegment) return '';
 
     const paragraphs = trimmedSegment.split(/\r?\n{2,}/);
     if (!hasMultipleBlocks && paragraphs.length === 1 && !/^\s*([*+-]|\d+\.)\s+/m.test(trimmedSegment)) {
@@ -305,13 +223,13 @@ function renderMarkdown(markdownText) {
   }).join('');
 }
 
-/**
- * Formats a UTC Date safely into structured date metadata.
- */
+// Function to build UTC date metadata
 function buildUtcDateMetadata(utcDate, includeDay = true) {
   const year = String(utcDate.getUTCFullYear());
   const monthNumber = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
-  const monthName = utcDate.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+  const monthIdx = utcDate.getUTCMonth();
+  const monthName = MONTH_NAMES[monthIdx] || '';
+  const monthShort = MONTH_SHORT_NAMES[monthIdx] || '';
 
   if (!includeDay) {
     return {
@@ -323,7 +241,7 @@ function buildUtcDateMetadata(utcDate, includeDay = true) {
   }
 
   const dayNumber = String(utcDate.getUTCDate()).padStart(2, '0');
-  const displayDate = utcDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const displayDate = `${monthShort} ${utcDate.getUTCDate()}, ${year}`;
   return {
     year,
     monthName,
@@ -332,135 +250,49 @@ function buildUtcDateMetadata(utcDate, includeDay = true) {
   };
 }
 
-/**
- * Parses date string (ISO YYYY-MM-DD, YYYY-MM, Month YYYY, YYYY, or fallback) into structured date metadata.
- */
+// Function to parse date strings into structured date metadata
 function parseDate(dateString) {
-  const trimmedDateString = (dateString || '').trim();
-  if (!trimmedDateString) {
+  const trimmed = String(dateString || '').trim();
+  if (!trimmed) {
     return { year: '', monthName: '', displayDate: '', rawDate: '' };
   }
 
-  const isoDateMatch = trimmedDateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoDateMatch) {
-    const [, year, month, day] = isoDateMatch;
-    return buildUtcDateMetadata(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))), true);
+  const isoDayMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoDayMatch) {
+    const [, y, m, d] = isoDayMatch;
+    return buildUtcDateMetadata(new Date(Date.UTC(Number(y), Number(m) - 1, Number(d))), true);
   }
 
-  const isoMonthMatch = trimmedDateString.match(/^(\d{4})-(\d{2})$/);
+  const isoMonthMatch = trimmed.match(/^(\d{4})-(\d{2})$/);
   if (isoMonthMatch) {
-    const [, year, month] = isoMonthMatch;
-    return buildUtcDateMetadata(new Date(Date.UTC(Number(year), Number(month) - 1, 1)), false);
+    const [, y, m] = isoMonthMatch;
+    return buildUtcDateMetadata(new Date(Date.UTC(Number(y), Number(m) - 1, 1)), false);
   }
 
-  const monthYearMatch = trimmedDateString.match(/^([a-z]+)\s+(\d{4})$/i);
+  const monthYearMatch = trimmed.match(/^([a-z]+)\s+(\d{4})$/i);
   if (monthYearMatch) {
-    const parsedTimestamp = Date.parse(`${monthYearMatch[1]} 1, ${monthYearMatch[2]} UTC`);
-    if (!isNaN(parsedTimestamp)) {
-      return buildUtcDateMetadata(new Date(parsedTimestamp), false);
+    const prefix = monthYearMatch[1].toLowerCase().slice(0, 3);
+    const monthIdx = MONTH_NAMES.findIndex((mn) => mn.toLowerCase().startsWith(prefix));
+    if (monthIdx !== -1) {
+      return buildUtcDateMetadata(new Date(Date.UTC(Number(monthYearMatch[2]), monthIdx, 1)), false);
     }
   }
 
-  const yearOnlyMatch = trimmedDateString.match(/^(\d{4})$/);
+  const yearOnlyMatch = trimmed.match(/^(\d{4})$/);
   if (yearOnlyMatch) {
     return { year: yearOnlyMatch[1], monthName: '', displayDate: yearOnlyMatch[1], rawDate: yearOnlyMatch[1] };
   }
 
-  const parsedDate = new Date(trimmedDateString);
+  const parsedDate = new Date(trimmed);
   if (!isNaN(parsedDate.getTime())) {
     const utcDate = new Date(Date.UTC(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()));
     return buildUtcDateMetadata(utcDate, true);
   }
 
-  return { year: '', monthName: '', displayDate: trimmedDateString, rawDate: trimmedDateString };
+  return { year: '', monthName: '', displayDate: trimmed, rawDate: trimmed };
 }
 
-/**
- * Compares two semantic version strings.
- * Returns 1 if firstVersion > secondVersion, -1 if firstVersion < secondVersion, and 0 if equal.
- */
-function compareSemver(firstVersionString, secondVersionString) {
-  const cleanFirstVersion = String(firstVersionString || '').replace(/^v/i, '').trim();
-  const cleanSecondVersion = String(secondVersionString || '').replace(/^v/i, '').trim();
-  const firstVersionParts = cleanFirstVersion.split('.').map((versionSegment) => parseInt(versionSegment, 10) || 0);
-  const secondVersionParts = cleanSecondVersion.split('.').map((versionSegment) => parseInt(versionSegment, 10) || 0);
-  const maximumPartsLength = Math.max(firstVersionParts.length, secondVersionParts.length);
-
-  for (let segmentIndex = 0; segmentIndex < maximumPartsLength; segmentIndex += 1) {
-    const firstSegmentNumber = firstVersionParts[segmentIndex] || 0;
-    const secondSegmentNumber = secondVersionParts[segmentIndex] || 0;
-    if (firstSegmentNumber > secondSegmentNumber) {
-      return 1;
-    }
-    if (firstSegmentNumber < secondSegmentNumber) {
-      return -1;
-    }
-  }
-  return 0;
-}
-
-/**
- * Checks whether a given semantic version string matches a version range expression (e.g. '<4.0.0', '<=2.0.0', '>=1.0.0').
- */
-function matchesVersionRange(versionString, versionRangeExpression) {
-  if (!versionString || !versionRangeExpression) {
-    return false;
-  }
-  const rangeMatchResult = String(versionRangeExpression).trim().match(/^([<>]=?|=)?\s*(.*)$/);
-  if (!rangeMatchResult) {
-    return false;
-  }
-
-  const comparisonOperator = rangeMatchResult[1] || '<';
-  const semverComparisonResult = compareSemver(versionString, rangeMatchResult[2]);
-
-  if (comparisonOperator === '<') {
-    return semverComparisonResult < 0;
-  }
-  if (comparisonOperator === '<=') {
-    return semverComparisonResult <= 0;
-  }
-  if (comparisonOperator === '>') {
-    return semverComparisonResult > 0;
-  }
-  if (comparisonOperator === '>=') {
-    return semverComparisonResult >= 0;
-  }
-  return semverComparisonResult === 0;
-}
-
-/**
- * Checks whether a release year matches a year range expression (e.g. '<2024', '<=2023', '>=2020').
- */
-function matchesYearRange(releaseYear, yearRangeExpression) {
-  if (!releaseYear || !yearRangeExpression) {
-    return false;
-  }
-  const rangeMatchResult = String(yearRangeExpression).trim().match(/^([<>]=?|=)?\s*(\d{4})$/);
-  if (!rangeMatchResult) {
-    return false;
-  }
-  const comparisonOperator = rangeMatchResult[1] || '<';
-  const targetYear = parseInt(rangeMatchResult[2], 10);
-
-  if (comparisonOperator === '<') {
-    return releaseYear < targetYear;
-  }
-  if (comparisonOperator === '<=') {
-    return releaseYear <= targetYear;
-  }
-  if (comparisonOperator === '>') {
-    return releaseYear > targetYear;
-  }
-  if (comparisonOperator === '>=') {
-    return releaseYear >= targetYear;
-  }
-  return releaseYear === targetYear;
-}
-
-/**
- * Finds the matching archive group definition for a given release item.
- */
+// Function to find matching archive group for a release
 function findMatchingArchiveGroup(releaseItem, archiveGroupsList) {
   if (!archiveGroupsList || !Array.isArray(archiveGroupsList) || archiveGroupsList.length === 0) {
     return null;
@@ -469,104 +301,692 @@ function findMatchingArchiveGroup(releaseItem, archiveGroupsList) {
   const { year: parsedYearString } = parseDate(releaseItem.date);
   const releaseYear = parsedYearString ? parseInt(parsedYearString, 10) : (releaseItem.date ? parseInt(String(releaseItem.date).slice(0, 4), 10) : null);
 
-  for (let groupIndex = 0; groupIndex < archiveGroupsList.length; groupIndex += 1) {
-    const archiveGroupDefinition = archiveGroupsList[groupIndex];
-    const appliesToCriteria = archiveGroupDefinition?.applies_to;
+  for (let i = 0; i < archiveGroupsList.length; i += 1) {
+    const groupDef = archiveGroupsList[i];
+    const applies = groupDef?.applies_to;
+    if (!applies) continue;
 
-    if (!appliesToCriteria) {
-      if (releaseItem.summary) {
-        return archiveGroupDefinition;
+    if (applies.before_year && releaseYear !== null && !isNaN(releaseYear)) {
+      if (releaseYear < parseInt(applies.before_year, 10)) {
+        return groupDef;
       }
-      continue;
     }
-
-    const isKindMatching = !appliesToCriteria.kind || String(appliesToCriteria.kind).toLowerCase() === String(releaseItem.kind || '').toLowerCase();
-    const isVersionMatching = !appliesToCriteria.version_range || matchesVersionRange(releaseItem.version, appliesToCriteria.version_range);
-
-    let isYearMatching = true;
-    if (appliesToCriteria.before_year) {
-      isYearMatching = Boolean(releaseYear && releaseYear < parseInt(appliesToCriteria.before_year, 10));
-    } else if (appliesToCriteria.year_range) {
-      isYearMatching = matchesYearRange(releaseYear, appliesToCriteria.year_range);
-    } else if (appliesToCriteria.year) {
-      isYearMatching = Boolean(releaseYear && releaseYear === parseInt(appliesToCriteria.year, 10));
-    }
-
-    if (isKindMatching && isVersionMatching && isYearMatching) {
-      return archiveGroupDefinition;
-    }
-  }
-
-  // If the release has a pre-v4 summary without change rows, assign to the first archive group
-  const hasChangeRows = Array.isArray(releaseItem.changes) && releaseItem.changes.length > 0;
-  if (!hasChangeRows && releaseItem.summary && archiveGroupsList.length > 0) {
-    return archiveGroupsList[0];
   }
 
   return null;
 }
 
-/**
- * Decorates the changelog block
- * @param {Element} block The changelog block element
- */
-export default async function decorate(block) {
-  block.setAttribute('daa-lh', 'changelog');
-  block.innerHTML = '<div class="changelog-loading"><div class="changelog-spinner" aria-label="Loading changelog"></div></div>';
+// Function to parse raw changelog API payload
+function parseChangelogPayload(rawChangelog) {
+  if (!rawChangelog) return null;
+  let parsedPayload = rawChangelog;
+  if (typeof rawChangelog === 'string') {
+    try {
+      parsedPayload = JSON.parse(rawChangelog);
+    } catch {
+      return null;
+    }
+  }
+  const rootNode = Array.isArray(parsedPayload?.data) ? parsedPayload.data[0] : parsedPayload;
+  if (!rootNode) return null;
+  return {
+    parsedReleasesDocument: rootNode.data || rootNode,
+    parsedReleasesMetadata: rootNode.settings || rootNode.metadata || {},
+  };
+}
 
-  const rawChangelog = await fetchChangelog().catch(() => null);
-  const parsedChangelog = parseChangelogPayload(rawChangelog);
-  const parsedReleasesDocument = parsedChangelog?.parsedReleasesDocument;
-  const parsedReleasesMetadata = parsedChangelog?.parsedReleasesMetadata;
+// Function to create a Spectrum-styled single-select dropdown control
+function createSingleSelectDropdown({
+  id,
+  labelText,
+  labelIcon = null,
+  allLabel = 'All',
+  options = [],
+  selectedValue = 'all',
+  onChange,
+}) {
+  const group = createTag('div', { class: 'changelog-filter-group changelog-singleselect-group' });
+  const label = createTag('label', {
+    class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label',
+    id: `${id}-label`,
+    for: id,
+  });
+  if (labelIcon) {
+    const iconSpan = createTag('span', { class: 'changelog-filter-label-icon', 'aria-hidden': 'true' });
+    iconSpan.innerHTML = getIconSvg(labelIcon);
+    label.append(iconSpan);
+  }
+  const textSpan = createTag('span', { class: 'changelog-filter-label-text' });
+  textSpan.textContent = labelText;
+  label.append(textSpan);
 
-  if (!parsedReleasesDocument) {
-    block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data. Please check back later.</p></div>';
-    return;
+  const wrapper = createTag('div', { class: 'changelog-select-wrapper' });
+  const select = createTag('select', {
+    id,
+    class: 'spectrum-Picker spectrum-Picker--sizeM changelog-filter-select',
+    'aria-labelledby': `${id}-label`,
+  });
+
+  function populateOptions(opts, currentVal) {
+    select.innerHTML = '';
+    const allOpt = createTag('option', { value: 'all' });
+    allOpt.textContent = allLabel;
+    select.append(allOpt);
+
+    opts.forEach((opt) => {
+      const optEl = createTag('option', { value: opt.value });
+      optEl.textContent = opt.text;
+      if (opt.value === currentVal) optEl.selected = true;
+      select.append(optEl);
+    });
+    select.value = currentVal;
   }
 
+  populateOptions(options, selectedValue);
+
+  select.addEventListener('change', (e) => {
+    onChange(e.target.value);
+  });
+
+  const pickerIcon = createTag('span', { class: 'changelog-picker-icon', 'aria-hidden': 'true' });
+  pickerIcon.innerHTML = getIconSvg('chevron');
+  wrapper.append(select, pickerIcon);
+  group.append(label, wrapper);
+
+  return {
+    group,
+    select,
+    setValue(val) {
+      select.value = val;
+    },
+    updateOptions(newOpts, currentVal) {
+      populateOptions(newOpts, currentVal);
+    },
+  };
+}
+
+// Function to create a Spectrum-styled multi-select dropdown control
+function createMultiSelectDropdown({
+  id,
+  labelText,
+  labelIcon = null,
+  allLabel = 'All',
+  options = [],
+  selectedSet,
+  maxVisibleTags = 3,
+  entityName = 'items',
+  onChange,
+}) {
+  let currentOptions = [...options];
+  let isOpen = false;
+
+  const group = createTag('div', { class: 'changelog-filter-group changelog-multiselect-group' });
+
+  const label = createTag('label', {
+    class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label',
+    id: `${id}-label`,
+    for: id,
+  });
+  if (labelIcon) {
+    const labelIconSpan = createTag('span', { class: 'changelog-filter-label-icon', 'aria-hidden': 'true' });
+    labelIconSpan.innerHTML = getIconSvg(labelIcon);
+    label.append(labelIconSpan);
+  }
+  const labelTextSpan = createTag('span', { class: 'changelog-filter-label-text' });
+  labelTextSpan.textContent = labelText;
+  label.append(labelTextSpan);
+
+  const wrapper = createTag('div', { class: 'changelog-multiselect-wrapper' });
+
+  const trigger = createTag('button', {
+    type: 'button',
+    id,
+    class: 'changelog-multiselect-trigger',
+    'aria-haspopup': 'listbox',
+    'aria-expanded': 'false',
+    'aria-labelledby': `${id}-label ${id}-trigger-text`,
+  });
+
+  const triggerText = createTag('span', {
+    class: 'changelog-multiselect-trigger-text',
+    id: `${id}-trigger-text`,
+  });
+
+  function updateTriggerLabel() {
+    const selectedCount = selectedSet.size;
+
+    if (isOpen) {
+      triggerText.innerHTML = '';
+      triggerText.textContent = `${selectedCount} ${entityName} selected`;
+      trigger.setAttribute('value', Array.from(selectedSet).join(','));
+      return;
+    }
+
+    if (selectedCount === 0) {
+      triggerText.innerHTML = '';
+      triggerText.textContent = allLabel;
+      trigger.setAttribute('value', 'none');
+      return;
+    }
+
+    triggerText.innerHTML = '';
+    const selectedOptions = currentOptions.filter((opt) => selectedSet.has(opt.value));
+    const visibleOptions = selectedOptions.slice(0, maxVisibleTags);
+    const overflowCount = selectedOptions.length - visibleOptions.length;
+
+    visibleOptions.forEach((opt) => {
+      const tag = createTag('span', { class: 'changelog-trigger-tag', 'data-value': opt.value });
+      const tagText = createTag('span');
+      tagText.textContent = opt.text;
+
+      const removeBtn = createTag('button', {
+        type: 'button',
+        class: 'changelog-trigger-tag-remove',
+        'aria-label': `Remove ${opt.text}`,
+      });
+      removeBtn.innerHTML = getIconSvg('close');
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        selectedSet.delete(opt.value);
+        allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((o) => selectedSet.has(o.value));
+        optionCheckboxes.forEach(({ checkbox: cb, option: o }) => {
+          cb.checked = selectedSet.has(o.value);
+        });
+        updateTriggerLabel();
+        onChange(selectedSet);
+      });
+
+      tag.append(tagText, removeBtn);
+      triggerText.append(tag);
+    });
+
+    if (overflowCount > 0) {
+      const overflowBadge = createTag('span', { class: 'changelog-trigger-overflow-badge' });
+      overflowBadge.textContent = `+${overflowCount}`;
+      triggerText.append(overflowBadge);
+    }
+
+    trigger.setAttribute('value', Array.from(selectedSet).join(','));
+  }
+
+  const triggerIcon = createTag('span', { class: 'changelog-multiselect-trigger-icon', 'aria-hidden': 'true' });
+  triggerIcon.innerHTML = getIconSvg('chevron');
+  trigger.append(triggerText, triggerIcon);
+
+  const popover = createTag('div', {
+    class: 'changelog-multiselect-popover',
+    role: 'listbox',
+    'aria-multiselectable': 'true',
+    hidden: true,
+  });
+
+  const searchBox = createTag('div', { class: 'changelog-multiselect-search' });
+  const searchInput = createTag('input', {
+    type: 'text',
+    class: 'spectrum-Textfield-input changelog-multiselect-search-input',
+    placeholder: `Search ${entityName}`,
+    'aria-label': `Search ${entityName}`,
+  });
+  searchBox.append(searchInput);
+  popover.append(searchBox);
+
+  const allOption = createTag('label', { class: 'changelog-multiselect-option changelog-multiselect-option-all' });
+  const allCheckbox = createTag('input', {
+    type: 'checkbox',
+    class: 'changelog-multiselect-checkbox',
+    value: 'all',
+  });
+  allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((opt) => selectedSet.has(opt.value));
+  const allText = createTag('span', { class: 'changelog-multiselect-option-text' });
+  allText.textContent = allLabel;
+  allOption.append(allCheckbox, allText);
+  popover.append(allOption);
+
+  const divider = createTag('div', { class: 'changelog-multiselect-divider', role: 'separator' });
+  popover.append(divider);
+
+  const listContainer = createTag('div', { class: 'changelog-multiselect-options-list' });
+  popover.append(listContainer);
+
+  let optionCheckboxes = [];
+
+  function populateOptionsList(opts) {
+    listContainer.innerHTML = '';
+    optionCheckboxes = [];
+
+    opts.forEach((opt) => {
+      const optionLabel = createTag('label', { class: 'changelog-multiselect-option' });
+      const checkbox = createTag('input', {
+        type: 'checkbox',
+        class: 'changelog-multiselect-checkbox',
+        value: opt.value,
+      });
+      checkbox.checked = selectedSet.has(opt.value);
+
+      const optionSpan = createTag('span', { class: 'changelog-multiselect-option-text' });
+      optionSpan.textContent = opt.text;
+      optionLabel.append(checkbox, optionSpan);
+      listContainer.append(optionLabel);
+
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          selectedSet.add(opt.value);
+        } else {
+          selectedSet.delete(opt.value);
+        }
+        allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((o) => selectedSet.has(o.value));
+        updateTriggerLabel();
+        onChange(selectedSet);
+      });
+
+      optionCheckboxes.push({ checkbox, option: opt });
+    });
+
+    allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((opt) => selectedSet.has(opt.value));
+  }
+
+  allCheckbox.addEventListener('change', () => {
+    if (allCheckbox.checked) {
+      currentOptions.forEach((opt) => selectedSet.add(opt.value));
+    } else {
+      selectedSet.clear();
+    }
+    optionCheckboxes.forEach(({ checkbox: cb }) => {
+      cb.checked = allCheckbox.checked;
+    });
+    updateTriggerLabel();
+    onChange(selectedSet);
+  });
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    optionCheckboxes.forEach(({ checkbox: cb, option: opt }) => {
+      const parentLabel = cb.closest('label');
+      if (!parentLabel) return;
+      parentLabel.hidden = query !== '' && !opt.text.toLowerCase().includes(query);
+    });
+  });
+
+  function setOpen(open) {
+    isOpen = open;
+    trigger.setAttribute('aria-expanded', String(isOpen));
+    popover.hidden = !isOpen;
+    if (isOpen) {
+      searchInput.value = '';
+      populateOptionsList(currentOptions);
+      if (typeof setTimeout !== 'undefined') {
+        setTimeout(() => searchInput.focus?.(), 50);
+      }
+    }
+    updateTriggerLabel();
+  }
+
+  trigger.addEventListener('click', () => setOpen(!isOpen));
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+      if (isOpen && !group.contains(e.target)) {
+        setOpen(false);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        setOpen(false);
+        trigger.focus();
+      }
+    });
+  }
+
+  populateOptionsList(currentOptions);
+  updateTriggerLabel();
+
+  wrapper.append(trigger, popover);
+  group.append(label, wrapper);
+
+  return {
+    group,
+    update(newOptions, newSelectedSet) {
+      if (newOptions) currentOptions = [...newOptions];
+      if (newSelectedSet) selectedSet = newSelectedSet;
+      populateOptionsList(currentOptions);
+      updateTriggerLabel();
+    },
+  };
+}
+
+// Function to create the changelog header section
+function createHeaderSection({ pageConfig, feedUrl, latestRelease }) {
+  const header = createTag('header', { class: 'changelog-header' });
+  const titleHeading = createTag('h1', { class: 'spectrum-Heading spectrum-Heading--sizeXL spectrum-Heading--light changelog-title' });
+  titleHeading.textContent = pageConfig?.title;
+  header.append(titleHeading);
+
+  if (pageConfig?.description) {
+    const desc = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeXL changelog-description' });
+    desc.textContent = pageConfig.description;
+    header.append(desc);
+  }
+
+  const quickLinks = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeXL changelog-quick-links' });
+  if (feedUrl) {
+    const rssLink = createTag('a', {
+      class: 'spectrum-Link changelog-quick-link changelog-rss-link',
+      href: feedUrl,
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      'aria-label': 'Subscribe to RSS feed',
+    });
+    rssLink.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><circle cx="6.18" cy="17.82" r="2.18" fill="#eb1000"></circle><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" fill="#eb1000"></path></svg> <span>Subscribe to RSS feed</span>';
+    quickLinks.append(rssLink);
+  }
+  header.append(quickLinks);
+
+  const subHeader = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-sub-header' });
+  const latestInfo = createTag('span', { class: 'changelog-latest-info' });
+  if (latestRelease && (latestRelease.version || latestRelease.title || latestRelease.date)) {
+    const parts = [
+      latestRelease.version ? `<strong>${latestRelease.version}</strong>` : (latestRelease.title ? `<strong>${latestRelease.title}</strong>` : ''),
+      latestRelease.date,
+    ].filter(Boolean);
+    latestInfo.innerHTML = `Latest: ${parts.join(' · ')}`;
+    subHeader.append(latestInfo);
+    header.append(subHeader);
+  }
+
+  return header;
+}
+
+// Function to create the archive accordion section
+function createArchiveSection({ configuredArchiveGroups, archiveGroupReleasesMap, archiveSectionLabel, archiveSectionDescription }) {
+  const archiveSection = createTag('section', {
+    class: 'changelog-archive-section',
+    'aria-label': archiveSectionLabel,
+  });
+
+  const heading = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeL changelog-archive-title' });
+  heading.textContent = archiveSectionLabel;
+  archiveSection.append(heading);
+
+  if (archiveSectionDescription) {
+    const desc = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeM changelog-archive-description' });
+    desc.textContent = archiveSectionDescription;
+    archiveSection.append(desc);
+  }
+
+  configuredArchiveGroups.forEach((groupDef) => {
+    const groupData = archiveGroupReleasesMap.get(groupDef.id);
+    if (!groupData || groupData.releasesList.length === 0) return;
+
+    const accordion = createTag('div', { class: 'changelog-accordion changelog-archive-group' });
+    accordion.id = `changelog-archive-${groupDef.id}`;
+
+    const trigger = createTag('button', {
+      type: 'button',
+      class: 'changelog-accordion-trigger',
+      'aria-expanded': 'false',
+      'aria-controls': `changelog-archive-content-${groupDef.id}`,
+    });
+
+    const left = createTag('div', { class: 'changelog-accordion-left' });
+    const title = createTag('span', { class: 'spectrum-Heading spectrum-Heading--sizeM changelog-accordion-title' });
+    title.textContent = groupDef.label;
+
+    const count = createTag('span', { class: 'spectrum-Body spectrum-Body--sizeS changelog-accordion-count' });
+    count.textContent = `(${groupData.releasesList.length})`;
+    left.append(title, count);
+
+    const arrow = createTag('span', { class: 'changelog-accordion-arrow', 'aria-hidden': 'true' });
+    arrow.innerHTML = getIconSvg('chevron');
+    trigger.append(left, arrow);
+
+    const content = createTag('div', {
+      id: `changelog-archive-content-${groupDef.id}`,
+      class: 'changelog-accordion-content',
+      hidden: true,
+    });
+
+    const list = createTag('div', { class: 'changelog-archive-list' });
+    groupData.releasesList.forEach((rel) => {
+      const item = createTag('div', { class: 'changelog-archive-item' });
+      const meta = createTag('div', { class: 'changelog-archive-meta' });
+
+      if (rel.version || rel.title) {
+        const vHead = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS changelog-archive-version' });
+        vHead.textContent = rel.version || rel.title;
+        meta.append(vHead);
+      }
+
+      if (rel.date) {
+        const dSpan = createTag('span', { class: 'spectrum-Body spectrum-Body--sizeS changelog-archive-date' });
+        dSpan.textContent = rel.date;
+        meta.append(dSpan);
+      }
+
+      if (rel.breaking) {
+        const bBadge = createTag('span', { class: 'changelog-badge changelog-badge-breaking' });
+        bBadge.textContent = 'Breaking';
+        meta.append(bBadge);
+      }
+
+      const descDiv = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeM changelog-archive-desc' });
+      descDiv.innerHTML = renderMarkdown(rel.summary);
+
+      item.append(meta, descDiv);
+      list.append(item);
+    });
+
+    content.append(list);
+
+    trigger.addEventListener('click', () => {
+      const isExp = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', String(!isExp));
+      content.hidden = isExp;
+    });
+
+    accordion.append(trigger, content);
+    archiveSection.append(accordion);
+  });
+
+  archiveSection.querySelectorAll('pre').forEach((pre) => {
+    decoratePreformattedCode(pre);
+  });
+  decorateInlineCodes(archiveSection);
+
+  return archiveSection;
+}
+
+// Function to render a single release card
+function renderReleaseCard({
+  releaseItem,
+  releaseIndex,
+  yearKey,
+  releaseKindsMap,
+  defaultReleaseKind,
+  filterState,
+  availableTypes,
+  configuredTypesMap,
+  defaultTypesByKey,
+  authoredTypeLabels,
+  modulesMap,
+}) {
+  const cardSlug = String(releaseItem.title || releaseItem.kind || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  const cardId = releaseItem.version
+    ? releaseItem.version.replace(/\./g, '-')
+    : (releaseItem.rawDate ? `docs-${releaseItem.rawDate}` : (cardSlug || `release-${yearKey || 'entry'}-${releaseIndex + 1}`));
+  const releaseCard = createTag('article', { class: 'changelog-release-card', id: cardId });
+
+  const releaseHeading = releaseItem.version
+    ? (releaseItem.title ? `${releaseItem.version} · ${releaseItem.title}` : releaseItem.version)
+    : (releaseItem.title || releaseKindsMap[releaseItem.kind] || 'Update');
+
+  let badgeHtml = '';
+  if (releaseItem.isLatest) {
+    badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
+  } else if (releaseItem.kind) {
+    const kindLabel = releaseKindsMap[releaseItem.kind] || releaseItem.kind;
+    const isDefaultVersionedRelease = Boolean(
+      defaultReleaseKind && releaseItem.version && releaseItem.kind === defaultReleaseKind,
+    );
+    const isFilteredBySameKind = filterState.types.has(String(releaseItem.kind).toLowerCase());
+    if (!isDefaultVersionedRelease && !isFilteredBySameKind && kindLabel.toLowerCase() !== releaseHeading.toLowerCase()) {
+      badgeHtml = `<span class="changelog-badge">${kindLabel}</span>`;
+    }
+  }
+
+  const summaryHtml = releaseItem.summary
+    ? `<div class="spectrum-Body spectrum-Body--sizeM changelog-release-summary">${renderMarkdown(releaseItem.summary)}</div>`
+    : '';
+
+  let changesHtml = '';
+  if (releaseItem.changes.length === 0) {
+    if (!releaseItem.summary) {
+      changesHtml = `
+        <div class="changelog-change-row">
+          <div class="changelog-change-content">
+            <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">Maintenance release.</div>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    changesHtml = releaseItem.changes.map((changeItem) => {
+      const typeClassList = changeItem.types
+        .map((typeKey) => `type-${typeKey.replace(/[^a-z0-9_-]/g, '-')}`)
+        .join(' ');
+      const typesHtml = changeItem.types.map((typeKey) => {
+        const typeDefinition = availableTypes.find((item) => item.key === typeKey);
+        const configuredType = configuredTypesMap[typeKey];
+        const defaultType = defaultTypesByKey.get(typeKey);
+        const iconType = typeDefinition?.icon || configuredType?.icon || defaultType?.icon || typeKey;
+        const typeLabel = typeDefinition?.label
+          || configuredType?.label
+          || defaultType?.label
+          || formatTypeLabel(typeKey, authoredTypeLabels.get(typeKey));
+        const typeColor = typeDefinition?.color || configuredType?.color || defaultType?.color;
+        const colorHex = resolveColorHex(typeColor, '#505050');
+        const safeTypeClass = typeKey.replace(/[^a-z0-9_-]/g, '-');
+        const isPillBadge = safeTypeClass === 'experimental' || safeTypeClass === 'api';
+        const inlineColorStyle = isPillBadge ? '' : ` style="color: ${colorHex};"`;
+        return `
+          <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${safeTypeClass}"${inlineColorStyle}>
+            ${getIconSvg(iconType, colorHex)} <span>${escapeHtml(typeLabel)}</span>
+          </div>
+        `;
+      }).join('');
+
+      const moduleLabels = (changeItem.modules || []).map((mId) => modulesMap[mId] || mId).filter(Boolean);
+      const moduleHtml = moduleLabels.length > 0
+        ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${renderMarkdown(moduleLabels.join(', '))}</div>`
+        : '';
+
+      const changeHeadingHtml = changeItem.heading
+        ? `<h4 class="spectrum-Heading spectrum-Heading--sizeXS changelog-change-heading">${renderMarkdown(changeItem.heading)}</h4>`
+        : '';
+      const openBadgeHtml = changeItem.open ? '<span class="changelog-badge changelog-badge-open">Still open</span>' : '';
+      const actionHtml = changeItem.action ? `
+        <div class="changelog-what-to-do ${typeClassList}">
+          <strong class="what-to-do-title">What to do:</strong>
+          <span>${renderMarkdown(changeItem.action)}</span>
+        </div>
+      ` : '';
+
+      let codeHtml = '';
+      if (changeItem.code) {
+        const rawCode = String(changeItem.code).trim();
+        const codeLang = changeItem.language || 'js';
+        if (rawCode.startsWith('<pre')) {
+          let preHtml = rawCode.includes('<code')
+            ? rawCode
+            : rawCode.replace(/^<pre([^>]*)>([\s\S]*)<\/pre>$/i, '<pre$1><code>$2</code></pre>');
+          if (!preHtml.includes('changelog-code-block')) {
+            if (/^<pre[^>]*class="/i.test(preHtml)) {
+              preHtml = preHtml.replace(/^<pre([^>]*)class="([^"]*)"/i, '<pre$1class="changelog-code-block $2"');
+            } else {
+              preHtml = preHtml.replace(/^<pre/i, '<pre class="changelog-code-block"');
+            }
+          }
+          codeHtml = preHtml;
+        } else if (rawCode.startsWith('```')) {
+          codeHtml = renderMarkdown(rawCode);
+        } else {
+          codeHtml = `<pre class="changelog-code-block language-${codeLang}"><code class="language-${codeLang}">${escapeHtml(rawCode)}</code></pre>`;
+        }
+      }
+
+      return `
+        <div class="changelog-change-row ${typeClassList}">
+          <div class="changelog-change-type-col">
+            <div class="changelog-change-types">
+              ${typesHtml}
+            </div>
+            ${moduleHtml}
+          </div>
+          <div class="changelog-change-content">
+            ${changeHeadingHtml}
+            <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">
+              ${renderMarkdown(changeItem.text)}
+              ${codeHtml}
+              ${openBadgeHtml}
+            </div>
+            ${actionHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const dateHtml = releaseItem.date
+    ? `<time class="spectrum-Body spectrum-Body--sizeS changelog-release-date" datetime="${releaseItem.rawDate}">${releaseItem.date}</time>`
+    : '';
+
+  releaseCard.innerHTML = `
+    <div class="changelog-release-meta">
+      <h3 class="spectrum-Heading spectrum-Heading--sizeS changelog-release-version">${releaseHeading}</h3>
+      ${dateHtml}
+      ${badgeHtml}
+    </div>
+    <div class="changelog-release-changes">${summaryHtml}${changesHtml}</div>
+  `;
+
+  return releaseCard;
+}
+
+// Main decorate function to build the changelog component
+export default async function decorate(block) {
+  console.log("block", block.children)
+  const rawChangelog = await fetchChangelog();
+  const parsedPayload = null
+  // const parsedPayload = parseChangelogPayload(rawChangelog);
+
+  if (!parsedPayload) {
+    // block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data.</p></div>';
+    // return;
+  }
+
+  const { parsedReleasesDocument, parsedReleasesMetadata } = parsedPayload;
   const modulesMap = parsedReleasesDocument?.modules || {};
   const releaseKindsMap = parsedReleasesMetadata?.kinds || {};
-  const archiveConfiguration = parsedReleasesMetadata?.archive || null;
-  let configuredArchiveGroups = Array.isArray(archiveConfiguration?.groups) ? [...archiveConfiguration.groups] : [];
-
-  // If no explicit groups are configured, synthesize a default group from before_year or cutoff_year
-  if (configuredArchiveGroups.length === 0 && (archiveConfiguration?.before_year || archiveConfiguration?.cutoff_year)) {
-    const cutoffYear = archiveConfiguration.before_year || archiveConfiguration.cutoff_year;
-    configuredArchiveGroups = [
-      {
-        id: `pre-${cutoffYear}`,
-        label: archiveConfiguration.group_label || `${parseInt(cutoffYear, 10) - 1} and earlier`,
-        applies_to: { before_year: cutoffYear },
-        hint: archiveConfiguration.hint || `Releases before ${cutoffYear} aren't tagged by module or type.`,
-      },
-    ];
-  }
-
-  const isArchiveEnabled = Boolean(archiveConfiguration?.enabled !== false && configuredArchiveGroups.length > 0);
-  const archiveSectionLabel = archiveConfiguration?.label || 'Older releases';
-  const archiveSectionDescription = archiveConfiguration?.description || '';
+  const archiveConfig = parsedReleasesMetadata?.archive;
+  const isArchiveEnabled = Boolean(archiveConfig?.enabled);
+  const configuredArchiveGroups = Array.isArray(archiveConfig?.groups) ? archiveConfig.groups : [];
+  const archiveSectionLabel = archiveConfig?.label || '';
+  const archiveSectionDescription = archiveConfig?.description || '';
 
   const archiveGroupReleasesMap = new Map();
-  configuredArchiveGroups.forEach((groupDefinition) => {
-    archiveGroupReleasesMap.set(groupDefinition.id, {
-      groupDefinition,
-      releasesList: [],
-    });
+  configuredArchiveGroups.forEach((groupDef) => {
+    archiveGroupReleasesMap.set(groupDef.id, { groupDefinition: groupDef, releasesList: [] });
   });
 
   let totalArchivedReleasesCount = 0;
   const rawReleasesList = Array.isArray(parsedReleasesDocument?.releases) ? parsedReleasesDocument.releases : [];
   const defaultReleaseKind = parsedReleasesMetadata?.defaultKind || '';
-
-  const authoredTitle = block.querySelector('h1, h2, h3')?.textContent?.trim();
-  const authoredDescription = block.querySelector('p')?.textContent?.trim();
-  const authoredLinks = Array.from(block.querySelectorAll('a')).filter((anchorElement) => {
-    const hrefAttribute = anchorElement.getAttribute('href') || '';
-    return hrefAttribute && !hrefAttribute.endsWith('.xml') && !hrefAttribute.includes('feed.xml');
-  });
-
-  const authoredFeedLink = block.querySelector('a[href$=".xml"], a[href*="feed.xml"]')?.getAttribute('href');
-  const feedUrl = authoredFeedLink || parsedReleasesMetadata?.page?.url || '/feed.xml';
+  const pageConfig = parsedReleasesMetadata?.page;
+  const feedUrl = pageConfig?.url;
 
   block.innerHTML = '';
 
@@ -575,14 +995,12 @@ export default async function decorate(block) {
 
   rawReleasesList.forEach((releaseItem) => {
     const { year, monthName, displayDate, rawDate } = parseDate(releaseItem.date);
-    const matchingArchiveGroup = isArchiveEnabled
-      ? findMatchingArchiveGroup(releaseItem, configuredArchiveGroups)
-      : null;
+    const matchingArchiveGroup = isArchiveEnabled ? findMatchingArchiveGroup(releaseItem, configuredArchiveGroups) : null;
 
     if (matchingArchiveGroup && archiveGroupReleasesMap.has(matchingArchiveGroup.id)) {
       archiveGroupReleasesMap.get(matchingArchiveGroup.id).releasesList.push({
-        version: releaseItem.version ? `v${String(releaseItem.version).replace(/^v/i, '')}` : (releaseItem.version || ''),
-        date: displayDate || releaseItem.date || '',
+        version: releaseItem.version ? `v${String(releaseItem.version).replace(/^v/i, '')}` : '',
+        date: displayDate || releaseItem.date,
         summary: releaseItem.summary || '',
         title: releaseItem.title || '',
         breaking: Boolean(releaseItem.breaking),
@@ -607,6 +1025,8 @@ export default async function decorate(block) {
         modules: Array.isArray(changeItem.modules) ? changeItem.modules : (changeItem.modules ? [changeItem.modules] : []),
         text: changeItem.text || '',
         action: changeItem.action || '',
+        code: changeItem.code || '',
+        language: changeItem.language || 'js',
         open: Boolean(changeItem.open),
       };
     }) : [];
@@ -625,262 +1045,273 @@ export default async function decorate(block) {
     });
   });
 
+  const isFiltersDisabled = parsedReleasesMetadata?.filters === false;
+  const hasConfiguredFilters = Array.isArray(parsedReleasesMetadata?.filters);
+  const configuredFilters = hasConfiguredFilters ? parsedReleasesMetadata.filters : null;
+
+  const isFilterConfigured = (filterId) => {
+    if (isFiltersDisabled) return false;
+    if (!hasConfiguredFilters) return true;
+    return configuredFilters.some((f) => f.id === filterId && f.enabled !== false);
+  };
+
+  const typeFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'type');
   const configuredTypesMap = { ...(parsedReleasesMetadata?.types || {}) };
-  const configuredFilters = parsedReleasesMetadata
-    ? (Array.isArray(parsedReleasesMetadata.filters) ? parsedReleasesMetadata.filters : [])
-    : null;
-  const typeFilterMetadata = (parsedReleasesMetadata?.filters || []).find((filterDefinition) => filterDefinition.id === 'type');
-  if (Array.isArray(typeFilterMetadata?.options)) {
-    typeFilterMetadata.options.forEach((optionItem) => {
-      if (typeof optionItem === 'object' && optionItem) {
-        const optionKey = normalizeTypeKey(optionItem.id || optionItem.key || optionItem.value);
-        if (optionKey && !configuredTypesMap[optionKey]) {
-          configuredTypesMap[optionKey] = {
-            label: optionItem.label,
-            icon: optionItem.icon,
-            color: optionItem.color,
-          };
-        }
-      }
-    });
-  }
-  const defaultTypesByKey = new Map(ALL_TYPES.map((typeItem) => [typeItem.key, typeItem]));
+  const defaultTypesByKey = new Map(ALL_TYPES.map((t) => [t.key, t]));
 
   const availableTypes = [];
   const addedTypeKeys = new Set();
 
   if (Array.isArray(typeFilterMetadata?.options)) {
-    typeFilterMetadata.options.forEach((optionItem) => {
-      const rawOptionId = typeof optionItem === 'object'
-        ? (optionItem?.id || optionItem?.key || optionItem?.value || '')
-        : String(optionItem || '');
-      const typeKey = normalizeTypeKey(rawOptionId);
-      if (!typeKey || addedTypeKeys.has(typeKey)) {
-        return;
-      }
+    typeFilterMetadata.options.forEach((opt) => {
+      const typeKey = normalizeTypeKey(opt.id);
+      if (!typeKey || addedTypeKeys.has(typeKey)) return;
 
-      const defaultType = defaultTypesByKey.get(typeKey);
-      const configuredType = configuredTypesMap[typeKey];
-      const optionLabel = typeof optionItem === 'object' ? optionItem?.label : '';
-      const optionIcon = typeof optionItem === 'object' ? optionItem?.icon : '';
-      const optionColor = typeof optionItem === 'object' ? optionItem?.color : '';
-
+      const defType = defaultTypesByKey.get(typeKey);
       availableTypes.push({
         key: typeKey,
-        label: optionLabel || configuredType?.label || defaultType?.label || formatTypeLabel(typeKey, rawOptionId),
-        icon: optionIcon || configuredType?.icon || defaultType?.icon || typeKey,
-        color: optionColor || configuredType?.color || defaultType?.color || 'blue',
+        label: opt.label || defType?.label || formatTypeLabel(typeKey, opt.id),
+        icon: opt.icon || defType?.icon || typeKey,
+        color: opt.color || defType?.color || '',
       });
       addedTypeKeys.add(typeKey);
     });
   } else {
-    const hasAnyStandardType = ALL_TYPES.some((typeItem) => authoredTypeLabels.has(typeItem.key));
-    ALL_TYPES.forEach((typeItem) => {
-      if (!hasAnyStandardType || authoredTypeLabels.has(typeItem.key)) {
-        const configuredType = configuredTypesMap[typeItem.key];
+    const hasAnyStandardType = ALL_TYPES.some((t) => authoredTypeLabels.has(t.key));
+    ALL_TYPES.forEach((t) => {
+      if (!hasAnyStandardType || authoredTypeLabels.has(t.key)) {
+        const legacyType = configuredTypesMap[t.key];
         availableTypes.push({
-          ...typeItem,
-          label: configuredType?.label || typeItem.label,
-          icon: configuredType?.icon || typeItem.icon,
-          color: configuredType?.color || typeItem.color,
+          ...t,
+          label: legacyType?.label || t.label,
+          icon: legacyType?.icon || t.icon,
+          color: legacyType?.color || t.color,
         });
-        addedTypeKeys.add(typeItem.key);
+        addedTypeKeys.add(t.key);
       }
     });
   }
 
-  // Filter definitions and control types (select vs pills)
-  const isFilterExplicitlyDisabled = (filterId) => {
-    if (!configuredFilters) {
-      return false;
-    }
-    const filterDef = configuredFilters.find((filterItem) => filterItem.id === filterId);
-    return Boolean(filterDef && filterDef.enabled === false);
-  };
+  const moduleFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'module');
+  const yearFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'year');
+  const monthFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'month');
 
-  const moduleFilterMetadata = (parsedReleasesMetadata?.filters || []).find((filterDefinition) => filterDefinition.id === 'module');
-  const yearFilterMetadata = (parsedReleasesMetadata?.filters || []).find((filterDefinition) => filterDefinition.id === 'year');
-  const monthFilterMetadata = (parsedReleasesMetadata?.filters || []).find((filterDefinition) => filterDefinition.id === 'month');
+  const moduleLabel = moduleFilterMetadata?.label || 'Module';
+  const moduleAllLabel = moduleFilterMetadata?.allLabel || 'All modules';
+  const yearLabel = yearFilterMetadata?.label || 'Year';
+  const yearAllLabel = yearFilterMetadata?.allLabel || 'All years';
+  const monthLabel = monthFilterMetadata?.label || 'Month';
+  const monthAllLabel = monthFilterMetadata?.allLabel || 'All months';
+  const typeLabel = typeFilterMetadata?.label || 'Type of change';
+  const typeAllLabel = typeFilterMetadata?.allLabel || 'All types';
 
-  const showModuleFilter = !isFilterExplicitlyDisabled('module') && (
+  const showModuleFilter = isFilterConfigured('module') && (
     Boolean(moduleFilterMetadata)
     || Object.keys(modulesMap).length > 0
-    || releases.some((releaseEntry) => releaseEntry.changes.some((changeEntry) => changeEntry.modules.length > 0))
+    || releases.some((r) => r.changes.some((c) => c.modules.length > 0))
   );
 
-  const showYearFilter = !isFilterExplicitlyDisabled('year') && (
+  const showYearFilter = isFilterConfigured('year') && (
     Boolean(yearFilterMetadata)
-    || releases.some((releaseEntry) => Boolean(releaseEntry.year))
+    || releases.some((r) => Boolean(r.year))
   );
 
-  const showMonthFilter = !isFilterExplicitlyDisabled('month') && (
+  const showMonthFilter = isFilterConfigured('month') && (
     Boolean(monthFilterMetadata)
-    || releases.some((releaseEntry) => Boolean(releaseEntry.monthName))
+    || releases.some((r) => Boolean(r.monthName))
   );
 
-  const showTypeFilter = !isFilterExplicitlyDisabled('type') && availableTypes.length > 0;
-
-  function resolveControl(filterMetadata, defaultControl = 'select') {
-    if (!filterMetadata) return defaultControl;
-    const rawControl = String(filterMetadata.control || '').toLowerCase().trim();
-    if (filterMetadata.multiple === true || rawControl === 'multiselect' || rawControl === 'multi-select') {
-      return 'multiselect';
-    }
-    if (rawControl === 'pills') {
-      return 'pills';
-    }
-    if (rawControl === 'select' || rawControl === 'dropdown' || rawControl === 'single-select') {
-      return 'select';
-    }
-    return defaultControl;
-  }
-
-  const moduleControl = resolveControl(moduleFilterMetadata, 'multiselect');
-  const yearControl = resolveControl(yearFilterMetadata, 'select');
-  const monthControl = resolveControl(monthFilterMetadata, 'select');
-  const typeControl = resolveControl(typeFilterMetadata, 'pills');
+  const showTypeFilter = isFilterConfigured('type') && availableTypes.length > 0;
 
   let moduleOptions = [];
   if (showModuleFilter) {
-    if (moduleFilterMetadata?.options && Array.isArray(moduleFilterMetadata.options)) {
-      moduleOptions = moduleFilterMetadata.options.map((optionItem) => ({
-        value: typeof optionItem === 'object' ? (optionItem.id || optionItem.value || optionItem.key) : String(optionItem),
-        text: typeof optionItem === 'object' ? (optionItem.label || modulesMap[optionItem.id] || optionItem.id) : (modulesMap[optionItem] || optionItem),
+    if (Array.isArray(moduleFilterMetadata?.options)) {
+      moduleOptions = moduleFilterMetadata.options.map((opt) => ({
+        value: opt.id,
+        text: opt.label || modulesMap[opt.id] || opt.id,
       }));
     } else if (Object.keys(modulesMap).length > 0) {
-      moduleOptions = Object.entries(modulesMap).map(([moduleId, moduleLabel]) => ({
-        value: moduleId,
-        text: moduleLabel,
-      }));
+      moduleOptions = Object.entries(modulesMap).map(([id, label]) => ({ value: id, text: label }));
     } else {
-      const uniqueModuleIds = Array.from(new Set(releases.flatMap((releaseEntry) => releaseEntry.changes.flatMap((changeEntry) => changeEntry.modules)))).filter(Boolean);
-      moduleOptions = uniqueModuleIds.map((moduleId) => ({ value: moduleId, text: moduleId }));
+      const uniqueModuleIds = Array.from(new Set(releases.flatMap((r) => r.changes.flatMap((c) => c.modules)))).filter(Boolean);
+      moduleOptions = uniqueModuleIds.map((id) => ({ value: id, text: id }));
     }
   }
 
   let yearOptions = [];
   if (showYearFilter) {
-    if (yearFilterMetadata?.options && Array.isArray(yearFilterMetadata.options)) {
-      yearOptions = yearFilterMetadata.options.map(String);
-    } else {
-      let archiveMinYear = null;
-      configuredArchiveGroups.forEach((groupDefinition) => {
-        const applies = groupDefinition?.applies_to;
-        if (applies?.before_year) {
-          const parsedBeforeYear = parseInt(applies.before_year, 10);
-          if (!isNaN(parsedBeforeYear)) {
-            archiveMinYear = archiveMinYear === null ? parsedBeforeYear : Math.max(archiveMinYear, parsedBeforeYear);
-          }
-        }
-      });
+    const MIN_YEAR = 2024;
+    const currentYear = new Date().getFullYear();
+    const activeReleaseYears = releases
+      .map((r) => parseInt(r.year, 10))
+      .filter((y) => !isNaN(y));
+    const maxYear = Math.max(currentYear, ...(activeReleaseYears.length ? activeReleaseYears : [currentYear]));
 
-      const activeReleaseYears = releases
-        .map((releaseEntry) => parseInt(releaseEntry.year, 10))
-        .filter((numericYear) => !isNaN(numericYear));
-
-      const currentYear = new Date().getFullYear();
-      const minActiveYear = activeReleaseYears.length > 0 ? Math.min(...activeReleaseYears) : currentYear;
-      const leastYear = archiveMinYear !== null ? archiveMinYear : minActiveYear;
-      const maxYear = Math.max(currentYear, ...(activeReleaseYears.length ? activeReleaseYears : [currentYear]));
-
-      const generatedYears = [];
-      for (let y = maxYear; y >= leastYear; y -= 1) {
-        generatedYears.push(String(y));
-      }
-      yearOptions = generatedYears;
+    const generatedYears = [];
+    for (let y = maxYear; y >= MIN_YEAR; y -= 1) {
+      generatedYears.push(String(y));
     }
+    yearOptions = generatedYears;
   }
 
   const latestRelease = releases[0] || null;
   const filterState = {
     modules: new Set(),
-    year: 'all',
-    month: 'all',
+    years: new Set(),
+    months: new Set(),
     types: new Set(),
   };
 
   Object.defineProperty(filterState, 'module', {
     get() {
+      if (moduleOptions.length > 0 && this.modules.size === moduleOptions.length) return 'all';
       if (this.modules.size === 0) return 'all';
       if (this.modules.size === 1) return Array.from(this.modules)[0];
       return Array.from(this.modules).join(',');
     },
     set(val) {
       this.modules.clear();
-      if (val && val !== 'all') {
-        String(val).split(',').map((s) => s.trim()).filter(Boolean).forEach((m) => this.modules.add(m));
+      if (!val || val === 'all') {
+        moduleOptions.forEach((opt) => this.modules.add(opt.value));
+      } else if (val !== 'none') {
+        String(val).split(',').map((item) => item.trim()).filter(Boolean).forEach((id) => this.modules.add(id));
       }
     },
   });
 
-  function readFromUrl() {
-    const searchParameters = new URLSearchParams(window.location.search);
-    const moduleQueryParameter = searchParameters.get('module') || searchParameters.get('modules');
-    const yearQueryParameter = searchParameters.get('year');
-    const monthQueryParameter = searchParameters.get('month');
-    const typesQueryParameter = searchParameters.get('types') || searchParameters.get('type');
+  Object.defineProperty(filterState, 'year', {
+    get() {
+      if (yearOptions.length > 0 && this.years.size === yearOptions.length) return 'all';
+      if (this.years.size === 0) return 'all';
+      if (this.years.size === 1) return Array.from(this.years)[0];
+      return Array.from(this.years).join(',');
+    },
+    set(val) {
+      this.years.clear();
+      if (!val || val === 'all') {
+        yearOptions.forEach((yr) => this.years.add(yr));
+      } else if (val !== 'none') {
+        String(val).split(',').map((item) => item.trim()).filter(Boolean).forEach((yr) => this.years.add(yr));
+      }
+    },
+  });
 
-    if (showModuleFilter && moduleQueryParameter) {
-      filterState.modules.clear();
-      if (moduleQueryParameter !== 'all') {
-        moduleQueryParameter.split(',').forEach((modId) => {
-          const trimmed = modId.trim();
-          if (trimmed && (moduleOptions.some((optionItem) => optionItem.value === trimmed) || trimmed === 'all')) {
-            if (trimmed !== 'all') {
-              filterState.modules.add(trimmed);
-            }
-          }
-        });
+  function getMonthOptions() {
+    if (!showMonthFilter) return [];
+    return MONTH_NAMES.map((m) => ({ value: m, text: m }));
+  }
+
+  Object.defineProperty(filterState, 'month', {
+    get() {
+      const currentMonthOptions = getMonthOptions();
+      if (currentMonthOptions.length > 0 && this.months.size === currentMonthOptions.length) return 'all';
+      if (this.months.size === 0) return 'all';
+      if (this.months.size === 1) return Array.from(this.months)[0];
+      return Array.from(this.months).join(',');
+    },
+    set(val) {
+      this.months.clear();
+      if (!val || val === 'all') {
+        getMonthOptions().forEach((opt) => this.months.add(opt.value));
+      } else if (val !== 'none') {
+        String(val).split(',').map((item) => item.trim()).filter(Boolean).forEach((mo) => this.months.add(mo));
+      }
+    },
+  });
+
+  // URL state management
+  function readFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const modParam = params.get('module');
+    const yrParam = params.get('year');
+    const moParam = params.get('month');
+    const typeParam = params.get('type');
+
+    if (showYearFilter) {
+      filterState.years.clear();
+      if (yrParam && yrParam !== 'all') {
+        if (yrParam !== 'none') {
+          yrParam.split(',').forEach((yr) => {
+            const trimmed = yr.trim();
+            if (trimmed && yearOptions.includes(trimmed)) filterState.years.add(trimmed);
+          });
+        }
+      } else {
+        yearOptions.forEach((yr) => filterState.years.add(yr));
       }
     }
-    if (showYearFilter && yearQueryParameter && (yearQueryParameter === 'all' || yearOptions.includes(yearQueryParameter))) {
-      filterState.year = yearQueryParameter;
-    }
-    if (showMonthFilter && monthQueryParameter) {
-      filterState.month = monthQueryParameter;
-    }
-    if (typesQueryParameter) {
-      filterState.types.clear();
-      typesQueryParameter.split(',').forEach((typeKey) => {
-        const normalizedParamKey = normalizeTypeKey(typeKey);
-        const matchedType = availableTypes.find((typeItem) => typeItem.key === normalizedParamKey);
-        if (matchedType) {
-          filterState.types.add(matchedType.key);
+
+    if (showMonthFilter) {
+      filterState.months.clear();
+      if (moParam && moParam !== 'all') {
+        if (moParam !== 'none') {
+          moParam.split(',').forEach((mo) => {
+            const trimmed = mo.trim();
+            if (trimmed) filterState.months.add(trimmed);
+          });
         }
+      } else {
+        getMonthOptions().forEach((opt) => filterState.months.add(opt.value));
+      }
+    }
+
+    if (showModuleFilter) {
+      filterState.modules.clear();
+      if (modParam && modParam !== 'all') {
+        if (modParam !== 'none') {
+          modParam.split(',').forEach((modId) => {
+            const trimmed = modId.trim();
+            if (trimmed && moduleOptions.some((opt) => opt.value === trimmed)) filterState.modules.add(trimmed);
+          });
+        }
+      } else {
+        moduleOptions.forEach((opt) => filterState.modules.add(opt.value));
+      }
+    }
+
+    if (showTypeFilter && typeParam) {
+      filterState.types.clear();
+      typeParam.split(',').forEach((typeKey) => {
+        const normKey = normalizeTypeKey(typeKey);
+        const matched = availableTypes.find((t) => t.key === normKey);
+        if (matched) filterState.types.add(matched.key);
       });
     }
   }
 
   function writeToUrl() {
-    const searchParameters = new URLSearchParams(window.location.search);
-    if (filterState.modules.size > 0) {
-      searchParameters.set('module', Array.from(filterState.modules).join(','));
+    const params = new URLSearchParams(window.location.search);
+
+    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === 0 || filterState.modules.size === moduleOptions.length;
+    if (showModuleFilter && !isAllModules) {
+      params.set('module', Array.from(filterState.modules).join(','));
     } else {
-      searchParameters.delete('module');
-      searchParameters.delete('modules');
+      params.delete('module');
     }
 
-    if (filterState.year && filterState.year !== 'all') {
-      searchParameters.set('year', filterState.year);
+    const isAllYears = !showYearFilter || yearOptions.length === 0 || filterState.years.size === 0 || filterState.years.size === yearOptions.length;
+    if (showYearFilter && !isAllYears) {
+      params.set('year', Array.from(filterState.years).join(','));
     } else {
-      searchParameters.delete('year');
+      params.delete('year');
     }
 
-    if (filterState.month && filterState.month !== 'all') {
-      searchParameters.set('month', filterState.month);
+    const currentMonthOptions = getMonthOptions();
+    const isAllMonths = !showMonthFilter || currentMonthOptions.length === 0 || filterState.months.size === 0 || filterState.months.size === currentMonthOptions.length;
+    if (showMonthFilter && !isAllMonths) {
+      params.set('month', Array.from(filterState.months).join(','));
     } else {
-      searchParameters.delete('month');
+      params.delete('month');
     }
 
-    if (filterState.types.size > 0) {
-      searchParameters.set('types', Array.from(filterState.types).join(','));
+    if (showTypeFilter && filterState.types.size > 0) {
+      params.set('type', Array.from(filterState.types).join(','));
     } else {
-      searchParameters.delete('types');
-      searchParameters.delete('type');
+      params.delete('type');
     }
 
-    const queryString = searchParameters.toString();
-    window.history.replaceState({}, '', `${window.location.pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`);
+    const qs = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`);
   }
 
   readFromUrl();
@@ -888,347 +1319,40 @@ export default async function decorate(block) {
   const container = createTag('div', { class: 'changelog-container' });
 
   // 1. Header Section
-  const headerSection = createTag('header', { class: 'changelog-header' });
-  const titleHeading = createTag('h1', { class: 'spectrum-Heading spectrum-Heading--sizeXL spectrum-Heading--light changelog-title' });
-  titleHeading.textContent = authoredTitle || parsedReleasesMetadata?.page?.title || 'Changelog';
-
-  const descriptionText = authoredDescription || parsedReleasesMetadata?.page?.description || '';
-  let descriptionParagraph = null;
-  if (descriptionText) {
-    descriptionParagraph = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeXL changelog-description' });
-    descriptionParagraph.textContent = descriptionText;
-  }
-
-  const quickLinksContainer = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeXL changelog-quick-links' });
-  authoredLinks.forEach((authoredLinkElement) => {
-    const linkElement = createTag('a', {
-      class: 'spectrum-Link changelog-quick-link',
-      href: authoredLinkElement.href,
-      target: '_blank',
-      rel: 'noopener noreferrer',
-    });
-    linkElement.textContent = authoredLinkElement.textContent.trim() || authoredLinkElement.href;
-    quickLinksContainer.append(linkElement);
-  });
-
-  const rssLinkElement = createTag('a', {
-    class: 'spectrum-Link changelog-quick-link changelog-rss-link',
-    href: feedUrl,
-    target: '_blank',
-    rel: 'noopener noreferrer',
-    'aria-label': 'Subscribe to RSS feed',
-  });
-  rssLinkElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><circle cx="6.18" cy="17.82" r="2.18" fill="#eb1000"></circle><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" fill="#eb1000"></path></svg> <span>Subscribe to RSS feed</span>`;
-  quickLinksContainer.append(rssLinkElement);
-
-  const subHeaderContainer = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-sub-header' });
-  const latestInfoSpan = createTag('span', { class: 'changelog-latest-info' });
-  if (latestRelease && (latestRelease.version || latestRelease.title || latestRelease.date)) {
-    const latestReleaseParts = [
-      latestRelease.version ? `<strong>${latestRelease.version}</strong>` : (latestRelease.title ? `<strong>${latestRelease.title}</strong>` : ''),
-      latestRelease.date,
-    ].filter(Boolean);
-    latestInfoSpan.innerHTML = `Latest: ${latestReleaseParts.join(' · ')}`;
-    subHeaderContainer.append(latestInfoSpan);
-  }
-
-  headerSection.append(titleHeading);
-  if (descriptionParagraph) {
-    headerSection.append(descriptionParagraph);
-  }
-  headerSection.append(quickLinksContainer);
-  if (subHeaderContainer.children.length > 0) {
-    headerSection.append(subHeaderContainer);
-  }
-
-  const CALENDAR_MONTHS = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
-
-  function getMonthOptionsForYear(selectedYear) {
-    const allMonthsLabel = monthFilterMetadata?.allLabel || 'All months';
-
-    if (selectedYear !== 'all' && monthFilterMetadata?.optionsByYear?.[selectedYear]) {
-      const customMonths = monthFilterMetadata.optionsByYear[selectedYear];
-      return [
-        { value: 'all', text: allMonthsLabel },
-        ...customMonths.map((monthName) => ({ value: monthName, text: monthName })),
-      ];
-    }
-
-    if (Array.isArray(monthFilterMetadata?.options) && monthFilterMetadata.options.length > 0) {
-      return [
-        { value: 'all', text: allMonthsLabel },
-        ...monthFilterMetadata.options.map((optionItem) => ({
-          value: typeof optionItem === 'object' ? (optionItem.id || optionItem.value || optionItem.label) : String(optionItem),
-          text: typeof optionItem === 'object' ? (optionItem.label || optionItem.id) : String(optionItem),
-        })),
-      ];
-    }
-
-    const targetReleases = selectedYear === 'all'
-      ? releases
-      : releases.filter((releaseEntry) => releaseEntry.year === selectedYear);
-
-    const availableMonthsSet = new Set(targetReleases.map((releaseEntry) => releaseEntry.monthName).filter(Boolean));
-    const availableMonths = CALENDAR_MONTHS.filter((monthName) => availableMonthsSet.has(monthName));
-
-    return [
-      { value: 'all', text: allMonthsLabel },
-      ...availableMonths.map((monthName) => ({ value: monthName, text: monthName })),
-    ];
-  }
+  const headerSection = createHeaderSection({ pageConfig, feedUrl, latestRelease });
 
   // 2. Filter Card
   const filterCard = createTag('section', { id: 'filters', class: 'changelog-filter-card', 'aria-label': 'Changelog filters' });
+
+  const filterCardHeader = createTag('div', { class: 'changelog-filter-card-header' });
+  const filterCardTitle = createTag('div', { class: 'changelog-filters-header-title' });
+  filterCardTitle.innerHTML = `${getIconSvg('filter')} <span>Filters</span>`;
+
+  const summaryRow = createTag('div', { class: 'changelog-filter-summary-row' });
+  const summaryText = createTag('span', { class: 'spectrum-Body spectrum-Body--sizeS changelog-filter-summary-text', 'aria-live': 'polite' });
+  const clearFiltersButton = createTag('button', { type: 'button', class: 'spectrum-Link changelog-clear-link' });
+  clearFiltersButton.textContent = 'Clear filters';
+  clearFiltersButton.addEventListener('click', clearAllFilters);
+  summaryRow.append(summaryText, clearFiltersButton);
+
+  filterCardHeader.append(filterCardTitle, summaryRow);
+  filterCard.append(filterCardHeader);
+
   const dropdownRow = createTag('div', { class: 'changelog-filter-row-dropdowns' });
   const pillRows = [];
 
-  function createSingleSelectDropdown({
-    id,
-    labelText,
-    options,
-    currentValue,
-    onChange,
-  }) {
-    const groupContainer = createTag('div', { class: 'changelog-filter-group' });
-    const labelElement = createTag('label', {
-      class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label',
-      for: id,
-    });
-    labelElement.textContent = labelText;
-    const selectElement = createTag('select', {
-      id,
-      name: id.replace('changelog-filter-', ''),
-      'aria-label': `Filter by ${labelText}`,
-    });
-
-    function populateOptions(opts, selVal) {
-      selectElement.innerHTML = '';
-      opts.forEach(({ value, text }) => {
-        const optionElement = createTag('option', { value });
-        optionElement.textContent = text;
-        if (String(value).toLowerCase() === String(selVal).toLowerCase()
-          || (selVal !== 'all' && text.toLowerCase() === String(selVal).toLowerCase())) {
-          optionElement.selected = true;
-        }
-        selectElement.appendChild(optionElement);
-      });
-      selectElement.value = selVal;
-    }
-
-    populateOptions(options, currentValue);
-
-    selectElement.addEventListener('change', (e) => {
-      onChange(e.target.value);
-    });
-
-    groupContainer.append(labelElement, selectElement);
-
-    return {
-      group: groupContainer,
-      select: selectElement,
-      setValue(newVal) {
-        selectElement.value = newVal;
-      },
-      updateOptions(newOptions, newVal) {
-        populateOptions(newOptions, newVal);
-      },
-    };
-  }
-
-  function createMultiSelectDropdown({
-    id,
-    labelText,
-    allLabel = 'All',
-    options,
-    selectedSet,
-    onChange,
-  }) {
-    const groupContainer = createTag('div', { class: 'changelog-filter-group changelog-multiselect-group' });
-    const labelElement = createTag('label', {
-      class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label',
-      id: `${id}-label`,
-    });
-    labelElement.textContent = labelText;
-
-    const wrapper = createTag('div', { class: 'changelog-multiselect-wrapper' });
-    const trigger = createTag('button', {
-      type: 'button',
-      id,
-      class: 'changelog-multiselect-trigger',
-      'aria-haspopup': 'listbox',
-      'aria-expanded': 'false',
-      'aria-labelledby': `${id}-label ${id}-trigger-text`,
-    });
-
-    const triggerText = createTag('span', {
-      class: 'changelog-multiselect-trigger-text',
-      id: `${id}-trigger-text`,
-    });
-
-    function updateTriggerLabel() {
-      if (selectedSet.size === 0) {
-        triggerText.textContent = allLabel;
-        trigger.setAttribute('value', 'all');
-      } else if (selectedSet.size === 1) {
-        const selectedValue = Array.from(selectedSet)[0];
-        const matchedOption = options.find((opt) => opt.value === selectedValue);
-        const displayLabel = matchedOption ? matchedOption.text : selectedValue;
-        triggerText.textContent = displayLabel;
-        trigger.setAttribute('value', selectedValue);
-      } else {
-        triggerText.textContent = `${selectedSet.size} selected`;
-        trigger.setAttribute('value', Array.from(selectedSet).join(','));
-      }
-    }
-
-    updateTriggerLabel();
-
-    const triggerIcon = createTag('span', { class: 'changelog-multiselect-trigger-icon', 'aria-hidden': 'true' });
-    triggerIcon.innerHTML = getIconSvg('chevron');
-    trigger.append(triggerText, triggerIcon);
-
-    const popover = createTag('div', {
-      class: 'changelog-multiselect-popover',
-      role: 'listbox',
-      'aria-multiselectable': 'true',
-      hidden: true,
-    });
-
-    const allOptionLabel = createTag('label', { class: 'changelog-multiselect-option changelog-multiselect-option-all' });
-    const allCheckbox = createTag('input', {
-      type: 'checkbox',
-      class: 'changelog-multiselect-checkbox',
-      value: 'all',
-    });
-    allCheckbox.checked = selectedSet.size === 0;
-    const allOptionSpan = createTag('span', { class: 'changelog-multiselect-option-text' });
-    allOptionSpan.textContent = allLabel;
-    allOptionLabel.append(allCheckbox, allOptionSpan);
-
-    const divider = createTag('div', { class: 'changelog-multiselect-divider', role: 'separator' });
-    const listContainer = createTag('div', { class: 'changelog-multiselect-options-list' });
-    const optionCheckboxes = [];
-
-    options.forEach((opt) => {
-      const optionLabel = createTag('label', { class: 'changelog-multiselect-option' });
-      const checkbox = createTag('input', {
-        type: 'checkbox',
-        class: 'changelog-multiselect-checkbox',
-        value: opt.value,
-      });
-      checkbox.checked = selectedSet.has(opt.value);
-      optionCheckboxes.push(checkbox);
-
-      const optionSpan = createTag('span', { class: 'changelog-multiselect-option-text' });
-      optionSpan.textContent = opt.text;
-      optionLabel.append(checkbox, optionSpan);
-      listContainer.append(optionLabel);
-
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          selectedSet.add(opt.value);
-          allCheckbox.checked = false;
-        } else {
-          selectedSet.delete(opt.value);
-          if (selectedSet.size === 0) {
-            allCheckbox.checked = true;
-          }
-        }
-        updateTriggerLabel();
-        onChange(selectedSet);
-      });
-    });
-
-    allCheckbox.addEventListener('change', () => {
-      selectedSet.clear();
-      allCheckbox.checked = true;
-      optionCheckboxes.forEach((cb) => { cb.checked = false; });
-      updateTriggerLabel();
-      onChange(selectedSet);
-    });
-
-    function setOpen(open) {
-      trigger.setAttribute('aria-expanded', String(open));
-      popover.hidden = !open;
-    }
-
-    trigger.addEventListener('click', (e) => {
-      e?.stopPropagation?.();
-      const isCurrentlyOpen = trigger.getAttribute('aria-expanded') === 'true';
-      setOpen(!isCurrentlyOpen);
-    });
-
-    if (typeof document !== 'undefined' && document?.addEventListener) {
-      document.addEventListener('click', (e) => {
-        if (groupContainer.contains && !groupContainer.contains(e.target)) {
-          setOpen(false);
-        }
-      });
-    }
-
-    groupContainer.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        trigger.focus?.();
-      }
-    });
-
-    popover.append(allOptionLabel, divider, listContainer);
-    wrapper.append(trigger, popover);
-    groupContainer.append(labelElement, wrapper);
-
-    return {
-      group: groupContainer,
-      trigger,
-      popover,
-      update(newSelectedSet) {
-        if (newSelectedSet) {
-          selectedSet = newSelectedSet;
-        }
-        allCheckbox.checked = selectedSet.size === 0;
-        optionCheckboxes.forEach((cb) => {
-          cb.checked = selectedSet.has(cb.value);
-        });
-        updateTriggerLabel();
-      },
-      close() {
-        setOpen(false);
-      },
-    };
-  }
-
   let moduleMultiSelect = null;
   let moduleSingleSelect = null;
-  let modulePillsContainer = null;
   if (showModuleFilter) {
-    if (moduleControl === 'pills') {
-      const moduleRow = createTag('div', { class: 'changelog-filter-row-types changelog-filter-row-pills changelog-filter-row-module' });
-      moduleRow.innerHTML = `<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">${escapeHtml(moduleFilterMetadata?.label || 'Module')}</div>`;
-      modulePillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': `Filter by ${moduleFilterMetadata?.label || 'Module'}` });
-      moduleRow.append(modulePillsContainer);
-      pillRows.push(moduleRow);
-    } else if (moduleControl === 'multiselect') {
-      moduleMultiSelect = createMultiSelectDropdown({
-        id: 'changelog-filter-module',
-        labelText: moduleFilterMetadata?.label || 'Module',
-        allLabel: moduleFilterMetadata?.allLabel || 'All modules',
-        options: moduleOptions,
-        selectedSet: filterState.modules,
-        onChange: () => {
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(moduleMultiSelect.group);
-    } else {
+    const isSingle = moduleFilterMetadata?.control === 'select';
+    if (isSingle) {
       moduleSingleSelect = createSingleSelectDropdown({
         id: 'changelog-filter-module',
-        labelText: moduleFilterMetadata?.label || 'Module',
-        options: [{ value: 'all', text: moduleFilterMetadata?.allLabel || 'All modules' }, ...moduleOptions],
-        currentValue: filterState.module,
+        labelText: moduleLabel,
+        labelIcon: 'layers',
+        allLabel: moduleAllLabel,
+        options: moduleOptions,
+        selectedValue: filterState.module,
         onChange: (val) => {
           filterState.module = val;
           writeToUrl();
@@ -1236,24 +1360,37 @@ export default async function decorate(block) {
         },
       });
       dropdownRow.append(moduleSingleSelect.group);
+    } else {
+      moduleMultiSelect = createMultiSelectDropdown({
+        id: 'changelog-filter-module',
+        labelText: moduleLabel,
+        labelIcon: 'layers',
+        allLabel: moduleAllLabel,
+        options: moduleOptions,
+        selectedSet: filterState.modules,
+        maxVisibleTags: 3,
+        entityName: 'modules',
+        onChange: () => {
+          writeToUrl();
+          applyFilters();
+        },
+      });
+      dropdownRow.append(moduleMultiSelect.group);
     }
   }
 
+  let yearMultiSelect = null;
   let yearSingleSelect = null;
-  let yearPillsContainer = null;
   if (showYearFilter) {
-    if (yearControl === 'pills') {
-      const yearRow = createTag('div', { class: 'changelog-filter-row-types changelog-filter-row-pills changelog-filter-row-year' });
-      yearRow.innerHTML = `<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">${escapeHtml(yearFilterMetadata?.label || 'Year')}</div>`;
-      yearPillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': `Filter by ${yearFilterMetadata?.label || 'Year'}` });
-      yearRow.append(yearPillsContainer);
-      pillRows.push(yearRow);
-    } else {
+    const isSingle = yearFilterMetadata?.control === 'select';
+    if (isSingle) {
       yearSingleSelect = createSingleSelectDropdown({
         id: 'changelog-filter-year',
-        labelText: yearFilterMetadata?.label || 'Year',
-        options: [{ value: 'all', text: yearFilterMetadata?.allLabel || 'All years' }, ...yearOptions.map((yearOption) => ({ value: yearOption, text: yearOption }))],
-        currentValue: filterState.year,
+        labelText: yearLabel,
+        labelIcon: 'calendar',
+        allLabel: yearAllLabel,
+        options: yearOptions.map((y) => ({ value: y, text: y })),
+        selectedValue: filterState.year,
         onChange: (val) => {
           filterState.year = val;
           updateMonthControlOptions();
@@ -1262,24 +1399,38 @@ export default async function decorate(block) {
         },
       });
       dropdownRow.append(yearSingleSelect.group);
+    } else {
+      yearMultiSelect = createMultiSelectDropdown({
+        id: 'changelog-filter-year',
+        labelText: yearLabel,
+        labelIcon: 'calendar',
+        allLabel: yearAllLabel,
+        options: yearOptions.map((y) => ({ value: y, text: y })),
+        selectedSet: filterState.years,
+        maxVisibleTags: 3,
+        entityName: 'years',
+        onChange: () => {
+          updateMonthControlOptions();
+          writeToUrl();
+          applyFilters();
+        },
+      });
+      dropdownRow.append(yearMultiSelect.group);
     }
   }
 
+  let monthMultiSelect = null;
   let monthSingleSelect = null;
-  let monthPillsContainer = null;
   if (showMonthFilter) {
-    if (monthControl === 'pills') {
-      const monthRow = createTag('div', { class: 'changelog-filter-row-types changelog-filter-row-pills changelog-filter-row-month' });
-      monthRow.innerHTML = `<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">${escapeHtml(monthFilterMetadata?.label || 'Month')}</div>`;
-      monthPillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': `Filter by ${monthFilterMetadata?.label || 'Month'}` });
-      monthRow.append(monthPillsContainer);
-      pillRows.push(monthRow);
-    } else {
+    const isSingle = monthFilterMetadata?.control === 'select';
+    if (isSingle) {
       monthSingleSelect = createSingleSelectDropdown({
         id: 'changelog-filter-month',
-        labelText: monthFilterMetadata?.label || 'Month',
-        options: getMonthOptionsForYear(filterState.year),
-        currentValue: filterState.month,
+        labelText: monthLabel,
+        labelIcon: 'calendar',
+        allLabel: monthAllLabel,
+        options: getMonthOptions(),
+        selectedValue: filterState.month,
         onChange: (val) => {
           filterState.month = val;
           writeToUrl();
@@ -1287,518 +1438,191 @@ export default async function decorate(block) {
         },
       });
       dropdownRow.append(monthSingleSelect.group);
-    }
-  }
-
-  let typeSingleSelect = null;
-  let typeMultiSelect = null;
-  let typePillsContainer = null;
-  if (showTypeFilter) {
-    if (typeControl === 'select') {
-      const typeSelectOptions = [
-        { value: 'all', text: typeFilterMetadata?.allLabel || 'All types' },
-        ...availableTypes.map((typeItem) => ({ value: typeItem.key, text: typeItem.label })),
-      ];
-      typeSingleSelect = createSingleSelectDropdown({
-        id: 'changelog-filter-type',
-        labelText: typeFilterMetadata?.label || 'Type of change',
-        options: typeSelectOptions,
-        currentValue: filterState.types.size === 1 ? Array.from(filterState.types)[0] : 'all',
-        onChange: (val) => {
-          filterState.types.clear();
-          if (val !== 'all') {
-            filterState.types.add(val);
-          }
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(typeSingleSelect.group);
-    } else if (typeControl === 'multiselect') {
-      typeMultiSelect = createMultiSelectDropdown({
-        id: 'changelog-filter-type',
-        labelText: typeFilterMetadata?.label || 'Type of change',
-        allLabel: typeFilterMetadata?.allLabel || 'All types',
-        options: availableTypes.map((typeItem) => ({ value: typeItem.key, text: typeItem.label })),
-        selectedSet: filterState.types,
+    } else {
+      monthMultiSelect = createMultiSelectDropdown({
+        id: 'changelog-filter-month',
+        labelText: monthLabel,
+        labelIcon: 'calendar',
+        allLabel: monthAllLabel,
+        options: getMonthOptions(),
+        selectedSet: filterState.months,
+        maxVisibleTags: 2,
+        entityName: 'months',
         onChange: () => {
           writeToUrl();
           applyFilters();
         },
       });
-      dropdownRow.append(typeMultiSelect.group);
-    } else {
-      const typeRow = createTag('div', { class: 'changelog-filter-row-types changelog-filter-row-pills changelog-filter-row-type' });
-      typeRow.innerHTML = `<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label">${escapeHtml(typeFilterMetadata?.label || 'Type of change')}</div>`;
-      typePillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': 'Filter by change type' });
-      typeRow.append(typePillsContainer);
-      pillRows.push(typeRow);
+      dropdownRow.append(monthMultiSelect.group);
     }
   }
 
-  const summaryRow = createTag('div', { class: 'changelog-filter-summary-row' });
-  const summaryText = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-filter-summary-text', 'aria-live': 'polite' });
-  summaryRow.append(summaryText);
-
-  if (dropdownRow.children.length > 0) {
-    filterCard.append(dropdownRow);
+  let typePillsContainer = null;
+  if (showTypeFilter) {
+    const typeRow = createTag('div', { class: 'changelog-filter-row-types' });
+    typeRow.innerHTML = `<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label"><span class="changelog-filter-label-icon" aria-hidden="true">${getIconSvg('tag')}</span><span class="changelog-filter-label-text">${escapeHtml(typeLabel)}</span></div>`;
+    typePillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': 'Filter by change type' });
+    typeRow.append(typePillsContainer);
+    pillRows.push(typeRow);
   }
+
+  if (dropdownRow.children.length > 0) filterCard.append(dropdownRow);
   pillRows.forEach((pillRow) => filterCard.append(pillRow));
-  filterCard.append(summaryRow);
 
-  const resultsContainer = createTag('div', { class: 'changelog-results' });
+  // 3. Dynamic Archive section
+  const archiveSection = (isArchiveEnabled && totalArchivedReleasesCount > 0)
+    ? createArchiveSection({ configuredArchiveGroups, archiveGroupReleasesMap, archiveSectionLabel, archiveSectionDescription })
+    : null;
 
-  // 3. Dynamic Archive / Older releases section
-  const archiveSection = createTag('section', {
-    class: 'changelog-archive-section changelog-older-section',
-    'aria-label': archiveSectionLabel,
-  });
-
-  if (isArchiveEnabled && totalArchivedReleasesCount > 0) {
-    const archiveHeadingTarget = createTag('div', { class: 'heading2 changelog-toc-target' });
-    const archiveHeading = createTag('h2', {
-      id: 'archive-releases-heading',
-      class: 'spectrum-Heading spectrum-Heading--sizeM changelog-year-heading',
-    });
-    archiveHeading.textContent = archiveSectionLabel;
-    archiveHeadingTarget.append(archiveHeading);
-    archiveSection.append(archiveHeadingTarget);
-
-    if (archiveSectionDescription) {
-      const archiveDescriptionParagraph = createTag('p', {
-        class: 'spectrum-Body spectrum-Body--sizeM changelog-archive-description',
-      });
-      archiveDescriptionParagraph.textContent = archiveSectionDescription;
-      archiveSection.append(archiveDescriptionParagraph);
-    }
-
-    configuredArchiveGroups.forEach((groupDefinition) => {
-      const groupData = archiveGroupReleasesMap.get(groupDefinition.id);
-      if (!groupData || groupData.releasesList.length === 0) {
-        return;
-      }
-
-      const groupAccordion = createTag('div', {
-        class: 'changelog-accordion changelog-archive-group',
-        id: `archive-group-${groupDefinition.id}`,
-      });
-
-      const accordionContentId = `changelog-archive-content-${groupDefinition.id}`;
-      const groupReleasesCount = groupData.releasesList.length;
-      const groupCountLabel = `${groupReleasesCount} release${groupReleasesCount === 1 ? '' : 's'}`;
-
-      groupAccordion.innerHTML = `
-        <button class="spectrum-Heading spectrum-Heading--sizeXS changelog-accordion-trigger" type="button" aria-expanded="false" aria-controls="${accordionContentId}">
-          <span class="changelog-accordion-left">
-            <span class="changelog-accordion-title">${groupDefinition.label}</span>
-            <span class="spectrum-Body spectrum-Body--sizeS changelog-accordion-count">${groupCountLabel}</span>
-          </span>
-          <span class="changelog-accordion-arrow">${getIconSvg('chevron')}</span>
-        </button>
-        <div class="changelog-accordion-content" id="${accordionContentId}" hidden>
-          ${groupDefinition.hint ? `<p class="spectrum-Body spectrum-Body--sizeS changelog-archive-hint">${groupDefinition.hint}</p>` : ''}
-          <div class="changelog-archive-list">
-            ${groupData.releasesList.map((releaseItem) => `
-              <div class="changelog-archive-item">
-                <div class="changelog-archive-meta">
-                  <span class="spectrum-Heading spectrum-Heading--sizeXS changelog-archive-version">${releaseItem.version || releaseItem.title || ''}</span>${releaseItem.date ? ` · <span class="spectrum-Body spectrum-Body--sizeS changelog-archive-date">${releaseItem.date}</span>` : ''}
-                  ${releaseItem.breaking ? '<span class="changelog-badge changelog-badge-breaking">Breaking</span>' : ''}
-                </div>
-                <div class="spectrum-Body spectrum-Body--sizeS changelog-archive-desc">${renderMarkdown(releaseItem.summary || '')}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-
-      const accordionTrigger = groupAccordion.querySelector('.changelog-accordion-trigger');
-      const accordionContent = groupAccordion.querySelector('.changelog-accordion-content');
-      accordionTrigger.addEventListener('click', () => {
-        const isCurrentlyExpanded = accordionTrigger.getAttribute('aria-expanded') === 'true';
-        accordionTrigger.setAttribute('aria-expanded', String(!isCurrentlyExpanded));
-        accordionContent.hidden = isCurrentlyExpanded;
-      });
-
-      archiveSection.append(groupAccordion);
-    });
-  }
+  const resultsContainer = createTag('div', { class: 'changelog-results', role: 'region', 'aria-live': 'polite' });
 
   function updateMonthControlOptions() {
-    const updatedMonthOptions = getMonthOptionsForYear(filterState.year);
-    const validMonthValues = new Set(updatedMonthOptions.map((optionItem) => String(optionItem.value).toLowerCase()));
-
-    if (filterState.month !== 'all' && !validMonthValues.has(String(filterState.month).toLowerCase())) {
-      filterState.month = 'all';
+    if (monthMultiSelect) {
+      monthMultiSelect.update(getMonthOptions());
     }
-
     if (monthSingleSelect) {
-      monthSingleSelect.updateOptions(updatedMonthOptions, filterState.month);
+      monthSingleSelect.updateOptions(getMonthOptions(), filterState.month);
     }
+  }
+
+  function matchesYear(releaseItem) {
+    if (!showYearFilter || yearOptions.length === 0 || filterState.years.size === yearOptions.length) return true;
+    if (filterState.years.size === 0) return false;
+    return filterState.years.has(releaseItem.year);
   }
 
   function matchesMonth(releaseItem) {
-    return filterState.month === 'all'
-      || releaseItem.monthName.toLowerCase() === String(filterState.month).toLowerCase();
+    if (!showMonthFilter) return true;
+    const currentOpts = getMonthOptions();
+    if (currentOpts.length === 0 || filterState.months.size === currentOpts.length) return true;
+    if (filterState.months.size === 0) return false;
+    return filterState.months.has(releaseItem.monthName);
   }
 
   // Filtering & Rendering logic
   function getFilteredData() {
+    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === moduleOptions.length;
+    const isAllTypes = !showTypeFilter || filterState.types.size === 0;
+
     let totalMatchingChanges = 0;
+    const changeTypeCounts = {};
+    availableTypes.forEach((t) => { changeTypeCounts[t.key] = 0; });
+
     const matchingReleases = [];
 
     releases.forEach((releaseItem) => {
-      if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
-        return;
-      }
-      if (!matchesMonth(releaseItem)) {
-        return;
-      }
-
-      if (releaseItem.changes.length === 0) {
-        if (filterState.modules.size === 0 && filterState.types.size === 0) {
-          matchingReleases.push(releaseItem);
-        }
-        return;
-      }
+      if (!matchesYear(releaseItem) || !matchesMonth(releaseItem)) return;
 
       const matchingChanges = releaseItem.changes.filter((changeItem) => {
-        if (filterState.modules.size > 0 && !(changeItem.modules || []).some((m) => filterState.modules.has(m))) {
-          return false;
-        }
-        if (filterState.types.size > 0 && !changeItem.types.some((typeKey) => filterState.types.has(typeKey))) {
-          return false;
-        }
-        return true;
+        const modMatch = isAllModules
+          || (filterState.modules.size > 0 && changeItem.modules.some((m) => filterState.modules.has(m)));
+        if (!modMatch) return false;
+
+        changeItem.types.forEach((tk) => {
+          if (changeTypeCounts[tk] !== undefined) changeTypeCounts[tk] += 1;
+        });
+
+        return isAllTypes || changeItem.types.some((tk) => filterState.types.has(tk));
       });
 
       if (matchingChanges.length > 0) {
         totalMatchingChanges += matchingChanges.length;
-        matchingReleases.push({ ...releaseItem, changes: matchingChanges });
+        matchingReleases.push({
+          ...releaseItem,
+          changes: matchingChanges,
+        });
       }
     });
 
-    return { matchingReleases, totalMatchingChanges };
+    return { matchingReleases, totalMatchingChanges, changeTypeCounts };
   }
 
-  function renderPills() {
-    if (typePillsContainer) {
-      typePillsContainer.innerHTML = '';
-      const changeTypeCounts = { all: 0 };
-      availableTypes.forEach((typeDefinition) => { changeTypeCounts[typeDefinition.key] = 0; });
+  function renderPills(changeTypeCounts, totalMatchingChanges) {
+    if (!typePillsContainer) return;
+    typePillsContainer.innerHTML = '';
 
-      releases.forEach((releaseItem) => {
-        if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
-          return;
-        }
-        if (!matchesMonth(releaseItem)) {
-          return;
-        }
+    const allPill = createTag('button', {
+      type: 'button',
+      class: 'changelog-pill',
+      'aria-pressed': filterState.types.size === 0 ? 'true' : 'false',
+    });
+    if (filterState.types.size === 0) allPill.classList.add('is-selected');
 
-        releaseItem.changes.forEach((changeItem) => {
-          if (filterState.modules.size > 0 && !(changeItem.modules || []).some((m) => filterState.modules.has(m))) {
-            return;
-          }
-          changeTypeCounts.all += 1;
-          changeItem.types.forEach((typeKey) => {
-            if (changeTypeCounts[typeKey] !== undefined) {
-              changeTypeCounts[typeKey] += 1;
-            }
-          });
-        });
-      });
+    const allPillText = typeAllLabel;
+    allPill.innerHTML = `<span>${escapeHtml(allPillText)}</span> <span class="changelog-pill-count">${totalMatchingChanges}</span>`;
+    allPill.addEventListener('click', () => {
+      filterState.types.clear();
+      writeToUrl();
+      applyFilters();
+    });
+    typePillsContainer.append(allPill);
 
-      const isAllTypesSelected = filterState.types.size === 0;
-      const allTypesLabel = typeFilterMetadata?.allLabel || 'All types';
-      const allPill = createTag('button', {
+    availableTypes.forEach((typeDef) => {
+      const isSelected = filterState.types.has(typeDef.key);
+      const safeKey = typeDef.key.replace(/[^a-z0-9_-]/g, '-');
+      const typePill = createTag('button', {
         type: 'button',
-        class: `changelog-pill ${isAllTypesSelected ? 'is-selected' : ''}`,
-        'aria-pressed': String(isAllTypesSelected),
+        class: `changelog-pill type-pill-${safeKey}`,
+        'aria-pressed': isSelected ? 'true' : 'false',
+        'data-type': typeDef.key,
       });
-      allPill.innerHTML = `<span>${escapeHtml(allTypesLabel)}</span> <span class="changelog-pill-count">${changeTypeCounts.all}</span>`;
-      allPill.addEventListener('click', () => {
-        filterState.types.clear();
-        if (typeSingleSelect) {
-          typeSingleSelect.setValue('all');
-        }
-        if (typeMultiSelect) {
-          typeMultiSelect.update(filterState.types);
+      if (isSelected) typePill.classList.add('is-selected');
+
+      const color = resolveColorHex(typeDef.color, '#505050');
+      typePill.innerHTML = `${getIconSvg(typeDef.icon, color)} <span>${escapeHtml(typeDef.label)}</span> <span class="changelog-pill-count">${changeTypeCounts[typeDef.key] || 0}</span>`;
+
+      typePill.addEventListener('click', () => {
+        if (filterState.types.has(typeDef.key)) {
+          filterState.types.delete(typeDef.key);
+        } else {
+          filterState.types.add(typeDef.key);
         }
         writeToUrl();
         applyFilters();
       });
-      typePillsContainer.appendChild(allPill);
-
-      availableTypes.forEach((typeDefinition) => {
-        const isSelected = filterState.types.has(typeDefinition.key);
-        const colorHex = resolveColorHex(typeDefinition.color, '#0265DC');
-        const typePill = createTag('button', {
-          type: 'button',
-          class: `changelog-pill type-pill-${typeDefinition.key} ${isSelected ? 'is-selected' : ''}`,
-          'aria-pressed': String(isSelected),
-          'data-type': typeDefinition.key,
-        });
-        typePill.innerHTML = `${getIconSvg(typeDefinition.icon, colorHex)} <span>${escapeHtml(typeDefinition.label)}</span> <span class="changelog-pill-count">${changeTypeCounts[typeDefinition.key]}</span>`;
-        typePill.addEventListener('click', () => {
-          if (filterState.types.has(typeDefinition.key)) {
-            filterState.types.delete(typeDefinition.key);
-          } else {
-            filterState.types.add(typeDefinition.key);
-          }
-          if (typeSingleSelect) {
-            typeSingleSelect.setValue(filterState.types.size === 1 ? Array.from(filterState.types)[0] : 'all');
-          }
-          if (typeMultiSelect) {
-            typeMultiSelect.update(filterState.types);
-          }
-          writeToUrl();
-          applyFilters();
-        });
-        typePillsContainer.appendChild(typePill);
-      });
-    }
-
-    if (modulePillsContainer) {
-      modulePillsContainer.innerHTML = '';
-      const moduleCounts = { all: 0 };
-      moduleOptions.forEach((optionItem) => { moduleCounts[optionItem.value] = 0; });
-
-      releases.forEach((releaseItem) => {
-        if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
-          return;
-        }
-        if (!matchesMonth(releaseItem)) {
-          return;
-        }
-
-        releaseItem.changes.forEach((changeItem) => {
-          if (filterState.types.size > 0 && !changeItem.types.some((typeKey) => filterState.types.has(typeKey))) {
-            return;
-          }
-          moduleCounts.all += 1;
-          (changeItem.modules || []).forEach((moduleId) => {
-            if (moduleCounts[moduleId] !== undefined) {
-              moduleCounts[moduleId] += 1;
-            }
-          });
-        });
-      });
-
-      const isAllModulesSelected = filterState.modules.size === 0;
-      const allModulesLabel = moduleFilterMetadata?.allLabel || 'All modules';
-      const allModulePill = createTag('button', {
-        type: 'button',
-        class: `changelog-pill ${isAllModulesSelected ? 'is-selected' : ''}`,
-        'aria-pressed': String(isAllModulesSelected),
-      });
-      allModulePill.innerHTML = `<span>${escapeHtml(allModulesLabel)}</span> <span class="changelog-pill-count">${moduleCounts.all}</span>`;
-      allModulePill.addEventListener('click', () => {
-        filterState.modules.clear();
-        if (moduleSingleSelect) {
-          moduleSingleSelect.setValue('all');
-        }
-        if (moduleMultiSelect) {
-          moduleMultiSelect.update(filterState.modules);
-        }
-        writeToUrl();
-        applyFilters();
-      });
-      modulePillsContainer.appendChild(allModulePill);
-
-      moduleOptions.forEach((optionItem) => {
-        const isSelected = filterState.modules.has(optionItem.value);
-        const modPill = createTag('button', {
-          type: 'button',
-          class: `changelog-pill ${isSelected ? 'is-selected' : ''}`,
-          'aria-pressed': String(isSelected),
-        });
-        modPill.innerHTML = `<span>${escapeHtml(optionItem.text)}</span> <span class="changelog-pill-count">${moduleCounts[optionItem.value] || 0}</span>`;
-        modPill.addEventListener('click', () => {
-          if (filterState.modules.has(optionItem.value)) {
-            filterState.modules.delete(optionItem.value);
-          } else {
-            filterState.modules.add(optionItem.value);
-          }
-          if (moduleSingleSelect) {
-            moduleSingleSelect.setValue(filterState.module);
-          }
-          if (moduleMultiSelect) {
-            moduleMultiSelect.update(filterState.modules);
-          }
-          writeToUrl();
-          applyFilters();
-        });
-        modulePillsContainer.appendChild(modPill);
-      });
-    }
-
-    if (yearPillsContainer) {
-      yearPillsContainer.innerHTML = '';
-      const yearCounts = { all: 0 };
-      yearOptions.forEach((yearValue) => { yearCounts[yearValue] = 0; });
-
-      releases.forEach((releaseItem) => {
-        if (!matchesMonth(releaseItem)) {
-          return;
-        }
-        const hasMatchingContent = releaseItem.changes.some((changeItem) => {
-          if (filterState.modules.size > 0 && !(changeItem.modules || []).some((m) => filterState.modules.has(m))) {
-            return false;
-          }
-          if (filterState.types.size > 0 && !changeItem.types.some((typeKey) => filterState.types.has(typeKey))) {
-            return false;
-          }
-          return true;
-        }) || (releaseItem.changes.length === 0 && filterState.modules.size === 0 && filterState.types.size === 0);
-
-        if (hasMatchingContent) {
-          yearCounts.all += 1;
-          if (yearCounts[releaseItem.year] !== undefined) {
-            yearCounts[releaseItem.year] += 1;
-          }
-        }
-      });
-
-      const isAllYearsSelected = filterState.year === 'all';
-      const allYearsLabel = yearFilterMetadata?.allLabel || 'All years';
-      const allYearPill = createTag('button', {
-        type: 'button',
-        class: `changelog-pill ${isAllYearsSelected ? 'is-selected' : ''}`,
-        'aria-pressed': String(isAllYearsSelected),
-      });
-      allYearPill.innerHTML = `<span>${escapeHtml(allYearsLabel)}</span> <span class="changelog-pill-count">${yearCounts.all}</span>`;
-      allYearPill.addEventListener('click', () => {
-        filterState.year = 'all';
-        if (yearSingleSelect) {
-          yearSingleSelect.setValue('all');
-        }
-        updateMonthControlOptions();
-        writeToUrl();
-        applyFilters();
-      });
-      yearPillsContainer.appendChild(allYearPill);
-
-      yearOptions.forEach((yearValue) => {
-        const isSelected = filterState.year === yearValue;
-        const yearPill = createTag('button', {
-          type: 'button',
-          class: `changelog-pill ${isSelected ? 'is-selected' : ''}`,
-          'aria-pressed': String(isSelected),
-        });
-        yearPill.innerHTML = `<span>${escapeHtml(yearValue)}</span> <span class="changelog-pill-count">${yearCounts[yearValue] || 0}</span>`;
-        yearPill.addEventListener('click', () => {
-          filterState.year = filterState.year === yearValue ? 'all' : yearValue;
-          if (yearSingleSelect) {
-            yearSingleSelect.setValue(filterState.year);
-          }
-          updateMonthControlOptions();
-          writeToUrl();
-          applyFilters();
-        });
-        yearPillsContainer.appendChild(yearPill);
-      });
-    }
-
-    if (monthPillsContainer) {
-      monthPillsContainer.innerHTML = '';
-      const currentMonthOptions = getMonthOptionsForYear(filterState.year).filter((optionItem) => optionItem.value !== 'all');
-      const monthCounts = { all: 0 };
-      currentMonthOptions.forEach((optionItem) => { monthCounts[optionItem.value] = 0; });
-
-      releases.forEach((releaseItem) => {
-        if (filterState.year !== 'all' && releaseItem.year !== filterState.year) {
-          return;
-        }
-        const hasMatchingContent = releaseItem.changes.some((changeItem) => {
-          if (filterState.modules.size > 0 && !(changeItem.modules || []).some((m) => filterState.modules.has(m))) {
-            return false;
-          }
-          if (filterState.types.size > 0 && !changeItem.types.some((typeKey) => filterState.types.has(typeKey))) {
-            return false;
-          }
-          return true;
-        }) || (releaseItem.changes.length === 0 && filterState.modules.size === 0 && filterState.types.size === 0);
-
-        if (hasMatchingContent) {
-          monthCounts.all += 1;
-          if (monthCounts[releaseItem.monthName] !== undefined) {
-            monthCounts[releaseItem.monthName] += 1;
-          }
-        }
-      });
-
-      const isAllMonthsSelected = filterState.month === 'all';
-      const allMonthsLabel = monthFilterMetadata?.allLabel || 'All months';
-      const allMonthPill = createTag('button', {
-        type: 'button',
-        class: `changelog-pill ${isAllMonthsSelected ? 'is-selected' : ''}`,
-        'aria-pressed': String(isAllMonthsSelected),
-      });
-      allMonthPill.innerHTML = `<span>${escapeHtml(allMonthsLabel)}</span> <span class="changelog-pill-count">${monthCounts.all}</span>`;
-      allMonthPill.addEventListener('click', () => {
-        filterState.month = 'all';
-        if (monthSingleSelect) {
-          monthSingleSelect.setValue('all');
-        }
-        writeToUrl();
-        applyFilters();
-      });
-      monthPillsContainer.appendChild(allMonthPill);
-
-      currentMonthOptions.forEach((optionItem) => {
-        const isSelected = filterState.month === optionItem.value;
-        const monthPill = createTag('button', {
-          type: 'button',
-          class: `changelog-pill ${isSelected ? 'is-selected' : ''}`,
-          'aria-pressed': String(isSelected),
-        });
-        monthPill.innerHTML = `<span>${escapeHtml(optionItem.text)}</span> <span class="changelog-pill-count">${monthCounts[optionItem.value] || 0}</span>`;
-        monthPill.addEventListener('click', () => {
-          filterState.month = filterState.month === optionItem.value ? 'all' : optionItem.value;
-          if (monthSingleSelect) {
-            monthSingleSelect.setValue(filterState.month);
-          }
-          writeToUrl();
-          applyFilters();
-        });
-        monthPillsContainer.appendChild(monthPill);
-      });
-    }
+      typePillsContainer.append(typePill);
+    });
   }
 
   function renderReleasesList(matchingReleases) {
     resultsContainer.innerHTML = '';
-
     if (matchingReleases.length === 0) {
       resultsContainer.innerHTML = `
         <div class="changelog-empty-state">
           <p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">No changes match the selected filters.</p>
-          <button type="button" class="changelog-clear-btn spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM">
+          <button type="button" class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM changelog-empty-clear">
             <span class="spectrum-Button-label">Clear filters</span>
           </button>
         </div>
       `;
-      resultsContainer.querySelector('button').addEventListener('click', clearAllFilters);
+      const clearBtn = resultsContainer.querySelector('button');
+      if (clearBtn) clearBtn.addEventListener('click', clearAllFilters);
       return;
     }
 
     const releasesByYear = new Map();
-    matchingReleases.forEach((releaseItem) => {
-      if (!releasesByYear.has(releaseItem.year)) {
-        releasesByYear.set(releaseItem.year, []);
-      }
-      releasesByYear.get(releaseItem.year).push(releaseItem);
+    matchingReleases.forEach((rel) => {
+      const yearKey = rel.year || '';
+      if (!releasesByYear.has(yearKey)) releasesByYear.set(yearKey, []);
+      releasesByYear.get(yearKey).push(rel);
     });
 
-    releasesByYear.forEach((releasesInYear, year) => {
-      const sectionAttributes = { class: 'changelog-year-section' };
-      if (year) {
-        sectionAttributes['aria-labelledby'] = year;
+    const isMultiYear = releasesByYear.size > 1 || Array.from(releasesByYear.keys())[0] !== '';
+
+    releasesByYear.forEach((yearReleases, yearKey) => {
+      const yearSection = createTag('section', {
+        class: 'changelog-year-section',
+        'aria-label': yearKey ? `Releases in ${yearKey}` : 'Releases',
+      });
+
+      if (isMultiYear && yearKey) {
+        const yearHeading = createTag('h2', {
+          id: `year-${yearKey}`,
+          class: 'spectrum-Heading spectrum-Heading--sizeXL changelog-year-heading',
+        });
+        yearHeading.textContent = yearKey;
+        yearSection.append(yearHeading);
       }
-      const yearSection = createTag('section', sectionAttributes);
-      const yearHeadingHtml = year
-        ? `<div class="heading2 changelog-toc-target"><h2 id="${year}" class="spectrum-Heading spectrum-Heading--sizeM changelog-year-heading">${year}</h2></div>`
-        : '';
-      yearSection.innerHTML = yearHeadingHtml;
 
       const tableHeader = createTag('div', { class: 'changelog-table-header', role: 'row', 'aria-hidden': 'true' });
       const versionHeader = createTag('div', { class: 'changelog-header-col changelog-header-col-version' });
@@ -1816,194 +1640,98 @@ export default async function decorate(block) {
       yearSection.append(tableHeader);
 
       const releaseList = createTag('div', { class: 'changelog-release-list' });
-      yearSection.append(releaseList);
 
-      releasesInYear.forEach((releaseItem, releaseIndex) => {
-        const cardSlug = String(releaseItem.title || releaseItem.kind || '')
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '');
-        const cardId = releaseItem.version
-          ? releaseItem.version.replace(/\./g, '-')
-          : (releaseItem.rawDate ? `docs-${releaseItem.rawDate}` : (cardSlug || `release-${year || 'entry'}-${releaseIndex + 1}`));
-        const releaseCard = createTag('article', { class: 'changelog-release-card', id: cardId });
-
-        const releaseHeading = releaseItem.version
-          ? (releaseItem.title ? `${releaseItem.version} · ${releaseItem.title}` : releaseItem.version)
-          : (releaseItem.title || releaseKindsMap[releaseItem.kind] || 'Update');
-
-        let badgeHtml = '';
-        if (releaseItem.isLatest) {
-          badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
-        } else if (releaseItem.kind) {
-          const kindLabel = releaseKindsMap[releaseItem.kind] || releaseItem.kind;
-          const isDefaultVersionedRelease = Boolean(
-            defaultReleaseKind && releaseItem.version && releaseItem.kind === defaultReleaseKind,
-          );
-          const isFilteredBySameKind = filterState.types.has(String(releaseItem.kind).toLowerCase());
-          if (!isDefaultVersionedRelease && !isFilteredBySameKind && kindLabel.toLowerCase() !== releaseHeading.toLowerCase()) {
-            badgeHtml = `<span class="changelog-badge">${kindLabel}</span>`;
-          }
-        }
-
-        const summaryHtml = releaseItem.summary
-          ? `<div class="spectrum-Body spectrum-Body--sizeM changelog-release-summary">${renderMarkdown(releaseItem.summary)}</div>`
-          : '';
-
-        let changesHtml = '';
-        if (releaseItem.changes.length === 0) {
-          if (!releaseItem.summary) {
-            changesHtml = `
-              <div class="changelog-change-row">
-                <div class="changelog-change-content">
-                  <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">Maintenance release.</div>
-                </div>
-              </div>
-            `;
-          }
-        } else {
-          changesHtml = releaseItem.changes.map((changeItem) => {
-            const typeClassList = changeItem.types
-              .map((typeKey) => `type-${typeKey.replace(/[^a-z0-9_-]/g, '-')}`)
-              .join(' ');
-            const typesHtml = changeItem.types.map((typeKey) => {
-              const typeDefinition = availableTypes.find((typeItem) => typeItem.key === typeKey);
-              const configuredType = configuredTypesMap[typeKey];
-              const defaultType = defaultTypesByKey.get(typeKey);
-              const iconType = typeDefinition?.icon || configuredType?.icon || defaultType?.icon || typeKey;
-              const typeLabel = typeDefinition?.label
-                || configuredType?.label
-                || defaultType?.label
-                || formatTypeLabel(typeKey, authoredTypeLabels.get(typeKey));
-              const typeColor = typeDefinition?.color || configuredType?.color || defaultType?.color;
-              const colorHex = resolveColorHex(typeColor, '#505050');
-              const safeTypeClass = typeKey.replace(/[^a-z0-9_-]/g, '-');
-              const isPillBadge = safeTypeClass === 'experimental' || safeTypeClass === 'api';
-              const inlineColorStyle = isPillBadge ? '' : ` style="color: ${colorHex};"`;
-              return `
-                <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${safeTypeClass}"${inlineColorStyle}>
-                  ${getIconSvg(iconType, colorHex)} <span>${escapeHtml(typeLabel)}</span>
-                </div>
-              `;
-            }).join('');
-            const moduleLabels = (changeItem.modules || []).map((moduleId) => modulesMap[moduleId] || moduleId).filter(Boolean);
-            const moduleHtml = moduleLabels.length > 0
-              ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${renderMarkdown(moduleLabels.join(', '))}</div>`
-              : '';
-
-            const changeHeadingHtml = changeItem.heading
-              ? `<h4 class="spectrum-Heading spectrum-Heading--sizeXS changelog-change-heading">${renderMarkdown(changeItem.heading)}</h4>`
-              : '';
-            const openBadgeHtml = changeItem.open ? '<span class="changelog-badge changelog-badge-open">Still open</span>' : '';
-            const actionHtml = changeItem.action ? `
-              <div class="changelog-what-to-do ${typeClassList}">
-                <strong class="what-to-do-title">What to do:</strong>
-                <span>${renderMarkdown(changeItem.action)}</span>
-              </div>
-            ` : '';
-
-            return `
-              <div class="changelog-change-row ${typeClassList}">
-                <div class="changelog-change-type-col">
-                  <div class="changelog-change-types">
-                    ${typesHtml}
-                  </div>
-                  ${moduleHtml}
-                </div>
-                <div class="changelog-change-content">
-                  ${changeHeadingHtml}
-                  <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">
-                    ${renderMarkdown(changeItem.text)}
-                    ${openBadgeHtml}
-                  </div>
-                  ${actionHtml}
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-
-        const dateHtml = releaseItem.date
-          ? `<time class="spectrum-Body spectrum-Body--sizeS changelog-release-date" datetime="${releaseItem.rawDate}">${releaseItem.date}</time>`
-          : '';
-
-        releaseCard.innerHTML = `
-          <div class="changelog-release-meta">
-            <h3 class="spectrum-Heading spectrum-Heading--sizeS changelog-release-version">${releaseHeading}</h3>
-            ${dateHtml}
-            ${badgeHtml}
-          </div>
-          <div class="changelog-release-changes">${summaryHtml}${changesHtml}</div>
-        `;
-
+      yearReleases.forEach((releaseItem, releaseIndex) => {
+        const releaseCard = renderReleaseCard({
+          releaseItem,
+          releaseIndex,
+          yearKey,
+          releaseKindsMap,
+          defaultReleaseKind,
+          filterState,
+          availableTypes,
+          configuredTypesMap,
+          defaultTypesByKey,
+          authoredTypeLabels,
+          modulesMap,
+        });
         releaseList.appendChild(releaseCard);
       });
 
+      yearSection.appendChild(releaseList);
       resultsContainer.appendChild(yearSection);
     });
+
+    resultsContainer.querySelectorAll('pre').forEach((pre) => {
+      decoratePreformattedCode(pre);
+    });
+    decorateInlineCodes(resultsContainer);
+    if (typeof window !== 'undefined' && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
+      window.Prism.highlightAllUnder(resultsContainer);
+    }
   }
 
   function updateSummary(totalMatchingChanges, matchingReleasesCount) {
-    const isFiltered = filterState.modules.size > 0 || filterState.year !== 'all' || filterState.month !== 'all' || filterState.types.size > 0;
-    summaryText.innerHTML = '';
-    const archiveSummaryText = isArchiveEnabled && totalArchivedReleasesCount > 0
-      ? ` and ${totalArchivedReleasesCount} in ${archiveSectionLabel.toLowerCase()}`
+    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === moduleOptions.length;
+    const isAllYears = !showYearFilter || yearOptions.length === 0 || filterState.years.size === yearOptions.length;
+    const currentMonthOptions = getMonthOptions();
+    const isAllMonths = !showMonthFilter || currentMonthOptions.length === 0 || filterState.months.size === currentMonthOptions.length;
+    const isAllTypes = !showTypeFilter || filterState.types.size === 0;
+
+    const isFiltered = !isAllModules || !isAllYears || !isAllMonths || !isAllTypes;
+
+    const changesText = `${totalMatchingChanges} ${totalMatchingChanges === 1 ? 'change' : 'changes'}`;
+    const releasesText = `${matchingReleasesCount} ${matchingReleasesCount === 1 ? 'release' : 'releases'}`;
+    const releasesBadge = `<span class="changelog-summary-badge changelog-summary-badge-releases">${getIconSvg('layers')}<span>${releasesText}</span></span>`;
+    const olderBadge = isArchiveEnabled && totalArchivedReleasesCount > 0
+      ? `<span class="changelog-summary-badge changelog-summary-badge-older">${getIconSvg('clock')}<span>${totalArchivedReleasesCount} ${archiveSectionLabel.toLowerCase()}</span></span>`
       : '';
 
-    if (!isFiltered) {
-      summaryText.innerHTML = `Showing <strong>${totalMatchingChanges} changes</strong> in <strong>${matchingReleasesCount} releases</strong>${archiveSummaryText}`;
-    } else {
-      const summaryMessage = createTag('span');
-      summaryMessage.innerHTML = `Showing <strong>${totalMatchingChanges} changes</strong> in <strong>${matchingReleasesCount} releases</strong> · `;
-      const clearFiltersButton = createTag('button', { type: 'button', class: 'spectrum-Link changelog-clear-link' });
-      clearFiltersButton.textContent = 'Clear filters';
-      clearFiltersButton.addEventListener('click', clearAllFilters);
-      summaryText.append(summaryMessage, clearFiltersButton);
+    summaryText.innerHTML = `<span class="changelog-summary-results-text">Results: <strong>${changesText}</strong></span><span class="changelog-summary-divider" aria-hidden="true"></span>${releasesBadge}${olderBadge}`;
+    if (clearFiltersButton) {
+      clearFiltersButton.hidden = !isFiltered;
     }
   }
 
   function clearAllFilters() {
     filterState.modules.clear();
-    filterState.year = 'all';
-    filterState.month = 'all';
+    moduleOptions.forEach((opt) => filterState.modules.add(opt.value));
+
+    filterState.years.clear();
+    yearOptions.forEach((yr) => filterState.years.add(yr));
+
+    filterState.months.clear();
+    getMonthOptions().forEach((opt) => filterState.months.add(opt.value));
+
     filterState.types.clear();
 
-    if (moduleMultiSelect) {
-      moduleMultiSelect.update(filterState.modules);
-    }
-    if (moduleSingleSelect) {
-      moduleSingleSelect.setValue('all');
-    }
-    if (yearSingleSelect) {
-      yearSingleSelect.setValue('all');
-    }
-    if (typeSingleSelect) {
-      typeSingleSelect.setValue('all');
-    }
-    if (typeMultiSelect) {
-      typeMultiSelect.update(filterState.types);
-    }
+    if (moduleMultiSelect) moduleMultiSelect.update();
+    if (moduleSingleSelect) moduleSingleSelect.setValue('all');
+    if (yearMultiSelect) yearMultiSelect.update();
+    if (yearSingleSelect) yearSingleSelect.setValue('all');
     updateMonthControlOptions();
-    if (monthSingleSelect) {
-      monthSingleSelect.setValue('all');
-    }
+    if (monthMultiSelect) monthMultiSelect.update();
+    if (monthSingleSelect) monthSingleSelect.setValue('all');
 
     writeToUrl();
     applyFilters();
   }
 
   function applyFilters() {
-    const { matchingReleases, totalMatchingChanges } = getFilteredData();
-    renderPills();
+    const { matchingReleases, totalMatchingChanges, changeTypeCounts } = getFilteredData();
+    renderPills(changeTypeCounts, totalMatchingChanges);
     renderReleasesList(matchingReleases);
     updateSummary(totalMatchingChanges, matchingReleases.length);
   }
 
-  container.append(headerSection, filterCard, resultsContainer);
-  if (isArchiveEnabled && totalArchivedReleasesCount > 0) {
-    container.append(archiveSection);
-  }
-  block.appendChild(container);
-
   applyFilters();
+
+  const hasAnyVisibleFilters = showModuleFilter || showYearFilter || showMonthFilter || showTypeFilter;
+  if (hasAnyVisibleFilters) {
+    container.append(headerSection, filterCard, resultsContainer);
+  } else {
+    container.append(headerSection, resultsContainer);
+  }
+  if (archiveSection) container.append(archiveSection);
+  block.append(container);
 }
