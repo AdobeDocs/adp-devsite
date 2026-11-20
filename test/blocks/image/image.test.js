@@ -203,6 +203,63 @@ describe('Image block', () => {
       .to.equal(10 * parseFloat(getComputedStyle(document.documentElement).fontSize));
   });
 
+  it('limits linked image hit areas without changing image size or spacing', async () => {
+    const cases = [
+      { value: undefined, width: 800, expected: 800 },
+      {
+        value: '550px', width: 800, expected: 550, devBiz: true,
+      },
+      { value: '90%', width: 800, expected: 720 },
+      { value: '550px', width: 311, expected: 311 },
+      {
+        value: 'large', width: 800, expected: 200, devBiz: true, src: smallImage,
+      },
+    ];
+    const fixtures = cases.map(({
+      value, width, expected, devBiz, src,
+    }) => {
+      const unlinked = createBlock(value, devBiz, src);
+      const linked = createBlock(value, devBiz, src);
+      unlinked.wrapper.style.width = `${width}px`;
+      linked.wrapper.style.width = `${width}px`;
+      const link = document.createElement('a');
+      const picture = document.createElement('picture');
+      link.href = '/example';
+      linked.img.replaceWith(link);
+      link.append(picture);
+      picture.append(linked.img);
+      [unlinked, linked].forEach(({ block }) => decorate(block));
+      return {
+        unlinked, linked, link, expected,
+      };
+    });
+
+    await Promise.all(fixtures.flatMap(({ unlinked, linked }) => [
+      unlinked.img.decode(), linked.img.decode(),
+    ]));
+    fixtures.forEach(({
+      unlinked, linked, link, expected,
+    }) => {
+      const imageRect = linked.img.getBoundingClientRect();
+      const linkRect = link.getBoundingClientRect();
+      const unlinkedRect = unlinked.img.getBoundingClientRect();
+      const blockRect = linked.block.getBoundingClientRect();
+      const unlinkedBlockRect = unlinked.block.getBoundingClientRect();
+
+      expect(imageRect.width).to.equal(expected);
+      expect(linkRect.width).to.equal(imageRect.width);
+      expect(linkRect.height).to.equal(imageRect.height);
+      expect(linkRect.height).to.equal(imageRect.width / 2);
+      expect(unlinkedRect.width).to.equal(imageRect.width);
+      expect(blockRect.height).to.equal(unlinkedBlockRect.height);
+      expect(imageRect.top - blockRect.top).to.be.closeTo(
+        unlinkedRect.top - unlinkedBlockRect.top
+          + parseFloat(getComputedStyle(unlinked.img).paddingTop),
+        0.01,
+      );
+    });
+  });
+
   it('matches the plain image size and spacing when no setting is given', async () => {
     const main = document.querySelector('main');
     const plainSection = document.createElement('div');

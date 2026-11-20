@@ -13,3 +13,15 @@ main div.image-wrapper div.image img {
   height: auto;
   padding: 20px 0;
 }
+
+main div.image-wrapper div.image a:has(img) {
+  display: inline-block;
+  max-width: min(100%, var(--image-max-width, 100%));
+  margin: 20px 0;
+  vertical-align: top;
+}
+
+main div.image-wrapper div.image a:has(img) img {
+  max-width: 100%;
+  padding: 0;
+}
