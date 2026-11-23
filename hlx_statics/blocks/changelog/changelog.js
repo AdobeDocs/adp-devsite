@@ -1208,6 +1208,8 @@ export default async function decorate(block) {
   const contentAttr = block.getAttribute('data-content')
   const metadataAbsoluteSrc = metadataAttr && getResourceUrl(metadataAttr)
   const contentaAbsoluteSrc = contentAttr && getResourceUrl(contentAttr)
+  console.log("metadataAbsoluteSrc", metadataAbsoluteSrc)
+  console.log("contentaAbsoluteSrc", contentaAbsoluteSrc)
 
   // 1. Fetch metadata/settings YAML first
   let parsedReleasesMetadata = null;
@@ -1238,6 +1240,8 @@ export default async function decorate(block) {
         : parsedReleasesDocument.data;
     }
   }
+
+  console.log("parsedReleasesDocument", parsedReleasesDocument)
 
   if (!parsedReleasesDocument || (!parsedReleasesDocument.releases && !Array.isArray(parsedReleasesDocument))) {
     block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data.</p></div>';
