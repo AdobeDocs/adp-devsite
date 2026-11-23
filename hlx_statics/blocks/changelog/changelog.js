@@ -1205,7 +1205,9 @@ function renderReleaseCard({
 // Main decorate function to build the changelog component
 export default async function decorate(block) {
   const metadataAttr = block.getAttribute('data-metadata');
-  const contentAttr = block.getAttribute('data-content')
+  console.log("metadataAttr", metadataAttr)
+  const contentAttr = block.getAttribute('data-content');
+  console.log("contentAttr", contentAttr)
   const metadataAbsoluteSrc = metadataAttr && getResourceUrl(metadataAttr)
   const contentaAbsoluteSrc = contentAttr && getResourceUrl(contentAttr)
   console.log("metadataAbsoluteSrc", metadataAbsoluteSrc)
