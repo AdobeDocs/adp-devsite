@@ -222,66 +222,6 @@ export async function fetchSiteWideBanner() {
 }
 
 /**
- * Retrieves the changelog data yml file
- * @returns {Promise<string>} The changelog data file
- */
-export async function fetchChangelog() {
-  // const metadata = await fetchSiteMetadata();
-  // if (!metadata) return undefined;
-
-  // if (!metadata.has('changelog-data')) return undefined;
-  // const metadataPath = metadata.get('changelog-data');
-
-  let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  let changelogFile =
-    // metadataPath
-    //   ? `${window.location.origin}/${pathPrefix}/${metadataPath}`:
-    `${window.location.origin}/${pathPrefix}/changelog.json`;
-  let changelogJson = await fetch(changelogFile)
-    .then(response => {
-      if (response.ok) {
-        return response.text();
-      } else {
-        console.warn('Network response was not ok');
-      }
-    })
-    .then(data => data)
-    .catch(error => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-  return changelogJson;
-}
-
-/**
- * Retrieves the changelog setting yaml file
- * @returns {Promise<string>} The changelog setting file
- */
-export async function fetchChangelogSettings() {
-  // const metadata = await fetchSiteMetadata();
-  // const metadataPath = metadata?.has('changelog-settings') ? metadata.get('changelog-settings') : null;
-
-  let pathPrefix = getMetadata('pathprefix')?.replace(/^\/|\/$/g, '');
-  // const cleanPath = metadataPath?.replace(/^(\.\/|\/)?(src\/pages\/)?/, '');
-  let releaseFile =
-    // cleanPath
-    // ? `${window.location.origin}/${pathPrefix}/${cleanPath}`: 
-    `${window.location.origin}/${pathPrefix}/changelog-settings.yml`;
-  let releasesYAML = await fetch(releaseFile)
-    .then(response => {
-      if (response.ok) {
-        return response.text();
-      } else {
-        console.warn('Network response was not ok');
-      }
-    })
-    .then(data => data)
-    .catch(error => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-  return releasesYAML;
-}
-
-/**
  * Retrieves the discovery-interface json file
  * @returns {string} The discovery-interface json file
  */

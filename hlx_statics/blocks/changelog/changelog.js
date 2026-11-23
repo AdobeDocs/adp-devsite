@@ -1,6 +1,5 @@
-import { createTag, decorateInlineCodes } from '../../scripts/lib-adobeio.js';
+import { createTag, decorateInlineCodes, getResourceUrl } from '../../scripts/lib-adobeio.js';
 import decoratePreformattedCode from '../../components/code.js';
-import { fetchChangelog } from '../../scripts/lib-helix.js';
 
 // Color map for standard changelog and Spectrum semantic colors
 const COLOR_HEX_MAP = {
@@ -316,23 +315,270 @@ function findMatchingArchiveGroup(releaseItem, archiveGroupsList) {
   return null;
 }
 
-// Function to parse raw changelog API payload
-function parseChangelogPayload(rawChangelog) {
-  if (!rawChangelog) return null;
-  let parsedPayload = rawChangelog;
-  if (typeof rawChangelog === 'string') {
+// Lightweight YAML parser supporting mappings, lists, scalar blocks, flow arrays, and comments
+function parseYaml(yamlText) {
+  if (!yamlText || typeof yamlText !== 'string') return null;
+
+  const rawLines = yamlText.split(/\r?\n/);
+  const parsedLines = [];
+
+  for (let lineIndex = 0; lineIndex < rawLines.length; lineIndex += 1) {
+    const rawLine = rawLines[lineIndex];
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let commentIndex = -1;
+
+    for (let charIndex = 0; charIndex < rawLine.length; charIndex += 1) {
+      const currentChar = rawLine[charIndex];
+      if (currentChar === "'" && !inDoubleQuote) inSingleQuote = !inSingleQuote;
+      else if (currentChar === '"' && !inSingleQuote) inDoubleQuote = !inDoubleQuote;
+      else if (currentChar === '#' && !inSingleQuote && !inDoubleQuote) {
+        commentIndex = charIndex;
+        break;
+      }
+    }
+
+    const lineWithoutComment = commentIndex >= 0 ? rawLine.slice(0, commentIndex) : rawLine;
+    if (lineWithoutComment.trim().length === 0) continue;
+
+    const indentLevel = lineWithoutComment.search(/\S/);
+    parsedLines.push({ indent: indentLevel, content: lineWithoutComment.trim(), raw: lineWithoutComment });
+  }
+
+  let currentLineIndex = 0;
+
+  function parseValue(rawValueString) {
+    if (rawValueString === undefined || rawValueString === null) return null;
+    const trimmedValue = rawValueString.trim();
+    if (trimmedValue === '') return null;
+
+    // Flow array: [item1, item2]
+    if (trimmedValue.startsWith('[') && trimmedValue.endsWith(']')) {
+      const arrayContent = trimmedValue.slice(1, -1).trim();
+      if (!arrayContent) return [];
+      const arrayItems = [];
+      let currentItemString = '';
+      let insideSingleQuotes = false;
+      let insideDoubleQuotes = false;
+      for (let charIndex = 0; charIndex < arrayContent.length; charIndex += 1) {
+        const char = arrayContent[charIndex];
+        if (char === "'" && !insideDoubleQuotes) insideSingleQuotes = !insideSingleQuotes;
+        else if (char === '"' && !insideSingleQuotes) insideDoubleQuotes = !insideDoubleQuotes;
+        else if (char === ',' && !insideSingleQuotes && !insideDoubleQuotes) {
+          arrayItems.push(parseValue(currentItemString));
+          currentItemString = '';
+          continue;
+        }
+        currentItemString += char;
+      }
+      if (currentItemString.trim()) arrayItems.push(parseValue(currentItemString));
+      return arrayItems;
+    }
+
+    // Quoted string
+    if ((trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) || (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))) {
+      return trimmedValue.slice(1, -1).replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+    }
+
+    // Boolean
+    if (trimmedValue.toLowerCase() === 'true') return true;
+    if (trimmedValue.toLowerCase() === 'false') return false;
+    if (trimmedValue.toLowerCase() === 'null' || trimmedValue === '~') return null;
+
+    // Number
+    if (/^-?\d+(\.\d+)?$/.test(trimmedValue)) return Number(trimmedValue);
+
+    return trimmedValue;
+  }
+
+  function readBlockScalar(valStr, minIndent) {
+    const isFolded = valStr.startsWith('>');
+    const blockLines = [];
+    let blockIndent = -1;
+    while (currentLineIndex < parsedLines.length) {
+      const nextLine = parsedLines[currentLineIndex];
+      if (blockIndent === -1) {
+        if (nextLine.indent > minIndent) {
+          blockIndent = nextLine.indent;
+        } else {
+          break;
+        }
+      }
+      if (nextLine.indent >= blockIndent) {
+        blockLines.push(nextLine.raw.slice(blockIndent));
+        currentLineIndex += 1;
+      } else {
+        break;
+      }
+    }
+    return isFolded ? blockLines.join(' ') : blockLines.join('\n');
+  }
+
+  function parseBlock(minimumIndent) {
+    if (currentLineIndex >= parsedLines.length) return null;
+    const currentLine = parsedLines[currentLineIndex];
+    if (currentLine.indent < minimumIndent) return null;
+
+    const isListItem = currentLine.content.startsWith('- ') || currentLine.content === '-';
+
+    if (isListItem) {
+      const listItems = [];
+      const listIndentLevel = currentLine.indent;
+
+      while (
+        currentLineIndex < parsedLines.length
+        && parsedLines[currentLineIndex].indent === listIndentLevel
+        && (parsedLines[currentLineIndex].content.startsWith('- ') || parsedLines[currentLineIndex].content === '-')
+      ) {
+        const line = parsedLines[currentLineIndex];
+        currentLineIndex += 1;
+        const itemContent = line.content.slice(1).trim();
+
+        if (!itemContent) {
+          if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > listIndentLevel) {
+            listItems.push(parseBlock(parsedLines[currentLineIndex].indent));
+          } else {
+            listItems.push(null);
+          }
+        } else if (itemContent.includes(':')) {
+          const colonIndex = itemContent.indexOf(':');
+          const itemKey = parseValue(itemContent.slice(0, colonIndex));
+          const itemValueString = itemContent.slice(colonIndex + 1).trim();
+          const listItemObject = {};
+
+          if (itemValueString === '|' || itemValueString === '|-' || itemValueString === '>' || itemValueString === '>-') {
+            listItemObject[itemKey] = readBlockScalar(itemValueString, listIndentLevel);
+          } else if (itemValueString) {
+            listItemObject[itemKey] = parseValue(itemValueString);
+          } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > listIndentLevel) {
+            listItemObject[itemKey] = parseBlock(parsedLines[currentLineIndex].indent);
+          } else {
+            listItemObject[itemKey] = null;
+          }
+
+          while (
+            currentLineIndex < parsedLines.length
+            && parsedLines[currentLineIndex].indent > listIndentLevel
+            && !parsedLines[currentLineIndex].content.startsWith('- ')
+          ) {
+            const nextPropertyLine = parsedLines[currentLineIndex];
+            const nextColonIndex = nextPropertyLine.content.indexOf(':');
+            if (nextColonIndex !== -1) {
+              const propertyKey = parseValue(nextPropertyLine.content.slice(0, nextColonIndex));
+              const propertyValueString = nextPropertyLine.content.slice(nextColonIndex + 1).trim();
+              currentLineIndex += 1;
+              if (propertyValueString === '|' || propertyValueString === '|-' || propertyValueString === '>' || propertyValueString === '>-') {
+                listItemObject[propertyKey] = readBlockScalar(propertyValueString, nextPropertyLine.indent);
+              } else if (propertyValueString) {
+                listItemObject[propertyKey] = parseValue(propertyValueString);
+              } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > nextPropertyLine.indent) {
+                listItemObject[propertyKey] = parseBlock(parsedLines[currentLineIndex].indent);
+              } else {
+                listItemObject[propertyKey] = null;
+              }
+            } else {
+              currentLineIndex += 1;
+            }
+          }
+
+          listItems.push(listItemObject);
+        } else {
+          listItems.push(parseValue(itemContent));
+        }
+      }
+      return listItems;
+    }
+
+    const mappingObject = {};
+    const mappingIndentLevel = currentLine.indent;
+
+    while (
+      currentLineIndex < parsedLines.length
+      && parsedLines[currentLineIndex].indent === mappingIndentLevel
+    ) {
+      const line = parsedLines[currentLineIndex];
+      if (line.content.startsWith('- ')) break;
+
+      const colonIndex = line.content.indexOf(':');
+      if (colonIndex === -1) {
+        currentLineIndex += 1;
+        continue;
+      }
+
+      const mapKey = parseValue(line.content.slice(0, colonIndex));
+      const mapValueString = line.content.slice(colonIndex + 1).trim();
+      currentLineIndex += 1;
+
+      if (mapValueString === '|' || mapValueString === '|-' || mapValueString === '>' || mapValueString === '>-') {
+        const isFolded = mapValueString.startsWith('>');
+        const blockLines = [];
+        let blockIndent = -1;
+        while (currentLineIndex < parsedLines.length) {
+          const nextLine = parsedLines[currentLineIndex];
+          if (blockIndent === -1) {
+            if (nextLine.indent > mappingIndentLevel) {
+              blockIndent = nextLine.indent;
+            } else {
+              break;
+            }
+          }
+          if (nextLine.indent >= blockIndent) {
+            blockLines.push(nextLine.raw.slice(blockIndent));
+            currentLineIndex += 1;
+          } else {
+            break;
+          }
+        }
+        mappingObject[mapKey] = isFolded ? blockLines.join(' ') : blockLines.join('\n');
+      } else if (mapValueString) {
+        mappingObject[mapKey] = parseValue(mapValueString);
+      } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > mappingIndentLevel) {
+        mappingObject[mapKey] = parseBlock(parsedLines[currentLineIndex].indent);
+      } else {
+        mappingObject[mapKey] = null;
+      }
+    }
+    return mappingObject;
+  }
+
+  return parseBlock(0);
+}
+
+// Function to fetch and parse a YAML or JSON resource from a given URL
+async function fetchAndParseResource(url) {
+  if (!url) return null;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.warn(`Failed to fetch resource from ${url}: status ${response.status}`);
+      return null;
+    }
+    const text = await response.text();
+    if (!text || !text.trim()) return null;
+
+    const trimmed = text.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        return JSON.parse(trimmed);
+      } catch {
+        // Fall back to YAML
+      }
+    }
+
+    const yamlResult = parseYaml(text);
+    if (yamlResult !== null && yamlResult !== undefined) {
+      return yamlResult;
+    }
+
     try {
-      parsedPayload = JSON.parse(rawChangelog);
+      return JSON.parse(trimmed);
     } catch {
       return null;
     }
+  } catch (error) {
+    console.error(`Error fetching/parsing resource from ${url}:`, error);
+    return null;
   }
-  const rootNode = Array.isArray(parsedPayload?.data) ? parsedPayload.data[0] : parsedPayload;
-  if (!rootNode) return null;
-  return {
-    parsedReleasesDocument: rootNode.data || rootNode,
-    parsedReleasesMetadata: rootNode.settings || rootNode.metadata || {},
-  };
 }
 
 // Function to create a Spectrum-styled single-select dropdown control
@@ -958,16 +1204,45 @@ function renderReleaseCard({
 
 // Main decorate function to build the changelog component
 export default async function decorate(block) {
-  console.log("block", block.children)
-  const rawChangelog = await fetchChangelog();
-  const parsedPayload = parseChangelogPayload(rawChangelog);
+  const metadataAttr = block.getAttribute('data-metadata');
+  const contentAttr = block.getAttribute('data-content')
+  const metadataAbsoluteSrc = metadataAttr && getResourceUrl(metadataAttr)
+  const contentaAbsoluteSrc = contentAttr && getResourceUrl(contentAttr)
 
-  if (!parsedPayload) {
+  // 1. Fetch metadata/settings YAML first
+  let parsedReleasesMetadata = null;
+  if (metadataAbsoluteSrc) {
+    parsedReleasesMetadata = await fetchAndParseResource(metadataAbsoluteSrc);
+  }
+
+  // 2. Then fetch content/releases data YAML
+  let parsedReleasesDocument = null;
+  if (contentaAbsoluteSrc) {
+    parsedReleasesDocument = await fetchAndParseResource(contentaAbsoluteSrc);
+  }
+
+  // Normalize parsed settings/metadata
+  if (parsedReleasesMetadata) {
+    parsedReleasesMetadata = parsedReleasesMetadata.settings || parsedReleasesMetadata.metadata || parsedReleasesMetadata;
+  } else {
+    parsedReleasesMetadata = {};
+  }
+
+  // Normalize parsed data/content
+  if (parsedReleasesDocument) {
+    if (Array.isArray(parsedReleasesDocument)) {
+      parsedReleasesDocument = { releases: parsedReleasesDocument };
+    } else if (parsedReleasesDocument.data) {
+      parsedReleasesDocument = Array.isArray(parsedReleasesDocument.data)
+        ? { releases: parsedReleasesDocument.data, modules: parsedReleasesDocument.modules || {} }
+        : parsedReleasesDocument.data;
+    }
+  }
+
+  if (!parsedReleasesDocument || (!parsedReleasesDocument.releases && !Array.isArray(parsedReleasesDocument))) {
     block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data.</p></div>';
     return;
   }
-
-  const { parsedReleasesDocument, parsedReleasesMetadata } = parsedPayload;
   const modulesMap = parsedReleasesDocument?.modules || {};
   const releaseKindsMap = parsedReleasesMetadata?.kinds || {};
   const archiveConfig = parsedReleasesMetadata?.archive;
@@ -1051,7 +1326,13 @@ export default async function decorate(block) {
   const isFilterConfigured = (filterId) => {
     if (isFiltersDisabled) return false;
     if (!hasConfiguredFilters) return true;
-    return configuredFilters.some((f) => f.id === filterId && f.enabled !== false);
+    const filterDef = configuredFilters.find((f) => f.id === filterId);
+    if (!filterDef) {
+      // By default, year and month filters are always available from content unless explicitly disabled
+      if (filterId === 'year' || filterId === 'month') return true;
+      return false;
+    }
+    return filterDef.enabled !== false;
   };
 
   const typeFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'type');
@@ -1110,17 +1391,12 @@ export default async function decorate(block) {
     || releases.some((r) => r.changes.some((c) => c.modules.length > 0))
   );
 
-  const showYearFilter = isFilterConfigured('year') && (
-    Boolean(yearFilterMetadata)
-    || releases.some((r) => Boolean(r.year))
-  );
+  const contentYears = Array.from(new Set(releases.map((r) => r.year).filter((y) => y && !isNaN(Number(y)))))
+    .sort((a, b) => Number(b) - Number(a));
 
-  const showMonthFilter = isFilterConfigured('month') && (
-    Boolean(monthFilterMetadata)
-    || releases.some((r) => Boolean(r.monthName))
-  );
-
-  const showTypeFilter = isFilterConfigured('type') && availableTypes.length > 0;
+  const showYearFilter = isFilterConfigured('year') !== false && (contentYears.length > 0 || Boolean(yearFilterMetadata));
+  const showMonthFilter = isFilterConfigured('month') !== false;
+  const showTypeFilter = isFilterConfigured('type') !== false && availableTypes.length > 0;
 
   let moduleOptions = [];
   if (showModuleFilter) {
@@ -1137,21 +1413,9 @@ export default async function decorate(block) {
     }
   }
 
-  let yearOptions = [];
-  if (showYearFilter) {
-    const MIN_YEAR = 2024;
-    const currentYear = new Date().getFullYear();
-    const activeReleaseYears = releases
-      .map((r) => parseInt(r.year, 10))
-      .filter((y) => !isNaN(y));
-    const maxYear = Math.max(currentYear, ...(activeReleaseYears.length ? activeReleaseYears : [currentYear]));
-
-    const generatedYears = [];
-    for (let y = maxYear; y >= MIN_YEAR; y -= 1) {
-      generatedYears.push(String(y));
-    }
-    yearOptions = generatedYears;
-  }
+  const yearOptions = contentYears.length > 0
+    ? contentYears.map(String)
+    : [String(new Date().getFullYear())];
 
   const latestRelease = releases[0] || null;
   const filterState = {
