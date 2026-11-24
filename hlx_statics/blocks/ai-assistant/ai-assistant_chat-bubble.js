@@ -4,6 +4,7 @@ import decoratePreformattedCode from "../../components/code.js";
 import { ensurePrismLoaded } from "../../scripts/prism-loader.js";
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
+import { isSourceUrl, restoreCitations } from "./ai-assistant_citations.js";
 import { createAiAvatar } from "./ai-assistant_chat-ui.js";
 import {
   CHAT_BUBBLE_AI_LABEL,
@@ -26,6 +27,8 @@ export class ChatBubble {
    * @param {string} [options.id] - Optional message ID (used for AI messages and copy button)
    * @param {string|number|null} [options.timestamp] - Optional Unix timestamp in ms; when nullish, no timestamp is shown
    * @param {import('./ai-assistant_chat-history.js').ChatMessage['feedback']} [options.feedback]
+   * @param {import('./ai-assistant_chat-history.js').ChatMessage['references']} [options.references]
+   * @param {import('./ai-assistant_chat-history.js').ChatMessage['citations']} [options.citations]
    */
   constructor({
     content,
@@ -34,6 +37,8 @@ export class ChatBubble {
     id,
     timestamp,
     feedback,
+    references,
+    citations,
   }) {
     this.content = content;
     this.source = source;
@@ -42,10 +47,27 @@ export class ChatBubble {
     this.timestamp = timestamp;
     this.feedback = feedback;
     this.references = null;
+    /** @type {import('./ai-assistant_citations.js').Placement[]} */
+    this.citations = [];
     this._actionsContainer = null;
     this._speakerLabelId = `chat-bubble-speaker-${ChatBubble.#labelCounter++}`;
     /** @type {HTMLElement} */
     this.element = this.#_init();
+    if (this.source === "ai") {
+      // Restore the finalized presentation before actions and code decoration.
+      // No metadata means legacy Sources-only rendering, with no inference.
+      if (citations !== undefined) {
+        try {
+          this.renderCitations(content, restoreCitations(content, references, citations));
+        } catch (error) {
+          console.error("[AI Assistant] Could not restore inline citations:", error);
+          this.renderWithoutInlineCitations(content, references);
+        }
+      } else if (references?.length) {
+        this.renderSources(references);
+      }
+      if (this.id) this.completeBubble();
+    }
   }
 
   /**
@@ -93,12 +115,8 @@ export class ChatBubble {
 
       if (this.id) {
         bubble.dataset.messageId = this.id;
-        // If we have an ID already (e.g., restored from history), append the actions
-        contentElement.appendChild(this._actionsContainer);
-        // Restored-history bubbles never call completeBubble(), so decorate here.
-        this.#_decorateCodeBlocks(contentElement);
       }
-      // Otherwise, the actions will be appended when completeBubble is called
+      // Actions and code decoration follow citation rendering in completeBubble().
     }
 
     if (this.timestamp) {
@@ -271,15 +289,119 @@ export class ChatBubble {
   }
 
   /**
+   * Renders answer Markdown to unsanitized HTML. Citation placement checks use
+   * this same renderer, so it must stay the only Markdown renderer for answers.
+   * @param {string} markdown
+   * @returns {string}
+   */
+  static parseMarkdown(markdown) {
+    // @ts-expect-error - marked is not on the Window object
+    return window.marked.parse(markdown);
+  }
+
+  /**
    * Renders this.content into a content element via marked + DOMPurify.
    * @param {Element} contentElement
    */
-  #_renderContent(contentElement) {
+  #_renderContent(contentElement, markdown = this.content) {
     // @ts-expect-error - DOMPurify is not on the Window object
     contentElement.innerHTML = window.DOMPurify.sanitize(
-      // @ts-expect-error - marked is not on the Window object
-      window.marked.parse(this.content),
+      ChatBubble.parseMarkdown(markdown),
     );
+    this.plainText = contentElement.textContent?.trim() ?? "";
+  }
+
+  /**
+   * Render one derived Markdown document, then replace trusted placeholders with
+   * DOM-created links. Call before completeBubble attaches actions and decorates code.
+   * @param {string} content
+   * @param {{references: import('./ai-assistant_citations.js').Source[], placements: import('./ai-assistant_citations.js').Placement[]}} citations
+   * @returns {import('./ai-assistant_citations.js').Placement[]} Successfully displayed placements
+   */
+  renderCitations(content, { references, placements }) {
+    this.content = content;
+    const contentElement = this.element.querySelector(".chat-bubble-content");
+    this.citations = [];
+    if (!contentElement) return this.citations;
+    // Keep an existing answer control focused across the final Markdown reparse.
+    // Placeholders themselves are not focusable, so this order remains unchanged.
+    const focusableSelector = "a[href], button, input, textarea, select, [tabindex]";
+    const focusedIndex = [...contentElement.querySelectorAll(focusableSelector)]
+      .indexOf(document.activeElement);
+    // A random suffix keeps answer Markdown from matching our placeholders.
+    const placeholderId = `citation-${Math.random().toString(36).slice(2)}`;
+    let markdown = content;
+    // Reverse insertion keeps all offsets relative to the original Markdown.
+    [...placements].reverse().forEach(({ end }, index) => {
+      const placeholder = `<span data-citation-placeholder="${placeholderId}-${index}"></span>`;
+      markdown = markdown.slice(0, end) + placeholder + markdown.slice(end);
+    });
+    this.#_renderContent(contentElement, markdown);
+    if (focusedIndex >= 0) {
+      const control = /** @type {HTMLElement} */ (
+        contentElement.querySelectorAll(focusableSelector)[focusedIndex]
+      );
+      control?.focus({ preventScroll: true });
+    }
+    const sources = new Map(references.map((reference, index) => [
+      reference.url, { ...reference, number: index + 1 },
+    ]));
+    [...placements].reverse().forEach((placement, index) => {
+      const { sourceUrls } = placement;
+      const placeholder = contentElement.querySelector(`[data-citation-placeholder="${placeholderId}-${index}"]`);
+      if (!placeholder) return;
+      // Placements are checked against this renderer before numbering, so this
+      // only guards against a combination of markers changing the result.
+      // Never deliberately create nested anchors or links in code.
+      if (placeholder.closest("a, code, pre")) {
+        placeholder.remove();
+        return;
+      }
+      const group = createTag("span", { class: "chat-bubble-inline-sources" });
+      sourceUrls.forEach((url) => {
+        const source = sources.get(url);
+        if (!source) return;
+        const link = createTag("a", {
+          class: "chat-bubble-inline-source chat-bubble-sources-item-marker",
+          href: url,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          "aria-label": `Source ${source.number}: ${source.title} (opens in a new tab)`,
+          "daa-ll": "DevsiteAI Assistant:Message:InlineSources:Link",
+        });
+        link.textContent = String(source.number);
+        group.appendChild(link);
+      });
+      if (group.childElementCount) {
+        placeholder.replaceWith(group);
+        this.citations.unshift(placement);
+      } else {
+        placeholder.remove();
+      }
+    });
+    if (references.length) this.renderSources(references);
+    return this.citations;
+  }
+
+  /** Clear the old registry when an answer is replaced by an error/placeholder. */
+  clearSources() {
+    this.references = null;
+    this.citations = [];
+    this.element.querySelectorAll(".chat-bubble-inline-sources").forEach((group) => group.remove());
+    this.element.querySelector(".chat-bubble-sources")?.remove();
+  }
+
+  /**
+   * Fallback when inline citations cannot be rendered.
+   * @param {string} content
+   * @param {unknown} references
+   */
+  renderWithoutInlineCitations(content, references) {
+    this.clearSources();
+    this.updateContent(content);
+    if (Array.isArray(references) && references.length) {
+      this.renderSources(references);
+    }
   }
 
   /**
@@ -306,8 +428,8 @@ export class ChatBubble {
    * @returns {string}
    */
   getPlainText() {
-    const contentElement = this.element.querySelector(".chat-bubble-content");
-    return contentElement?.textContent?.trim() ?? "";
+    // Captured before inline digits, actions, and code-copy controls are added.
+    return this.plainText ?? "";
   }
 
   scrollIntoView() {
@@ -355,7 +477,8 @@ export class ChatBubble {
    * Final processing that needs to be done after streaming finishes.
    */
   completeBubble() {
-    if (this.source !== "ai" || !this._actionsContainer) return;
+    if (this.source !== "ai" || !this._actionsContainer || this.completed) return;
+    this.completed = true;
 
     this.hideStreamingCursor();
 
@@ -416,14 +539,8 @@ export class ChatBubble {
    * @param {Array<{url: string, title: string}>} references
    */
   renderSources(references) {
-    const validReferences = references?.filter((reference) => {
-      if (typeof reference?.url !== "string" || !reference.url) return false;
-      try {
-        return new URL(reference.url).protocol === "https:";
-      } catch {
-        return false;
-      }
-    }) ?? [];
+    const validReferences = Array.isArray(references)
+      ? references.filter((reference) => isSourceUrl(reference?.url)) : [];
 
     if (!validReferences.length) {
       console.warn("[AI Assistant] No references provided");

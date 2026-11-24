@@ -16,6 +16,36 @@ export async function hideNonComponentContent(page) {
   await page.addStyleTag({ content: nonComponentContentStyle });
 }
 
+const codeSampleSelector = 'code[class*="language-"], [class*="language-"] code';
+
+async function waitForLateDevDocsLayout(page) {
+  if (await page.locator('meta[name="githubblobpath"]').count()) {
+    await expect(page.locator('.github-actions-wrapper')).toBeAttached();
+  }
+
+  const prismWillLoad = await page.evaluate((selector) => (
+    [...document.querySelectorAll(selector)].some((code) => {
+      const { top, bottom, height } = code.getBoundingClientRect();
+      return height > 0 && bottom > -200 && top < window.innerHeight + 200;
+    })
+  ), codeSampleSelector);
+  if (!prismWillLoad) return;
+
+  await expect.poll(() => page.evaluate(async (selector) => {
+    const prismStyles = document.querySelector('link[href$="/styles/prism.css"]');
+    if (!window.Prism?.highlightAll || !prismStyles?.sheet || document.querySelector('pre.prism-loading')) {
+      return false;
+    }
+    if (document.querySelector('script[src*="/prism-grammars/"]')) return false;
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+    if (document.querySelector('script[src*="/prism-grammars/"]')) return false;
+
+    return [...document.querySelectorAll(selector)].every((code) => (
+      code.parentElement?.tagName !== 'PRE' || Boolean(code.closest('.code-toolbar'))
+    ));
+  }, codeSampleSelector), 'Prism should finish highlighting the code samples').toBe(true);
+}
+
 /**
  * Opens a DevDocs block reference page and waits for its shared readiness signals.
  *
@@ -35,4 +65,5 @@ export async function openDevDocsReferencePage(page, { path, heading }) {
   // Font completion is relevant to screenshot stability. Do not wait for
   // networkidle; assert the specific UI readiness conditions instead.
   await page.evaluate(() => document.fonts.ready);
+  await waitForLateDevDocsLayout(page);
 }

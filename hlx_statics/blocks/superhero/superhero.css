@@ -3,6 +3,16 @@ main div.superhero-wrapper div.superhero a:not(.spectrum-Button) {
   text-decoration: underline;
 }
 
+/*
+ * Secondary buttons follow the block's text color so they keep the same
+ * contrast as the authored text on any background. Hover and pressed states
+ * keep the global gray fill with white text.
+ */
+main div.superhero-wrapper div.superhero a.spectrum-Button--secondary:not(:hover, :active, .focus-ring) {
+  border-color: currentColor;
+  color: inherit;
+}
+
 main div.superhero-wrapper div.superhero.text-color-white,
 main div.superhero-wrapper div.superhero.text-color-white :is(h1, h2, h3, h4, h5, h6, p) {
   color: rgb(255, 255, 255) !important;
