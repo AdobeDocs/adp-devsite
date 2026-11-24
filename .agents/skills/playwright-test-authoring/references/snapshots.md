@@ -2,13 +2,9 @@
 
 ## When to update a baseline
 
-| Situation | Action |
-|-|-|
-| A new visual test needs its first baseline | Generate it after behavioral assertions pass. |
-| An existing snapshot unexpectedly differs | Keep the baseline and follow [`diagnose.md`](diagnose.md). |
-| Requirements confirm an intentional visual change | Generate the updated Linux baseline. |
-| A behavior-only change has no intended rendering change | Keep the baseline. |
-| Intent is unclear | Ask before generating or replacing a baseline. |
+- Generate a new baseline only after behavioral assertions pass.
+- On an unexpected diff, keep the baseline and follow [`diagnose.md`](diagnose.md).
+- When intent is unclear, ask before generating or replacing a baseline.
 
 ## Capture the resting state
 
@@ -22,7 +18,7 @@ Screenshot the block or `.{block}-wrapper` locator (when wrapper styling is part
 
 ## Generate on Linux
 
-Follow **Generate snapshots with GitHub Actions** or **Generate snapshots locally with Act** in [`CONTRIBUTING.md`](../../../../CONTRIBUTING.md), with the workflow's current pinned image. A focused Docker run on that exact image is fine for diagnosis. Remove only platform artifacts, such as `*-darwin.png`, that this run created.
+Use the workflow's pinned Playwright Docker image for any focused local diagnosis run. Remove only platform artifacts, such as `*-darwin.png`, that this run created.
 
 ## Inspect every changed PNG
 

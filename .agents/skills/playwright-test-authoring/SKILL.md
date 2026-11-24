@@ -27,10 +27,8 @@ If intended behavior is still ambiguous, summarize the evidence and ask one targ
 
 ### Files
 
-- Specs live at `tests/playwright/blocks/<block>.spec.mjs`. A feature with its own setup or fixture gets `<block>.<feature>.spec.mjs` beside it, e.g. `ai-assistant.citations.spec.mjs`. Separate the feature with a dot: block names contain hyphens (`info` and `info-card` are different blocks).
+- Name specs after the `hlx_statics/blocks/<block>/` directory, not the reference URL slug when they differ (e.g. `inlinealert.spec.mjs` for `/dev-docs-reference/blocks/inline-alert/`).
 - Declare every test in a spec file Playwright discovers directly. `--test-list` filters by declaring file, so a test declared in an imported helper module is silently skipped by CI's affected-test runs.
-- Baselines live in `<spec>.mjs-snapshots/` beside the spec.
-- Shared files, including `tests/playwright/fixtures/`, select the full suite.
 
 ### Fixtures
 
