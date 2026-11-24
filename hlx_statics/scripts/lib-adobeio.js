@@ -46,7 +46,11 @@ export function checkExternalLink(main) {
       const [_, queryString] = url.split('?');
       const searchParams = new URLSearchParams(queryString);
       const internalDomains = ['developer.adobe.com', 'developer-stage.adobe.com', 'developer-dev.adobe.com', 'hlx.page', 'hlx.live', 'aem.page', 'aem.live', 'localhost', '127.0.0.1'];
-      const isExternal = !internalDomains.some(domain => url.includes(domain)) || searchParams.has('aio_external');
+      // Same-origin links are internal on any host, including local test hosts
+      // such as host.docker.internal that are not in the domain list.
+      const isInternal = a.origin === window.location.origin
+        || internalDomains.some(domain => url.includes(domain));
+      const isExternal = !isInternal || searchParams.has('aio_external');
       if (isExternal) {
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
@@ -339,6 +343,16 @@ export function buildHero(main) {
   }
 }
 
+export function syncSideNavState(sideNav = document.querySelector('.side-nav')) {
+  if (!sideNav) return;
+  const menuBtn = document.querySelector('header .menu-btn');
+  const collapsed = window.matchMedia('(max-width: 768px)').matches && !menuBtn?.checked;
+  if (collapsed && sideNav.contains(document.activeElement)) {
+    document.querySelector('header .menu-icon')?.focus();
+  }
+  sideNav.inert = collapsed;
+}
+
 /**
  * Builds the side nav
  * @param {*} main The grid container
@@ -346,7 +360,10 @@ export function buildHero(main) {
 export function buildSideNav(main) {
   let sideNavDiv = createTag('div', { class: 'section side-nav-container', style: 'grid-area: sidenav;'});
   let sideNavWrapper = createTag('div', { class: 'side-nav-wrapper' });
-  let sideNavBlock = createTag('div', { class: 'side-nav block', 'data-block-name': 'side-nav' });
+  let sideNavBlock = createTag('div', { id: 'side-nav', class: 'side-nav block', 'data-block-name': 'side-nav' });
+  const mobileQuery = window.matchMedia('(max-width: 768px)');
+  mobileQuery.addEventListener('change', () => syncSideNavState(sideNavBlock));
+  syncSideNavState(sideNavBlock);
   sideNavWrapper.append(sideNavBlock);
   sideNavDiv.append(sideNavWrapper);
   main.prepend(sideNavDiv);
@@ -374,6 +391,16 @@ export function buildAside(main) {
   const aside = createTag('aside', { class: 'aside' });
   asideWrapper.append(aside);
   main.append(asideWrapper);
+}
+
+/**
+ * Returns the headings listed in the "On this page" aside: section-level h2/h3 wrapped
+ * by buildHeadings(), excluding the side nav, footer, and headings inside other blocks.
+ * @param {ParentNode} container The element to search
+ * @returns {NodeListOf<HTMLHeadingElement>}
+ */
+export function getOnThisPageHeadings(container) {
+  return container.querySelectorAll('.heading2:not(.side-nav .heading2):not(footer .heading2) h2, .heading3:not(.side-nav .heading3):not(footer .heading3) h3');
 }
 
 /**
@@ -481,6 +508,18 @@ function activeTabTemplate(width, isMainPage = false) {
   return `<div class="nav-link-active" style="width: ${calcWidth}px; transform:translate(12px,0); bottom: ${!isMainPage ? '0.5px' : '-1px'}"></div>`;
 }
 
+export function setCurrentPage(nav) {
+  const currentPath = window.location.pathname.replace(/\/$/, '');
+  nav.querySelectorAll('a[href]').forEach((link) => {
+    const url = new URL(link.href);
+    if (url.origin === window.location.origin && url.pathname.replace(/\/$/, '') === currentPath) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
+  });
+}
+
 /**
  * Sets the current tab as active
  * @param {*} isMainPage Defines whether the current page is main page or not
@@ -488,6 +527,7 @@ function activeTabTemplate(width, isMainPage = false) {
 export function setActiveTab(isMainPage) {
   const nav = document.querySelector('#navigation-links');
   if (nav) {
+    setCurrentPage(nav);
     const actTab = getActiveTab(nav);
     if (actTab) {
       activateTab(actTab);
@@ -860,38 +900,42 @@ export const setSearchFrameOrigin = (host, suffix = '') => {
 };
 
 /**
- * Returns the franklin closest sub folder
+ * Returns an ordered list of candidate paths to check for a resource (e.g. nav),
+ * walking up from the current page's own folder to each ancestor folder in turn,
+ * always ending with the site-wide franklin_assets default as the last resort.
+ * This lets a resource defined in a parent folder apply to all its subfolders,
+ * unless a subfolder defines its own (which takes precedence).
  * @param {*} host The host
- * @param {*} suffix A suffix to append
- * @returns The first subfolder in the franklin dir - for special urls like apis will return the franklin_assets folder
+ * @param {*} suffix The resource name to look for (e.g. 'nav')
+ * @returns {string[]} Candidate URLs, deepest folder first
  */
-export const getClosestFranklinSubfolder = (host, suffix = '', defaultNav = false) => {
-  let subfolderPath = window.location.pathname.split('/')[1];
+export const getFranklinSubfolders = (host, suffix = '') => {
+  let pathname = window.location.pathname;
+  if (pathname.charAt(pathname.length - 1) === '/') pathname = pathname.slice(0, -1);
+  if (pathname.charAt(0) === '/') pathname = pathname.slice(1);
 
-  // make sure top level paths point to the same nav if on these paths
-  if (subfolderPath === '' || subfolderPath === 'apis' || subfolderPath === 'open' || subfolderPath === 'developer-support' || defaultNav) {
-    subfolderPath = 'franklin_assets';
-  } else {
-    subfolderPath = window.location.pathname;
-    // strip any ending slash
-    if (subfolderPath.charAt(subfolderPath.length - 1) === '/') subfolderPath = subfolderPath.substring(0, subfolderPath.length - 1);
-    // strip any leading slash
-    if (subfolderPath.charAt(0) === '/') subfolderPath = subfolderPath.substring(1);
-  }
+  const segments = pathname.split('/').filter(Boolean);
+  const topLevel = segments[0];
+  const isSpecialTopLevel = topLevel === undefined || topLevel === 'apis' || topLevel === 'open' || topLevel === 'developer-support';
 
-  if (isLocalHostEnvironment(host)) {
-    return `http://localhost:3000/${subfolderPath}/${suffix}`;
+  const folders = [];
+  if (!isSpecialTopLevel) {
+    while (segments.length > 0) {                                                                                                                                            
+       folders.push(segments.join('/'));
+       segments.pop();
+     }
   }
-  if (isStageEnvironment(host)) {
-    return `https://developer-stage.adobe.com/${subfolderPath}/${suffix}`;
-  }
-  if (isHlxPath(host)) {
-    return `${window.location.origin}/${subfolderPath}/${suffix}`;
-  }
-  if (isDevEnvironment(host)) {
-    return `https://developer-dev.adobe.com/${subfolderPath}/${suffix}`;
-  }
-  return `https://developer.adobe.com/${subfolderPath}/${suffix}`;
+  folders.push('franklin_assets');
+
+  const buildUrl = (folder) => {
+    if (isLocalHostEnvironment(host)) return `http://localhost:3000/${folder}/${suffix}`;
+    if (isStageEnvironment(host)) return `https://developer-stage.adobe.com/${folder}/${suffix}`;
+    if (isHlxPath(host)) return `${window.location.origin}/${folder}/${suffix}`;
+    if (isDevEnvironment(host)) return `https://developer-dev.adobe.com/${folder}/${suffix}`;
+    return `https://developer.adobe.com/${folder}/${suffix}`;
+  };
+
+  return folders.map(buildUrl);
 };
 
 /**

@@ -1,13 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { hideNonComponentContent } from '../visual-test-utils.mjs';
 
 const path = '/tools/sidekick/blocks/accordion';
 const body = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
-const metadataStyle = `
-  .library-metadata { display: none !important; }
-  .contributors-wrapper-container { visibility: hidden !important; }
-  .ai-assistant-wrapper,
-  *[data-block-name="ai-assistant"] { display: none !important; }
-`;
 
 function getVariant(page, variant = 'default') {
   const selector = variant === 'white'
@@ -85,7 +80,7 @@ test.describe('Accordion reference', () => {
   });
 
   test('matches visual snapshots for each variant', async ({ page }) => {
-    await page.addStyleTag({ content: metadataStyle });
+    await hideNonComponentContent(page);
 
     const variants = [
       {

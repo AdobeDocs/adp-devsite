@@ -3,19 +3,20 @@ import {
   setActiveTab,
   focusRing,
   isTopLevelNav,
-  getClosestFranklinSubfolder,
   decorateProfile,
   fetchProfileAvatar,
   LoadingState,
+  syncSideNavState,
   setExpectedOrigin
 } from '../../scripts/lib-adobeio.js';
-import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
-import { loadFragment } from '../fragment/fragment.js';
+import { readBlockConfig, getMetadata, fetchTopNavHtml, fetchTopButtonsNavHtml, loadNavFragment, IS_DEV_DOCS } from '../../scripts/lib-helix.js';
 
 const ALGOLIA_CONFIG = {
   APP_KEY: window.adp_search.APP_KEY || '',
   API_KEY: window.adp_search.API_KEY || ''
 };
+const SEARCH_STATUS_DELAY_MS = 1000;
+let searchStatusTimeout;
 
 function isSourceGithub() {
   return getMetadata('source') === 'github';
@@ -52,6 +53,13 @@ function localSearch() {
     }
   }
   return bestMatch;
+}
+
+function clearSearchStatus() {
+  clearTimeout(searchStatusTimeout);
+  searchStatusTimeout = undefined;
+  const status = document.querySelector('header.global-nav-header .search-status');
+  if (status) status.replaceChildren();
 }
 
 async function initSearch() {
@@ -139,6 +147,58 @@ async function initSearch() {
   // Variable to keep track of results to modify how to render them later
   let results = new Map();
 
+  function updateSearchStatus(renderIndices) {
+    const status = document.querySelector('header.global-nav-header .search-status');
+    const query = document.querySelector('#search-input').value.trim();
+    const searchButton = document.querySelector('header button.nav-dropdown-search');
+    if (!query || !searchButton.classList.contains('is-open')) {
+      clearSearchStatus();
+      return;
+    }
+
+    const expectedIndices = indices.filter(
+      (indexName) => selectedProducts.includes(indexToProduct[indexName]),
+    );
+    if (!expectedIndices.length || expectedIndices.some((indexName) => !renderIndices.some(
+      ({ indexId, results: indexResults }) => indexId === indexName
+        && indexResults?.query?.trim() === query,
+    ))) return;
+
+    const container = document.querySelector(suggestionsFlag ? '.suggestion-results' : '.search-results');
+    if (!container.getClientRects().length || getComputedStyle(container).visibility === 'hidden') return;
+
+    const productsWithResults = new Set([...results.values()].map((result) => result.product));
+    const emptyProducts = selectedProducts.filter((product) => !productsWithResults.has(product));
+    if (!emptyProducts.length) {
+      clearSearchStatus();
+      return;
+    }
+
+    const scope = emptyProducts.length === 1
+      ? emptyProducts[0]
+      : `${emptyProducts.length} of ${selectedProducts.length} selected products`;
+    const mode = suggestionsFlag ? 'Search suggestions.' : 'Search results.';
+    const message = `${mode} No results found for "${query}" in ${scope}.`;
+    if (status.textContent === message) return;
+
+    const renderedSuggestionsFlag = suggestionsFlag;
+    const renderedProducts = selectedProducts.slice();
+    clearSearchStatus();
+    searchStatusTimeout = setTimeout(() => {
+      searchStatusTimeout = undefined;
+      if (!status.isConnected
+        || query !== document.querySelector('#search-input')?.value.trim()
+        || !searchButton.classList.contains('is-open')
+        || suggestionsFlag !== renderedSuggestionsFlag
+        || selectedProducts.length !== renderedProducts.length
+        || selectedProducts.some((product, index) => product !== renderedProducts[index])
+        || !container.getClientRects().length
+        || getComputedStyle(container).visibility === 'hidden') return;
+
+      status.replaceChildren(document.createTextNode(message));
+    }, SEARCH_STATUS_DELAY_MS);
+  }
+
   search.start();
 
   let currentDynamicWidgets = []; // Widgets that change on each call
@@ -146,6 +206,7 @@ async function initSearch() {
 
   // Function to initialize or update the search
   function updateSearch() {
+    clearSearchStatus();
     // Remove widgets from the previous call before adding new ones
     if (currentDynamicWidgets.length) {
       search.removeWidgets(currentDynamicWidgets);
@@ -230,6 +291,7 @@ async function initSearch() {
 
           // Listen for user typing (suggestions appear before Enter is pressed)
           searchInput.addEventListener('input', () => {
+            clearSearchStatus();
             toggleClearButton(); // Update clear button visibility on input
             searchCleared = false; // Reset cleared flag when user starts typing
             if (searchExecuted) {
@@ -253,6 +315,7 @@ async function initSearch() {
           // When Enter is pressed, execute full search and prevent suggestions from reappearing
           searchInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
+              clearSearchStatus();
               searchCleared = false; // Reset cleared flag when user presses Enter
               const trimmed = searchInput.value.trim();
               if (trimmed === '') { // If users presses enter with an empty query while in a full search, clear results and show suggestions again
@@ -275,6 +338,7 @@ async function initSearch() {
 
           // Clear search query when clear button is clicked
           clearSearchQueryButton.addEventListener('click', () => {
+            clearSearchStatus();
             outerSearchSuggestions.style.display = "flex";
             searchInput.value = "";
             helper.setQuery('').search();
@@ -287,6 +351,7 @@ async function initSearch() {
             }
             searchCleared = true; // Mark that search was cleared
             toggleClearButton(); // Update clear button visibility after clearing
+            searchInput.focus({ preventScroll: true });
           });
         }, render() { },
       };
@@ -326,6 +391,7 @@ async function initSearch() {
       } else {
         renderMergedResults(); // Call to render the filtered results
       }
+      updateSearchStatus(indices);
     }
 
     const customMergedHits = connectAutocomplete(mergedHits);
@@ -653,7 +719,7 @@ const globalNavSearchDropDown = () => {
             <path d="M33.173 30.215L25.4 22.443a12.826 12.826 0 10-2.957 2.957l7.772 7.772a2.1 2.1 0 002.958-2.958zM6 15a9 9 0 119 9 9 9 0 01-9-9z"></path>
           </svg>
           <input id="search-input" type="text" placeholder="Search..." autocomplete="off" class="search-input">
-          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet" daa-ll="search-button-form-clear">
+          <button type="reset" aria-label="Clear Search" class="clear-search-query-button spectrum-ClearButton spectrum-Search-clearButton spectrum-ActionButton spectrum-ActionButton--sizeM spectrum-ActionButton--quiet" daa-ll="search-button-form-clear" style="display: none;">
             <svg aria-hidden="true" role="img" viewBox="0 0 36 36" class="icon-right spectrum-Icon spectrum-Icon--sizeM">
               <path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"></path>
             </svg>
@@ -688,6 +754,7 @@ function decorateSearchIframeContainer(header) {
   const closeSearchButton = header.querySelector('button.close-search-button');
   const searchResultsDiv = document.querySelector("div.search-results");
   const searchBar = document.querySelector("div.outer-search-box");
+  const searchInput = header.querySelector('#search-input');
 
   const urlParams = fetchSearchURLParams();
 
@@ -714,6 +781,7 @@ function decorateSearchIframeContainer(header) {
 
   // Function to hide search completely
   function hideSearch() {
+    clearSearchStatus();
     searchBar.style.visibility = 'hidden';
     searchDiv.style.visibility = 'hidden';
     searchResultsDiv.style.visibility = 'hidden';
@@ -747,17 +815,31 @@ function decorateSearchIframeContainer(header) {
       searchButton.classList.add('is-open');
       searchButton.style.display = 'none';
       closeSearchButton.style.display = 'block';
+      searchInput.focus({ preventScroll: true });
     }
   });
 
   // close search
-  closeSearchButton.addEventListener('click', () => {
+  function closeSearch() {
     searchButton.classList.remove('is-open');
     closeSearchButton.classList.remove('is-open');
     hideSearch();
     searchButton.style.display = 'block';
     closeSearchButton.style.display = 'none';
-  });
+    searchButton.focus();
+  }
+
+  closeSearchButton.addEventListener('click', closeSearch);
+
+  function closeSearchOnEscape(event) {
+    if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing) {
+      event.preventDefault();
+      closeSearch();
+    }
+  }
+
+  searchDiv.addEventListener('keydown', closeSearchOnEscape);
+  closeSearchButton.addEventListener('keydown', closeSearchOnEscape);
 }
 
 function globalDistributeButton() {
@@ -863,6 +945,20 @@ function globalNavLinkItemDropdownItem(url, name, description) {
         </a>
       </li>
     `;
+}
+
+function handleExternalLinks(header) {
+  header.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
+    try {
+      const url = new URL(link.href, window.location.href);
+      url.searchParams.delete('aio_external');
+      link.href = url.href;
+    } catch (e) {
+      link.href = link.href.replace(/[?&]aio_external(=[^&#]*)?/, '');
+    }
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+  });
 }
 
 function handleButtons(header) {
@@ -988,10 +1084,13 @@ function addCheckmarkSvg(ul) {
 
 function handleMenuButton(header) {
   const menuBtn = header.querySelector('.menu-btn');
+  const menuIcon = header.querySelector('.menu-icon');
   if (!menuBtn) return;
+  const mobileQuery = window.matchMedia('(max-width: 768px)');
 
   menuBtn.addEventListener('change', () => {
     const sideNav = document.querySelector('.side-nav');
+    menuIcon?.setAttribute('aria-expanded', String(menuBtn.checked));
     if (menuBtn.checked) {
       sideNav?.classList.add('is-visible');
       document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
@@ -999,12 +1098,20 @@ function handleMenuButton(header) {
       sideNav?.classList.remove('is-visible');
       document.body.style.overflow = ''; // Restore scrolling
     }
+    syncSideNavState();
+  });
+
+  menuIcon?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.preventDefault();
+      menuBtn.checked = !menuBtn.checked;
+      menuBtn.dispatchEvent(new Event('change'));
+    }
   });
 
   // Suppress the slide-out animation when resizing from desktop to mobile.
   // Without this, the sidenav animates from its desktop position to the hidden
   // mobile position even though it was never visible on desktop.
-  const mobileQuery = window.matchMedia('(max-width: 768px)');
   mobileQuery.addEventListener('change', () => {
     const sideNav = document.querySelector('.side-nav');
     if (!sideNav) return;
@@ -1012,15 +1119,18 @@ function handleMenuButton(header) {
     // Close the menu when switching between breakpoints
     if (menuBtn.checked) {
       menuBtn.checked = false;
+      menuIcon?.setAttribute('aria-expanded', 'false');
       sideNav.classList.remove('is-visible');
       document.body.style.overflow = '';
     }
+    syncSideNavState();
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         sideNav.classList.remove('no-transition');
       });
     });
   });
+  syncSideNavState();
 }
 
 function hideSpinner() {
@@ -1069,7 +1179,15 @@ export default async function decorate(block) {
   // Create menu button (moved outside of template condition)
   const mobileButton = createTag('input', { class: 'menu-btn', type: 'checkbox', id: 'menu-btn' });
   header.appendChild(mobileButton);
-  const mobileMenu = createTag('label', { class: 'menu-icon', for: 'menu-btn' });
+  const mobileMenu = createTag('label', {
+    class: 'menu-icon',
+    for: 'menu-btn',
+    tabindex: '0',
+    role: 'button',
+    'aria-label': 'Open navigation menu',
+    'aria-expanded': 'false',
+    'aria-controls': 'side-nav',
+  });
   mobileMenu.innerHTML = '<span class="navicon"></span>';
   header.appendChild(mobileMenu);
 
@@ -1117,10 +1235,11 @@ export default async function decorate(block) {
 
         dropDownList.querySelectorAll('ul > li').forEach((dropdownLinks) => {
           const link = dropdownLinks.querySelector('a');
+          if (!link) return;
           const linkText = link.textContent.trim();
           const description = dropdownLinks.textContent.replace(linkText, '').trim();
           dropdownLinksHTML
-            += globalNavLinkItemDropdownItem(link, linkText, description);
+            += globalNavLinkItemDropdownItem(link.href, linkText, description);
         });
 
         dropdownLinkDropdownHTML = globalNavLinkItemDropdown(
@@ -1131,28 +1250,8 @@ export default async function decorate(block) {
         dropDownList.parentElement.innerHTML = dropdownLinkDropdownHTML;
       });
 
-      // external links (aio_external query param)
-      navigationLinks.querySelectorAll('a[href*="aio_external"]').forEach((link) => {
-        try {
-          const url = new URL(link.href, window.location.href);
-          url.searchParams.delete('aio_external');
-          link.href = url.href;
-        } catch (e) {
-          link.href = link.href.replace(/[?&]aio_external(=[^&#]*)?/, '');
-        }
-        link.setAttribute('target', '_blank');
-        link.setAttribute('rel', 'noopener noreferrer');
-
-      });
-
       header.append(navigationLinks);
     }
-
-
-    // Handle mobile menu button for side nav
-    handleMenuButton(header);
-
-
   } else {
     // Create navigation for non-documentation pages
     let navigationLinks = createTag('ul', { id: 'navigation-links', class: 'menu', style: 'list-style-type: none;' });
@@ -1172,19 +1271,15 @@ export default async function decorate(block) {
     }
 
     // check if documentation template then retrieve from config otherwise default back to google drive path
-    let navPath;
     if (IS_DEV_DOCS) {
       const topNavHtml = await fetchTopNavHtml();
       if (topNavHtml) {
         navigationLinks.innerHTML += topNavHtml;
       }
     } else {
-      navPath = cfg.nav || getClosestFranklinSubfolder(window.location.origin, 'nav');
-      let fragment = await loadFragment(navPath);
-      if (fragment == null) {
-        // load the default nav in franklin_assets folder nav
-        fragment = await loadFragment(getClosestFranklinSubfolder(window.location.origin, 'nav', true));
-      }
+      // walk up from the current folder to each ancestor, falling back to franklin_assets/nav
+      const fragment = await loadNavFragment(cfg.nav);
+      if (!fragment) return;
       const ul = fragment.querySelector("ul");
       ul.classList.add("menu");
       ul.setAttribute("id", "navigation-links");
@@ -1277,8 +1372,14 @@ export default async function decorate(block) {
   rightContainer.appendChild(globalSpinner());
   rightContainer.appendChild(globalSignIn());
 
-  header.append(rightContainer);
   header.append(globalNavSearchDropDown());
+  header.append(rightContainer);
+  header.append(createTag('div', {
+    class: 'search-status',
+    role: 'status',
+    'aria-live': 'polite',
+    'aria-atomic': 'true',
+  }));
 
   //initialize search
   if (window.adp_search.map_found) {
@@ -1372,8 +1473,18 @@ export default async function decorate(block) {
   });
 
   setActiveTab();
+  const desktopNavigation = header.querySelector('#navigation-links');
+  desktopNavigation?.addEventListener('focusin', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)
+      || target.parentElement?.parentElement !== desktopNavigation
+      || !target.matches('a:focus-visible, button:focus-visible')) return;
+
+    target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
   focusRing(header);
 
   // Always handle menu button (removed template condition)
   handleMenuButton(header);
+  handleExternalLinks(header);
 }

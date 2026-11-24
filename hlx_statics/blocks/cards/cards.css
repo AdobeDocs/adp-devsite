@@ -26,6 +26,7 @@ main div.cards-wrapper div.cards {
   display: flex;
   justify-content: center;
   flex-direction: row;
+  flex-wrap: wrap;
 }
 
 @media screen and (max-width: 320px) {
@@ -46,6 +47,13 @@ main div.cards-wrapper div.cards {
 main div.cards-wrapper div.cards > div {
   text-align: center;
   display: table-cell;
+}
+
+@media screen and (min-width: 1024px) {
+  main.dev-biz .cards-wrapper .cards.narrow > .four-card {
+    flex: 0 1 25%;
+    min-width: 0;
+  }
 }
 
 main div.cards-wrapper div.cards > div.three-cards {
@@ -127,6 +135,27 @@ main div.cards-wrapper div.cards.wide {
   max-width: 80%;
 }
 
+/* DevDocs authors wide examples as separate 33%-width blocks. Keep their
+   landscape images inside each card instead of letting intrinsic image width
+   force the flex item over its neighbors. DevBiz's multi-card layout is unchanged. */
+main.dev-docs div.cards-wrapper div.cards.wide {
+  max-width: 100%;
+}
+
+main.dev-docs div.cards-wrapper div.cards.wide > div {
+  min-width: 0;
+}
+
+main.dev-docs div.cards-wrapper div.cards.wide > div > div:has(picture) {
+  padding: 0;
+}
+
+main.dev-docs div.cards-wrapper div.cards.wide img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
 main div.cards-wrapper div.cards.wide div.three-card {
   width: 33.33%;
 }
@@ -143,7 +172,7 @@ main div.cards-wrapper div.cards.wide div.three-card > div:last-child {
     flex-direction: row;
   }
   main div.cards-wrapper div.cards > div {
-    padding: 40px 0;
+    padding: 20px;
   }
   main div.cards-wrapper {
     width: 100% !important;

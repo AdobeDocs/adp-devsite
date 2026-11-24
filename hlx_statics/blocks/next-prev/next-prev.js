@@ -32,7 +32,7 @@ export default async function decorate(block) {
     }
 
     const createLink = (href, title, direction, classname, div) => {
-      const a = createTag('a', { class: `anchor-link ${classname}`, href, "aria-label": href });
+      const a = createTag('a', { class: `anchor-link ${classname}`, href });
       const innerText = document.createElement('div');
       innerText.classList.add(direction === 'left' ? 'prev-page-text' : 'next-page-text');
       innerText.textContent = title;

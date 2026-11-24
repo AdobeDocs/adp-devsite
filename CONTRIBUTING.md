@@ -61,7 +61,7 @@ The workflow tests the component reference pages under `/dev-docs-reference/bloc
 
 ### Which tests run on a pull request
 
-To keep feedback fast, the workflow runs only the specs affected by the pull request's changed files. `scripts/playwright-affected-tests.mjs` lists the pull request's files through the GitHub API (falling back to a git diff against the base branch) and maps changes to specs by naming convention: `hlx_statics/blocks/<block>/` changes run `tests/playwright/blocks/<block>.spec.mjs`. Spec and snapshot changes under `tests/playwright/blocks/` select their own spec the same way.
+To keep feedback fast, the workflow runs only the specs affected by the pull request's changed files. `scripts/playwright-affected-tests.mjs` lists the pull request's files through the GitHub API (falling back to a git diff against the base branch) and maps changes to specs by naming convention: `hlx_statics/blocks/<block>/` changes run every spec for that block — `tests/playwright/blocks/<block>.spec.mjs` plus any feature specs named `tests/playwright/blocks/<block>.<feature>.spec.mjs` (for example, `ai-assistant.citations.spec.mjs`). Spec and snapshot changes under `tests/playwright/blocks/` select all of their block's specs the same way. Use a dot, not a hyphen, before the feature name: block names can contain hyphens (`info` and `info-card` are different blocks). Feature specs are discovered by Playwright directly; do not import them from the block's main spec.
 
 Two exceptions:
 
@@ -115,6 +115,7 @@ After the server is available at `http://localhost:3001`, run the workflow from 
 ```bash
 rm -rf .act-artifacts
 act workflow_dispatch \
+  --trust-project-actrc \
   -W .github/workflows/playwright.yml \
   --input playwright_base_url=http://host.docker.internal:3001 \
   --input update_snapshots=true
@@ -129,7 +130,17 @@ snapshot_artifact=$(find .act-artifacts -name 'playwright-linux-snapshots-*.zip'
 unzip -o "$snapshot_artifact" -d tests/playwright
 ```
 
-To run Act against the current branch's deployed AEM preview instead, omit `playwright_base_url`. This requires pushing the branch first so that its preview is available.
+To run Act against the current branch's deployed AEM preview instead, pass the preview URL explicitly. Omitting `playwright_base_url` under Act targets the local AEM server at `http://host.docker.internal:3001`, not the preview. Running against the preview requires pushing the branch first so that its preview is available:
+
+```bash
+rm -rf .act-artifacts
+act workflow_dispatch \
+  --trust-project-actrc \
+  -W .github/workflows/playwright.yml \
+  --input playwright_base_url=https://<branch>--adp-devsite--adobedocs.aem.page
+```
+
+Use the lowercased branch name with `/` replaced by `-`, matching the preview URL pattern shown above.
 
 GitHub Actions remains authoritative: after pushing locally generated snapshots, the normal pull request workflow must still pass.
 

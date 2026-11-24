@@ -7,6 +7,20 @@ header.main-header {
   z-index: 2;
 }
 
+header.global-nav-header {
+  .search-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 header nav.header-nav {
   height: 100%;
 }
@@ -192,7 +206,7 @@ header.global-nav-header a.nav-console-adobeio-link-text {
 }
 
 header.global-nav-header strong.icon-adobe-label {
-  color: #fa0f00;
+  color: var(--spectrum-global-color-static-red-600, #bb0202);
   font-size: 15px;
   white-space: nowrap;
 }
@@ -213,6 +227,13 @@ header.global-nav-header li.nav-view-docs-button a{
 header.global-nav-header > ul#navigation-links > li > button.is-open .spectrum-Picker-menuIcon {
   transition: transform var(--spectrum-global-animation-duration-100) ease-in-out;
   transform: rotate(-90deg);
+}
+
+header.global-nav-header > ul#navigation-links > li > a:focus-visible,
+header.global-nav-header button.navigation-dropdown:focus-visible,
+header.global-nav-header .nav-sign-in > button:focus-visible {
+  outline: 2px solid rgb(0, 84, 182);
+  outline-offset: -3px;
 }
 
 
@@ -388,7 +409,10 @@ header.global-nav-header li .nav-dropdown-item .nav-dropdown-description {
   font-size: 12px;
   max-width: 200px;
   text-wrap: initial;
-
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens:none;
+  hyphens: none;
 }
 
 header.global-nav-header a.nav-dropdown-links {
@@ -578,7 +602,7 @@ header hr.search-suggestions-hr-bottom {
 
 header h4.search-suggestions-h4 {
   margin-left: 15px;
-  color: slategray;
+  color: rgb(110, 110, 110);
   margin-top: 5px;
   margin-bottom: 5px;
 }
@@ -598,7 +622,12 @@ header a.search-suggestions-a {
   position: relative;
   text-decoration: none;
   left: 24px;
-  width: calc(100% - 18px)
+  width: calc(100% - 48px);
+
+  &:focus-visible {
+    outline: 2px solid rgb(0, 84, 182);
+    outline-offset: -3px;
+  }
 }
 
 header div.suggestion-product-group > a > span > div {
@@ -670,7 +699,6 @@ header div.search-box{
 header div.search-box > form {
   width: 100%;
   height: 32px;
-  width: 688px;
   display: inline-block;
   position: relative;
 }
@@ -716,7 +744,8 @@ header button.clear-search-query-button:hover {
 }
 
 header button.clear-search-query-button:focus {
-  outline: none;
+  outline: 2px solid rgb(0, 84, 182);
+  outline-offset: -1px;
 }
 
 header button.clear-search-query-button > svg {
@@ -913,6 +942,17 @@ header.global-nav-header div.nav-buttons-container {
     transform: rotate(45deg);
     top: 0;
   }
+
+  header div.suggestion-results {
+    width: calc(100% - 32px);
+    max-width: calc(100% - 32px);
+    left: 16px;
+  }
+
+  header a.search-suggestions-a {
+    left: 0;
+    width: 100%;
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -924,4 +964,3 @@ header.global-nav-header div.nav-buttons-container {
       width: 20px !important;
   }
 }
-

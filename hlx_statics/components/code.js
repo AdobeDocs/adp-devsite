@@ -1,5 +1,3 @@
-import { IS_DEV_DOCS } from "../scripts/lib-helix.js";
-
 export function extractLanguageDirectives(container) {
   if (!container) return '';
   const preEl = container.querySelector('pre');
@@ -18,48 +16,84 @@ export function extractLanguageDirectives(container) {
   return '';
 }
 
+// Other data-* attributes are dropped because Prism plugins read some (e.g. data-line-offset).
+const isSupportedAttribute = (name) => name === 'data-line' || name.startsWith('data-playground-');
+
+// Options start after a space or at "-data-"/"-disable", not at every dash, because shell-session
+// is a language. Case-insensitive so -DisableLineNumbers is ignored, not added to the language.
+const OPTION_BOUNDARY = /\s|-(?=data-|disable)/i;
+// Also matches an option at the very start, which means there's no language (```disableLineNumbers).
+const LANGUAGE_END = /\s|(?:^|-)(?=data-|disable)/i;
+const LEADING_DELIMITERS = /^[\s-]+/;
+const QUOTED_ATTRIBUTE = /^(data-[\w-]+)=(?:"([^"]*)"|'([^']*)')/;
+
+/**
+ * Parses a code block's language and options from a code fence class
+ * (`js-disableLineNumbers-data-line="2"`) or a tab language line
+ * (`js disableLineNumbers data-line="2"`). Unsupported options go in `ignored`.
+ */
+export function parseCodeDirectives(text) {
+  const source = (text || '').trim().replace(/^language-/, '');
+  const languageEnd = source.search(LANGUAGE_END);
+  const language = languageEnd === -1 ? source : source.slice(0, languageEnd);
+  let rest = languageEnd === -1 ? '' : source.slice(languageEnd).replace(LEADING_DELIMITERS, '');
+
+  let disableLineNumbers = false;
+  const attributes = [];
+  const ignored = [];
+  while (rest) {
+    const attribute = rest.match(QUOTED_ATTRIBUTE);
+    let consumed;
+    if (attribute) {
+      const [match, name, doubleQuoted, singleQuoted] = attribute;
+      if (isSupportedAttribute(name)) attributes.push([name, doubleQuoted ?? singleQuoted]);
+      else ignored.push(name);
+      consumed = match.length;
+    } else {
+      const optionEnd = rest.search(OPTION_BOUNDARY);
+      const option = optionEnd === -1 ? rest : rest.slice(0, optionEnd);
+      if (option === 'disableLineNumbers') disableLineNumbers = true;
+      else ignored.push(option);
+      consumed = option.length;
+    }
+    rest = rest.slice(consumed).replace(LEADING_DELIMITERS, '');
+  }
+
+  return {
+    language, disableLineNumbers, attributes, ignored,
+  };
+}
+
+function parseAndWarn(text) {
+  const directives = parseCodeDirectives(text);
+  if (directives.ignored.length) {
+    console.warn(`[code] Ignoring unsupported options in "${text}": ${directives.ignored.join(', ')}`);
+  }
+  return directives;
+}
+
+function applyCodeDirectives(pre, code, { language, disableLineNumbers, attributes }) {
+  if (language) {
+    pre.classList.add(`language-${language}`);
+    code.classList.add(`language-${language}`);
+  }
+  if (disableLineNumbers) pre.classList.add('disableLineNumbers');
+  attributes.forEach(([name, value]) => {
+    pre.setAttribute(name, value);
+    code.setAttribute(name, value);
+  });
+}
+
 export function applyLanguageDirectives(pre, codeEl, languageText) {
   if (!pre || !codeEl || !languageText) return;
-  const normalized = typeof languageText === 'string' ? languageText.trim() : '';
-  const firstSpaceIdx = normalized.indexOf(' ');
-  const langName = firstSpaceIdx === -1 ? normalized : normalized.slice(0, firstSpaceIdx);
-  const lang = `language-${langName}`;
-  pre.classList.add(lang);
-  codeEl.classList.add(lang);
-
-  const rest = firstSpaceIdx === -1 ? '' : normalized.slice(firstSpaceIdx + 1);
-  if (rest && rest.indexOf('disableLineNumbers') !== -1) {
-    pre.classList.add('disableLineNumbers');
-  }
-
-  const readAttr = (source, name) => {
-    const needle = `${name}=`;
-    const idx = source.indexOf(needle);
-    if (idx === -1) return null;
-    const start = idx + needle.length;
-    const quote = source[start];
-    if (quote === '"' || quote === "'") {
-      const end = source.indexOf(quote, start + 1);
-      if (end === -1) return null;
-      return source.slice(start + 1, end);
-    }
-    let end = source.indexOf(' ', start);
-    if (end === -1) end = source.length;
-    return source.slice(start, end);
-  };
-
-  const dataLineRaw = readAttr(rest, 'data-line');
-  if (dataLineRaw != null) {
-    let value = dataLineRaw;
-    if (value.endsWith(',')) value = value.slice(0, -1);
-    codeEl.setAttribute('data-line', value);
-  }
+  applyCodeDirectives(pre, codeEl, parseAndWarn(languageText));
 }
 
 /**
- * Strips leading lines in code text that contain data-playground-* attributes (e.g. on stage
- * the first line can be "-data-playground-url=\"https://...\""). Extracts attributes, sets
- * them on pre/code, and removes those lines from the displayed code.
+ * Strips leading lines in code text that contain data-playground-* attributes. Long code fence
+ * info strings inside grid tables (e.g. <CodeBlock>) get cut, and the rest spills into the first
+ * line of code (see DEVSITE-2746). Extracts attributes, sets them on pre/code, and removes those
+ * lines from the displayed code.
  */
 function stripPlaygroundMetadataFromCodeContent(pre, code) {
   if (!pre || !code) return;
@@ -92,95 +126,29 @@ function stripPlaygroundMetadataFromCodeContent(pre, code) {
   if (newText !== text) code.textContent = newText;
 }
 
-/**
- * Parses code element classes like "language-js-data-playground-session-id=\"x\"" and
- * sets the corresponding data attributes on both pre and code (e.g. data-playground-session-id).
- * Also cleans the class list to only keep the language class. Use so "Try in playground" works.
- */
-function applyDataAttributesFromCodeClasses(pre, code) {
-  if (!pre || !code) return;
-  [...code.classList].forEach((cls) => {
-    if (cls.includes('-data')) {
-      const parts = cls.split('-data');
-      const languagePart = parts.find((item) => item.includes('language-'));
-
-      parts.forEach((item) => {
-        if (!item.includes('language-') && item.includes('=')) {
-          const match = item.match(/^-?([^=]+)="([^"]*)"/);
-          if (match) {
-            const attrName = `data-${match[1]}`;
-            const attrValue = match[2];
-            pre.setAttribute(attrName, attrValue);
-            code.setAttribute(attrName, attrValue);
-          }
-        }
-      });
-
-      code.classList.remove(cls);
-      pre.classList.remove(cls);
-      if (languagePart) {
-        let cleanClass = languagePart.trim();
-        if (cls.includes('disableLineNumbers') && !cleanClass.includes('disableLineNumbers')) {
-          cleanClass += '-disableLineNumbers';
-        }
-        code.classList.add(cleanClass);
-        pre.classList.add(cleanClass);
-      }
-    } else {
-      pre.classList.add(cls);
-    }
-  });
-}
-
 export default function decoratePreformattedCode(block) {
   const pre = block.querySelector('pre') || (block.tagName === 'PRE' && block) || null;
   const code = block.querySelector('code');
 
-  applyDataAttributesFromCodeClasses(pre, code);
+  if (pre && code) {
+    [...code.classList].filter((cls) => cls.startsWith('language-')).forEach((cls) => {
+      code.classList.remove(cls);
+      applyCodeDirectives(pre, code, parseAndWarn(cls));
+    });
+  }
   stripPlaygroundMetadataFromCodeContent(pre, code);
 
-  if(pre && IS_DEV_DOCS){
-    const processClasses = (element) => {
-      element.className = Array.from(element.classList).map(className => {
-        let cleanClassName = className;
-
-        const dataLineMatch = className.match(/data-line="([^"]*)"/);
-        if(dataLineMatch) {
-          pre.setAttribute('data-line', dataLineMatch[1]);
-          code?.setAttribute('data-line', dataLineMatch[1]);
-          cleanClassName = cleanClassName.replace(/-data-line="[^"]*"/, '');
-        }
-
-        if(className.includes('disableLineNumbers')) {
-          pre.classList.add('disableLineNumbers');
-          cleanClassName = cleanClassName.replace(/-disableLineNumbers/, '');
-        }
-        
-        return cleanClassName;
-      }).filter(className => className.trim()).join(' ');
-    };
-    
-    processClasses(pre);
-    code && processClasses(code);
-  }
-
   if (pre?.classList.contains('disableLineNumbers')) {
-    pre?.classList.add('no-line-numbers');
-  }
-  else {
+    pre.classList.add('no-line-numbers');
+  } else {
     pre?.classList.add('line-numbers');
   }
-  
-  const dataLine = code.getAttribute('data-line');
-  if (dataLine) {
-    pre.setAttribute('data-line', dataLine);
-  }
-  
+
   if (!code.className.match(/language-/)) {
     code.classList.add('language-none');
   }
 
-  code.classList.forEach(cls => pre?.classList.add(cls));
+  code.classList.forEach((cls) => pre?.classList.add(cls));
   code.setAttribute('data-prismjs-copy', 'Copy');
   code.setAttribute('data-prismjs-copy-success', 'Copied to your clipboard');
   code.setAttribute('data-prismjs-copy-timeout', '3000');

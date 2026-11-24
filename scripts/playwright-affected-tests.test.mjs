@@ -11,6 +11,7 @@ import {
   buildTestListContent,
   classifyChangedFile,
   computeAffectedSpecs,
+  findBlockSpecs,
   listPullRequestFiles,
   resolveAffectedTests,
 } from './playwright-affected-tests.mjs';
@@ -67,6 +68,15 @@ test('classifyChangedFile maps specs and their snapshots to their block', () => 
   assert.deepEqual(classifyChangedFile('tests/playwright/blocks/banner.spec.mjs-snapshots/banner.png'), { type: 'spec', block: 'banner' });
 });
 
+test('classifyChangedFile maps feature specs and their snapshots to their block', () => {
+  assert.deepEqual(classifyChangedFile('tests/playwright/blocks/ai-assistant.citations.spec.mjs'), { type: 'spec', block: 'ai-assistant' });
+  assert.deepEqual(
+    classifyChangedFile('tests/playwright/blocks/ai-assistant.citations.spec.mjs-snapshots/citations.png'),
+    { type: 'spec', block: 'ai-assistant' },
+  );
+  assert.deepEqual(classifyChangedFile('tests/playwright/blocks/info-card.spec.mjs'), { type: 'spec', block: 'info-card' });
+});
+
 test('classifyChangedFile treats shared site assets and test infrastructure as shared', () => {
   for (const file of [
     'hlx_statics/scripts/scripts.js',
@@ -109,9 +119,52 @@ test('computeAffectedSpecs dedupes and sorts specs for changed blocks', () => {
 test('computeAffectedSpecs skips blocks without an existing spec', () => {
   const result = computeAffectedSpecs(
     ['hlx_statics/blocks/banner/banner.js'],
-    () => false,
+    () => [],
   );
   assert.deepEqual(result, { mode: 'subset', specs: [], skipped: ['banner'] });
+});
+
+test('computeAffectedSpecs selects every spec of a changed block', () => {
+  const blockSpecs = {
+    'ai-assistant': [
+      'tests/playwright/blocks/ai-assistant.citations.spec.mjs',
+      'tests/playwright/blocks/ai-assistant.spec.mjs',
+    ],
+  };
+  const result = computeAffectedSpecs(
+    ['hlx_statics/blocks/ai-assistant/ai-assistant_citations.js'],
+    (block) => blockSpecs[block] ?? [],
+  );
+  assert.deepEqual(result, { mode: 'subset', specs: blockSpecs['ai-assistant'], skipped: [] });
+});
+
+test('findBlockSpecs lists a block spec and its feature specs only', async () => {
+  await withTemporaryDirectory(async (directory) => {
+    const specsDirectory = path.join(directory, 'tests/playwright/blocks');
+    await mkdir(path.join(specsDirectory, 'ai-assistant.spec.mjs-snapshots'), { recursive: true });
+    for (const file of [
+      'ai-assistant.spec.mjs',
+      'ai-assistant.citations.spec.mjs',
+      'ai-assistant-helpers.mjs',
+      'info.spec.mjs',
+      'info-card.spec.mjs',
+      'info-card.layout.spec.mjs',
+    ]) {
+      await writeFile(path.join(specsDirectory, file), '// spec\n', 'utf8');
+    }
+
+    assert.deepEqual(findBlockSpecs('ai-assistant', directory), [
+      'tests/playwright/blocks/ai-assistant.citations.spec.mjs',
+      'tests/playwright/blocks/ai-assistant.spec.mjs',
+    ]);
+    assert.deepEqual(findBlockSpecs('info', directory), ['tests/playwright/blocks/info.spec.mjs']);
+    assert.deepEqual(findBlockSpecs('info-card', directory), [
+      'tests/playwright/blocks/info-card.layout.spec.mjs',
+      'tests/playwright/blocks/info-card.spec.mjs',
+    ]);
+    assert.deepEqual(findBlockSpecs('banner', directory), []);
+    assert.deepEqual(findBlockSpecs('banner', path.join(directory, 'missing')), []);
+  });
 });
 
 test('computeAffectedSpecs selects the full suite when shared files change', () => {
@@ -356,5 +409,23 @@ test('cli selects the full suite when shared files change', async () => {
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /^mode=all$/m);
     assert.match(result.stderr, /shared code/);
+  });
+});
+
+test('cli lists every spec of a changed block', async () => {
+  await withGitRepository(async (directory) => {
+    await commitFile(directory, 'tests/playwright/blocks/ai-assistant.spec.mjs', '// spec\n', 'add main spec');
+    await commitFile(directory, 'tests/playwright/blocks/ai-assistant.citations.spec.mjs', '// spec\n', 'add feature spec');
+    git(directory, ['checkout', '-b', 'feature']);
+    await commitFile(directory, 'hlx_statics/blocks/ai-assistant/ai-assistant.js', '// block\n', 'change block');
+
+    const result = runScript(directory, ['main']);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /^mode=subset$/m);
+    assert.match(result.stdout, /^count=2$/m);
+
+    const list = await readFile(path.join(directory, 'playwright-affected-tests.txt'), 'utf8');
+    assert.match(list, /^blocks\/ai-assistant\.spec\.mjs$/m);
+    assert.match(list, /^blocks\/ai-assistant\.citations\.spec\.mjs$/m);
   });
 });

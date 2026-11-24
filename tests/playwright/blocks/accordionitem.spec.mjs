@@ -1,4 +1,8 @@
 import { expect, test } from '@playwright/test';
+import {
+  hideNonComponentContent,
+  openDevDocsReferencePage,
+} from '../visual-test-utils.mjs';
 
 const path = '/dev-docs-reference/blocks/accordion/';
 const heading = 'What is this accordion component?';
@@ -22,8 +26,6 @@ const complexAccordions = [
     readySelector: 'table.spectrum-Table',
   },
 ];
-const hideFeedback = '.contributors-wrapper-container { visibility: hidden !important; }';
-
 function getAccordionItem(page, name) {
   const button = page.getByRole('button', { name, exact: true });
   return {
@@ -32,23 +34,11 @@ function getAccordionItem(page, name) {
   };
 }
 
-async function openAccordionPage(page) {
-  const response = await page.goto(path, { waitUntil: 'domcontentloaded' });
-  expect(response, 'the reference page should return an HTTP response').not.toBeNull();
-  expect(response.ok(), `reference page returned ${response.status()}`).toBeTruthy();
-
-  await expect(page.getByRole('heading', {
-    level: 1,
-    name: 'Accordion Block',
-  })).toBeVisible();
-
-  // Font completion is relevant to screenshot stability. Do not wait for
-  // networkidle; assert the specific UI readiness conditions instead.
-  await page.evaluate(() => document.fonts.ready);
-}
-
 test.describe('AccordionItem reference', () => {
-  test.beforeEach(async ({ page }) => openAccordionPage(page));
+  test.beforeEach(async ({ page }) => openDevDocsReferencePage(page, {
+    path,
+    heading: 'Accordion Block',
+  }));
 
   test('expands and collapses an item', async ({ page }) => {
     const { button, item } = getAccordionItem(page, heading);
@@ -80,6 +70,8 @@ test.describe('AccordionItem reference', () => {
   });
 
   test('matches collapsed and expanded visuals', async ({ page }) => {
+    await hideNonComponentContent(page);
+
     const { button, item } = getAccordionItem(page, heading);
     const content = item.locator('.accordion-itemContent');
 
@@ -91,7 +83,7 @@ test.describe('AccordionItem reference', () => {
   });
 
   test('matches complex accordion visuals', async ({ page }) => {
-    await page.addStyleTag({ content: hideFeedback });
+    await hideNonComponentContent(page);
 
     for (const {
       heading: complexHeading,

@@ -2,11 +2,18 @@
 import { aiApiClient } from "./ai-assistant_api-client.js";
 import { ChatBubble } from "./ai-assistant_chat-bubble.js";
 import { chatHistory } from "./ai-assistant_chat-history.js";
+import { normalizeCitations } from "./ai-assistant_citations.js";
 import {
   CHAT_BUBBLE_AI_LABEL,
   CHAT_BUBBLE_USER_LABEL,
-  CHAT_BUTTON_LABEL_MINIMIZE,
+  CHAT_BUTTON_LABEL_CLOSE,
   CHAT_BUTTON_LABEL_OPEN,
+  CHAT_WINDOW_BUTTON_LABEL_EXPAND,
+  CHAT_WINDOW_BUTTON_LABEL_RETURN_TO_COMPACT,
+  CHAT_WINDOW_COMPACT_ICON_SRC,
+  CHAT_WINDOW_DAA_LABEL_EXPAND,
+  CHAT_WINDOW_DAA_LABEL_RETURN_TO_COMPACT,
+  CHAT_WINDOW_EXPAND_ICON_SRC,
   ELEMENTS,
   GENERIC_ERROR_MESSAGE,
   INITIAL_SUGGESTED_QUESTIONS,
@@ -23,10 +30,157 @@ import { announce, setResponding } from "./ai-assistant_announcer.js";
 let userScrolledUp = false;
 let lastScrollTop = 0;
 let isResponding = false;
+let pageIsInert = false;
+let bodyOverflowBeforeExpansion = null;
+let documentOverflowBeforeExpansion = null;
+/** @type {Map<HTMLElement, boolean>} */
+const backgroundInertStates = new Map();
+
+/**
+ * What the user was reading when the chat window last changed size: a bubble
+ * plus how far into it (as a fraction of its height, so the anchor survives the
+ * bubble reflowing to a new width), or no bubble when pinned to the bottom.
+ * Kept across close/open because closing from expanded also changes width.
+ * @type {{bubble: HTMLElement | null, ratio: number}}
+ */
+let chatScrollAnchor = { bubble: null, ratio: 0 };
+
+/**
+ * Records the current scroll anchor. Uses offsetTop (relative to the
+ * positioned content container) because, unlike bounding rects, it ignores the
+ * window's scale transform.
+ */
+const captureChatScrollAnchor = () => {
+  const container = ELEMENTS.CHAT_WINDOW_CONTENT;
+  if (!container) return;
+  const { scrollTop } = container;
+  const bubble = /** @type {HTMLElement | undefined} */ (
+    Array.from(container.querySelectorAll(".chat-bubble")).find(
+      (/** @type {HTMLElement} */ el) => el.offsetTop + el.offsetHeight > scrollTop,
+    )
+  );
+  chatScrollAnchor =
+    userScrolledUp && bubble
+      ? {
+          bubble,
+          ratio: Math.max(0, scrollTop - bubble.offsetTop) / (bubble.offsetHeight || 1),
+        }
+      : { bubble: null, ratio: 0 };
+};
+
+/**
+ * Re-applies the recorded anchor after a layout change. Reading layout here
+ * forces a synchronous reflow, so this can run right after the class change.
+ */
+const restoreChatScrollAnchor = () => {
+  const container = ELEMENTS.CHAT_WINDOW_CONTENT;
+  if (!container) return;
+  const { bubble, ratio } = chatScrollAnchor;
+  const anchored = !!bubble && container.contains(bubble);
+  container.scrollTop = bubble && anchored
+    ? bubble.offsetTop + ratio * bubble.offsetHeight
+    : container.scrollHeight;
+  // Keep the streaming auto-scroll state in sync so the resulting scroll event
+  // isn't read as the user scrolling up.
+  lastScrollTop = container.scrollTop;
+  userScrolledUp = anchored;
+};
+
+/**
+ * Makes everything outside the assistant inert while the expanded dialog is open.
+ * @param {boolean} shouldBeInert
+ */
+const setPageBackgroundInert = (shouldBeInert) => {
+  const assistantWrapper = ELEMENTS.CHAT_WINDOW?.closest(
+    ".ai-assistant-wrapper",
+  );
+  if (!assistantWrapper || pageIsInert === shouldBeInert) return;
+
+  if (shouldBeInert) {
+    let branch = assistantWrapper;
+    while (branch.parentElement) {
+      const parent = branch.parentElement;
+      Array.from(parent.children).forEach((sibling) => {
+        if (sibling === branch) return;
+        const element = /** @type {HTMLElement} */ (sibling);
+        backgroundInertStates.set(element, element.inert);
+        element.inert = true;
+      });
+      if (parent === document.body) break;
+      branch = parent;
+    }
+
+    bodyOverflowBeforeExpansion = document.body.style.overflow;
+    documentOverflowBeforeExpansion = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    pageIsInert = true;
+    return;
+  }
+
+  backgroundInertStates.forEach((wasInert, element) => {
+    element.inert = wasInert;
+  });
+  backgroundInertStates.clear();
+  document.body.style.overflow = bodyOverflowBeforeExpansion ?? "";
+  document.documentElement.style.overflow =
+    documentOverflowBeforeExpansion ?? "";
+  bodyOverflowBeforeExpansion = null;
+  documentOverflowBeforeExpansion = null;
+  pageIsInert = false;
+};
+
+/**
+ * Switches the existing chat window between compact and expanded dialog layouts.
+ * @param {boolean} isExpanded
+ */
+const setChatWindowExpanded = (isExpanded) => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  const viewToggle = ELEMENTS.CHAT_WINDOW_VIEW_TOGGLE;
+  const assistantWrapper = chatWindow?.closest(".ai-assistant-wrapper");
+  if (!chatWindow || !viewToggle || !assistantWrapper) return;
+
+  chatWindow.classList.toggle("expanded", isExpanded);
+  assistantWrapper.classList.toggle("ai-assistant-expanded", isExpanded);
+  chatWindow.setAttribute("aria-modal", String(isExpanded));
+  const actionLabel = isExpanded
+    ? CHAT_WINDOW_BUTTON_LABEL_RETURN_TO_COMPACT
+    : CHAT_WINDOW_BUTTON_LABEL_EXPAND;
+  viewToggle.setAttribute("aria-expanded", String(isExpanded));
+  viewToggle.setAttribute("aria-label", actionLabel);
+  viewToggle.setAttribute("title", actionLabel);
+  viewToggle.setAttribute(
+    "daa-ll",
+    isExpanded
+      ? CHAT_WINDOW_DAA_LABEL_RETURN_TO_COMPACT
+      : CHAT_WINDOW_DAA_LABEL_EXPAND,
+  );
+
+  const icon = viewToggle.querySelector("img");
+  if (icon) {
+    icon.src = isExpanded
+      ? CHAT_WINDOW_COMPACT_ICON_SRC
+      : CHAT_WINDOW_EXPAND_ICON_SRC;
+  }
+
+  setPageBackgroundInert(isExpanded);
+};
+
+/**
+ * Recompute Prism line-number rows after the assistant content has adopted its
+ * new width. Two animation frames let the expanded/compact layout settle first.
+ */
+const resizeAssistantCodeBlockLineNumbersAfterLayout = () => {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      ChatBubble.resizeCodeBlockLineNumbers(ELEMENTS.CHAT_WINDOW_CONTENT);
+    });
+  });
+};
 
 /** @param {KeyboardEvent} e */
 const escapeKeyHandler = (e) => {
-  if (e.key === 'Escape') minimizeChatWindow();
+  if (e.key === 'Escape') closeChatWindow();
 };
 
 const FOCUSABLE_SELECTOR =
@@ -39,7 +193,9 @@ const FOCUSABLE_SELECTOR =
  */
 export const getFocusableElements = (container) =>
   Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
-    (/** @type {HTMLElement} */ el) => el.offsetParent !== null,
+    (/** @type {HTMLElement} */ el) =>
+      el.offsetParent !== null &&
+      window.getComputedStyle(el).visibility !== "hidden",
   );
 
 /**
@@ -147,11 +303,13 @@ export const openChatWindow = () => {
     return;
   }
 
+  setChatWindowExpanded(false);
+  ELEMENTS.CHAT_WINDOW.classList.remove("instant-close");
+  ELEMENTS.CHAT_BUTTON.classList.remove("instant-close");
   ELEMENTS.CHAT_BUTTON.setAttribute("aria-expanded", "true");
-  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_MINIMIZE;
+  ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_CLOSE;
   ELEMENTS.CHAT_WINDOW.classList.add("show");
   ELEMENTS.CHAT_BUTTON.classList.add("hidden");
-  ELEMENTS.CHAT_BUTTON_BADGE?.classList.add("hidden");
 
   // Code blocks in restored-history bubbles are decorated while the window is
   // hidden (scaled to 0), so Prism's line-number rows collapse onto line 1.
@@ -177,24 +335,39 @@ export const openChatWindow = () => {
     sendInitialMessages();
   }
 
-  ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', escapeKeyHandler);
+  // Listen on the document so Escape still closes the chat if focus moves to
+  // the non-focusable backdrop or another area outside the panel.
+  document.addEventListener('keydown', escapeKeyHandler);
   ELEMENTS.CHAT_WINDOW?.parentElement?.addEventListener('keydown', trapFocusHandler);
 
   ELEMENTS.CHAT_TEXTAREA.focus();
+  restoreChatScrollAnchor();
 };
 
-export const minimizeChatWindow = () => {
+export const closeChatWindow = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  const wasExpanded = chatWindow?.classList.contains("expanded");
+  captureChatScrollAnchor();
+  if (wasExpanded) {
+    chatWindow.classList.add("instant-close");
+    ELEMENTS.CHAT_BUTTON?.classList.add("instant-close");
+  }
+
+  setChatWindowExpanded(false);
   ELEMENTS.CHAT_BUTTON?.setAttribute("aria-expanded", "false");
   // @ts-expect-error - CHAT_BUTTON has to be defined for us to get this far
   ELEMENTS.CHAT_BUTTON.ariaLabel = CHAT_BUTTON_LABEL_OPEN;
   ELEMENTS.CHAT_BUTTON?.classList.remove("hidden");
   ELEMENTS.CHAT_WINDOW?.classList.remove("show");
 
-  ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', escapeKeyHandler);
+  document.removeEventListener('keydown', escapeKeyHandler);
   ELEMENTS.CHAT_WINDOW?.parentElement?.removeEventListener('keydown', trapFocusHandler);
 
-  focusChatButtonAfterClose();
-  restoreBadgeAfterClose();
+  if (wasExpanded) {
+    ELEMENTS.CHAT_BUTTON?.focus();
+  } else {
+    focusChatButtonAfterClose();
+  }
 };
 
 /**
@@ -222,42 +395,6 @@ const focusChatButtonAfterClose = () => {
   chatWindow.addEventListener('transitionend', onTransitionEnd);
 };
 
-/**
- * Restores the beta badge after the chat window's collapse (transform) transition
- * completes.
- */
-const restoreBadgeAfterClose = () => {
-  const chatWindow = ELEMENTS.CHAT_WINDOW;
-  if (!chatWindow) return;
-
-  // With reduced motion the window collapses instantly (no transform transition),
-  // so `transitionend` may never fire — restore the badge right away instead.
-  const prefersReducedMotion = window.matchMedia?.(
-    "(prefers-reduced-motion: reduce)",
-  )?.matches;
-  if (prefersReducedMotion) {
-    if (!chatWindow.classList.contains("show")) {
-      ELEMENTS.CHAT_BUTTON_BADGE?.classList.remove("hidden");
-    }
-    return;
-  }
-
-  /** @param {TransitionEvent} event */
-  const onTransitionEnd = (event) => {
-    // The window animates both `transform` and `visibility`; only react to the
-    // transform transition, which is the visible collapse.
-    if (event.target !== chatWindow || event.propertyName !== "transform") {
-      return;
-    }
-    chatWindow.removeEventListener("transitionend", onTransitionEnd);
-    if (!chatWindow.classList.contains("show")) {
-      ELEMENTS.CHAT_BUTTON_BADGE?.classList.remove("hidden");
-    }
-  };
-
-  chatWindow.addEventListener("transitionend", onTransitionEnd);
-};
-
 export const clearConversation = () => {
   chatHistory.clear();
   hideSuggestedQuestions();
@@ -271,10 +408,20 @@ export const toggleChatWindow = () => {
   if (!ELEMENTS.CHAT_WINDOW) return;
 
   if (ELEMENTS.CHAT_WINDOW.classList.contains("show")) {
-    minimizeChatWindow();
+    closeChatWindow();
   } else {
     openChatWindow();
   }
+};
+
+export const toggleChatWindowView = () => {
+  const chatWindow = ELEMENTS.CHAT_WINDOW;
+  if (!chatWindow?.classList.contains("show")) return;
+
+  captureChatScrollAnchor();
+  setChatWindowExpanded(!chatWindow.classList.contains("expanded"));
+  restoreChatScrollAnchor();
+  resizeAssistantCodeBlockLineNumbersAfterLayout();
 };
 
 const showStopButton = () => {
@@ -361,19 +508,23 @@ export const handleUserQuery = async (
     setResponding(false);
     targetBubble.hideThinking();
     targetBubble.hideStreamingCursor();
+    targetBubble.clearSources();
     targetBubble.updateContent(message, { alert: true });
+    responseContent = message;
+    chatHistory.updateLast({ content: message, references: [], citations: [] });
     return;
   };
 
   let responseContent = "";
-  /** @type {Map<string, {url: string, title: string, hasTitle: boolean}>} */
-  const accumulatedReferences = new Map();
+  /** @type {unknown[]} */
+  const accumulatedCitations = [];
   // The backend sends `answerComplete`, then `followupQuestions`, then the
   // terminal `complete`. These flags let `onComplete` act as a safety net:
   // finalizing the bubble and falling back to default suggestions when those
   // earlier events don't arrive (e.g. an aborted stream).
   let answerFinalized = false;
   let followupsReceived = false;
+  let terminalCompleted = false;
 
   const showFallbackSuggestions = () => {
     updateSuggestedQuestions(INITIAL_SUGGESTED_QUESTIONS);
@@ -386,16 +537,26 @@ export const handleUserQuery = async (
     if (answerFinalized) return;
     answerFinalized = true;
     targetBubble.hideThinking();
-    targetBubble.completeBubble();
-    const references = [...accumulatedReferences.values()].map(
-      ({ url, title }) => ({ url, title }),
-    );
-    if (references.length) {
-      targetBubble.renderSources(references);
+    /** @type {import('./ai-assistant_citations.js').Source[]} */
+    let references = [];
+    /** @type {import('./ai-assistant_citations.js').Placement[]} */
+    let placements = [];
+    try {
+      const citations = normalizeCitations(
+        responseContent, accumulatedCitations, ChatBubble.parseMarkdown,
+      );
+      references = citations.references;
+      placements = targetBubble.renderCitations(responseContent, citations);
+    } catch (error) {
+      console.error("[AI Assistant] Could not render inline citations:", error);
+      placements = [];
+      targetBubble.renderWithoutInlineCitations(responseContent, references);
     }
+    targetBubble.completeBubble();
     chatHistory.updateLast({
       content: responseContent,
       references,
+      citations: placements,
     });
     scrollToBottom();
   };
@@ -409,7 +570,9 @@ export const handleUserQuery = async (
     hideStopButton();
     setResponding(false);
     // a11y: announce the completed reply once, as plain text.
-    announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}`);
+    const sourceCount = targetBubble.references?.length ?? 0;
+    const sourceCue = sourceCount ? ` ${sourceCount} sources available.` : "";
+    announce(`${CHAT_BUBBLE_AI_LABEL}: ${targetBubble.getPlainText()}${sourceCue}`);
   };
 
   showStopButton();
@@ -436,7 +599,7 @@ export const handleUserQuery = async (
         }
       },
       onContent: (data) => {
-        if (data.text) {
+        if (!answerFinalized && data.text) {
           responseContent += data.text;
           targetBubble.hideThinking();
           targetBubble.showStreamingCursor();
@@ -445,35 +608,11 @@ export const handleUserQuery = async (
         }
       },
       onCitation: (data) => {
-        data.citation?.retrievedReferences?.forEach((ref) => {
-          const url = ref.metadata?.url;
-          if (typeof url !== "string" || !url) return;
-
-          try {
-            if (new URL(url).protocol !== "https:") return;
-          } catch {
-            return;
-          }
-
-          const rawTitle = ref.metadata?.title;
-          const title =
-            typeof rawTitle === "string" && rawTitle.trim()
-              ? rawTitle.trim()
-              : null;
-          const existing = accumulatedReferences.get(url);
-          if (!existing) {
-            accumulatedReferences.set(url, {
-              url,
-              title: title || url,
-              hasTitle: !!title,
-            });
-          } else if (!existing.hasTitle && title) {
-            accumulatedReferences.set(url, { url, title, hasTitle: true });
-          }
-        });
+        if (!answerFinalized) accumulatedCitations.push(data.citation);
       },
       // Fired once the answer text is complete, before the follow-up questions.
       onAnswerComplete: () => {
+        if (answerFinalized || !responseContent) return;
         finalizeAnswer();
         endResponding();
         updateSuggestedQuestions(null);
@@ -492,11 +631,17 @@ export const handleUserQuery = async (
       // Terminal safety net: covers aborted/partial streams where
       // `answerComplete` never fired, and always reveals the suggestions.
       onComplete: () => {
-        if (!responseContent) {
+        if (terminalCompleted) return;
+        terminalCompleted = true;
+        if (!responseContent && !answerFinalized) {
+          answerFinalized = true;
+          accumulatedCitations.length = 0;
+          targetBubble.clearSources();
           targetBubble.hideThinking();
           targetBubble.hideStreamingCursor();
           responseContent = "_Response stopped by user._";
           targetBubble.updateContent(responseContent);
+          chatHistory.updateLast({ content: responseContent, references: [], citations: [] });
           endResponding();
           showFallbackSuggestions();
           return;
@@ -511,7 +656,10 @@ export const handleUserQuery = async (
       },
       onError: (error) => {
         hideStopButton();
-        accumulatedReferences.clear();
+        accumulatedCitations.length = 0;
+        answerFinalized = true;
+        respondingEnded = true;
+        terminalCompleted = true;
         // TODO: Log error somehow somewhere?
         console.error("[AI Assistant] Error:", error);
         showErrorMessage();
@@ -539,6 +687,8 @@ const sendMessage = ({
   shouldAppendToHistory = true,
   timestamp = Date.now(),
   feedback,
+  references,
+  citations,
 }) => {
   const bubble = new ChatBubble({
     id,
@@ -547,6 +697,8 @@ const sendMessage = ({
     isContinuingConversation,
     timestamp,
     feedback,
+    references,
+    citations,
   });
 
   if (shouldAppendToHistory) {
@@ -580,11 +732,11 @@ export const restoreChatHistory = async () => {
   if (messages.length > 0) {
     for (const [
       index,
-      { id, content, source, references, timestamp, feedback },
+      { id, content, source, references, citations, timestamp, feedback },
     ] of messages.entries()) {
       const isLastOfGroup =
         index === messages.length - 1 || messages[index + 1]?.source !== source;
-      const bubble = sendMessage({
+      sendMessage({
         id,
         content,
         source,
@@ -593,10 +745,9 @@ export const restoreChatHistory = async () => {
           index > 0 && source === messages[index - 1]?.source,
         shouldAppendToHistory: false,
         feedback,
+        references,
+        citations,
       });
-      if (references?.length) {
-        bubble.renderSources(references);
-      }
     }
     scrollToBottom({ force: true });
   }

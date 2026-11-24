@@ -11,7 +11,7 @@
  */
 
 import { loadFragment } from '../blocks/fragment/fragment.js';
-import { isLocalHostEnvironment, isStageEnvironment } from './lib-adobeio.js';
+import { isLocalHostEnvironment, isStageEnvironment, getFranklinSubfolders } from './lib-adobeio.js';
 
 /**
  * log RUM if part of the sample.
@@ -151,6 +151,22 @@ export async function fetchTopButtonsNavHtml() {
  */
 export async function fetchSideNavHtml() {
   return fetchNavHtml('subPages:');
+}
+
+/**
+ * Loads the nav fragment, walking up from the current folder to each ancestor
+ * (falling back to franklin_assets/nav) until a fragment is found.
+ * @param {string} [navOverride] An explicit fragment path to try first (e.g. cfg.nav)
+ * @returns {Promise<HTMLElement>} The resolved nav fragment
+ */
+export async function loadNavFragment(navOverride) {
+  const navPaths = getFranklinSubfolders(window.location.origin, 'nav');
+  let fragment = navOverride ? await loadFragment(navOverride) : null;
+  for (let i = 0; i < navPaths.length && fragment == null; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    fragment = await loadFragment(navPaths[i]);
+  }
+  return fragment;
 }
 
 let siteMetadataPromise = null;
@@ -460,6 +476,9 @@ export async function decorateIcons(element = document) {
           if (iconHTML.match(/<style/i)) {
             const img = document.createElement('img');
             img.src = `data:image/svg+xml,${encodeURIComponent(iconHTML)}`;
+            // Icons are decorative; an empty alt keeps screen readers from
+            // announcing an unnamed image.
+            img.alt = '';
             span.appendChild(img);
           } else {
             span.innerHTML = iconHTML;

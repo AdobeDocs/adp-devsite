@@ -89,28 +89,25 @@ main .fixed-banner {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-@media screen and (min-width:320px) and (max-width:1024px) {
+@media screen and (min-width:320px) and (max-width:768px) {
     main div.site-wide-banner-wrapper div.site-wide-banner-content {
         flex-direction: column;
-        align-items: last baseline;
-        width: 100%;
-        justify-content: end;
+        align-items: center;
         gap: 12px;
     }
 
+    main div.site-wide-banner-wrapper div.site-wide-banner-button-container {
+        margin: unset;
+    }
+}
+
+@media screen and (min-width:320px) and (max-width:1024px) {
     main div.site-wide-banner-wrapper div.site-wide-banner-text {
         gap: 8px;
         align-items: flex-start;
     }
 
-    main div.site-wide-banner-wrapper div.site-wide-banner-button-container {
-        margin: unset;
-        width: 100%;
-        justify-content: flex-end;
-    }
-
     main div.site-wide-banner-wrapper div.site-wide-banner-block-wrapper {
-        padding: 20px 0;
         gap: 10px;
     }
 
