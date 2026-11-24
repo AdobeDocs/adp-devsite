@@ -119,9 +119,6 @@ async function prepareScreenshot(page, block, imageCount) {
   await expectLoadedImages(block, imageCount);
   await page.evaluate(() => document.fonts.ready);
   await hideNonComponentContent(page);
-  // Locator screenshots scroll the block below the fixed site header, whose
-  // overlap is page chrome rather than part of the InfoCard contract.
-  await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });

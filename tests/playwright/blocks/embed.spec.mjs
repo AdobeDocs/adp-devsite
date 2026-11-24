@@ -124,9 +124,6 @@ async function expectEmbedUrl(iframe, {
 
 async function prepareEmbedScreenshot(page) {
   await hideNonComponentContent(page);
-  // A fixed global header can overlap a block wrapper while Playwright scrolls
-  // it into view. It is not part of the Embed block's visual contract.
-  await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
   await page.evaluate(() => document.fonts.ready);
   await page.mouse.move(0, 0);
 }

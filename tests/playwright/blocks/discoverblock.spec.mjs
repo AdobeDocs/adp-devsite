@@ -100,13 +100,6 @@ async function getGridWrapperBoxes(page) {
   return boxes;
 }
 
-async function hideDiscoverBlockScreenshotOverlays(page) {
-  await hideNonComponentContent(page);
-  // The fixed global header can overlap the top of a component container when
-  // Locator.screenshot scrolls that container into view.
-  await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
-}
-
 async function isolateScreenshotContainer(page, container, targets) {
   await container.evaluate((element) => {
     element.setAttribute('data-discoverblock-screenshot-container', '');
@@ -216,7 +209,7 @@ test.describe('Discover Block reference', () => {
     await expect(getStarted).toBeVisible();
     await expect(developerGuide).toHaveAttribute('data-block-status', 'loaded');
     await expect(apiReference).toHaveAttribute('data-block-status', 'loaded');
-    await hideDiscoverBlockScreenshotOverlays(page);
+    await hideNonComponentContent(page);
     await isolateScreenshotContainer(page, container, [
       getStarted,
       wrapperOf(developerGuide),
@@ -258,7 +251,7 @@ test.describe('Discover Block reference on wide desktop', () => {
     await expectImageCardWidth(forum);
     await expectInlineWidth(portal, '33%');
     await expectInlineWidth(contributing, '33%');
-    await hideDiscoverBlockScreenshotOverlays(page);
+    await hideNonComponentContent(page);
     await isolateScreenshotContainer(page, container, [
       community,
       wrapperOf(forum),

@@ -41,7 +41,7 @@ If intended behavior is still ambiguous, summarize the evidence and ask one targ
 ### Setup
 
 - DevDocs: call `openDevDocsReferencePage(page, { path, heading })` from `tests/playwright/visual-test-utils.mjs`, then add block-specific readiness signals.
-- Visual tests on either site: call `hideNonComponentContent(page)` to remove metadata, contributor, and AI-assistant UI.
+- Visual tests on either site: call `hideNonComponentContent(page)` to remove the site header, metadata, contributor, and AI-assistant UI.
 - Keep tests independent; Playwright runs files and tests in parallel.
 
 ### Readiness signals

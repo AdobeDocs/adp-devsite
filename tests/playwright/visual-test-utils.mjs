@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 
 const nonComponentContentStyle = `
+  body > header { visibility: hidden !important; }
   .library-metadata { display: none !important; }
   .contributors-wrapper-container { visibility: hidden !important; }
   .ai-assistant-wrapper,

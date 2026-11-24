@@ -85,9 +85,6 @@ async function prepareScreenshot(page, block, imageCount) {
   await expectLoadedImages(block, imageCount);
   await page.evaluate(() => document.fonts.ready);
   await hideNonComponentContent(page);
-  // A fixed header can overlap a locator after Playwright scrolls it into view;
-  // it is not part of any InfoCard visual contract.
-  await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });
@@ -195,7 +192,6 @@ test.describe('InfoCard DevBiz navigation variant', () => {
     await expectNavigationImagesLoaded(block);
     await page.evaluate(() => document.fonts.ready);
     await hideNonComponentContent(page);
-    await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
     await page.mouse.move(1279, 899);
     await expect(block).toHaveScreenshot('info-card-navigation-initial.png');
 

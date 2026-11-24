@@ -370,8 +370,6 @@ test.describe('Cards DevBiz reference', () => {
   for (const variant of variants) {
     test(`matches the ${variant.name} visual snapshot`, async ({ page }) => {
       await hideNonComponentContent(page);
-      // The fixed header's logo bleeds across the first wrapper's top edge.
-      await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
       const block = blockAt(page, variant);
 
       await waitForCardImages(block, variant.imageCount);
