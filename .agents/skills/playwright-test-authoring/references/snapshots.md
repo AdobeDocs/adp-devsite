@@ -12,13 +12,13 @@
 
 ## Capture the resting state
 
-A component screenshot shows its **resting state** unless hover, focus, open, pressed, or dragged state is the subject. After the semantic assertions and before capturing:
+A block screenshot shows its **resting state** unless hover, focus, open, pressed, or dragged state is the subject. After the semantic assertions and before capturing:
 
 - Move the pointer to a safe coordinate outside the target; a fixed header or overlay can occupy `(0, 0)`.
 - Blur the last interacted control.
 - Close menus, pickers, and popovers.
 
-Screenshot the component locator rather than the page, using the configured viewport and browser project.
+Screenshot the block or `.{block}-wrapper` locator (when wrapper styling is part of the block) rather than the full page, using the configured viewport and browser project.
 
 ## Generate on Linux
 
@@ -28,7 +28,7 @@ Follow **Generate snapshots with GitHub Actions** or **Generate snapshots locall
 
 Open each new or updated image and confirm:
 
-- The intended component state and variant.
+- The intended block state and variant.
 - Correct fonts, with no fallbacks.
 - Images fully loaded and correct.
 - No loading skeletons or undecorated markup.
