@@ -1,6 +1,6 @@
 ---
 name: playwright-test-authoring
-description: Playwright tests and visual snapshots under tests/playwright. Use when writing or extending a spec, fixing a failing or flaky test, reviewing Playwright changes, or creating or updating snapshot baselines.
+description: Playwright e2e tests and visual snapshots under tests/playwright. Use when writing or extending a spec, fixing a failing or flaky test, reviewing Playwright changes, or creating or updating snapshot baselines.
 ---
 
 # Playwright Test Authoring
