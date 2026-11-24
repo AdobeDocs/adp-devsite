@@ -1,67 +1,99 @@
 ---
 name: playwright-test-authoring
-description: Author, extend, review, diagnose, stabilize, and intentionally update Playwright end-to-end and visual tests for adp-devsite AEM block pages. Use for DevDocs or DevBiz block coverage, Playwright failures, flaky screenshots, visual baselines, and reviews of changes under tests/playwright.
+description: Playwright tests and visual snapshots under tests/playwright. Use when writing or extending a spec, fixing a failing or flaky test, reviewing Playwright changes, or creating or updating snapshot baselines.
 ---
 
 # Playwright Test Authoring
 
-Build trustworthy Playwright coverage for this repository. Tests must prove intended behavior rather than merely record current output.
+Tests prove intended behavior, not current output.
 
-## Start every task
+## Start
 
-1. Read the current Playwright section of [`CONTRIBUTING.md`](../../../CONTRIBUTING.md). It is authoritative.
-2. Inspect `git status --short` before running commands or editing. Record pre-existing generated artifacts and never delete or overwrite them accidentally.
-3. Classify the request into one or more modes:
-   - **Author or extend** — load [`references/author-and-extend.md`](references/author-and-extend.md).
-   - **Diagnose or stabilize** — load [`references/diagnose-and-stabilize.md`](references/diagnose-and-stabilize.md).
-   - **Review** — load [`references/review.md`](references/review.md).
-   - **Create or update snapshots** — additionally load [`references/visual-snapshots.md`](references/visual-snapshots.md).
-4. Always load [`references/repository-conventions.md`](references/repository-conventions.md).
-5. Use Scout MCP when available, otherwise Scout CLI, for repository discovery. Read known files directly. If Scout is unavailable, report that limitation before using narrower fallback discovery.
+1. Read the Playwright section of [`CONTRIBUTING.md`](../../../CONTRIBUTING.md). It owns commands, the CI workflow, preview URLs, and Linux snapshot generation; this skill covers only what it does not.
+2. Run `git status --short` and note existing reports, traces, screenshots, and result files. Leave everything you did not create in place.
+3. Load the reference for each mode the task involves:
+   - Writing or extending a spec: [`references/author.md`](references/author.md)
+   - Failing or flaky test: [`references/diagnose.md`](references/diagnose.md)
+   - Reviewing changes: [`references/review.md`](references/review.md)
+   - Creating or updating a baseline, alongside the above: [`references/snapshots.md`](references/snapshots.md)
 
-Only load references needed by the selected mode.
+## Establish intent
 
-## Establish intent before editing
+Rank evidence in this order: the issue or user requirements, the authored fixture and documented design, existing tests for the same behavior, then the implementation. Read the block's implementation and styles, its fixture, existing spec and baselines, shared helpers, and `playwright.config.mjs`; stop once you know the behavior and where to test it.
 
-Use these sources in order:
+If intended behavior is still ambiguous, summarize the evidence and ask one targeted question before writing tests or snapshots.
 
-1. The issue, specification, or explicit user requirements.
-2. The authored reference fixture and documented design.
-3. Established tests for the same behavior.
-4. The implementation as supporting evidence.
+## Core rules
 
-Inspect enough context to understand the target block implementation and styles, its fixture, existing spec and snapshots, nearby conventions, shared helpers, and Playwright configuration. Stop instead of scanning the whole repository once the behavior and test seam are understood.
+### Files
 
-If intended behavior remains ambiguous, summarize the evidence and ask a targeted question. Do not write speculative tests or throwaway snapshots while waiting for confirmation.
+- Specs live at `tests/playwright/blocks/<block>.spec.mjs`. A feature with its own setup or fixture gets `<block>.<feature>.spec.mjs` beside it, e.g. `ai-assistant.citations.spec.mjs`. Separate the feature with a dot: block names contain hyphens (`info` and `info-card` are different blocks).
+- Declare every test in a spec file Playwright discovers directly. `--test-list` filters by declaring file, so a test declared in an imported helper module is silently skipped by CI's affected-test runs.
+- Baselines live in `<spec>.mjs-snapshots/` beside the spec.
+- Shared files, including `tests/playwright/fixtures/`, select the full suite.
 
-## Non-negotiable policies
+### Fixtures
 
-- Prefer controlled DevDocs fixtures for shared block behavior.
-- Use DevBiz fixtures only for DevBiz-specific behavior and state why they are needed.
-- Add behavioral assertions before visual assertions.
-- Use explicit component readiness signals; do not use `networkidle` as a substitute.
-- Prefer roles, accessible names, stable classes, and authored attributes.
-- Positional DevBiz locators are allowed only with the safeguards in the repository conventions.
-- Use existing test helpers before adding another abstraction.
-- Extract a new test helper only when at least two real callers need it.
-- Do not modify production code unless the user explicitly asks.
-- Preserve existing suite structure and naming unless correctness or genuine reuse requires a change.
-- Do not add mobile or dedicated accessibility coverage unless requested. Continue using semantic locators and assertions where applicable.
-- Do not commit or push unless explicitly asked.
+- **DevDocs** fixtures (`/dev-docs-reference/blocks/`) are controlled; use them for shared behavior.
+- **DevBiz** fixtures (`/tools/sidekick/blocks/`) are for DevBiz-only behavior or variants; state why in the test.
+- The **fixture contract** is what the authored page guarantees: its content, its variants, and, where a test depends on it, its order.
 
-## Completion contract
+### Setup
 
-Run focused behavioral tests first, then Linux visual comparisons when screenshots are involved. Run every affected spec when shared Playwright infrastructure changes. Also run `git diff --check`. 
+- DevDocs: call `openDevDocsReferencePage(page, { path, heading })` from `tests/playwright/visual-test-utils.mjs`, then add block-specific readiness signals.
+- Visual tests on either site: call `hideNonComponentContent(page)` to remove metadata, contributor, and AI-assistant UI.
+- Keep tests independent; Playwright runs files and tests in parallel.
 
-If Docker, Act, or the branch preview is unavailable, run what is possible, clearly mark Linux visual verification as blocked, and point the user to the current Playwright instructions in `CONTRIBUTING.md`.
+### Readiness signals
 
-Finish with:
+A visible heading proves navigation, not decoration. Wait on a **readiness signal** produced by the behavior under test:
+
+- `data-block-status="loaded"` on the block.
+- A decorated child or class, or a known count of decorated elements.
+- An expected role and accessible name.
+- Images with `complete === true` and `naturalWidth > 0` when loading matters.
+- `document.fonts.ready` before any visual assertion.
+
+Readiness signals stand in for sleeps, `networkidle`, and raised timeouts.
+
+### Locators
+
+Scope locators to the target block, preferring in order:
+
+1. Role and accessible name.
+2. Stable authored attribute or meaningful variant class.
+3. Block-scoped structural selector.
+4. Position, only when authored order is part of the fixture contract.
+
+A DevBiz `.nth(index)` needs all of: an assertion on total block count, an ordered variant table, an identity assertion (class or semantics) for each index before use, and a comment that order is part of the fixture contract.
+
+### Assertions
+
+- Behavioral assertions prove decoration and state; screenshots prove presentation. Every visual case also asserts semantically that the intended variant rendered.
+- Prove user-visible behavior with user-visible evidence. An implementation class, attribute, or internal state can supplement that proof, not replace it.
+
+### Scope
+
+- Reuse existing helpers. A new test-only helper needs two real callers, and every spec that uses it must pass.
+- Keep block-specific selectors, fixture assumptions, and readiness signals in the spec.
+- Change production code only when the user asks. If stable testing needs a production seam, explain why and request approval.
+- Mobile and dedicated accessibility suites are opt-in: add them when requested or when the requirement depends on responsive or accessibility behavior.
+
+## Finish
+
+Done means:
+
+- Focused behavioral tests pass, then Linux visual comparisons when screenshots are involved.
+- Every affected spec passes when shared Playwright files changed.
+- `git diff --check` is clean.
+
+Linux baselines are the reference: only a Linux comparison counts as a visual pass. If Docker, Act, or the branch preview is unavailable, run what you can and mark Linux verification as blocked, pointing to `CONTRIBUTING.md`.
+
+Report:
 
 - Files changed.
 - Behavioral coverage added or verified.
 - Commands run and their results.
-- Every new or updated snapshot inspected.
+- Every new or updated snapshot, inspected.
 - Validation that remains blocked.
-- Residual risks or intentional omissions.
-
-Never claim a visual suite passes based only on a non-Linux comparison when the repository contains Linux baselines.
+- Residual risks and intentional omissions.

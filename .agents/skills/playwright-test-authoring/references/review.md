@@ -1,17 +1,6 @@
 # Review Playwright changes
 
-Review the requested diff and its new or changed snapshots. Establish the originating requirement; when it is unavailable, say that spec coverage cannot be fully assessed.
-
-## Evidence to inspect
-
-- Changed specs, helpers, configuration, and snapshots.
-- Target block implementation and styles.
-- DevDocs or DevBiz fixture used by the test.
-- Existing neighboring tests and baselines.
-- Current Playwright guidance in `CONTRIBUTING.md`.
-- Focused test results in the pinned Linux environment when available.
-
-Use Scout MCP or Scout CLI for source discovery when available. Keep the review bounded to changed behavior and its dependencies.
+Review the diff, including new and changed snapshots, against the originating requirement; without one, state that requirement coverage cannot be fully assessed. Bound the review to the changed behavior and its dependencies: changed specs, helpers, config, and snapshots; the target block's implementation, styles, and fixture; neighboring tests and baselines.
 
 ## Priorities
 
@@ -21,26 +10,20 @@ Report findings in this order:
 2. Flaky, timing-dependent, or environment-dependent tests.
 3. Incorrect, stale, or contaminated snapshots.
 4. Missing or partial requirement coverage.
-5. Brittle fixtures, locators, and duplicated setup.
-6. Style concerns only when they have concrete maintenance impact.
+5. Brittle fixtures and locators, or duplicated setup.
+6. Style issues with concrete maintenance impact.
 
-For each finding, cite the file and changed line, describe a realistic failure scenario, and recommend the smallest correction. Do not report preferences without practical impact.
+Each finding cites the file and changed line, describes a realistic failure, and recommends the smallest correction.
 
-## Review checklist
+## Checklist
 
-- Does every assertion trace to intended behavior rather than current implementation alone?
-- Do visual cases have semantic assertions?
-- Are navigation and component readiness explicit?
-- Are fonts and required images ready?
-- Is `networkidle` or an arbitrary timeout hiding uncertainty?
-- Are screenshots scoped to the component and free of unrelated UI?
-- Were new or updated PNGs actually inspected?
-- Does a DevBiz test cover DevBiz-specific behavior?
-- Are positional locators guarded by counts and variant identity?
-- Did a snapshot update conceal a regression?
-- Are existing shared helpers reused?
-- Is every new test declared in a discoverable `<block>.spec.mjs` or `<block>.<feature>.spec.mjs` file, not in a module imported by another spec? Confirm with `npx playwright test --list --test-list <file>` listing the block's specs.
-- Were production changes introduced merely for test convenience?
-- Are test artifacts and the working tree handled safely?
+Apply every core rule in [`SKILL.md`](../SKILL.md) to each changed test, then check:
 
-Conclude with validations performed, evidence gaps, and a concise verdict. Do not modify code in review mode unless the user asks for fixes.
+- Does each assertion trace to intended behavior, not only current implementation?
+- Did a baseline update conceal a regression?
+- Was every new or updated PNG inspected against the list in [`snapshots.md`](snapshots.md)?
+- Does `npx playwright test --list --test-list <file>` list every new test under the block's specs?
+- Was production code changed only for test convenience?
+- Were pre-existing test artifacts left in place?
+
+Conclude with validations performed, evidence gaps, and a concise verdict. Review mode is read-only unless the user asks for fixes.
