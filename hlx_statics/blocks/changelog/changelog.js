@@ -36,7 +36,6 @@ const ALL_TYPES = [
   { key: 'deprecated', label: 'Deprecated', icon: 'deprecated', color: 'orange' },
   { key: 'new', label: 'New', icon: 'new', color: 'blue' },
   { key: 'improved', label: 'Improved', icon: 'improved', color: 'blue' },
-  { key: 'update', label: 'Update', icon: 'update', color: 'blue' },
   { key: 'fixed', label: 'Fixed', icon: 'fixed', color: 'green' },
   { key: 'docs', label: 'Docs', icon: 'docs', color: 'grey' },
 ];
@@ -54,7 +53,6 @@ function getIconSvg(changeType, customColor) {
     improved: `<svg class="changelog-type-icon icon-improved" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="none" stroke="${color}" stroke-width="2"/></svg>`,
     fixed: `<svg class="changelog-type-icon icon-fixed" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.5 3.5 6.5-7"/></svg>`,
     docs: `<svg class="changelog-type-icon icon-docs" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 2h5.5L13 5.5V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 2v4h4"/></svg>`,
-    update: `<svg class="changelog-type-icon icon-update" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M13 8a5 5 0 1 1-1-3M12 2v3H9"/></svg>`,
     chevron: '<svg class="changelog-chevron-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 6l4 4 4-4"/></svg>',
     close: '<svg class="changelog-tag-close-icon" viewBox="0 0 36 36" width="9" height="9" aria-hidden="true" fill="currentColor"><path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"/></svg>',
     filter: '<svg class="changelog-filters-header-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M1.5 2.5h13a.5.5 0 0 1 .38.82l-5.38 6.18V13.5a.5.5 0 0 1-.72.45l-2-1A.5.5 0 0 1 6.5 12.5V9.5L1.12 3.32a.5.5 0 0 1 .38-.82z"/></svg>',
@@ -133,33 +131,25 @@ function formatMarkdownProse(proseText) {
     .join('');
 }
 
-// Function to format markdown blocks including unordered and ordered lists
+// Function to format markdown blocks including unordered lists
 function formatMarkdownBlock(blockText) {
   const lines = blockText.split(/\r?\n/);
   const output = [];
-  let currentList = null;
+  let listItems = [];
 
   function flushList() {
-    if (!currentList) return;
-    const tag = currentList.type;
-    const itemsHtml = currentList.items.map((item) => `<li>${formatMarkdownProse(item)}</li>`).join('');
-    output.push(`<${tag} class="changelog-markdown-list">${itemsHtml}</${tag}>`);
-    currentList = null;
+    if (listItems.length === 0) return;
+    const itemsHtml = listItems.map((item) => `<li>${formatMarkdownProse(item)}</li>`).join('');
+    output.push(`<ul class="changelog-markdown-list">${itemsHtml}</ul>`);
+    listItems = [];
   }
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
-    const bulletMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
-    const orderedMatch = line.match(/^(\s*)\d+\.\s+(.*)$/);
+    const bulletMatch = line.match(/^\s*[-*+]\s+(.*)$/);
 
     if (bulletMatch) {
-      if (currentList && currentList.type !== 'ul') flushList();
-      if (!currentList) currentList = { type: 'ul', items: [] };
-      currentList.items.push(bulletMatch[2]);
-    } else if (orderedMatch) {
-      if (currentList && currentList.type !== 'ol') flushList();
-      if (!currentList) currentList = { type: 'ol', items: [] };
-      currentList.items.push(orderedMatch[2]);
+      listItems.push(bulletMatch[1]);
     } else {
       flushList();
       if (line.trim()) {
@@ -171,41 +161,27 @@ function formatMarkdownBlock(blockText) {
   return output.join('');
 }
 
-// Function to render markdown text with fenced code blocks and lists
+// Function to render markdown text with paragraphs and lists
 function renderMarkdown(markdownText) {
   if (!markdownText) return '';
 
-  const rawText = String(markdownText);
-  const segments = rawText.split(/(```[a-z0-9_-]*\r?\n[\s\S]*?```)/gi);
-  const hasMultipleBlocks = segments.length > 1 || /\r?\n{2,}/.test(rawText);
+  const rawText = String(markdownText).trim();
+  const paragraphs = rawText.split(/\r?\n{2,}/);
 
-  return segments.map((segment) => {
-    const codeBlockMatch = segment.match(/^```([a-z0-9_-]*)\r?\n([\s\S]*?)```$/i);
-    if (codeBlockMatch) {
-      const [, language, codeContent] = codeBlockMatch;
-      const languageClass = language ? ` class="language-${language.toLowerCase()}"` : '';
-      return `<pre class="changelog-code-block"><code${languageClass}>${escapeHtml(codeContent.replace(/\r?\n$/, ''))}</code></pre>`;
-    }
+  if (paragraphs.length === 1 && !/^\s*[-*+]\s+/m.test(rawText)) {
+    return formatMarkdownProse(rawText);
+  }
 
-    const trimmedSegment = hasMultipleBlocks ? segment.replace(/^\r?\n+|\r?\n+$/g, '') : segment;
-    if (!trimmedSegment) return '';
-
-    const paragraphs = trimmedSegment.split(/\r?\n{2,}/);
-    if (!hasMultipleBlocks && paragraphs.length === 1 && !/^\s*([*+-]|\d+\.)\s+/m.test(trimmedSegment)) {
-      return formatMarkdownProse(trimmedSegment);
-    }
-
-    return paragraphs
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .map((p) => {
-        if (/^\s*([*+-]|\d+\.)\s+/m.test(p)) {
-          return formatMarkdownBlock(p);
-        }
-        return `<p>${formatMarkdownProse(p).replace(/\r?\n/g, '<br>')}</p>`;
-      })
-      .join('');
-  }).join('');
+  return paragraphs
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      if (/^\s*[-*+]\s+/m.test(p)) {
+        return formatMarkdownBlock(p);
+      }
+      return `<p>${formatMarkdownProse(p).replace(/\r?\n/g, '<br>')}</p>`;
+    })
+    .join('');
 }
 
 // Function to parse date strings into structured date metadata
@@ -507,7 +483,7 @@ function createMultiSelectDropdown({
   let currentOptions = [...options];
   let isOpen = false;
 
-  const group = createTag('div', { class: 'changelog-filter-group changelog-multiselect-group' });
+  const group = createTag('div', { class: 'changelog-filter-group' });
 
   const label = createTag('label', {
     class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label',
@@ -894,38 +870,24 @@ function renderReleaseCard({
   releaseIndex,
   yearKey,
   releaseKindsMap,
-  defaultReleaseKind,
-  filterState,
   availableTypes,
   authoredTypeLabels,
   modulesMap,
   hasAnyTypesInChanges = true,
 }) {
-  const cardSlug = String(releaseItem.title || releaseItem.kind || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
   const cardId = releaseItem.version
     ? releaseItem.version.replace(/\./g, '-')
-    : (releaseItem.rawDate ? `docs-${releaseItem.rawDate}` : (cardSlug || `release-${yearKey || 'entry'}-${releaseIndex + 1}`));
+    : (releaseItem.rawDate ? `docs-${releaseItem.rawDate}` : `release-${yearKey || 'entry'}-${releaseIndex + 1}`);
   const releaseCard = createTag('article', { class: 'changelog-release-card', id: cardId });
 
-  const releaseHeading = releaseItem.version
-    ? (releaseItem.title ? `${releaseItem.version} · ${releaseItem.title}` : releaseItem.version)
-    : (releaseItem.title || releaseKindsMap[releaseItem.kind] || 'Update');
+  const releaseHeading = [releaseItem.version, releaseItem.title].filter(Boolean).join(' · ');
 
   let badgeHtml = '';
   if (releaseItem.isLatest) {
     badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
-  } else if (releaseItem.kind) {
+  } else if (releaseItem.kind && releaseItem.kind !== 'sdk') {
     const kindLabel = releaseKindsMap[releaseItem.kind] || releaseItem.kind;
-    const isDefaultVersionedRelease = Boolean(
-      defaultReleaseKind && releaseItem.version && releaseItem.kind === defaultReleaseKind,
-    );
-    const isFilteredBySameKind = filterState.types.has(String(releaseItem.kind).toLowerCase());
-    if (!isDefaultVersionedRelease && !isFilteredBySameKind && kindLabel.toLowerCase() !== releaseHeading.toLowerCase()) {
-      badgeHtml = `<span class="changelog-badge">${kindLabel}</span>`;
-    }
+    badgeHtml = `<span class="changelog-badge">${kindLabel}</span>`;
   }
 
   const summaryHtml = releaseItem.summary
@@ -954,10 +916,8 @@ function renderReleaseCard({
         const typeLabel = typeDefinition?.label || formatTypeLabel(typeKey, authoredTypeLabels.get(typeKey));
         const colorHex = resolveColorHex(typeDefinition?.color, '#505050');
         const safeTypeClass = typeKey.replace(/[^a-z0-9_-]/g, '-');
-        const isPillBadge = safeTypeClass === 'experimental' || safeTypeClass === 'api';
-        const inlineColorStyle = isPillBadge ? '' : ` style="color: ${colorHex};"`;
         return `
-          <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${safeTypeClass}"${inlineColorStyle}>
+          <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${safeTypeClass}" style="color: ${colorHex};">
             ${getIconSvg(iconType, colorHex)} <span>${escapeHtml(typeLabel)}</span>
           </div>
         `;
@@ -968,9 +928,6 @@ function renderReleaseCard({
         ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${renderMarkdown(moduleLabels.join(', '))}</div>`
         : '';
 
-      const changeHeadingHtml = changeItem.heading
-        ? `<h4 class="spectrum-Heading spectrum-Heading--sizeXS changelog-change-heading">${renderMarkdown(changeItem.heading)}</h4>`
-        : '';
       const openBadgeHtml = changeItem.open ? '<span class="changelog-badge changelog-badge-open">Still open</span>' : '';
       const actionHtml = changeItem.action ? `
         <div class="changelog-what-to-do ${typeClassList}">
@@ -1011,7 +968,6 @@ function renderReleaseCard({
         <div class="changelog-change-row ${typeClassList}">
           ${typeColHtml}
           <div class="changelog-change-content">
-            ${changeHeadingHtml}
             <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">
               ${renderMarkdown(changeItem.text)}
               ${listHtml}
@@ -1105,7 +1061,6 @@ export default async function decorate(block) {
 
   let totalArchivedReleasesCount = 0;
   const rawReleasesList = Array.isArray(parsedReleasesDocument?.releases) ? parsedReleasesDocument.releases : [];
-  const defaultReleaseKind = parsedReleasesMetadata?.defaultKind || '';
   const pageConfig = parsedReleasesMetadata?.page;
   const feedUrl = parsedReleasesDocument?.rssfeed
 
@@ -1601,8 +1556,6 @@ export default async function decorate(block) {
           releaseIndex,
           yearKey,
           releaseKindsMap,
-          defaultReleaseKind,
-          filterState,
           availableTypes,
           authoredTypeLabels,
           modulesMap,

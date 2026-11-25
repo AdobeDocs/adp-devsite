@@ -212,32 +212,7 @@ main div.changelog-wrapper div.changelog {
   .changelog-filter-group {
     display: flex;
     flex-direction: column;
-
-    select {
-      height: 38px;
-      padding: 0 32px 0 12px;
-      border: 1px solid #c1c1c1;
-      border-radius: 4px;
-      background-color: #ffffff;
-      color: #222222;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%234b4b4b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 11px;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-
-      &:focus {
-        outline: none;
-        border: 2px solid #0265dc;
-        padding-left: 11px;
-      }
-
-      &:hover:not(:focus) {
-        border-color: #999999;
-      }
-    }
+    position: relative;
   }
 
   .changelog-filter-label {
@@ -255,10 +230,6 @@ main div.changelog-wrapper div.changelog {
       color: #222222;
       flex-shrink: 0;
     }
-  }
-
-  .changelog-multiselect-group {
-    position: relative;
   }
 
   .changelog-multiselect-wrapper {
@@ -794,16 +765,6 @@ main div.changelog-wrapper div.changelog {
       background-color: #f2f3f5;
       color: #6e6e6e;
     }
-
-    &.type-experimental,
-    &.type-api {
-      background-color: #b84a00;
-      color: #ffffff !important;
-
-      .changelog-type-icon {
-        display: none;
-      }
-    }
   }
 
   .changelog-markdown-list {
@@ -833,11 +794,6 @@ main div.changelog-wrapper div.changelog {
     overflow-wrap: anywhere;
   }
 
-  .changelog-change-heading {
-    color: #111111;
-    margin: 0 0 4px 0;
-  }
-
   .changelog-release-summary,
   .changelog-change-description {
     color: #222222;
@@ -857,7 +813,6 @@ main div.changelog-wrapper div.changelog {
   /* Inline links and code inside markdown content */
   .changelog-release-summary,
   .changelog-change-description,
-  .changelog-change-heading,
   .changelog-change-module,
   .changelog-what-to-do,
   .changelog-archive-desc {
@@ -908,22 +863,22 @@ main div.changelog-wrapper div.changelog {
       padding-left: 3.8em !important;
       counter-reset: linenumber;
 
-      > code {
-        position: relative;
+      >code {
+        position: static;
         white-space: inherit;
       }
 
       .line-numbers-rows {
         position: absolute;
         pointer-events: none;
-        top: 0;
-        left: -3.8em;
+        top: 14px;
+        left: 0;
         width: 3em;
-        letter-spacing: -1px;
+        letter-spacing: normal;
         user-select: none;
         border-right: none;
 
-        > span {
+        >span {
           display: block;
           counter-increment: linenumber;
 
@@ -976,22 +931,6 @@ main div.changelog-wrapper div.changelog {
     &.type-deprecated {
       background-color: #fff9e6;
       border-left-color: #e68619;
-    }
-
-    &.type-new,
-    &.type-improved {
-      background-color: #f0f6ff;
-      border-left-color: #0265dc;
-    }
-
-    &.type-fixed {
-      background-color: #f0f9f4;
-      border-left-color: #0a7c52;
-    }
-
-    &.type-docs {
-      background-color: #f7f7f7;
-      border-left-color: #6e6e6e;
     }
 
     .what-to-do-title {
