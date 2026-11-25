@@ -84,7 +84,7 @@ const devBizVariants = [
     index: 5,
     orientation: 'horizontal',
     cardColumns: 3,
-    activeImageCount: 7,
+    activeImageCount: 8,
     ctaClass: 'spectrum-Button--outline',
     snapshot: 'tab-devbiz-card-panels-three.png',
   },
@@ -181,6 +181,7 @@ async function expectSnapshot(page, block, name) {
   await waitForPrismHighlighting(page);
   await page.evaluate(() => document.fonts.ready);
   await hideNonComponentContent(page);
+  await wrapper.evaluate((element) => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });
