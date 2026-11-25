@@ -537,7 +537,7 @@ function createMultiSelectDropdown({
     if (selectedCount === 0) {
       triggerText.innerHTML = '';
       triggerText.textContent = allLabel;
-      trigger.setAttribute('value', 'none');
+      trigger.setAttribute('value', 'all');
       return;
     }
 
@@ -1392,22 +1392,20 @@ export default async function decorate(block) {
   }
 
   function matchesYear(releaseItem) {
-    if (!showYearFilter || yearOptions.length === 0 || filterState.years.size === yearOptions.length) return true;
-    if (filterState.years.size === 0) return false;
+    if (!showYearFilter || yearOptions.length === 0 || filterState.years.size === 0 || filterState.years.size === yearOptions.length) return true;
     return filterState.years.has(releaseItem.year);
   }
 
   function matchesMonth(releaseItem) {
     if (!showMonthFilter) return true;
     const currentOpts = getMonthOptions();
-    if (currentOpts.length === 0 || filterState.months.size === currentOpts.length) return true;
-    if (filterState.months.size === 0) return false;
+    if (currentOpts.length === 0 || filterState.months.size === 0 || filterState.months.size === currentOpts.length) return true;
     return filterState.months.has(releaseItem.monthName);
   }
 
   // Filtering & Rendering logic
   function getFilteredData() {
-    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === moduleOptions.length;
+    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === 0 || filterState.modules.size === moduleOptions.length;
     const isAllTypes = !showTypeFilter || filterState.types.size === 0;
 
     let totalMatchingChanges = 0;
@@ -1575,10 +1573,10 @@ export default async function decorate(block) {
   }
 
   function updateSummary(totalMatchingChanges, matchingReleasesCount) {
-    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === moduleOptions.length;
-    const isAllYears = !showYearFilter || yearOptions.length === 0 || filterState.years.size === yearOptions.length;
+    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === 0 || filterState.modules.size === moduleOptions.length;
+    const isAllYears = !showYearFilter || yearOptions.length === 0 || filterState.years.size === 0 || filterState.years.size === yearOptions.length;
     const currentMonthOptions = getMonthOptions();
-    const isAllMonths = !showMonthFilter || currentMonthOptions.length === 0 || filterState.months.size === currentMonthOptions.length;
+    const isAllMonths = !showMonthFilter || currentMonthOptions.length === 0 || filterState.months.size === 0 || filterState.months.size === currentMonthOptions.length;
     const isAllTypes = !showTypeFilter || filterState.types.size === 0;
 
     const isFiltered = !isAllModules || !isAllYears || !isAllMonths || !isAllTypes;
