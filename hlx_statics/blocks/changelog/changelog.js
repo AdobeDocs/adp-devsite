@@ -1,0 +1,1637 @@
+import { createTag, decorateInlineCodes, getResourceUrl } from '../../scripts/lib-adobeio.js';
+import decoratePreformattedCode from '../../components/code.js';
+
+// Color map for standard changelog and Spectrum semantic colors
+const COLOR_HEX_MAP = {
+  red: '#D31510',
+  orange: '#E68619',
+  yellow: '#D48800',
+  green: '#0A7C52',
+  blue: '#0265DC',
+  navy: '#001F5C',
+  gray: '#6E6E6E',
+  grey: '#6E6E6E',
+};
+
+// Month names for date formatting and filtering
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+// Function to resolve authored color names or hex codes
+function resolveColorHex(colorValue, fallbackHex = '#0265DC') {
+  if (!colorValue) return fallbackHex;
+  const normalized = String(colorValue).trim().toLowerCase();
+  if (COLOR_HEX_MAP[normalized]) return COLOR_HEX_MAP[normalized];
+  if (/^#|^rgb|^hsl/i.test(normalized)) return colorValue;
+  if (/^[a-z]+$/i.test(normalized)) return normalized;
+  return fallbackHex;
+}
+
+// Standard change types
+const ALL_TYPES = [
+  { key: 'breaking', label: 'Breaking', icon: 'breaking', color: 'red' },
+  { key: 'removed', label: 'Removed', icon: 'removed', color: 'red' },
+  { key: 'deprecated', label: 'Deprecated', icon: 'deprecated', color: 'orange' },
+  { key: 'new', label: 'New', icon: 'new', color: 'blue' },
+  { key: 'improved', label: 'Improved', icon: 'improved', color: 'blue' },
+  { key: 'fixed', label: 'Fixed', icon: 'fixed', color: 'green' },
+  { key: 'docs', label: 'Docs', icon: 'docs', color: 'grey' },
+];
+
+// Function to get inline SVG icons for change types and UI elements
+function getIconSvg(changeType, customColor) {
+  const defaultType = ALL_TYPES.find((t) => t.key === changeType || t.icon === changeType);
+  const color = customColor || resolveColorHex(defaultType?.color, '#505050');
+
+  const iconSvgs = {
+    breaking: `<svg class="changelog-type-icon icon-breaking" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="${color}" d="M8 1l7 7-7 7-7-7z"/></svg>`,
+    removed: `<svg class="changelog-type-icon icon-removed" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="2" d="M8 2.5l5.5 5.5-5.5 5.5-5.5-5.5z"/></svg>`,
+    deprecated: `<svg class="changelog-type-icon icon-deprecated" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="${color}" d="M8 2l7 12H1z"/></svg>`,
+    new: `<svg class="changelog-type-icon icon-new" viewBox="0 0 16 16" width="9" height="9" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="${color}"/></svg>`,
+    improved: `<svg class="changelog-type-icon icon-improved" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="none" stroke="${color}" stroke-width="2"/></svg>`,
+    fixed: `<svg class="changelog-type-icon icon-fixed" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M3 8.5l3.5 3.5 6.5-7"/></svg>`,
+    docs: `<svg class="changelog-type-icon icon-docs" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 2h5.5L13 5.5V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 2v4h4"/></svg>`,
+    chevron: '<svg class="changelog-chevron-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 6l4 4 4-4"/></svg>',
+    close: '<svg class="changelog-tag-close-icon" viewBox="0 0 36 36" width="9" height="9" aria-hidden="true" fill="currentColor"><path d="M26.485 6.686L18 15.172 9.515 6.686a1 1 0 0 0-1.414 0L6.686 8.1a1 1 0 0 0 0 1.414L15.172 18l-8.486 8.485a1 1 0 0 0 0 1.414L8.1 29.314a1 1 0 0 0 1.414 0L18 20.828l8.485 8.486a1 1 0 0 0 1.414 0l1.415-1.414a1 1 0 0 0 0-1.414L20.828 18l8.486-8.485a1 1 0 0 0 0-1.414L27.9 6.686a1 1 0 0 0-1.415 0z"/></svg>',
+    filter: '<svg class="changelog-filters-header-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M1.5 2.5h13a.5.5 0 0 1 .38.82l-5.38 6.18V13.5a.5.5 0 0 1-.72.45l-2-1A.5.5 0 0 1 6.5 12.5V9.5L1.12 3.32a.5.5 0 0 1 .38-.82z"/></svg>',
+    layers: '<svg class="changelog-label-icon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l6 3.5-6 3.5-6-3.5 6-3.5z"/><path d="M2 8.5l6 3.5 6-3.5"/><path d="M2 12l6 3.5 6-3.5"/></svg>',
+    calendar: '<svg class="changelog-label-icon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="12" height="10.5" rx="2"/><path d="M2 7h12"/><path d="M5 2v3"/><path d="M11 2v3"/></svg>',
+    tag: '<svg class="changelog-label-icon" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5V2.5a1 1 0 0 1 1-1H8.5l6.5 6.5a1 1 0 0 1 0 1.41l-5.59 5.59a1 1 0 0 1-1.41 0L1.5 8.5z"/><circle cx="5" cy="5" r="1" fill="currentColor"/></svg>',
+    clock: '<svg class="changelog-badge-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 4.5V8l2.5 1.5"/></svg>',
+    search: '<svg class="changelog-search-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4"/></svg>',
+  };
+  return iconSvgs[changeType] || `<svg class="changelog-type-icon icon-default" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="none" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M2 2h5.5l6.5 6.5-5.5 5.5L2 7.5V2z"/><circle cx="5" cy="5" r="1" fill="${color}"/></svg>`;
+}
+
+// Function to split raw change type string into tokens
+function splitRawTypeTokens(rawType) {
+  if (!rawType) return [];
+  const list = Array.isArray(rawType) ? rawType : String(rawType).split(',');
+  return list.map((item) => String(item).trim()).filter(Boolean);
+}
+
+// Function to normalize a type token to lowercase trimmed string
+function normalizeTypeKey(token) {
+  return String(token || '').trim().toLowerCase();
+}
+
+// Function to parse change types into deduplicated normalized keys
+function parseChangeTypes(rawType) {
+  const keys = splitRawTypeTokens(rawType).map(normalizeTypeKey).filter(Boolean);
+  return Array.from(new Set(keys));
+}
+
+// Function to format a type key into a human-readable display label
+function formatTypeLabel(typeKey, rawToken = '') {
+  if (rawToken && rawToken !== rawToken.toLowerCase()) return rawToken;
+  return typeKey.split(/[-_\s]+/).filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+// Function to escape HTML characters
+function escapeHtml(text) {
+  return String(text ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Function to format inline code and text emphasis
+function formatInlineCodeAndEmphasis(textFragment) {
+  return textFragment
+    .split(/(`[^`]+`)/g)
+    .map((fragment) => {
+      if (fragment.startsWith('`') && fragment.endsWith('`') && fragment.length >= 2) {
+        return `<code>${escapeHtml(fragment.slice(1, -1))}</code>`;
+      }
+      return fragment
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/(^|[^\w])_([^_]+)_(?=[^\w]|$)/g, '$1<em>$2</em>');
+    })
+    .join('');
+}
+
+// Function to format markdown prose segments including links
+function formatMarkdownProse(proseText) {
+  return proseText
+    .split(/(`[^`]+`|\[[^\]]+\]\([^)]+\))/g)
+    .map((fragment) => {
+      const linkMatch = !fragment.startsWith('`') && fragment.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        const [, linkLabel, linkUrl] = linkMatch;
+        const isExternalLink = /^https?:\/\//i.test(linkUrl);
+        const targetAttribute = isExternalLink ? ' target="_blank" rel="noopener noreferrer"' : '';
+        return `<a href="${linkUrl}"${targetAttribute}>${formatInlineCodeAndEmphasis(linkLabel)}</a>`;
+      }
+      return formatInlineCodeAndEmphasis(fragment);
+    })
+    .join('');
+}
+
+// Function to format markdown blocks including unordered lists
+function formatMarkdownBlock(blockText) {
+  const lines = blockText.split(/\r?\n/);
+  const output = [];
+  let listItems = [];
+
+  function flushList() {
+    if (listItems.length === 0) return;
+    const itemsHtml = listItems.map((item) => `<li>${formatMarkdownProse(item)}</li>`).join('');
+    output.push(`<ul class="changelog-markdown-list">${itemsHtml}</ul>`);
+    listItems = [];
+  }
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const bulletMatch = line.match(/^\s*[-*+]\s+(.*)$/);
+
+    if (bulletMatch) {
+      listItems.push(bulletMatch[1]);
+    } else {
+      flushList();
+      if (line.trim()) {
+        output.push(`<p>${formatMarkdownProse(line)}</p>`);
+      }
+    }
+  }
+  flushList();
+  return output.join('');
+}
+
+// Function to render markdown text with paragraphs and lists
+function renderMarkdown(markdownText) {
+  if (!markdownText) return '';
+
+  const rawText = String(markdownText).trim();
+  const paragraphs = rawText.split(/\r?\n{2,}/);
+
+  if (paragraphs.length === 1 && !/^\s*[-*+]\s+/m.test(rawText)) {
+    return formatMarkdownProse(rawText);
+  }
+
+  return paragraphs
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      if (/^\s*[-*+]\s+/m.test(p)) {
+        return formatMarkdownBlock(p);
+      }
+      return `<p>${formatMarkdownProse(p).replace(/\r?\n/g, '<br>')}</p>`;
+    })
+    .join('');
+}
+
+// Function to parse date strings into structured date metadata
+function parseDate(dateString) {
+  const trimmed = String(dateString || '').trim();
+  if (!trimmed) return { year: '', monthName: '', displayDate: '', rawDate: '' };
+
+  const isoMatch = trimmed.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (isoMatch) {
+    const [, y, m, d] = isoMatch;
+    const mIdx = m ? parseInt(m, 10) - 1 : -1;
+    const monthName = mIdx >= 0 ? MONTH_NAMES[mIdx] || '' : '';
+    const displayDate = d
+      ? `${monthName.slice(0, 3)} ${parseInt(d, 10)}, ${y}`
+      : (monthName ? `${monthName} ${y}` : y);
+    return { year: y, monthName, displayDate, rawDate: trimmed };
+  }
+
+  const d = new Date(trimmed);
+  if (!isNaN(d.getTime())) {
+    const y = String(d.getUTCFullYear());
+    const monthName = MONTH_NAMES[d.getUTCMonth()] || '';
+    return {
+      year: y,
+      monthName,
+      displayDate: `${monthName.slice(0, 3)} ${d.getUTCDate()}, ${y}`,
+      rawDate: trimmed,
+    };
+  }
+
+  return { year: '', monthName: '', displayDate: trimmed, rawDate: trimmed };
+}
+
+// Function to find matching archive group for a release
+function findMatchingArchiveGroup(releaseItem, archiveGroupsList) {
+  if (!archiveGroupsList || !Array.isArray(archiveGroupsList) || archiveGroupsList.length === 0) {
+    return null;
+  }
+
+  const { year: parsedYearString } = parseDate(releaseItem.date);
+  const releaseYear = parsedYearString ? parseInt(parsedYearString, 10) : (releaseItem.date ? parseInt(String(releaseItem.date).slice(0, 4), 10) : null);
+
+  for (let i = 0; i < archiveGroupsList.length; i += 1) {
+    const groupDef = archiveGroupsList[i];
+    const applies = groupDef?.applies_to;
+    if (!applies) continue;
+
+    if (applies.before_year && releaseYear !== null && !isNaN(releaseYear)) {
+      if (releaseYear < parseInt(applies.before_year, 10)) {
+        return groupDef;
+      }
+    }
+  }
+
+  return null;
+}
+
+// Lightweight YAML parser supporting mappings, lists, scalar blocks, flow arrays, and comments
+function parseYaml(yamlText) {
+  if (!yamlText || typeof yamlText !== 'string') return null;
+
+  const rawLines = yamlText.split(/\r?\n/);
+  const parsedLines = [];
+
+  for (let lineIndex = 0; lineIndex < rawLines.length; lineIndex += 1) {
+    const rawLine = rawLines[lineIndex];
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let commentIndex = -1;
+
+    for (let charIndex = 0; charIndex < rawLine.length; charIndex += 1) {
+      const currentChar = rawLine[charIndex];
+      if (currentChar === "'" && !inDoubleQuote) inSingleQuote = !inSingleQuote;
+      else if (currentChar === '"' && !inSingleQuote) inDoubleQuote = !inDoubleQuote;
+      else if (currentChar === '#' && !inSingleQuote && !inDoubleQuote) {
+        commentIndex = charIndex;
+        break;
+      }
+    }
+
+    const lineWithoutComment = commentIndex >= 0 ? rawLine.slice(0, commentIndex) : rawLine;
+    if (lineWithoutComment.trim().length === 0) continue;
+
+    const indentLevel = lineWithoutComment.search(/\S/);
+    parsedLines.push({ indent: indentLevel, content: lineWithoutComment.trim(), raw: lineWithoutComment });
+  }
+
+  let currentLineIndex = 0;
+
+  function parseValue(rawValueString) {
+    if (rawValueString === undefined || rawValueString === null) return null;
+    const trimmedValue = rawValueString.trim();
+    if (trimmedValue === '') return null;
+
+    // Flow array: [item1, item2]
+    if (trimmedValue.startsWith('[') && trimmedValue.endsWith(']')) {
+      const arrayContent = trimmedValue.slice(1, -1).trim();
+      if (!arrayContent) return [];
+      const arrayItems = [];
+      let currentItemString = '';
+      let insideSingleQuotes = false;
+      let insideDoubleQuotes = false;
+      for (let charIndex = 0; charIndex < arrayContent.length; charIndex += 1) {
+        const char = arrayContent[charIndex];
+        if (char === "'" && !insideDoubleQuotes) insideSingleQuotes = !insideSingleQuotes;
+        else if (char === '"' && !insideSingleQuotes) insideDoubleQuotes = !insideDoubleQuotes;
+        else if (char === ',' && !insideSingleQuotes && !insideDoubleQuotes) {
+          arrayItems.push(parseValue(currentItemString));
+          currentItemString = '';
+          continue;
+        }
+        currentItemString += char;
+      }
+      if (currentItemString.trim()) arrayItems.push(parseValue(currentItemString));
+      return arrayItems;
+    }
+
+    // Quoted string
+    if ((trimmedValue.startsWith('"') && trimmedValue.endsWith('"')) || (trimmedValue.startsWith("'") && trimmedValue.endsWith("'"))) {
+      return trimmedValue.slice(1, -1).replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+    }
+
+    // Boolean
+    if (trimmedValue.toLowerCase() === 'true') return true;
+    if (trimmedValue.toLowerCase() === 'false') return false;
+    if (trimmedValue.toLowerCase() === 'null' || trimmedValue === '~') return null;
+
+    // Number
+    if (/^-?\d+(\.\d+)?$/.test(trimmedValue)) return Number(trimmedValue);
+
+    return trimmedValue;
+  }
+
+  function readBlockScalar(valStr, minIndent) {
+    const isFolded = valStr.startsWith('>');
+    const blockLines = [];
+    let blockIndent = -1;
+    while (currentLineIndex < parsedLines.length) {
+      const nextLine = parsedLines[currentLineIndex];
+      if (blockIndent === -1) {
+        if (nextLine.indent > minIndent) {
+          blockIndent = nextLine.indent;
+        } else {
+          break;
+        }
+      }
+      if (nextLine.indent >= blockIndent) {
+        blockLines.push(nextLine.raw.slice(blockIndent));
+        currentLineIndex += 1;
+      } else {
+        break;
+      }
+    }
+    return isFolded ? blockLines.join(' ') : blockLines.join('\n');
+  }
+
+  function readProperty(valStr, minIndent) {
+    if (valStr === '|' || valStr === '|-' || valStr === '>' || valStr === '>-') {
+      return readBlockScalar(valStr, minIndent);
+    }
+    if (valStr) return parseValue(valStr);
+    if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > minIndent) {
+      return parseBlock(parsedLines[currentLineIndex].indent);
+    }
+    return null;
+  }
+
+  function parseBlock(minimumIndent) {
+    if (currentLineIndex >= parsedLines.length) return null;
+    const currentLine = parsedLines[currentLineIndex];
+    if (currentLine.indent < minimumIndent) return null;
+
+    const isListItem = currentLine.content.startsWith('- ') || currentLine.content === '-';
+
+    if (isListItem) {
+      const listItems = [];
+      const listIndentLevel = currentLine.indent;
+
+      while (
+        currentLineIndex < parsedLines.length
+        && parsedLines[currentLineIndex].indent === listIndentLevel
+        && (parsedLines[currentLineIndex].content.startsWith('- ') || parsedLines[currentLineIndex].content === '-')
+      ) {
+        const line = parsedLines[currentLineIndex];
+        currentLineIndex += 1;
+        const itemContent = line.content.slice(1).trim();
+
+        if (!itemContent) {
+          if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > listIndentLevel) {
+            listItems.push(parseBlock(parsedLines[currentLineIndex].indent));
+          } else {
+            listItems.push(null);
+          }
+        } else if (itemContent.includes(':')) {
+          const colonIndex = itemContent.indexOf(':');
+          const itemKey = parseValue(itemContent.slice(0, colonIndex));
+          const listItemObject = {};
+          listItemObject[itemKey] = readProperty(itemContent.slice(colonIndex + 1).trim(), listIndentLevel);
+
+          while (
+            currentLineIndex < parsedLines.length
+            && parsedLines[currentLineIndex].indent > listIndentLevel
+            && !parsedLines[currentLineIndex].content.startsWith('- ')
+          ) {
+            const nextPropertyLine = parsedLines[currentLineIndex];
+            const nextColonIndex = nextPropertyLine.content.indexOf(':');
+            currentLineIndex += 1;
+            if (nextColonIndex !== -1) {
+              const propertyKey = parseValue(nextPropertyLine.content.slice(0, nextColonIndex));
+              listItemObject[propertyKey] = readProperty(nextPropertyLine.content.slice(nextColonIndex + 1).trim(), nextPropertyLine.indent);
+            }
+          }
+
+          listItems.push(listItemObject);
+        } else {
+          listItems.push(parseValue(itemContent));
+        }
+      }
+      return listItems;
+    }
+
+    const mappingObject = {};
+    const mappingIndentLevel = currentLine.indent;
+
+    while (
+      currentLineIndex < parsedLines.length
+      && parsedLines[currentLineIndex].indent === mappingIndentLevel
+    ) {
+      const line = parsedLines[currentLineIndex];
+      if (line.content.startsWith('- ')) break;
+
+      const colonIndex = line.content.indexOf(':');
+      if (colonIndex === -1) {
+        currentLineIndex += 1;
+        continue;
+      }
+
+      const mapKey = parseValue(line.content.slice(0, colonIndex));
+      const mapValueString = line.content.slice(colonIndex + 1).trim();
+      currentLineIndex += 1;
+
+      mappingObject[mapKey] = readProperty(mapValueString, mappingIndentLevel);
+    }
+    return mappingObject;
+  }
+
+  return parseBlock(0);
+}
+
+// Function to fetch and parse a YAML or JSON resource from a given URL
+async function fetchAndParseResource(url) {
+  if (!url) return null;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.warn(`Failed to fetch resource from ${url}: status ${response.status}`);
+      return null;
+    }
+    const text = await response.text();
+    if (!text || !text.trim()) return null;
+
+    const trimmed = text.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        return JSON.parse(trimmed);
+      } catch {
+        // Fall back to YAML
+      }
+    }
+
+    const yamlResult = parseYaml(text);
+    if (yamlResult !== null && yamlResult !== undefined) {
+      return yamlResult;
+    }
+
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  } catch (error) {
+    console.error(`Error fetching/parsing resource from ${url}:`, error);
+    return null;
+  }
+}
+
+// Function to create a Spectrum-styled multi-select dropdown control
+function createMultiSelectDropdown({
+  id,
+  labelText,
+  labelIcon = null,
+  allLabel = 'All',
+  options = [],
+  selectedSet,
+  maxVisibleTags = 3,
+  entityName = 'items',
+  onChange,
+}) {
+  let currentOptions = [...options];
+  let isOpen = false;
+
+  const group = createTag('div', { class: 'changelog-filter-group' });
+
+  const label = createTag('label', {
+    class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label',
+    id: `${id}-label`,
+    for: id,
+  });
+  if (labelIcon) {
+    const labelIconSpan = createTag('span', { class: 'changelog-filter-label-icon', 'aria-hidden': 'true' });
+    labelIconSpan.innerHTML = getIconSvg(labelIcon);
+    label.append(labelIconSpan);
+  }
+  const labelTextSpan = createTag('span', { class: 'changelog-filter-label-text' });
+  labelTextSpan.textContent = labelText;
+  label.append(labelTextSpan);
+
+  const wrapper = createTag('div', { class: 'changelog-multiselect-wrapper' });
+
+  const trigger = createTag('button', {
+    type: 'button',
+    id,
+    class: 'changelog-multiselect-trigger',
+    'aria-haspopup': 'listbox',
+    'aria-expanded': 'false',
+    'aria-labelledby': `${id}-label ${id}-trigger-text`,
+  });
+
+  const triggerText = createTag('span', {
+    class: 'changelog-multiselect-trigger-text',
+    id: `${id}-trigger-text`,
+  });
+
+  let optionCheckboxes = [];
+
+  function syncCheckboxes() {
+    allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((o) => selectedSet.has(o.value));
+    optionCheckboxes.forEach(({ checkbox: cb, option: o }) => {
+      cb.checked = selectedSet.has(o.value);
+    });
+  }
+
+  function updateTriggerLabel() {
+    const selectedCount = selectedSet.size;
+
+    if (isOpen) {
+      triggerText.innerHTML = '';
+      triggerText.textContent = `${selectedCount} ${entityName} selected`;
+      trigger.setAttribute('value', Array.from(selectedSet).join(','));
+      return;
+    }
+
+    if (selectedCount === 0) {
+      triggerText.innerHTML = '';
+      triggerText.textContent = allLabel;
+      trigger.setAttribute('value', 'none');
+      return;
+    }
+
+    triggerText.innerHTML = '';
+    const selectedOptions = currentOptions.filter((opt) => selectedSet.has(opt.value));
+    const visibleOptions = selectedOptions.slice(0, maxVisibleTags);
+    const overflowCount = selectedOptions.length - visibleOptions.length;
+
+    visibleOptions.forEach((opt) => {
+      const tag = createTag('span', { class: 'changelog-trigger-tag', 'data-value': opt.value });
+      const tagText = createTag('span');
+      tagText.textContent = opt.text;
+
+      const removeBtn = createTag('button', {
+        type: 'button',
+        class: 'changelog-trigger-tag-remove',
+        'aria-label': `Remove ${opt.text}`,
+      });
+      removeBtn.innerHTML = getIconSvg('close');
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        selectedSet.delete(opt.value);
+        syncCheckboxes();
+        updateTriggerLabel();
+        onChange(selectedSet);
+      });
+
+      tag.append(tagText, removeBtn);
+      triggerText.append(tag);
+    });
+
+    if (overflowCount > 0) {
+      const overflowBadge = createTag('span', { class: 'changelog-trigger-overflow-badge' });
+      overflowBadge.textContent = `+${overflowCount}`;
+      triggerText.append(overflowBadge);
+    }
+
+    trigger.setAttribute('value', Array.from(selectedSet).join(','));
+  }
+
+  const triggerIcon = createTag('span', { class: 'changelog-multiselect-trigger-icon', 'aria-hidden': 'true' });
+  triggerIcon.innerHTML = getIconSvg('chevron');
+  trigger.append(triggerText, triggerIcon);
+
+  const popover = createTag('div', {
+    class: 'changelog-multiselect-popover',
+    role: 'listbox',
+    'aria-multiselectable': 'true',
+    hidden: true,
+  });
+
+  const searchBox = createTag('div', { class: 'changelog-multiselect-search' });
+  const searchIcon = createTag('span', { class: 'changelog-search-icon', 'aria-hidden': 'true' });
+  searchIcon.innerHTML = getIconSvg('search');
+  const searchInput = createTag('input', {
+    type: 'text',
+    class: 'spectrum-Textfield-input changelog-multiselect-search-input',
+    placeholder: `Search ${entityName}`,
+    'aria-label': `Search ${entityName}`,
+  });
+  searchBox.append(searchIcon, searchInput);
+  popover.append(searchBox);
+
+  const allOption = createTag('label', { class: 'changelog-multiselect-option changelog-multiselect-option-all' });
+  const allCheckbox = createTag('input', {
+    type: 'checkbox',
+    class: 'changelog-multiselect-checkbox',
+    value: 'all',
+  });
+  allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((opt) => selectedSet.has(opt.value));
+  const allText = createTag('span', { class: 'changelog-multiselect-option-text' });
+  allText.textContent = allLabel;
+  allOption.append(allCheckbox, allText);
+  popover.append(allOption);
+
+  const divider = createTag('div', { class: 'changelog-multiselect-divider', role: 'separator' });
+  popover.append(divider);
+
+  const listContainer = createTag('div', { class: 'changelog-multiselect-options-list' });
+  popover.append(listContainer);
+
+  function populateOptionsList(opts) {
+    listContainer.innerHTML = '';
+    optionCheckboxes = [];
+
+    opts.forEach((opt) => {
+      const optionLabel = createTag('label', { class: 'changelog-multiselect-option' });
+      const checkbox = createTag('input', {
+        type: 'checkbox',
+        class: 'changelog-multiselect-checkbox',
+        value: opt.value,
+      });
+      checkbox.checked = selectedSet.has(opt.value);
+
+      const optionSpan = createTag('span', { class: 'changelog-multiselect-option-text' });
+      optionSpan.textContent = opt.text;
+      optionLabel.append(checkbox, optionSpan);
+      listContainer.append(optionLabel);
+
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          selectedSet.add(opt.value);
+        } else {
+          selectedSet.delete(opt.value);
+        }
+        syncCheckboxes();
+        updateTriggerLabel();
+        onChange(selectedSet);
+      });
+
+      optionCheckboxes.push({ checkbox, option: opt });
+    });
+
+    syncCheckboxes();
+  }
+
+  allCheckbox.addEventListener('change', () => {
+    if (allCheckbox.checked) {
+      currentOptions.forEach((opt) => selectedSet.add(opt.value));
+    } else {
+      selectedSet.clear();
+    }
+    syncCheckboxes();
+    updateTriggerLabel();
+    onChange(selectedSet);
+  });
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    optionCheckboxes.forEach(({ checkbox: cb, option: opt }) => {
+      const parentLabel = cb.closest('label');
+      if (!parentLabel) return;
+      parentLabel.hidden = query !== '' && !opt.text.toLowerCase().includes(query);
+    });
+  });
+
+  function setOpen(open) {
+    isOpen = open;
+    trigger.setAttribute('aria-expanded', String(isOpen));
+    popover.hidden = !isOpen;
+    if (isOpen) {
+      searchInput.value = '';
+      populateOptionsList(currentOptions);
+      if (typeof setTimeout !== 'undefined') {
+        setTimeout(() => searchInput.focus?.(), 50);
+      }
+    }
+    updateTriggerLabel();
+  }
+
+  trigger.addEventListener('click', () => setOpen(!isOpen));
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+      if (isOpen && !group.contains(e.target)) {
+        setOpen(false);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        setOpen(false);
+        trigger.focus();
+      }
+    });
+  }
+
+  populateOptionsList(currentOptions);
+  updateTriggerLabel();
+
+  wrapper.append(trigger, popover);
+  group.append(label, wrapper);
+
+  return {
+    group,
+    update(newOptions, newSelectedSet) {
+      if (newOptions) currentOptions = [...newOptions];
+      if (newSelectedSet) selectedSet = newSelectedSet;
+      populateOptionsList(currentOptions);
+      updateTriggerLabel();
+    },
+  };
+}
+
+// Function to create the changelog header section
+function createHeaderSection({ pageConfig, feedUrl, latestRelease }) {
+  const header = createTag('header', { class: 'changelog-header' });
+  const titleHeading = createTag('h1', { class: 'spectrum-Heading spectrum-Heading--sizeXL spectrum-Heading--light changelog-title' });
+  titleHeading.textContent = pageConfig?.title;
+  header.append(titleHeading);
+
+  if (pageConfig?.description) {
+    const desc = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeXL changelog-description' });
+    desc.textContent = pageConfig.description;
+    header.append(desc);
+  }
+
+  const quickLinks = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeXL changelog-quick-links' });
+  if (feedUrl) {
+    const rssLink = createTag('a', {
+      class: 'spectrum-Link changelog-quick-link changelog-rss-link',
+      href: feedUrl,
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      'aria-label': 'Subscribe to RSS feed',
+    });
+    rssLink.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><circle cx="6.18" cy="17.82" r="2.18" fill="#eb1000"></circle><path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z" fill="#eb1000"></path></svg> <span>Subscribe to RSS feed</span>';
+    quickLinks.append(rssLink);
+  }
+  header.append(quickLinks);
+
+  const subHeader = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeS changelog-sub-header' });
+  const latestInfo = createTag('span', { class: 'changelog-latest-info' });
+  if (latestRelease && (latestRelease.version || latestRelease.title || latestRelease.date)) {
+    const parts = [
+      latestRelease.version ? `<strong>${latestRelease.version}</strong>` : (latestRelease.title ? `<strong>${latestRelease.title}</strong>` : ''),
+      latestRelease.date,
+    ].filter(Boolean);
+    latestInfo.innerHTML = `Latest: ${parts.join(' · ')}`;
+    subHeader.append(latestInfo);
+    header.append(subHeader);
+  }
+
+  return header;
+}
+
+// Function to create the archive accordion section
+function createArchiveSection({ configuredArchiveGroups, archiveGroupReleasesMap, archiveSectionLabel, archiveSectionDescription }) {
+  const archiveSection = createTag('section', {
+    class: 'changelog-archive-section',
+    'aria-label': archiveSectionLabel,
+  });
+
+  const heading = createTag('h2', { class: 'spectrum-Heading spectrum-Heading--sizeL changelog-archive-title' });
+  heading.textContent = archiveSectionLabel;
+  archiveSection.append(heading);
+
+  if (archiveSectionDescription) {
+    const desc = createTag('p', { class: 'spectrum-Body spectrum-Body--sizeM changelog-archive-description' });
+    desc.textContent = archiveSectionDescription;
+    archiveSection.append(desc);
+  }
+
+  configuredArchiveGroups.forEach((groupDef) => {
+    const groupData = archiveGroupReleasesMap.get(groupDef.id);
+    if (!groupData || groupData.releasesList.length === 0) return;
+
+    const accordion = createTag('div', { class: 'changelog-accordion changelog-archive-group' });
+    accordion.id = `changelog-archive-${groupDef.id}`;
+
+    const trigger = createTag('button', {
+      type: 'button',
+      class: 'changelog-accordion-trigger',
+      'aria-expanded': 'false',
+      'aria-controls': `changelog-archive-content-${groupDef.id}`,
+    });
+
+    const left = createTag('div', { class: 'changelog-accordion-left' });
+    const title = createTag('span', { class: 'spectrum-Heading spectrum-Heading--sizeM changelog-accordion-title' });
+    title.textContent = groupDef.label;
+
+    const count = createTag('span', { class: 'spectrum-Body spectrum-Body--sizeS changelog-accordion-count' });
+    count.textContent = `(${groupData.releasesList.length})`;
+    left.append(title, count);
+
+    const arrow = createTag('span', { class: 'changelog-accordion-arrow', 'aria-hidden': 'true' });
+    arrow.innerHTML = getIconSvg('chevron');
+    trigger.append(left, arrow);
+
+    const content = createTag('div', {
+      id: `changelog-archive-content-${groupDef.id}`,
+      class: 'changelog-accordion-content',
+      hidden: true,
+    });
+
+    const list = createTag('div', { class: 'changelog-archive-list' });
+    groupData.releasesList.forEach((rel) => {
+      const item = createTag('div', { class: 'changelog-archive-item' });
+      const meta = createTag('div', { class: 'changelog-archive-meta' });
+
+      if (rel.version || rel.title) {
+        const vHead = createTag('h3', { class: 'spectrum-Heading spectrum-Heading--sizeS changelog-archive-version' });
+        vHead.textContent = rel.version || rel.title;
+        meta.append(vHead);
+      }
+
+      if (rel.date) {
+        const dSpan = createTag('span', { class: 'spectrum-Body spectrum-Body--sizeS changelog-archive-date' });
+        dSpan.textContent = rel.date;
+        meta.append(dSpan);
+      }
+
+      if (rel.breaking) {
+        const bBadge = createTag('span', { class: 'changelog-badge changelog-badge-breaking' });
+        bBadge.textContent = 'Breaking';
+        meta.append(bBadge);
+      }
+
+      const descDiv = createTag('div', { class: 'spectrum-Body spectrum-Body--sizeM changelog-archive-desc' });
+      descDiv.innerHTML = renderMarkdown(rel.summary);
+
+      item.append(meta, descDiv);
+      list.append(item);
+    });
+
+    content.append(list);
+
+    trigger.addEventListener('click', () => {
+      const isExp = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', String(!isExp));
+      content.hidden = isExp;
+    });
+
+    accordion.append(trigger, content);
+    archiveSection.append(accordion);
+  });
+
+  archiveSection.querySelectorAll('pre').forEach((pre) => {
+    decoratePreformattedCode(pre);
+  });
+  decorateInlineCodes(archiveSection);
+
+  return archiveSection;
+}
+
+// Function to render a single release card
+function renderReleaseCard({
+  releaseItem,
+  releaseIndex,
+  yearKey,
+  releaseKindsMap,
+  availableTypes,
+  authoredTypeLabels,
+  modulesMap,
+  hasAnyTypesInChanges = true,
+}) {
+  const cardId = releaseItem.version
+    ? releaseItem.version.replace(/\./g, '-')
+    : (releaseItem.rawDate ? `docs-${releaseItem.rawDate}` : `release-${yearKey || 'entry'}-${releaseIndex + 1}`);
+  const releaseCard = createTag('article', { class: 'changelog-release-card', id: cardId });
+
+  const releaseHeading = [releaseItem.version, releaseItem.title].filter(Boolean).join(' · ');
+
+  let badgeHtml = '';
+  if (releaseItem.isLatest) {
+    badgeHtml = '<span class="changelog-badge changelog-badge-latest">Latest</span>';
+  } else if (releaseItem.kind && releaseItem.kind !== 'sdk') {
+    const kindLabel = releaseKindsMap[releaseItem.kind] || releaseItem.kind;
+    badgeHtml = `<span class="changelog-badge">${kindLabel}</span>`;
+  }
+
+  const summaryHtml = releaseItem.summary
+    ? `<div class="spectrum-Body spectrum-Body--sizeM changelog-release-summary">${renderMarkdown(releaseItem.summary)}</div>`
+    : '';
+
+  let changesHtml = '';
+  if (releaseItem.changes.length === 0) {
+    if (!releaseItem.summary) {
+      changesHtml = `
+        <div class="changelog-change-row">
+          <div class="changelog-change-content">
+            <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">Maintenance release.</div>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    changesHtml = releaseItem.changes.map((changeItem) => {
+      const typeClassList = changeItem.types
+        .map((typeKey) => `type-${typeKey.replace(/[^a-z0-9_-]/g, '-')}`)
+        .join(' ');
+      const typesHtml = changeItem.types.map((typeKey) => {
+        const typeDefinition = availableTypes.find((item) => item.key === typeKey);
+        const iconType = typeDefinition?.icon || typeKey;
+        const typeLabel = typeDefinition?.label || formatTypeLabel(typeKey, authoredTypeLabels.get(typeKey));
+        const colorHex = resolveColorHex(typeDefinition?.color, '#505050');
+        const safeTypeClass = typeKey.replace(/[^a-z0-9_-]/g, '-');
+        return `
+          <div class="spectrum-Body spectrum-Body--sizeS spectrum-Body-strong changelog-change-type type-${safeTypeClass}" style="color: ${colorHex};">
+            ${getIconSvg(iconType, colorHex)} <span>${escapeHtml(typeLabel)}</span>
+          </div>
+        `;
+      }).join('');
+
+      const moduleLabels = (changeItem.modules || []).map((mId) => modulesMap[mId] || mId).filter(Boolean);
+      const moduleHtml = moduleLabels.length > 0
+        ? `<div class="spectrum-Detail spectrum-Detail--sizeS changelog-change-module">${renderMarkdown(moduleLabels.join(', '))}</div>`
+        : '';
+
+      const openBadgeHtml = changeItem.open ? '<span class="changelog-badge changelog-badge-open">Still open</span>' : '';
+      const actionHtml = changeItem.action ? `
+        <div class="changelog-what-to-do ${typeClassList}">
+          <strong class="what-to-do-title">What to do:</strong>
+          <span>${renderMarkdown(changeItem.action)}</span>
+        </div>
+      ` : '';
+
+      let listHtml = '';
+      if (changeItem.list) {
+        const items = Array.isArray(changeItem.list)
+          ? changeItem.list
+          : String(changeItem.list).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        if (items.length > 0) {
+          const listItemsHtml = items
+            .map((item) => `<li>${formatMarkdownProse(String(item).replace(/^[-*•]\s*/, '').trim())}</li>`)
+            .join('');
+          listHtml = `<ul class="changelog-markdown-list">${listItemsHtml}</ul>`;
+        }
+      }
+
+      let codeHtml = '';
+      if (changeItem.code) {
+        const lang = (changeItem.language || 'js').toLowerCase();
+        codeHtml = `<pre class="changelog-code-block language-${lang}"><code class="language-${lang}">${escapeHtml(String(changeItem.code).trim())}</code></pre>`;
+      }
+
+      const typeColHtml = (hasAnyTypesInChanges || moduleHtml)
+        ? `
+          <div class="changelog-change-type-col">
+            ${typesHtml ? `<div class="changelog-change-types">${typesHtml}</div>` : ''}
+            ${moduleHtml}
+          </div>
+        `
+        : '';
+
+      return `
+        <div class="changelog-change-row ${typeClassList}">
+          ${typeColHtml}
+          <div class="changelog-change-content">
+            <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">
+              ${renderMarkdown(changeItem.text)}
+              ${listHtml}
+              ${codeHtml}
+              ${openBadgeHtml}
+            </div>
+            ${actionHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const dateHtml = releaseItem.date
+    ? `<time class="spectrum-Body spectrum-Body--sizeS changelog-release-date" datetime="${releaseItem.rawDate}">${releaseItem.date}</time>`
+    : '';
+
+  releaseCard.innerHTML = `
+    <div class="changelog-release-meta">
+      <h3 class="spectrum-Heading spectrum-Heading--sizeS changelog-release-version">${releaseHeading}</h3>
+      ${dateHtml}
+      ${badgeHtml}
+    </div>
+    <div class="changelog-release-changes">${summaryHtml}${changesHtml}</div>
+  `;
+
+  return releaseCard;
+}
+
+// Main decorate function to build the changelog component
+export default async function decorate(block) {
+  const metadataAttr = block.getAttribute('data-metadata');
+  const contentAttr = block.getAttribute('data-content');
+  const resolveUrl = (path) => {
+    if (!path) return null;
+    try {
+      return getResourceUrl(path) || path;
+    } catch {
+      return path;
+    }
+  };
+  const metadataAbsoluteSrc = metadataAttr && resolveUrl(metadataAttr);
+  const contentaAbsoluteSrc = contentAttr && resolveUrl(contentAttr);
+
+  // 1. Fetch metadata/settings YAML first
+  let parsedReleasesMetadata = null;
+  if (metadataAbsoluteSrc) {
+    parsedReleasesMetadata = await fetchAndParseResource(metadataAbsoluteSrc);
+  }
+
+  // 2. Then fetch content/releases data YAML
+  let parsedReleasesDocument = null;
+  if (contentaAbsoluteSrc) {
+    parsedReleasesDocument = await fetchAndParseResource(contentaAbsoluteSrc);
+  }
+
+  // Normalize parsed settings/metadata
+  if (parsedReleasesMetadata) {
+    parsedReleasesMetadata = parsedReleasesMetadata.settings || parsedReleasesMetadata.metadata || parsedReleasesMetadata;
+  } else {
+    parsedReleasesMetadata = {};
+  }
+
+  // Normalize parsed data/content
+  if (parsedReleasesDocument) {
+    if (Array.isArray(parsedReleasesDocument)) {
+      parsedReleasesDocument = { releases: parsedReleasesDocument };
+    } else if (parsedReleasesDocument.data) {
+      parsedReleasesDocument = Array.isArray(parsedReleasesDocument.data)
+        ? { releases: parsedReleasesDocument.data, modules: parsedReleasesDocument.modules || {} }
+        : parsedReleasesDocument.data;
+    }
+  }
+
+  if (!parsedReleasesDocument || (!parsedReleasesDocument.releases && !Array.isArray(parsedReleasesDocument))) {
+    block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data.</p></div>';
+    return;
+  }
+  const modulesMap = parsedReleasesDocument?.modules || {};
+  const releaseKindsMap = parsedReleasesMetadata?.kinds || {};
+  const archiveConfig = parsedReleasesMetadata?.archive;
+  const isArchiveEnabled = Boolean(archiveConfig?.enabled);
+  const configuredArchiveGroups = Array.isArray(archiveConfig?.groups) ? archiveConfig.groups : [];
+  const archiveSectionLabel = archiveConfig?.label || '';
+  const archiveSectionDescription = archiveConfig?.description || '';
+
+  const archiveGroupReleasesMap = new Map();
+  configuredArchiveGroups.forEach((groupDef) => {
+    archiveGroupReleasesMap.set(groupDef.id, { groupDefinition: groupDef, releasesList: [] });
+  });
+
+  let totalArchivedReleasesCount = 0;
+  const rawReleasesList = Array.isArray(parsedReleasesDocument?.releases) ? parsedReleasesDocument.releases : [];
+  const pageConfig = parsedReleasesMetadata?.page;
+  const feedUrl = parsedReleasesDocument?.rssfeed
+
+  block.innerHTML = '';
+
+  const releases = [];
+  const authoredTypeLabels = new Map();
+
+  rawReleasesList.forEach((releaseItem) => {
+    const { year, monthName, displayDate, rawDate } = parseDate(releaseItem.date);
+    const matchingArchiveGroup = isArchiveEnabled ? findMatchingArchiveGroup(releaseItem, configuredArchiveGroups) : null;
+
+    if (matchingArchiveGroup && archiveGroupReleasesMap.has(matchingArchiveGroup.id)) {
+      archiveGroupReleasesMap.get(matchingArchiveGroup.id).releasesList.push({
+        version: releaseItem.version ? `v${String(releaseItem.version).replace(/^v/i, '')}` : '',
+        date: displayDate || releaseItem.date,
+        summary: releaseItem.summary || '',
+        title: releaseItem.title || '',
+        breaking: Boolean(releaseItem.breaking),
+        rawDate,
+      });
+      totalArchivedReleasesCount += 1;
+      return;
+    }
+
+    const isLatestRelease = releases.length === 0;
+    const rawChanges = Array.isArray(releaseItem.changes) && releaseItem.changes.length > 0
+      ? releaseItem.changes
+      : (releaseItem.text
+        ? [{ text: releaseItem.text }]
+        : (releaseItem.summary
+          ? []
+          : [{ text: 'Maintenance release.', types: [] }]
+        )
+      );
+
+    const releaseChanges = rawChanges.map((changeItem) => {
+      const itemObj = typeof changeItem === 'string' ? { text: changeItem } : (changeItem || {});
+      const changeTypes = parseChangeTypes(itemObj.type || '');
+      changeTypes.forEach((rawToken) => {
+        const normalizedKey = normalizeTypeKey(rawToken);
+        if (normalizedKey && !authoredTypeLabels.has(normalizedKey)) {
+          authoredTypeLabels.set(normalizedKey, rawToken);
+        }
+      });
+
+      return {
+        types: changeTypes,
+        heading: itemObj.heading || '',
+        modules: Array.isArray(itemObj.modules) ? itemObj.modules : (itemObj.modules ? [itemObj.modules] : []),
+        text: itemObj.text || '',
+        list: itemObj.list || '',
+        action: itemObj.action || '',
+        code: itemObj.code || '',
+        language: itemObj.language || itemObj.lang || 'js',
+        open: Boolean(itemObj.open),
+      };
+    });
+
+    releases.push({
+      version: releaseItem.version || '',
+      date: displayDate,
+      rawDate,
+      year,
+      monthName,
+      kind: releaseItem.kind || '',
+      title: releaseItem.title || '',
+      summary: releaseItem.summary || '',
+      isLatest: isLatestRelease,
+      changes: releaseChanges,
+    });
+  });
+
+  const isFiltersDisabled = parsedReleasesMetadata?.filters === false;
+  const hasConfiguredFilters = Array.isArray(parsedReleasesMetadata?.filters);
+  const configuredFilters = hasConfiguredFilters ? parsedReleasesMetadata.filters : null;
+
+  const isFilterConfigured = (filterId) => {
+    if (isFiltersDisabled) return false;
+    if (!hasConfiguredFilters) return true;
+    const filterDef = configuredFilters.find((f) => f.id === filterId);
+    if (!filterDef) {
+      if (filterId === 'year' || filterId === 'month') return true;
+      return false;
+    }
+    return filterDef.enabled !== false;
+  };
+
+  const hasAnyTypesInChanges = releases.some((r) => r.changes.some((c) => c.types && c.types.length > 0));
+
+  const typeFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'type');
+  const configuredTypesMap = { ...(parsedReleasesMetadata?.types || {}) };
+  const defaultTypesByKey = new Map(ALL_TYPES.map((t) => [t.key, t]));
+
+  const availableTypes = [];
+  const addedTypeKeys = new Set();
+
+  if (Array.isArray(typeFilterMetadata?.options) && typeFilterMetadata.options.length > 0) {
+    typeFilterMetadata.options.forEach((opt) => {
+      const typeKey = normalizeTypeKey(opt.id);
+      if (!typeKey || addedTypeKeys.has(typeKey)) return;
+
+      const defType = defaultTypesByKey.get(typeKey);
+      availableTypes.push({
+        key: typeKey,
+        label: opt.label || defType?.label || formatTypeLabel(typeKey, opt.id),
+        icon: opt.icon || defType?.icon || typeKey,
+        color: opt.color || defType?.color || '',
+      });
+      addedTypeKeys.add(typeKey);
+    });
+  } else if (hasAnyTypesInChanges) {
+    authoredTypeLabels.forEach((rawToken, typeKey) => {
+      const def = defaultTypesByKey.get(typeKey);
+      const configured = configuredTypesMap[typeKey];
+      availableTypes.push({
+        key: typeKey,
+        label: configured?.label || def?.label || formatTypeLabel(typeKey, rawToken),
+        icon: configured?.icon || def?.icon || typeKey,
+        color: configured?.color || def?.color || '',
+      });
+    });
+  }
+
+  const moduleFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'module');
+  const yearFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'year');
+  const monthFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'month');
+
+  const moduleLabel = moduleFilterMetadata?.label || 'Module';
+  const moduleAllLabel = moduleFilterMetadata?.allLabel || 'All modules';
+  const yearLabel = yearFilterMetadata?.label || 'Year';
+  const yearAllLabel = yearFilterMetadata?.allLabel || 'All years';
+  const monthLabel = monthFilterMetadata?.label || 'Month';
+  const monthAllLabel = monthFilterMetadata?.allLabel || 'All months';
+  const typeLabel = typeFilterMetadata?.label || 'Type of change';
+  const typeAllLabel = typeFilterMetadata?.allLabel || 'All types';
+
+  const hasModulesInYaml = Object.keys(modulesMap).length > 0
+    || releases.some((r) => r.changes.some((c) => c.modules && c.modules.length > 0));
+
+  let moduleOptions = [];
+  if (hasModulesInYaml) {
+    if (Array.isArray(moduleFilterMetadata?.options) && moduleFilterMetadata.options.length > 0) {
+      moduleOptions = moduleFilterMetadata.options.map((opt) => ({
+        value: opt.id,
+        text: opt.label || modulesMap[opt.id] || opt.id,
+      }));
+    } else if (Object.keys(modulesMap).length > 0) {
+      moduleOptions = Object.entries(modulesMap).map(([id, label]) => ({ value: id, text: label }));
+    } else {
+      const uniqueModuleIds = Array.from(new Set(releases.flatMap((r) => r.changes.flatMap((c) => c.modules)))).filter(Boolean);
+      moduleOptions = uniqueModuleIds.map((id) => ({ value: id, text: id }));
+    }
+  }
+
+  const showModuleFilter = isFilterConfigured('module') && hasModulesInYaml && moduleOptions.length > 0;
+
+  const contentYears = Array.from(new Set(releases.map((r) => r.year).filter((y) => y && !isNaN(Number(y)))))
+    .sort((a, b) => Number(b) - Number(a));
+
+  const showYearFilter = !isFiltersDisabled;
+  const showMonthFilter = !isFiltersDisabled;
+  const showTypeFilter = isFilterConfigured('type') !== false && availableTypes.length > 0 && hasAnyTypesInChanges;
+
+  const yearOptions = contentYears.length > 0
+    ? contentYears.map(String)
+    : [String(new Date().getFullYear())];
+
+  const latestRelease = releases[0] || null;
+  const filterState = {
+    modules: new Set(),
+    years: new Set(),
+    months: new Set(),
+    types: new Set(),
+  };
+
+  function getMonthOptions() {
+    if (!showMonthFilter) return [];
+    return MONTH_NAMES.map((m) => ({ value: m, text: m }));
+  }
+
+  // URL state management
+  function parseFilterUrlParam(paramVal, allValues) {
+    if (!paramVal || paramVal === 'all') return new Set(allValues);
+    if (paramVal === 'none') return new Set();
+    const valid = new Set(allValues);
+    return new Set(paramVal.split(',').map((v) => v.trim()).filter((v) => valid.has(v)));
+  }
+
+  function readFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (showYearFilter) filterState.years = parseFilterUrlParam(params.get('year'), yearOptions);
+    if (showMonthFilter) filterState.months = parseFilterUrlParam(params.get('month'), getMonthOptions().map((o) => o.value));
+    if (showModuleFilter) filterState.modules = parseFilterUrlParam(params.get('module'), moduleOptions.map((o) => o.value));
+    if (showTypeFilter && params.get('type')) {
+      filterState.types = parseFilterUrlParam(params.get('type'), availableTypes.map((t) => t.key));
+    }
+  }
+
+  function writeToUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const syncParam = (key, enabled, set, total) => {
+      if (enabled && set.size > 0 && set.size < total) {
+        params.set(key, Array.from(set).join(','));
+      } else {
+        params.delete(key);
+      }
+    };
+    syncParam('module', showModuleFilter, filterState.modules, moduleOptions.length);
+    syncParam('year', showYearFilter, filterState.years, yearOptions.length);
+    syncParam('month', showMonthFilter, filterState.months, getMonthOptions().length);
+    if (showTypeFilter && filterState.types.size > 0) {
+      params.set('type', Array.from(filterState.types).join(','));
+    } else {
+      params.delete('type');
+    }
+    const qs = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`);
+  }
+
+  readFromUrl();
+
+  const container = createTag('div', { class: 'changelog-container' });
+
+  // 1. Header Section
+  const headerSection = createHeaderSection({ pageConfig, feedUrl, latestRelease });
+
+  // 2. Filter Card
+  const filterCard = createTag('section', { id: 'filters', class: 'changelog-filter-card', 'aria-label': 'Changelog filters' });
+
+  const filterCardHeader = createTag('div', { class: 'changelog-filter-card-header' });
+  const filterCardTitle = createTag('div', { class: 'changelog-filters-header-title' });
+  filterCardTitle.innerHTML = `${getIconSvg('filter')} <span>Filters</span>`;
+
+  const summaryRow = createTag('div', { class: 'changelog-filter-summary-row' });
+  const summaryText = createTag('span', { class: 'spectrum-Body spectrum-Body--sizeS changelog-filter-summary-text', 'aria-live': 'polite' });
+  const clearFiltersButton = createTag('button', { type: 'button', class: 'spectrum-Link changelog-clear-link' });
+  clearFiltersButton.textContent = 'Clear filters';
+  clearFiltersButton.addEventListener('click', clearAllFilters);
+  summaryRow.append(summaryText, clearFiltersButton);
+
+  filterCardHeader.append(filterCardTitle, summaryRow);
+  filterCard.append(filterCardHeader);
+
+  const dropdownRow = createTag('div', { class: 'changelog-filter-row-dropdowns' });
+  const pillRows = [];
+
+  let moduleMultiSelect = null;
+  if (showModuleFilter) {
+    moduleMultiSelect = createMultiSelectDropdown({
+      id: 'changelog-filter-module',
+      labelText: moduleLabel,
+      labelIcon: 'layers',
+      allLabel: moduleAllLabel,
+      options: moduleOptions,
+      selectedSet: filterState.modules,
+      maxVisibleTags: 3,
+      entityName: 'modules',
+      onChange: () => {
+        writeToUrl();
+        applyFilters();
+      },
+    });
+    dropdownRow.append(moduleMultiSelect.group);
+  }
+
+  let yearMultiSelect = null;
+  if (showYearFilter) {
+    yearMultiSelect = createMultiSelectDropdown({
+      id: 'changelog-filter-year',
+      labelText: yearLabel,
+      labelIcon: 'calendar',
+      allLabel: yearAllLabel,
+      options: yearOptions.map((y) => ({ value: y, text: y })),
+      selectedSet: filterState.years,
+      maxVisibleTags: 3,
+      entityName: 'years',
+      onChange: () => {
+        updateMonthControlOptions();
+        writeToUrl();
+        applyFilters();
+      },
+    });
+    dropdownRow.append(yearMultiSelect.group);
+  }
+
+  let monthMultiSelect = null;
+  if (showMonthFilter) {
+    monthMultiSelect = createMultiSelectDropdown({
+      id: 'changelog-filter-month',
+      labelText: monthLabel,
+      labelIcon: 'calendar',
+      allLabel: monthAllLabel,
+      options: getMonthOptions(),
+      selectedSet: filterState.months,
+      maxVisibleTags: 2,
+      entityName: 'months',
+      onChange: () => {
+        writeToUrl();
+        applyFilters();
+      },
+    });
+    dropdownRow.append(monthMultiSelect.group);
+  }
+
+  let typePillsContainer = null;
+  if (showTypeFilter) {
+    const typeRow = createTag('div', { class: 'changelog-filter-row-types' });
+    typeRow.innerHTML = `<div class="spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label"><span class="changelog-filter-label-icon" aria-hidden="true">${getIconSvg('tag')}</span><span class="changelog-filter-label-text">${escapeHtml(typeLabel)}</span></div>`;
+    typePillsContainer = createTag('div', { class: 'changelog-filter-pills', role: 'group', 'aria-label': 'Filter by change type' });
+    typeRow.append(typePillsContainer);
+    pillRows.push(typeRow);
+  }
+
+  if (dropdownRow.children.length > 0) filterCard.append(dropdownRow);
+  pillRows.forEach((pillRow) => filterCard.append(pillRow));
+
+  // 3. Dynamic Archive section
+  const archiveSection = (isArchiveEnabled && totalArchivedReleasesCount > 0)
+    ? createArchiveSection({ configuredArchiveGroups, archiveGroupReleasesMap, archiveSectionLabel, archiveSectionDescription })
+    : null;
+
+  const resultsContainer = createTag('div', { class: 'changelog-results', role: 'region', 'aria-live': 'polite' });
+
+  function updateMonthControlOptions() {
+    if (monthMultiSelect) {
+      monthMultiSelect.update(getMonthOptions());
+    }
+  }
+
+  function matchesYear(releaseItem) {
+    if (!showYearFilter || yearOptions.length === 0 || filterState.years.size === yearOptions.length) return true;
+    if (filterState.years.size === 0) return false;
+    return filterState.years.has(releaseItem.year);
+  }
+
+  function matchesMonth(releaseItem) {
+    if (!showMonthFilter) return true;
+    const currentOpts = getMonthOptions();
+    if (currentOpts.length === 0 || filterState.months.size === currentOpts.length) return true;
+    if (filterState.months.size === 0) return false;
+    return filterState.months.has(releaseItem.monthName);
+  }
+
+  // Filtering & Rendering logic
+  function getFilteredData() {
+    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === moduleOptions.length;
+    const isAllTypes = !showTypeFilter || filterState.types.size === 0;
+
+    let totalMatchingChanges = 0;
+    const changeTypeCounts = {};
+    availableTypes.forEach((t) => { changeTypeCounts[t.key] = 0; });
+
+    const matchingReleases = [];
+
+    releases.forEach((releaseItem) => {
+      if (!matchesYear(releaseItem) || !matchesMonth(releaseItem)) return;
+
+      const matchingChanges = releaseItem.changes.filter((changeItem) => {
+        const modMatch = isAllModules
+          || (filterState.modules.size > 0 && changeItem.modules.some((m) => filterState.modules.has(m)));
+        if (!modMatch) return false;
+
+        changeItem.types.forEach((tk) => {
+          if (changeTypeCounts[tk] !== undefined) changeTypeCounts[tk] += 1;
+        });
+
+        return isAllTypes || changeItem.types.some((tk) => filterState.types.has(tk));
+      });
+
+      if (matchingChanges.length > 0) {
+        totalMatchingChanges += matchingChanges.length;
+        matchingReleases.push({
+          ...releaseItem,
+          changes: matchingChanges,
+        });
+      }
+    });
+
+    return { matchingReleases, totalMatchingChanges, changeTypeCounts };
+  }
+
+  function renderPills(changeTypeCounts, totalMatchingChanges) {
+    if (!typePillsContainer) return;
+    typePillsContainer.innerHTML = '';
+
+    const allPill = createTag('button', {
+      type: 'button',
+      class: 'changelog-pill',
+      'aria-pressed': filterState.types.size === 0 ? 'true' : 'false',
+    });
+    if (filterState.types.size === 0) allPill.classList.add('is-selected');
+
+    const allPillText = typeAllLabel;
+    allPill.innerHTML = `<span>${escapeHtml(allPillText)}</span> <span class="changelog-pill-count">${totalMatchingChanges}</span>`;
+    allPill.addEventListener('click', () => {
+      filterState.types.clear();
+      writeToUrl();
+      applyFilters();
+    });
+    typePillsContainer.append(allPill);
+
+    availableTypes.forEach((typeDef) => {
+      const isSelected = filterState.types.has(typeDef.key);
+      const safeKey = typeDef.key.replace(/[^a-z0-9_-]/g, '-');
+      const typePill = createTag('button', {
+        type: 'button',
+        class: `changelog-pill type-pill-${safeKey}`,
+        'aria-pressed': isSelected ? 'true' : 'false',
+        'data-type': typeDef.key,
+      });
+      if (isSelected) typePill.classList.add('is-selected');
+
+      const color = resolveColorHex(typeDef.color, '#505050');
+      typePill.innerHTML = `${getIconSvg(typeDef.icon, color)} <span>${escapeHtml(typeDef.label)}</span> <span class="changelog-pill-count">${changeTypeCounts[typeDef.key] || 0}</span>`;
+
+      typePill.addEventListener('click', () => {
+        if (filterState.types.has(typeDef.key)) {
+          filterState.types.delete(typeDef.key);
+        } else {
+          filterState.types.add(typeDef.key);
+        }
+        writeToUrl();
+        applyFilters();
+      });
+      typePillsContainer.append(typePill);
+    });
+  }
+
+  function renderReleasesList(matchingReleases) {
+    resultsContainer.innerHTML = '';
+    if (matchingReleases.length === 0) {
+      resultsContainer.innerHTML = `
+        <div class="changelog-empty-state">
+          <p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">No changes match the selected filters.</p>
+          <button type="button" class="spectrum-Button spectrum-Button--secondary spectrum-Button--sizeM changelog-empty-clear">
+            <span class="spectrum-Button-label">Clear filters</span>
+          </button>
+        </div>
+      `;
+      const clearBtn = resultsContainer.querySelector('button');
+      if (clearBtn) clearBtn.addEventListener('click', clearAllFilters);
+      return;
+    }
+
+    const releasesByYear = new Map();
+    matchingReleases.forEach((rel) => {
+      const yearKey = rel.year || '';
+      if (!releasesByYear.has(yearKey)) releasesByYear.set(yearKey, []);
+      releasesByYear.get(yearKey).push(rel);
+    });
+
+    const isMultiYear = releasesByYear.size > 1 || Array.from(releasesByYear.keys())[0] !== '';
+
+    releasesByYear.forEach((yearReleases, yearKey) => {
+      const yearSection = createTag('section', {
+        class: 'changelog-year-section',
+        'aria-label': yearKey ? `Releases in ${yearKey}` : 'Releases',
+      });
+
+      if (isMultiYear && yearKey) {
+        const yearHeading = createTag('h2', {
+          id: `year-${yearKey}`,
+          class: 'spectrum-Heading spectrum-Heading--sizeXL changelog-year-heading',
+        });
+        yearHeading.textContent = yearKey;
+        yearSection.append(yearHeading);
+      }
+
+      const tableHeader = createTag('div', { class: 'changelog-table-header', role: 'row', 'aria-hidden': 'true' });
+      const versionHeader = createTag('div', { class: 'changelog-header-col changelog-header-col-version' });
+      versionHeader.textContent = 'Version';
+
+      const changesWrapper = createTag('div', { class: 'changelog-header-changes' });
+      if (hasAnyTypesInChanges) {
+        const typeHeader = createTag('div', { class: 'changelog-header-col changelog-header-col-type' });
+        typeHeader.textContent = 'Type of change';
+        changesWrapper.append(typeHeader);
+      }
+
+      const descHeader = createTag('div', { class: 'changelog-header-col changelog-header-col-desc' });
+      descHeader.textContent = 'Description';
+
+      changesWrapper.append(descHeader);
+      tableHeader.append(versionHeader, changesWrapper);
+      yearSection.append(tableHeader);
+
+      const releaseList = createTag('div', { class: 'changelog-release-list' });
+
+      yearReleases.forEach((releaseItem, releaseIndex) => {
+        const releaseCard = renderReleaseCard({
+          releaseItem,
+          releaseIndex,
+          yearKey,
+          releaseKindsMap,
+          availableTypes,
+          authoredTypeLabels,
+          modulesMap,
+          hasAnyTypesInChanges,
+        });
+        releaseList.appendChild(releaseCard);
+      });
+
+      yearSection.appendChild(releaseList);
+      resultsContainer.appendChild(yearSection);
+    });
+
+    resultsContainer.querySelectorAll('pre').forEach((pre) => {
+      decoratePreformattedCode(pre);
+    });
+    decorateInlineCodes(resultsContainer);
+  }
+
+  function updateSummary(totalMatchingChanges, matchingReleasesCount) {
+    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === moduleOptions.length;
+    const isAllYears = !showYearFilter || yearOptions.length === 0 || filterState.years.size === yearOptions.length;
+    const currentMonthOptions = getMonthOptions();
+    const isAllMonths = !showMonthFilter || currentMonthOptions.length === 0 || filterState.months.size === currentMonthOptions.length;
+    const isAllTypes = !showTypeFilter || filterState.types.size === 0;
+
+    const isFiltered = !isAllModules || !isAllYears || !isAllMonths || !isAllTypes;
+
+    const changesText = `${totalMatchingChanges} ${totalMatchingChanges === 1 ? 'change' : 'changes'}`;
+    const releasesText = `${matchingReleasesCount} ${matchingReleasesCount === 1 ? 'release' : 'releases'}`;
+    const releasesBadge = `<span class="changelog-summary-badge changelog-summary-badge-releases">${getIconSvg('layers')}<span>${releasesText}</span></span>`;
+    const olderBadge = isArchiveEnabled && totalArchivedReleasesCount > 0
+      ? `<span class="changelog-summary-badge changelog-summary-badge-older">${getIconSvg('clock')}<span>${totalArchivedReleasesCount} ${archiveSectionLabel.toLowerCase()}</span></span>`
+      : '';
+
+    summaryText.innerHTML = `<span class="changelog-summary-results-text">Results: <strong>${changesText}</strong></span><span class="changelog-summary-divider" aria-hidden="true"></span>${releasesBadge}${olderBadge}`;
+    if (clearFiltersButton) {
+      clearFiltersButton.hidden = !isFiltered;
+    }
+  }
+
+  function clearAllFilters() {
+    filterState.modules.clear();
+    moduleOptions.forEach((opt) => filterState.modules.add(opt.value));
+
+    filterState.years.clear();
+    yearOptions.forEach((yr) => filterState.years.add(yr));
+
+    filterState.months.clear();
+    getMonthOptions().forEach((opt) => filterState.months.add(opt.value));
+
+    filterState.types.clear();
+
+    if (moduleMultiSelect) moduleMultiSelect.update();
+    if (yearMultiSelect) yearMultiSelect.update();
+    updateMonthControlOptions();
+    if (monthMultiSelect) monthMultiSelect.update();
+
+    writeToUrl();
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const { matchingReleases, totalMatchingChanges, changeTypeCounts } = getFilteredData();
+    renderPills(changeTypeCounts, totalMatchingChanges);
+    renderReleasesList(matchingReleases);
+    updateSummary(totalMatchingChanges, matchingReleases.length);
+  }
+
+  applyFilters();
+
+  const hasAnyVisibleFilters = showModuleFilter || showYearFilter || showMonthFilter || showTypeFilter;
+  if (hasAnyVisibleFilters) {
+    container.append(headerSection, filterCard, resultsContainer);
+  } else {
+    container.append(headerSection, resultsContainer);
+  }
+  if (archiveSection) container.append(archiveSection);
+  block.append(container);
+}
