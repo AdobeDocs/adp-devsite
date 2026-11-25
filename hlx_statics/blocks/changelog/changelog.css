@@ -201,7 +201,7 @@ main div.changelog-wrapper div.changelog {
     margin-bottom: 26px;
 
     &:has(> :nth-child(2):last-child) {
-      grid-template-columns: minmax(280px, 440px) minmax(200px, 260px);
+      grid-template-columns: minmax(200px, 260px) minmax(220px, 280px);
     }
 
     &:has(> :first-child:last-child) {
@@ -810,6 +810,7 @@ main div.changelog-wrapper div.changelog {
     margin: 6px 0 6px 18px;
     padding-left: 0;
     line-height: 1.5;
+    list-style-type: disc;
 
     li {
       margin-bottom: 4px;
@@ -893,6 +894,7 @@ main div.changelog-wrapper div.changelog {
 
   pre,
   pre.changelog-code-block {
+    position: relative;
     margin: 10px 0 4px 0;
     padding: 14px 16px;
     border-radius: 6px;
@@ -901,6 +903,48 @@ main div.changelog-wrapper div.changelog {
     overflow-x: auto;
     font-size: 13px;
     line-height: 1.5;
+
+    &.line-numbers {
+      padding-left: 3.8em !important;
+      counter-reset: linenumber;
+
+      > code {
+        position: relative;
+        white-space: inherit;
+      }
+
+      .line-numbers-rows {
+        position: absolute;
+        pointer-events: none;
+        top: 0;
+        left: -3.8em;
+        width: 3em;
+        letter-spacing: -1px;
+        user-select: none;
+        border-right: none;
+
+        > span {
+          display: block;
+          counter-increment: linenumber;
+
+          &:before {
+            content: counter(linenumber);
+            color: #909090;
+            display: block;
+            padding-right: 0.8em;
+            text-align: right;
+          }
+        }
+      }
+    }
+
+    &.no-line-numbers {
+      padding-left: 16px !important;
+
+      .line-numbers-rows {
+        display: none !important;
+      }
+    }
 
     code {
       font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;

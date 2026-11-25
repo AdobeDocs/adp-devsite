@@ -13,14 +13,10 @@ const COLOR_HEX_MAP = {
   grey: '#6E6E6E',
 };
 
-// Month names and short abbreviations for date formatting and filtering
+// Month names for date formatting and filtering
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
-];
-const MONTH_SHORT_NAMES = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
 // Function to resolve authored color names or hex codes
@@ -40,26 +36,15 @@ const ALL_TYPES = [
   { key: 'deprecated', label: 'Deprecated', icon: 'deprecated', color: 'orange' },
   { key: 'new', label: 'New', icon: 'new', color: 'blue' },
   { key: 'improved', label: 'Improved', icon: 'improved', color: 'blue' },
+  { key: 'update', label: 'Update', icon: 'update', color: 'blue' },
   { key: 'fixed', label: 'Fixed', icon: 'fixed', color: 'green' },
   { key: 'docs', label: 'Docs', icon: 'docs', color: 'grey' },
 ];
 
 // Function to get inline SVG icons for change types and UI elements
 function getIconSvg(changeType, customColor) {
-  const defaultColors = {
-    breaking: '#D31510',
-    removed: '#D31510',
-    deprecated: '#E68619',
-    experimental: '#E68619',
-    duplicate: '#D48800',
-    new: '#0265DC',
-    improved: '#0265DC',
-    update: '#0265DC',
-    fixed: '#0A7C52',
-    docs: '#6E6E6E',
-  };
-
-  const color = customColor || defaultColors[changeType] || '#505050';
+  const defaultType = ALL_TYPES.find((t) => t.key === changeType || t.icon === changeType);
+  const color = customColor || resolveColorHex(defaultType?.color, '#505050');
 
   const iconSvgs = {
     breaking: `<svg class="changelog-type-icon icon-breaking" viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="${color}" d="M8 1l7 7-7 7-7-7z"/></svg>`,
@@ -84,7 +69,8 @@ function getIconSvg(changeType, customColor) {
 
 // Function to split raw change type string into tokens
 function splitRawTypeTokens(rawType) {
-  const list = Array.isArray(rawType) ? rawType : String(rawType || 'new').split(',');
+  if (!rawType) return [];
+  const list = Array.isArray(rawType) ? rawType : String(rawType).split(',');
   return list.map((item) => String(item).trim()).filter(Boolean);
 }
 
@@ -96,7 +82,7 @@ function normalizeTypeKey(token) {
 // Function to parse change types into deduplicated normalized keys
 function parseChangeTypes(rawType) {
   const keys = splitRawTypeTokens(rawType).map(normalizeTypeKey).filter(Boolean);
-  return keys.length > 0 ? Array.from(new Set(keys)) : ['new'];
+  return Array.from(new Set(keys));
 }
 
 // Function to format a type key into a human-readable display label
@@ -222,70 +208,32 @@ function renderMarkdown(markdownText) {
   }).join('');
 }
 
-// Function to build UTC date metadata
-function buildUtcDateMetadata(utcDate, includeDay = true) {
-  const year = String(utcDate.getUTCFullYear());
-  const monthNumber = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
-  const monthIdx = utcDate.getUTCMonth();
-  const monthName = MONTH_NAMES[monthIdx] || '';
-  const monthShort = MONTH_SHORT_NAMES[monthIdx] || '';
-
-  if (!includeDay) {
-    return {
-      year,
-      monthName,
-      displayDate: `${monthName} ${year}`,
-      rawDate: `${year}-${monthNumber}`,
-    };
-  }
-
-  const dayNumber = String(utcDate.getUTCDate()).padStart(2, '0');
-  const displayDate = `${monthShort} ${utcDate.getUTCDate()}, ${year}`;
-  return {
-    year,
-    monthName,
-    displayDate,
-    rawDate: `${year}-${monthNumber}-${dayNumber}`,
-  };
-}
-
 // Function to parse date strings into structured date metadata
 function parseDate(dateString) {
   const trimmed = String(dateString || '').trim();
-  if (!trimmed) {
-    return { year: '', monthName: '', displayDate: '', rawDate: '' };
+  if (!trimmed) return { year: '', monthName: '', displayDate: '', rawDate: '' };
+
+  const isoMatch = trimmed.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+  if (isoMatch) {
+    const [, y, m, d] = isoMatch;
+    const mIdx = m ? parseInt(m, 10) - 1 : -1;
+    const monthName = mIdx >= 0 ? MONTH_NAMES[mIdx] || '' : '';
+    const displayDate = d
+      ? `${monthName.slice(0, 3)} ${parseInt(d, 10)}, ${y}`
+      : (monthName ? `${monthName} ${y}` : y);
+    return { year: y, monthName, displayDate, rawDate: trimmed };
   }
 
-  const isoDayMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (isoDayMatch) {
-    const [, y, m, d] = isoDayMatch;
-    return buildUtcDateMetadata(new Date(Date.UTC(Number(y), Number(m) - 1, Number(d))), true);
-  }
-
-  const isoMonthMatch = trimmed.match(/^(\d{4})-(\d{2})$/);
-  if (isoMonthMatch) {
-    const [, y, m] = isoMonthMatch;
-    return buildUtcDateMetadata(new Date(Date.UTC(Number(y), Number(m) - 1, 1)), false);
-  }
-
-  const monthYearMatch = trimmed.match(/^([a-z]+)\s+(\d{4})$/i);
-  if (monthYearMatch) {
-    const prefix = monthYearMatch[1].toLowerCase().slice(0, 3);
-    const monthIdx = MONTH_NAMES.findIndex((mn) => mn.toLowerCase().startsWith(prefix));
-    if (monthIdx !== -1) {
-      return buildUtcDateMetadata(new Date(Date.UTC(Number(monthYearMatch[2]), monthIdx, 1)), false);
-    }
-  }
-
-  const yearOnlyMatch = trimmed.match(/^(\d{4})$/);
-  if (yearOnlyMatch) {
-    return { year: yearOnlyMatch[1], monthName: '', displayDate: yearOnlyMatch[1], rawDate: yearOnlyMatch[1] };
-  }
-
-  const parsedDate = new Date(trimmed);
-  if (!isNaN(parsedDate.getTime())) {
-    const utcDate = new Date(Date.UTC(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate()));
-    return buildUtcDateMetadata(utcDate, true);
+  const d = new Date(trimmed);
+  if (!isNaN(d.getTime())) {
+    const y = String(d.getUTCFullYear());
+    const monthName = MONTH_NAMES[d.getUTCMonth()] || '';
+    return {
+      year: y,
+      monthName,
+      displayDate: `${monthName.slice(0, 3)} ${d.getUTCDate()}, ${y}`,
+      rawDate: trimmed,
+    };
   }
 
   return { year: '', monthName: '', displayDate: trimmed, rawDate: trimmed };
@@ -414,6 +362,17 @@ function parseYaml(yamlText) {
     return isFolded ? blockLines.join(' ') : blockLines.join('\n');
   }
 
+  function readProperty(valStr, minIndent) {
+    if (valStr === '|' || valStr === '|-' || valStr === '>' || valStr === '>-') {
+      return readBlockScalar(valStr, minIndent);
+    }
+    if (valStr) return parseValue(valStr);
+    if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > minIndent) {
+      return parseBlock(parsedLines[currentLineIndex].indent);
+    }
+    return null;
+  }
+
   function parseBlock(minimumIndent) {
     if (currentLineIndex >= parsedLines.length) return null;
     const currentLine = parsedLines[currentLineIndex];
@@ -443,18 +402,8 @@ function parseYaml(yamlText) {
         } else if (itemContent.includes(':')) {
           const colonIndex = itemContent.indexOf(':');
           const itemKey = parseValue(itemContent.slice(0, colonIndex));
-          const itemValueString = itemContent.slice(colonIndex + 1).trim();
           const listItemObject = {};
-
-          if (itemValueString === '|' || itemValueString === '|-' || itemValueString === '>' || itemValueString === '>-') {
-            listItemObject[itemKey] = readBlockScalar(itemValueString, listIndentLevel);
-          } else if (itemValueString) {
-            listItemObject[itemKey] = parseValue(itemValueString);
-          } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > listIndentLevel) {
-            listItemObject[itemKey] = parseBlock(parsedLines[currentLineIndex].indent);
-          } else {
-            listItemObject[itemKey] = null;
-          }
+          listItemObject[itemKey] = readProperty(itemContent.slice(colonIndex + 1).trim(), listIndentLevel);
 
           while (
             currentLineIndex < parsedLines.length
@@ -463,21 +412,10 @@ function parseYaml(yamlText) {
           ) {
             const nextPropertyLine = parsedLines[currentLineIndex];
             const nextColonIndex = nextPropertyLine.content.indexOf(':');
+            currentLineIndex += 1;
             if (nextColonIndex !== -1) {
               const propertyKey = parseValue(nextPropertyLine.content.slice(0, nextColonIndex));
-              const propertyValueString = nextPropertyLine.content.slice(nextColonIndex + 1).trim();
-              currentLineIndex += 1;
-              if (propertyValueString === '|' || propertyValueString === '|-' || propertyValueString === '>' || propertyValueString === '>-') {
-                listItemObject[propertyKey] = readBlockScalar(propertyValueString, nextPropertyLine.indent);
-              } else if (propertyValueString) {
-                listItemObject[propertyKey] = parseValue(propertyValueString);
-              } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > nextPropertyLine.indent) {
-                listItemObject[propertyKey] = parseBlock(parsedLines[currentLineIndex].indent);
-              } else {
-                listItemObject[propertyKey] = null;
-              }
-            } else {
-              currentLineIndex += 1;
+              listItemObject[propertyKey] = readProperty(nextPropertyLine.content.slice(nextColonIndex + 1).trim(), nextPropertyLine.indent);
             }
           }
 
@@ -509,34 +447,7 @@ function parseYaml(yamlText) {
       const mapValueString = line.content.slice(colonIndex + 1).trim();
       currentLineIndex += 1;
 
-      if (mapValueString === '|' || mapValueString === '|-' || mapValueString === '>' || mapValueString === '>-') {
-        const isFolded = mapValueString.startsWith('>');
-        const blockLines = [];
-        let blockIndent = -1;
-        while (currentLineIndex < parsedLines.length) {
-          const nextLine = parsedLines[currentLineIndex];
-          if (blockIndent === -1) {
-            if (nextLine.indent > mappingIndentLevel) {
-              blockIndent = nextLine.indent;
-            } else {
-              break;
-            }
-          }
-          if (nextLine.indent >= blockIndent) {
-            blockLines.push(nextLine.raw.slice(blockIndent));
-            currentLineIndex += 1;
-          } else {
-            break;
-          }
-        }
-        mappingObject[mapKey] = isFolded ? blockLines.join(' ') : blockLines.join('\n');
-      } else if (mapValueString) {
-        mappingObject[mapKey] = parseValue(mapValueString);
-      } else if (currentLineIndex < parsedLines.length && parsedLines[currentLineIndex].indent > mappingIndentLevel) {
-        mappingObject[mapKey] = parseBlock(parsedLines[currentLineIndex].indent);
-      } else {
-        mappingObject[mapKey] = null;
-      }
+      mappingObject[mapKey] = readProperty(mapValueString, mappingIndentLevel);
     }
     return mappingObject;
   }
@@ -579,76 +490,6 @@ async function fetchAndParseResource(url) {
     console.error(`Error fetching/parsing resource from ${url}:`, error);
     return null;
   }
-}
-
-// Function to create a Spectrum-styled single-select dropdown control
-function createSingleSelectDropdown({
-  id,
-  labelText,
-  labelIcon = null,
-  allLabel = 'All',
-  options = [],
-  selectedValue = 'all',
-  onChange,
-}) {
-  const group = createTag('div', { class: 'changelog-filter-group changelog-singleselect-group' });
-  const label = createTag('label', {
-    class: 'spectrum-FieldLabel spectrum-FieldLabel--sizeM changelog-filter-label',
-    id: `${id}-label`,
-    for: id,
-  });
-  if (labelIcon) {
-    const iconSpan = createTag('span', { class: 'changelog-filter-label-icon', 'aria-hidden': 'true' });
-    iconSpan.innerHTML = getIconSvg(labelIcon);
-    label.append(iconSpan);
-  }
-  const textSpan = createTag('span', { class: 'changelog-filter-label-text' });
-  textSpan.textContent = labelText;
-  label.append(textSpan);
-
-  const wrapper = createTag('div', { class: 'changelog-select-wrapper' });
-  const select = createTag('select', {
-    id,
-    class: 'spectrum-Picker spectrum-Picker--sizeM changelog-filter-select',
-    'aria-labelledby': `${id}-label`,
-  });
-
-  function populateOptions(opts, currentVal) {
-    select.innerHTML = '';
-    const allOpt = createTag('option', { value: 'all' });
-    allOpt.textContent = allLabel;
-    select.append(allOpt);
-
-    opts.forEach((opt) => {
-      const optEl = createTag('option', { value: opt.value });
-      optEl.textContent = opt.text;
-      if (opt.value === currentVal) optEl.selected = true;
-      select.append(optEl);
-    });
-    select.value = currentVal;
-  }
-
-  populateOptions(options, selectedValue);
-
-  select.addEventListener('change', (e) => {
-    onChange(e.target.value);
-  });
-
-  const pickerIcon = createTag('span', { class: 'changelog-picker-icon', 'aria-hidden': 'true' });
-  pickerIcon.innerHTML = getIconSvg('chevron');
-  wrapper.append(select, pickerIcon);
-  group.append(label, wrapper);
-
-  return {
-    group,
-    select,
-    setValue(val) {
-      select.value = val;
-    },
-    updateOptions(newOpts, currentVal) {
-      populateOptions(newOpts, currentVal);
-    },
-  };
 }
 
 // Function to create a Spectrum-styled multi-select dropdown control
@@ -698,6 +539,15 @@ function createMultiSelectDropdown({
     id: `${id}-trigger-text`,
   });
 
+  let optionCheckboxes = [];
+
+  function syncCheckboxes() {
+    allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((o) => selectedSet.has(o.value));
+    optionCheckboxes.forEach(({ checkbox: cb, option: o }) => {
+      cb.checked = selectedSet.has(o.value);
+    });
+  }
+
   function updateTriggerLabel() {
     const selectedCount = selectedSet.size;
 
@@ -735,10 +585,7 @@ function createMultiSelectDropdown({
         e.stopPropagation();
         e.preventDefault();
         selectedSet.delete(opt.value);
-        allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((o) => selectedSet.has(o.value));
-        optionCheckboxes.forEach(({ checkbox: cb, option: o }) => {
-          cb.checked = selectedSet.has(o.value);
-        });
+        syncCheckboxes();
         updateTriggerLabel();
         onChange(selectedSet);
       });
@@ -768,13 +615,15 @@ function createMultiSelectDropdown({
   });
 
   const searchBox = createTag('div', { class: 'changelog-multiselect-search' });
+  const searchIcon = createTag('span', { class: 'changelog-search-icon', 'aria-hidden': 'true' });
+  searchIcon.innerHTML = getIconSvg('search');
   const searchInput = createTag('input', {
     type: 'text',
     class: 'spectrum-Textfield-input changelog-multiselect-search-input',
     placeholder: `Search ${entityName}`,
     'aria-label': `Search ${entityName}`,
   });
-  searchBox.append(searchInput);
+  searchBox.append(searchIcon, searchInput);
   popover.append(searchBox);
 
   const allOption = createTag('label', { class: 'changelog-multiselect-option changelog-multiselect-option-all' });
@@ -794,8 +643,6 @@ function createMultiSelectDropdown({
 
   const listContainer = createTag('div', { class: 'changelog-multiselect-options-list' });
   popover.append(listContainer);
-
-  let optionCheckboxes = [];
 
   function populateOptionsList(opts) {
     listContainer.innerHTML = '';
@@ -821,7 +668,7 @@ function createMultiSelectDropdown({
         } else {
           selectedSet.delete(opt.value);
         }
-        allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((o) => selectedSet.has(o.value));
+        syncCheckboxes();
         updateTriggerLabel();
         onChange(selectedSet);
       });
@@ -829,7 +676,7 @@ function createMultiSelectDropdown({
       optionCheckboxes.push({ checkbox, option: opt });
     });
 
-    allCheckbox.checked = currentOptions.length > 0 && currentOptions.every((opt) => selectedSet.has(opt.value));
+    syncCheckboxes();
   }
 
   allCheckbox.addEventListener('change', () => {
@@ -838,9 +685,7 @@ function createMultiSelectDropdown({
     } else {
       selectedSet.clear();
     }
-    optionCheckboxes.forEach(({ checkbox: cb }) => {
-      cb.checked = allCheckbox.checked;
-    });
+    syncCheckboxes();
     updateTriggerLabel();
     onChange(selectedSet);
   });
@@ -1052,10 +897,9 @@ function renderReleaseCard({
   defaultReleaseKind,
   filterState,
   availableTypes,
-  configuredTypesMap,
-  defaultTypesByKey,
   authoredTypeLabels,
   modulesMap,
+  hasAnyTypesInChanges = true,
 }) {
   const cardSlug = String(releaseItem.title || releaseItem.kind || '')
     .toLowerCase()
@@ -1106,15 +950,9 @@ function renderReleaseCard({
         .join(' ');
       const typesHtml = changeItem.types.map((typeKey) => {
         const typeDefinition = availableTypes.find((item) => item.key === typeKey);
-        const configuredType = configuredTypesMap[typeKey];
-        const defaultType = defaultTypesByKey.get(typeKey);
-        const iconType = typeDefinition?.icon || configuredType?.icon || defaultType?.icon || typeKey;
-        const typeLabel = typeDefinition?.label
-          || configuredType?.label
-          || defaultType?.label
-          || formatTypeLabel(typeKey, authoredTypeLabels.get(typeKey));
-        const typeColor = typeDefinition?.color || configuredType?.color || defaultType?.color;
-        const colorHex = resolveColorHex(typeColor, '#505050');
+        const iconType = typeDefinition?.icon || typeKey;
+        const typeLabel = typeDefinition?.label || formatTypeLabel(typeKey, authoredTypeLabels.get(typeKey));
+        const colorHex = resolveColorHex(typeDefinition?.color, '#505050');
         const safeTypeClass = typeKey.replace(/[^a-z0-9_-]/g, '-');
         const isPillBadge = safeTypeClass === 'experimental' || safeTypeClass === 'api';
         const inlineColorStyle = isPillBadge ? '' : ` style="color: ${colorHex};"`;
@@ -1141,41 +979,42 @@ function renderReleaseCard({
         </div>
       ` : '';
 
-      let codeHtml = '';
-      if (changeItem.code) {
-        const rawCode = String(changeItem.code).trim();
-        const codeLang = changeItem.language || 'js';
-        if (rawCode.startsWith('<pre')) {
-          let preHtml = rawCode.includes('<code')
-            ? rawCode
-            : rawCode.replace(/^<pre([^>]*)>([\s\S]*)<\/pre>$/i, '<pre$1><code>$2</code></pre>');
-          if (!preHtml.includes('changelog-code-block')) {
-            if (/^<pre[^>]*class="/i.test(preHtml)) {
-              preHtml = preHtml.replace(/^<pre([^>]*)class="([^"]*)"/i, '<pre$1class="changelog-code-block $2"');
-            } else {
-              preHtml = preHtml.replace(/^<pre/i, '<pre class="changelog-code-block"');
-            }
-          }
-          codeHtml = preHtml;
-        } else if (rawCode.startsWith('```')) {
-          codeHtml = renderMarkdown(rawCode);
-        } else {
-          codeHtml = `<pre class="changelog-code-block language-${codeLang}"><code class="language-${codeLang}">${escapeHtml(rawCode)}</code></pre>`;
+      let listHtml = '';
+      if (changeItem.list) {
+        const items = Array.isArray(changeItem.list)
+          ? changeItem.list
+          : String(changeItem.list).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        if (items.length > 0) {
+          const listItemsHtml = items
+            .map((item) => `<li>${formatMarkdownProse(String(item).replace(/^[-*•]\s*/, '').trim())}</li>`)
+            .join('');
+          listHtml = `<ul class="changelog-markdown-list">${listItemsHtml}</ul>`;
         }
       }
 
-      return `
-        <div class="changelog-change-row ${typeClassList}">
+      let codeHtml = '';
+      if (changeItem.code) {
+        const lang = (changeItem.language || 'js').toLowerCase();
+        codeHtml = `<pre class="changelog-code-block language-${lang}"><code class="language-${lang}">${escapeHtml(String(changeItem.code).trim())}</code></pre>`;
+      }
+
+      const typeColHtml = (hasAnyTypesInChanges || moduleHtml)
+        ? `
           <div class="changelog-change-type-col">
-            <div class="changelog-change-types">
-              ${typesHtml}
-            </div>
+            ${typesHtml ? `<div class="changelog-change-types">${typesHtml}</div>` : ''}
             ${moduleHtml}
           </div>
+        `
+        : '';
+
+      return `
+        <div class="changelog-change-row ${typeClassList}">
+          ${typeColHtml}
           <div class="changelog-change-content">
             ${changeHeadingHtml}
             <div class="spectrum-Body spectrum-Body--sizeM changelog-change-description">
               ${renderMarkdown(changeItem.text)}
+              ${listHtml}
               ${codeHtml}
               ${openBadgeHtml}
             </div>
@@ -1205,13 +1044,17 @@ function renderReleaseCard({
 // Main decorate function to build the changelog component
 export default async function decorate(block) {
   const metadataAttr = block.getAttribute('data-metadata');
-  console.log("metadataAttr", metadataAttr)
   const contentAttr = block.getAttribute('data-content');
-  console.log("contentAttr", contentAttr)
-  const metadataAbsoluteSrc = metadataAttr && getResourceUrl(metadataAttr)
-  const contentaAbsoluteSrc = contentAttr && getResourceUrl(contentAttr)
-  console.log("metadataAbsoluteSrc", metadataAbsoluteSrc)
-  console.log("contentaAbsoluteSrc", contentaAbsoluteSrc)
+  const resolveUrl = (path) => {
+    if (!path) return null;
+    try {
+      return getResourceUrl(path) || path;
+    } catch {
+      return path;
+    }
+  };
+  const metadataAbsoluteSrc = metadataAttr && resolveUrl(metadataAttr);
+  const contentaAbsoluteSrc = contentAttr && resolveUrl(contentAttr);
 
   // 1. Fetch metadata/settings YAML first
   let parsedReleasesMetadata = null;
@@ -1243,8 +1086,6 @@ export default async function decorate(block) {
     }
   }
 
-  console.log("parsedReleasesDocument", parsedReleasesDocument)
-
   if (!parsedReleasesDocument || (!parsedReleasesDocument.releases && !Array.isArray(parsedReleasesDocument))) {
     block.innerHTML = '<div class="changelog-empty-state"><p class="spectrum-Body spectrum-Body--sizeL changelog-empty-title">Unable to load changelog data.</p></div>';
     return;
@@ -1266,7 +1107,7 @@ export default async function decorate(block) {
   const rawReleasesList = Array.isArray(parsedReleasesDocument?.releases) ? parsedReleasesDocument.releases : [];
   const defaultReleaseKind = parsedReleasesMetadata?.defaultKind || '';
   const pageConfig = parsedReleasesMetadata?.page;
-  const feedUrl = pageConfig?.url;
+  const feedUrl = parsedReleasesDocument?.rssfeed
 
   block.innerHTML = '';
 
@@ -1291,8 +1132,20 @@ export default async function decorate(block) {
     }
 
     const isLatestRelease = releases.length === 0;
-    const releaseChanges = Array.isArray(releaseItem.changes) ? releaseItem.changes.map((changeItem) => {
-      splitRawTypeTokens(changeItem.type).forEach((rawToken) => {
+    const rawChanges = Array.isArray(releaseItem.changes) && releaseItem.changes.length > 0
+      ? releaseItem.changes
+      : (releaseItem.text
+        ? [{ text: releaseItem.text }]
+        : (releaseItem.summary
+          ? []
+          : [{ text: 'Maintenance release.', types: [] }]
+        )
+      );
+
+    const releaseChanges = rawChanges.map((changeItem) => {
+      const itemObj = typeof changeItem === 'string' ? { text: changeItem } : (changeItem || {});
+      const changeTypes = parseChangeTypes(itemObj.type || '');
+      changeTypes.forEach((rawToken) => {
         const normalizedKey = normalizeTypeKey(rawToken);
         if (normalizedKey && !authoredTypeLabels.has(normalizedKey)) {
           authoredTypeLabels.set(normalizedKey, rawToken);
@@ -1300,16 +1153,17 @@ export default async function decorate(block) {
       });
 
       return {
-        types: parseChangeTypes(changeItem.type),
-        heading: changeItem.heading || '',
-        modules: Array.isArray(changeItem.modules) ? changeItem.modules : (changeItem.modules ? [changeItem.modules] : []),
-        text: changeItem.text || '',
-        action: changeItem.action || '',
-        code: changeItem.code || '',
-        language: changeItem.language || 'js',
-        open: Boolean(changeItem.open),
+        types: changeTypes,
+        heading: itemObj.heading || '',
+        modules: Array.isArray(itemObj.modules) ? itemObj.modules : (itemObj.modules ? [itemObj.modules] : []),
+        text: itemObj.text || '',
+        list: itemObj.list || '',
+        action: itemObj.action || '',
+        code: itemObj.code || '',
+        language: itemObj.language || itemObj.lang || 'js',
+        open: Boolean(itemObj.open),
       };
-    }) : [];
+    });
 
     releases.push({
       version: releaseItem.version || '',
@@ -1334,12 +1188,13 @@ export default async function decorate(block) {
     if (!hasConfiguredFilters) return true;
     const filterDef = configuredFilters.find((f) => f.id === filterId);
     if (!filterDef) {
-      // By default, year and month filters are always available from content unless explicitly disabled
       if (filterId === 'year' || filterId === 'month') return true;
       return false;
     }
     return filterDef.enabled !== false;
   };
+
+  const hasAnyTypesInChanges = releases.some((r) => r.changes.some((c) => c.types && c.types.length > 0));
 
   const typeFilterMetadata = (parsedReleasesMetadata?.filters || []).find((f) => f.id === 'type');
   const configuredTypesMap = { ...(parsedReleasesMetadata?.types || {}) };
@@ -1348,7 +1203,7 @@ export default async function decorate(block) {
   const availableTypes = [];
   const addedTypeKeys = new Set();
 
-  if (Array.isArray(typeFilterMetadata?.options)) {
+  if (Array.isArray(typeFilterMetadata?.options) && typeFilterMetadata.options.length > 0) {
     typeFilterMetadata.options.forEach((opt) => {
       const typeKey = normalizeTypeKey(opt.id);
       if (!typeKey || addedTypeKeys.has(typeKey)) return;
@@ -1362,19 +1217,16 @@ export default async function decorate(block) {
       });
       addedTypeKeys.add(typeKey);
     });
-  } else {
-    const hasAnyStandardType = ALL_TYPES.some((t) => authoredTypeLabels.has(t.key));
-    ALL_TYPES.forEach((t) => {
-      if (!hasAnyStandardType || authoredTypeLabels.has(t.key)) {
-        const legacyType = configuredTypesMap[t.key];
-        availableTypes.push({
-          ...t,
-          label: legacyType?.label || t.label,
-          icon: legacyType?.icon || t.icon,
-          color: legacyType?.color || t.color,
-        });
-        addedTypeKeys.add(t.key);
-      }
+  } else if (hasAnyTypesInChanges) {
+    authoredTypeLabels.forEach((rawToken, typeKey) => {
+      const def = defaultTypesByKey.get(typeKey);
+      const configured = configuredTypesMap[typeKey];
+      availableTypes.push({
+        key: typeKey,
+        label: configured?.label || def?.label || formatTypeLabel(typeKey, rawToken),
+        icon: configured?.icon || def?.icon || typeKey,
+        color: configured?.color || def?.color || '',
+      });
     });
   }
 
@@ -1391,22 +1243,12 @@ export default async function decorate(block) {
   const typeLabel = typeFilterMetadata?.label || 'Type of change';
   const typeAllLabel = typeFilterMetadata?.allLabel || 'All types';
 
-  const showModuleFilter = isFilterConfigured('module') && (
-    Boolean(moduleFilterMetadata)
-    || Object.keys(modulesMap).length > 0
-    || releases.some((r) => r.changes.some((c) => c.modules.length > 0))
-  );
-
-  const contentYears = Array.from(new Set(releases.map((r) => r.year).filter((y) => y && !isNaN(Number(y)))))
-    .sort((a, b) => Number(b) - Number(a));
-
-  const showYearFilter = isFilterConfigured('year') !== false && (contentYears.length > 0 || Boolean(yearFilterMetadata));
-  const showMonthFilter = isFilterConfigured('month') !== false;
-  const showTypeFilter = isFilterConfigured('type') !== false && availableTypes.length > 0;
+  const hasModulesInYaml = Object.keys(modulesMap).length > 0
+    || releases.some((r) => r.changes.some((c) => c.modules && c.modules.length > 0));
 
   let moduleOptions = [];
-  if (showModuleFilter) {
-    if (Array.isArray(moduleFilterMetadata?.options)) {
+  if (hasModulesInYaml) {
+    if (Array.isArray(moduleFilterMetadata?.options) && moduleFilterMetadata.options.length > 0) {
       moduleOptions = moduleFilterMetadata.options.map((opt) => ({
         value: opt.id,
         text: opt.label || modulesMap[opt.id] || opt.id,
@@ -1418,6 +1260,15 @@ export default async function decorate(block) {
       moduleOptions = uniqueModuleIds.map((id) => ({ value: id, text: id }));
     }
   }
+
+  const showModuleFilter = isFilterConfigured('module') && hasModulesInYaml && moduleOptions.length > 0;
+
+  const contentYears = Array.from(new Set(releases.map((r) => r.year).filter((y) => y && !isNaN(Number(y)))))
+    .sort((a, b) => Number(b) - Number(a));
+
+  const showYearFilter = !isFiltersDisabled;
+  const showMonthFilter = !isFiltersDisabled;
+  const showTypeFilter = isFilterConfigured('type') !== false && availableTypes.length > 0 && hasAnyTypesInChanges;
 
   const yearOptions = contentYears.length > 0
     ? contentYears.map(String)
@@ -1431,154 +1282,46 @@ export default async function decorate(block) {
     types: new Set(),
   };
 
-  Object.defineProperty(filterState, 'module', {
-    get() {
-      if (moduleOptions.length > 0 && this.modules.size === moduleOptions.length) return 'all';
-      if (this.modules.size === 0) return 'all';
-      if (this.modules.size === 1) return Array.from(this.modules)[0];
-      return Array.from(this.modules).join(',');
-    },
-    set(val) {
-      this.modules.clear();
-      if (!val || val === 'all') {
-        moduleOptions.forEach((opt) => this.modules.add(opt.value));
-      } else if (val !== 'none') {
-        String(val).split(',').map((item) => item.trim()).filter(Boolean).forEach((id) => this.modules.add(id));
-      }
-    },
-  });
-
-  Object.defineProperty(filterState, 'year', {
-    get() {
-      if (yearOptions.length > 0 && this.years.size === yearOptions.length) return 'all';
-      if (this.years.size === 0) return 'all';
-      if (this.years.size === 1) return Array.from(this.years)[0];
-      return Array.from(this.years).join(',');
-    },
-    set(val) {
-      this.years.clear();
-      if (!val || val === 'all') {
-        yearOptions.forEach((yr) => this.years.add(yr));
-      } else if (val !== 'none') {
-        String(val).split(',').map((item) => item.trim()).filter(Boolean).forEach((yr) => this.years.add(yr));
-      }
-    },
-  });
-
   function getMonthOptions() {
     if (!showMonthFilter) return [];
     return MONTH_NAMES.map((m) => ({ value: m, text: m }));
   }
 
-  Object.defineProperty(filterState, 'month', {
-    get() {
-      const currentMonthOptions = getMonthOptions();
-      if (currentMonthOptions.length > 0 && this.months.size === currentMonthOptions.length) return 'all';
-      if (this.months.size === 0) return 'all';
-      if (this.months.size === 1) return Array.from(this.months)[0];
-      return Array.from(this.months).join(',');
-    },
-    set(val) {
-      this.months.clear();
-      if (!val || val === 'all') {
-        getMonthOptions().forEach((opt) => this.months.add(opt.value));
-      } else if (val !== 'none') {
-        String(val).split(',').map((item) => item.trim()).filter(Boolean).forEach((mo) => this.months.add(mo));
-      }
-    },
-  });
-
   // URL state management
+  function parseFilterUrlParam(paramVal, allValues) {
+    if (!paramVal || paramVal === 'all') return new Set(allValues);
+    if (paramVal === 'none') return new Set();
+    const valid = new Set(allValues);
+    return new Set(paramVal.split(',').map((v) => v.trim()).filter((v) => valid.has(v)));
+  }
+
   function readFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    const modParam = params.get('module');
-    const yrParam = params.get('year');
-    const moParam = params.get('month');
-    const typeParam = params.get('type');
-
-    if (showYearFilter) {
-      filterState.years.clear();
-      if (yrParam && yrParam !== 'all') {
-        if (yrParam !== 'none') {
-          yrParam.split(',').forEach((yr) => {
-            const trimmed = yr.trim();
-            if (trimmed && yearOptions.includes(trimmed)) filterState.years.add(trimmed);
-          });
-        }
-      } else {
-        yearOptions.forEach((yr) => filterState.years.add(yr));
-      }
-    }
-
-    if (showMonthFilter) {
-      filterState.months.clear();
-      if (moParam && moParam !== 'all') {
-        if (moParam !== 'none') {
-          moParam.split(',').forEach((mo) => {
-            const trimmed = mo.trim();
-            if (trimmed) filterState.months.add(trimmed);
-          });
-        }
-      } else {
-        getMonthOptions().forEach((opt) => filterState.months.add(opt.value));
-      }
-    }
-
-    if (showModuleFilter) {
-      filterState.modules.clear();
-      if (modParam && modParam !== 'all') {
-        if (modParam !== 'none') {
-          modParam.split(',').forEach((modId) => {
-            const trimmed = modId.trim();
-            if (trimmed && moduleOptions.some((opt) => opt.value === trimmed)) filterState.modules.add(trimmed);
-          });
-        }
-      } else {
-        moduleOptions.forEach((opt) => filterState.modules.add(opt.value));
-      }
-    }
-
-    if (showTypeFilter && typeParam) {
-      filterState.types.clear();
-      typeParam.split(',').forEach((typeKey) => {
-        const normKey = normalizeTypeKey(typeKey);
-        const matched = availableTypes.find((t) => t.key === normKey);
-        if (matched) filterState.types.add(matched.key);
-      });
+    if (showYearFilter) filterState.years = parseFilterUrlParam(params.get('year'), yearOptions);
+    if (showMonthFilter) filterState.months = parseFilterUrlParam(params.get('month'), getMonthOptions().map((o) => o.value));
+    if (showModuleFilter) filterState.modules = parseFilterUrlParam(params.get('module'), moduleOptions.map((o) => o.value));
+    if (showTypeFilter && params.get('type')) {
+      filterState.types = parseFilterUrlParam(params.get('type'), availableTypes.map((t) => t.key));
     }
   }
 
   function writeToUrl() {
     const params = new URLSearchParams(window.location.search);
-
-    const isAllModules = !showModuleFilter || moduleOptions.length === 0 || filterState.modules.size === 0 || filterState.modules.size === moduleOptions.length;
-    if (showModuleFilter && !isAllModules) {
-      params.set('module', Array.from(filterState.modules).join(','));
-    } else {
-      params.delete('module');
-    }
-
-    const isAllYears = !showYearFilter || yearOptions.length === 0 || filterState.years.size === 0 || filterState.years.size === yearOptions.length;
-    if (showYearFilter && !isAllYears) {
-      params.set('year', Array.from(filterState.years).join(','));
-    } else {
-      params.delete('year');
-    }
-
-    const currentMonthOptions = getMonthOptions();
-    const isAllMonths = !showMonthFilter || currentMonthOptions.length === 0 || filterState.months.size === 0 || filterState.months.size === currentMonthOptions.length;
-    if (showMonthFilter && !isAllMonths) {
-      params.set('month', Array.from(filterState.months).join(','));
-    } else {
-      params.delete('month');
-    }
-
+    const syncParam = (key, enabled, set, total) => {
+      if (enabled && set.size > 0 && set.size < total) {
+        params.set(key, Array.from(set).join(','));
+      } else {
+        params.delete(key);
+      }
+    };
+    syncParam('module', showModuleFilter, filterState.modules, moduleOptions.length);
+    syncParam('year', showYearFilter, filterState.years, yearOptions.length);
+    syncParam('month', showMonthFilter, filterState.months, getMonthOptions().length);
     if (showTypeFilter && filterState.types.size > 0) {
       params.set('type', Array.from(filterState.types).join(','));
     } else {
       params.delete('type');
     }
-
     const qs = params.toString();
     window.history.replaceState({}, '', `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`);
   }
@@ -1611,119 +1354,61 @@ export default async function decorate(block) {
   const pillRows = [];
 
   let moduleMultiSelect = null;
-  let moduleSingleSelect = null;
   if (showModuleFilter) {
-    const isSingle = moduleFilterMetadata?.control === 'select';
-    if (isSingle) {
-      moduleSingleSelect = createSingleSelectDropdown({
-        id: 'changelog-filter-module',
-        labelText: moduleLabel,
-        labelIcon: 'layers',
-        allLabel: moduleAllLabel,
-        options: moduleOptions,
-        selectedValue: filterState.module,
-        onChange: (val) => {
-          filterState.module = val;
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(moduleSingleSelect.group);
-    } else {
-      moduleMultiSelect = createMultiSelectDropdown({
-        id: 'changelog-filter-module',
-        labelText: moduleLabel,
-        labelIcon: 'layers',
-        allLabel: moduleAllLabel,
-        options: moduleOptions,
-        selectedSet: filterState.modules,
-        maxVisibleTags: 3,
-        entityName: 'modules',
-        onChange: () => {
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(moduleMultiSelect.group);
-    }
+    moduleMultiSelect = createMultiSelectDropdown({
+      id: 'changelog-filter-module',
+      labelText: moduleLabel,
+      labelIcon: 'layers',
+      allLabel: moduleAllLabel,
+      options: moduleOptions,
+      selectedSet: filterState.modules,
+      maxVisibleTags: 3,
+      entityName: 'modules',
+      onChange: () => {
+        writeToUrl();
+        applyFilters();
+      },
+    });
+    dropdownRow.append(moduleMultiSelect.group);
   }
 
   let yearMultiSelect = null;
-  let yearSingleSelect = null;
   if (showYearFilter) {
-    const isSingle = yearFilterMetadata?.control === 'select';
-    if (isSingle) {
-      yearSingleSelect = createSingleSelectDropdown({
-        id: 'changelog-filter-year',
-        labelText: yearLabel,
-        labelIcon: 'calendar',
-        allLabel: yearAllLabel,
-        options: yearOptions.map((y) => ({ value: y, text: y })),
-        selectedValue: filterState.year,
-        onChange: (val) => {
-          filterState.year = val;
-          updateMonthControlOptions();
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(yearSingleSelect.group);
-    } else {
-      yearMultiSelect = createMultiSelectDropdown({
-        id: 'changelog-filter-year',
-        labelText: yearLabel,
-        labelIcon: 'calendar',
-        allLabel: yearAllLabel,
-        options: yearOptions.map((y) => ({ value: y, text: y })),
-        selectedSet: filterState.years,
-        maxVisibleTags: 3,
-        entityName: 'years',
-        onChange: () => {
-          updateMonthControlOptions();
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(yearMultiSelect.group);
-    }
+    yearMultiSelect = createMultiSelectDropdown({
+      id: 'changelog-filter-year',
+      labelText: yearLabel,
+      labelIcon: 'calendar',
+      allLabel: yearAllLabel,
+      options: yearOptions.map((y) => ({ value: y, text: y })),
+      selectedSet: filterState.years,
+      maxVisibleTags: 3,
+      entityName: 'years',
+      onChange: () => {
+        updateMonthControlOptions();
+        writeToUrl();
+        applyFilters();
+      },
+    });
+    dropdownRow.append(yearMultiSelect.group);
   }
 
   let monthMultiSelect = null;
-  let monthSingleSelect = null;
   if (showMonthFilter) {
-    const isSingle = monthFilterMetadata?.control === 'select';
-    if (isSingle) {
-      monthSingleSelect = createSingleSelectDropdown({
-        id: 'changelog-filter-month',
-        labelText: monthLabel,
-        labelIcon: 'calendar',
-        allLabel: monthAllLabel,
-        options: getMonthOptions(),
-        selectedValue: filterState.month,
-        onChange: (val) => {
-          filterState.month = val;
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(monthSingleSelect.group);
-    } else {
-      monthMultiSelect = createMultiSelectDropdown({
-        id: 'changelog-filter-month',
-        labelText: monthLabel,
-        labelIcon: 'calendar',
-        allLabel: monthAllLabel,
-        options: getMonthOptions(),
-        selectedSet: filterState.months,
-        maxVisibleTags: 2,
-        entityName: 'months',
-        onChange: () => {
-          writeToUrl();
-          applyFilters();
-        },
-      });
-      dropdownRow.append(monthMultiSelect.group);
-    }
+    monthMultiSelect = createMultiSelectDropdown({
+      id: 'changelog-filter-month',
+      labelText: monthLabel,
+      labelIcon: 'calendar',
+      allLabel: monthAllLabel,
+      options: getMonthOptions(),
+      selectedSet: filterState.months,
+      maxVisibleTags: 2,
+      entityName: 'months',
+      onChange: () => {
+        writeToUrl();
+        applyFilters();
+      },
+    });
+    dropdownRow.append(monthMultiSelect.group);
   }
 
   let typePillsContainer = null;
@@ -1748,9 +1433,6 @@ export default async function decorate(block) {
   function updateMonthControlOptions() {
     if (monthMultiSelect) {
       monthMultiSelect.update(getMonthOptions());
-    }
-    if (monthSingleSelect) {
-      monthSingleSelect.updateOptions(getMonthOptions(), filterState.month);
     }
   }
 
@@ -1898,13 +1580,16 @@ export default async function decorate(block) {
       versionHeader.textContent = 'Version';
 
       const changesWrapper = createTag('div', { class: 'changelog-header-changes' });
-      const typeHeader = createTag('div', { class: 'changelog-header-col changelog-header-col-type' });
-      typeHeader.textContent = 'Type of change';
+      if (hasAnyTypesInChanges) {
+        const typeHeader = createTag('div', { class: 'changelog-header-col changelog-header-col-type' });
+        typeHeader.textContent = 'Type of change';
+        changesWrapper.append(typeHeader);
+      }
 
       const descHeader = createTag('div', { class: 'changelog-header-col changelog-header-col-desc' });
       descHeader.textContent = 'Description';
 
-      changesWrapper.append(typeHeader, descHeader);
+      changesWrapper.append(descHeader);
       tableHeader.append(versionHeader, changesWrapper);
       yearSection.append(tableHeader);
 
@@ -1919,10 +1604,9 @@ export default async function decorate(block) {
           defaultReleaseKind,
           filterState,
           availableTypes,
-          configuredTypesMap,
-          defaultTypesByKey,
           authoredTypeLabels,
           modulesMap,
+          hasAnyTypesInChanges,
         });
         releaseList.appendChild(releaseCard);
       });
@@ -1935,9 +1619,6 @@ export default async function decorate(block) {
       decoratePreformattedCode(pre);
     });
     decorateInlineCodes(resultsContainer);
-    if (typeof window !== 'undefined' && window.Prism && typeof window.Prism.highlightAllUnder === 'function') {
-      window.Prism.highlightAllUnder(resultsContainer);
-    }
   }
 
   function updateSummary(totalMatchingChanges, matchingReleasesCount) {
@@ -1975,12 +1656,9 @@ export default async function decorate(block) {
     filterState.types.clear();
 
     if (moduleMultiSelect) moduleMultiSelect.update();
-    if (moduleSingleSelect) moduleSingleSelect.setValue('all');
     if (yearMultiSelect) yearMultiSelect.update();
-    if (yearSingleSelect) yearSingleSelect.setValue('all');
     updateMonthControlOptions();
     if (monthMultiSelect) monthMultiSelect.update();
-    if (monthSingleSelect) monthSingleSelect.setValue('all');
 
     writeToUrl();
     applyFilters();
