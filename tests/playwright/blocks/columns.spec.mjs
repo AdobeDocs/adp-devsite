@@ -66,13 +66,6 @@ const devBizVariants = [
   },
 ];
 
-async function hideColumnsScreenshotOverlays(page) {
-  await hideNonComponentContent(page);
-  // The fixed global header can cross a block wrapper while Playwright scrolls
-  // it into view. It is not part of the component contract.
-  await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
-}
-
 function rowsIn(block) {
   return block.locator(':scope > div');
 }
@@ -243,7 +236,7 @@ async function prepareDevBizScreenshot(page, variant) {
   if (variant.hasBackgroundImage) await waitForBackgroundImage(wrapper);
   await page.evaluate(() => document.fonts.ready);
   await isolateDevBizWrapper(page, wrapper);
-  await hideColumnsScreenshotOverlays(page);
+  await hideNonComponentContent(page);
 
   return { block, wrapper };
 }
@@ -279,7 +272,7 @@ test.describe('Columns DevDocs image reference', () => {
     await expect(block).toHaveAttribute('data-slots', 'image, heading, text, buttons');
     await waitForColumnImages(block, imageFixture.rows);
     await page.evaluate(() => document.fonts.ready);
-    await hideColumnsScreenshotOverlays(page);
+    await hideNonComponentContent(page);
     await expect(wrapperOf(block)).toHaveScreenshot(imageFixture.snapshot);
   });
 });
@@ -300,7 +293,7 @@ test.describe('Columns DevDocs 1280px stack', () => {
     await expectStackedRowDirections(page, block, reverseFixture.rows);
     await waitForColumnImages(block, reverseFixture.rows);
     await page.evaluate(() => document.fonts.ready);
-    await hideColumnsScreenshotOverlays(page);
+    await hideNonComponentContent(page);
     await expect(wrapperOf(block)).toHaveScreenshot('columns-reverse-stacked.png');
   });
 });
@@ -335,7 +328,7 @@ test.describe('Columns DevDocs video reference', () => {
     await expect(block).toHaveAttribute('data-slots', 'video, heading, text, buttons');
     await expect(videos).toHaveCount(videoFixture.rows);
     await page.evaluate(() => document.fonts.ready);
-    await hideColumnsScreenshotOverlays(page);
+    await hideNonComponentContent(page);
     // The MP4's decoded frame is time- and network-dependent. Its behavior is
     // asserted above; mask only the moving frames while snapshotting their layout.
     await expect(wrapperOf(block)).toHaveScreenshot(videoFixture.snapshot, {
@@ -363,7 +356,7 @@ test.describe('Columns DevDocs reverse reference', () => {
     await expect(block).toHaveClass(/\bisReversed\b/);
     await waitForColumnImages(block, reverseFixture.rows);
     await page.evaluate(() => document.fonts.ready);
-    await hideColumnsScreenshotOverlays(page);
+    await hideNonComponentContent(page);
     await expect(wrapperOf(block)).toHaveScreenshot(reverseFixture.snapshot);
   });
 });

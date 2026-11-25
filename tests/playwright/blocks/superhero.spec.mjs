@@ -538,8 +538,6 @@ test.describe('Superhero reference', () => {
         }
 
         await hideNonComponentContent(page);
-        // The fixed global header can cross the hero while it scrolls into view.
-        await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
         await page.mouse.move(0, page.viewportSize().height - 1);
         await page.evaluate(() => document.fonts.ready);
 

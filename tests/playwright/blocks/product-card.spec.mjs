@@ -183,8 +183,6 @@ test.describe('Product Card DevBiz reference', () => {
       await expectImagesLoaded(block, 3);
       await page.evaluate(() => document.fonts.ready);
       await hideNonComponentContent(page);
-      // Fixed site navigation can overlap a component capture after scrolling.
-      await page.addStyleTag({ content: 'body > header { visibility: hidden !important; }' });
       await expect(block.locator('..')).toHaveScreenshot(variant.snapshot);
     });
   }
