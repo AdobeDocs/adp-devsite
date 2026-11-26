@@ -612,7 +612,7 @@ main div.changelog-wrapper div.changelog {
   }
 
   .changelog-header-col-type {
-    width: 140px;
+    width: 180px;
     flex-shrink: 0;
   }
 
@@ -708,7 +708,7 @@ main div.changelog-wrapper div.changelog {
   }
 
   .changelog-change-type-col {
-    width: 140px;
+    width: 180px;
     flex-shrink: 0;
     min-width: 0;
     word-break: break-word;
