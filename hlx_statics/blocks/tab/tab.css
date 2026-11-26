@@ -70,10 +70,6 @@ main div.tab-wrapper div.code-toolbar>.toolbar>.toolbar-item>button {
     border-radius: 0;
 }
 
-main div.tab-wrapper .line-numbers-rows>span {
-    height: 24px !important;
-}
-
 @media only screen and (max-width: 860px) {
 
     main div.tab-wrapper div.code-toolbar>.toolbar>.toolbar-item>button {
