@@ -1134,7 +1134,8 @@ export default async function decorate(block) {
     });
   });
 
-  const isFiltersDisabled = parsedReleasesMetadata?.filters === false;
+  const hasMetadataAttribute = Boolean(metadataAttr && metadataAttr.trim());
+  const isFiltersDisabled = !hasMetadataAttribute || parsedReleasesMetadata?.filters === false;
   const hasConfiguredFilters = Array.isArray(parsedReleasesMetadata?.filters);
   const configuredFilters = hasConfiguredFilters ? parsedReleasesMetadata.filters : null;
 
@@ -1216,7 +1217,7 @@ export default async function decorate(block) {
     }
   }
 
-  const showModuleFilter = isFilterConfigured('module') && hasModulesInYaml && moduleOptions.length > 0;
+  const showModuleFilter = hasMetadataAttribute && isFilterConfigured('module') && hasModulesInYaml && moduleOptions.length > 0;
 
   const contentYears = Array.from(new Set(releases.map((r) => r.year).filter((y) => y && !isNaN(Number(y)))))
     .sort((a, b) => Number(b) - Number(a));
@@ -1626,7 +1627,7 @@ export default async function decorate(block) {
 
   applyFilters();
 
-  const hasAnyVisibleFilters = showModuleFilter || showYearFilter || showMonthFilter || showTypeFilter;
+  const hasAnyVisibleFilters = hasMetadataAttribute && (showModuleFilter || showYearFilter || showMonthFilter || showTypeFilter);
   if (hasAnyVisibleFilters) {
     container.append(headerSection, filterCard, resultsContainer);
   } else {
