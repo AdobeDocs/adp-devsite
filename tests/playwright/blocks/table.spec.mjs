@@ -94,8 +94,14 @@ function devBizBlock(page, variant) {
   return page.locator(variant.selector);
 }
 
+function bodyRowsOf(block) {
+  return block.locator(':scope > table > tbody > tr');
+}
+
 function libraryMetadataFor(block) {
-  return wrapperOf(block).locator('xpath=following-sibling::*[1]');
+  return wrapperOf(block)
+    .locator('xpath=following-sibling::*[1]')
+    .locator(':scope > .library-metadata');
 }
 
 async function expectSpectrumTable(block, { headerCount, rowCount }) {
@@ -107,21 +113,20 @@ async function expectSpectrumTable(block, { headerCount, rowCount }) {
   await expect(block).toHaveAttribute('daa-lh', 'table');
   await expect(block).toHaveAttribute('dir', 'ltr');
   await expect(table).toHaveCount(1);
-  await expect(table).toHaveClass(/\bspectrum-Table\b/);
-  await expect(table).toHaveClass(/\bspectrum-Table--sizeM\b/);
-  await expect(table).toHaveClass(/\bspectrum-Table--spacious\b/);
+  await expect(table)
+    .toContainClass('spectrum-Table spectrum-Table--sizeM spectrum-Table--spacious');
   await expect(table.locator(':scope > thead.spectrum-Table-head')).toHaveCount(1);
   await expect(table.locator(':scope > tbody.spectrum-Table-body')).toHaveCount(1);
   await expect(headerCells).toHaveCount(headerCount);
   await expect(bodyRows).toHaveCount(rowCount);
 
   for (let index = 0; index < headerCount; index += 1) {
-    await expect(headerCells.nth(index)).toHaveClass(/\bspectrum-Table-headCell\b/);
+    await expect(headerCells.nth(index)).toContainClass('spectrum-Table-headCell');
     await expect(headerCells.nth(index)).toHaveAttribute('scope', 'col');
   }
   for (let index = 0; index < rowCount; index += 1) {
     const row = bodyRows.nth(index);
-    await expect(row).toHaveClass(/\bspectrum-Table-row\b/);
+    await expect(row).toContainClass('spectrum-Table-row');
     await expect(row.locator(':scope > td.spectrum-Table-cell'))
       .toHaveCount(headerCount);
   }
@@ -143,7 +148,6 @@ async function openDevDocsTablePage(page) {
   for (const example of devDocsExamples) {
     const block = devDocsBlock(page, example);
     await expect(block, `${example.name} should be uniquely identifiable`).toHaveCount(1);
-    await expect(block).toHaveClass(/\bbackground-color-white\b/);
   }
 }
 
@@ -154,8 +158,6 @@ async function expectDevDocsExample(page, example) {
     rowCount: example.rows.length,
   });
 
-  await expect(block).toHaveClass(/\bbackground-color-white\b/);
-  await expect(wrapperOf(block)).toHaveCSS('background-color', whiteBackground);
   await expect(wrapperOf(block)).toHaveCSS('overflow-x', 'auto');
   await expect(table.locator('thead th')).toHaveText(example.headers);
 
@@ -174,9 +176,10 @@ async function openDevBizTablePage(page) {
 
   for (const variant of devBizVariants) {
     const block = devBizBlock(page, variant);
+    const metadata = libraryMetadataFor(block);
     await expect(block, `${variant.name} should be uniquely identifiable`).toHaveCount(1);
-    await expect(libraryMetadataFor(block)).toHaveClass(/\blibrary-metadata\b/);
-    await expect(libraryMetadataFor(block)).toContainText(variant.metadataName);
+    await expect(metadata, `${variant.name} should have its library description`).toHaveCount(1);
+    await expect(metadata.getByText(variant.metadataName, { exact: true })).toHaveCount(1);
   }
 
   await page.evaluate(() => document.fonts.ready);
@@ -189,15 +192,20 @@ async function expectDevBizVariant(page, variant) {
     rowCount: devBizRowLabels.length,
   });
 
-  if (variant.backgroundColor === whiteBackground) {
-    await expect(block).toHaveClass(/\bbackground-color-white\b/);
-  } else {
-    await expect(block).not.toHaveClass(/\bbackground-color-white\b/);
-  }
-  await expect(wrapperOf(block)).toHaveCSS('background-color', variant.backgroundColor);
   await expect(wrapperOf(block)).toHaveCSS('overflow-x', 'auto');
 
   return { block, table };
+}
+
+async function expectBackground(block, backgroundColor) {
+  if (backgroundColor === whiteBackground) {
+    await expect(block).toContainClass('background-color-white');
+  } else {
+    await expect(block).not.toContainClass('background-color-white');
+  }
+  // Screenshot comparison does not detect a gray-to-white change, so this
+  // computed style is what proves the background color.
+  await expect(wrapperOf(block)).toHaveCSS('background-color', backgroundColor);
 }
 
 async function prepareScreenshot(page, target) {
@@ -220,8 +228,7 @@ test.describe('Table DevDocs reference', () => {
   });
 
   test('preserves standard values and converts escaped breaks inside cells', async ({ page }) => {
-    const { table: standardTable } = await expectDevDocsExample(page, devDocsExamples[0]);
-    const standardRows = standardTable.locator('tbody > tr');
+    const standardRows = bodyRowsOf(devDocsBlock(page, devDocsExamples[0]));
 
     for (let index = 0; index < devDocsExamples[0].rows.length; index += 1) {
       await expect(standardRows.nth(index).locator(':scope > td'))
@@ -229,8 +236,7 @@ test.describe('Table DevDocs reference', () => {
     }
 
     const multilineExample = devDocsExamples[1];
-    const { table: multilineTable } = await expectDevDocsExample(page, multilineExample);
-    const multilineRows = multilineTable.locator('tbody > tr');
+    const multilineRows = bodyRowsOf(devDocsBlock(page, multilineExample));
 
     for (let index = 0; index < multilineExample.rows.length; index += 1) {
       const expected = multilineExample.rows[index];
@@ -245,11 +251,18 @@ test.describe('Table DevDocs reference', () => {
     }
   });
 
+  test('uses a white background for both examples', async ({ page }) => {
+    for (const example of devDocsExamples) {
+      await expectBackground(devDocsBlock(page, example), whiteBackground);
+    }
+  });
+
   for (const example of devDocsExamples) {
     test(`matches the ${example.name} visual`, async ({ page }) => {
       const { block } = await expectDevDocsExample(page, example);
       const wrapper = wrapperOf(block);
 
+      await expectBackground(block, whiteBackground);
       await prepareScreenshot(page, wrapper);
       await expect(wrapper).toHaveScreenshot(example.snapshot);
     });
@@ -270,20 +283,16 @@ test.describe('Table DevBiz reference', () => {
   });
 
   test('preserves authored wide-table content and row alignment', async ({ page }) => {
-    const { table } = await expectDevBizVariant(page, devBizVariants[0]);
-    const firstRow = table.locator('tbody > tr').first();
+    const firstRow = bodyRowsOf(devBizBlock(page, devBizVariants[0])).first();
 
-    await expect(table.locator('thead th')).toHaveText(devBizHeaders);
     await expect(firstRow.locator(':scope > td')).toHaveText(devBizFirstRow);
-    await expect(firstRow.locator(':scope > td').nth(4)).toHaveText('faucibus');
-    await expect(firstRow.locator(':scope > td').last()).toHaveText('Free');
   });
 
   test('uses gray by default and white for the background-color-white variant', async ({
     page,
   }) => {
     for (const variant of devBizVariants) {
-      await expectDevBizVariant(page, variant);
+      await expectBackground(devBizBlock(page, variant), variant.backgroundColor);
     }
   });
 
@@ -292,6 +301,7 @@ test.describe('Table DevBiz reference', () => {
       const { block } = await expectDevBizVariant(page, variant);
       const wrapper = wrapperOf(block);
 
+      await expectBackground(block, variant.backgroundColor);
       await prepareScreenshot(page, wrapper);
       await expect(wrapper).toHaveScreenshot(variant.snapshot);
     });
