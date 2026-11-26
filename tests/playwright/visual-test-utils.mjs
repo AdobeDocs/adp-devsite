@@ -19,11 +19,16 @@ export async function hideNonComponentContent(page) {
 
 const codeSampleSelector = 'code[class*="language-"], [class*="language-"] code';
 
-async function waitForLateDevDocsLayout(page) {
-  if (await page.locator('meta[name="githubblobpath"]').count()) {
-    await expect(page.locator('.github-actions-wrapper')).toBeAttached();
-  }
-
+/**
+ * Waits for Prism to finish highlighting the page's code samples.
+ *
+ * Prism loads only when a code sample comes near the viewport, so scroll the
+ * code into view first. Returns at once when no code sample is near the
+ * viewport.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+export async function waitForPrismHighlighting(page) {
   const prismWillLoad = await page.evaluate((selector) => (
     [...document.querySelectorAll(selector)].some((code) => {
       const { top, bottom, height } = code.getBoundingClientRect();
@@ -45,6 +50,14 @@ async function waitForLateDevDocsLayout(page) {
       code.parentElement?.tagName !== 'PRE' || Boolean(code.closest('.code-toolbar'))
     ));
   }, codeSampleSelector), 'Prism should finish highlighting the code samples').toBe(true);
+}
+
+async function waitForLateDevDocsLayout(page) {
+  if (await page.locator('meta[name="githubblobpath"]').count()) {
+    await expect(page.locator('.github-actions-wrapper')).toBeAttached();
+  }
+
+  await waitForPrismHighlighting(page);
 }
 
 /**
