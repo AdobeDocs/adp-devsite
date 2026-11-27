@@ -1,10 +1,14 @@
+main div.table-wrapper:has(.table.background-color-white) {
+  background-color: white;
+}
+
 main div.table-wrapper {
   padding-left: 32px;
   padding-right: 32px;
 }
 
 main div.table-wrapper {
-  background: white;
+  background: rgb(245, 245, 245);
   overflow-x: auto;
 }
 
